@@ -47,12 +47,19 @@ the historical decomposition.
 
 ## Relevant Background Literature
 **Belzer, D. B. (2014). A Comprehensive System of Energy Intensity Indicators for the U.S.: Methods, Data and Key Trends (PNNL-22267). Pacific Northwest National Laboratory (PNNL). https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-22267.pdf
+
 Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007
+
 Ang, B. W. (2005). The LMDI approach to decomposition analysis: a practical guide. *Energy Policy*, 33(7), 867–871. https://doi.org/10.1016/j.enpol.2003.10.010
+
 Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007**
+
 Su, B., & Ang, B. W. (2012). Structural decomposition analysis applied to energy and emissions: Some methodological developments. *Energy Economics, 34(1)*, 177–188. https://doi.org/10.1016/j.eneco.2011.10.009
+
 Wang, H., Ang, B. W., & Su, B. (2017). Multiplicative structural decomposition analysis of energy and emission intensities: Some methodological issues. *Energy*, 123, 47–63. https://doi.org/10.1016/j.energy.2017.01.141
+
 Wang, H., Ang, B. W., & Su, B. (2017). Assessing drivers of economy-wide energy use and emissions: IDA versus SDA. *Energy Policy*, 107, 585–599. https://doi.org/10.1016/j.enpol.2017.05.034
+
 **Velasco-Fernández, R., Dunlop, T., & Giampietro, M. (2019). Fallacies of energy efficiency indicators: Recognizing the complexity of the metabolic pattern of the economy. *Energy Policy*, 111089. https://doi.org/10.1016/j.enpol.2019.111089**
 
 ## Project Resources
