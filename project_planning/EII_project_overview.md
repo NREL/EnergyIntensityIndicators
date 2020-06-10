@@ -46,13 +46,13 @@ outside of EII spreadsheets).
 the historical decomposition.
 
 ## Relevant Background Literature
-**Belzer, D. B. (2014). A Comprehensive System of Energy Intensity Indicators for the U.S.: Methods, Data and Key Trends (PNNL-22267). Pacific Northwest National Laboratory (PNNL). https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-22267.pdf
+**Belzer, D. B. (2014). A Comprehensive System of Energy Intensity Indicators for the U.S.: Methods, Data and Key Trends (PNNL-22267). Pacific Northwest National Laboratory (PNNL). https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-22267.pdf**
 
-Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007
+**Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007**
 
-Ang, B. W. (2005). The LMDI approach to decomposition analysis: a practical guide. *Energy Policy*, 33(7), 867–871. https://doi.org/10.1016/j.enpol.2003.10.010
+**Ang, B. W. (2005). The LMDI approach to decomposition analysis: a practical guide. *Energy Policy*, 33(7), 867–871. https://doi.org/10.1016/j.enpol.2003.10.010**
 
-Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007**
+**Ang, B. W. (2015). LMDI decomposition approach: A guide for implementation. *Energy Policy*, 86, 233–238. https://doi.org/10.1016/j.enpol.2015.07.007**
 
 Su, B., & Ang, B. W. (2012). Structural decomposition analysis applied to energy and emissions: Some methodological developments. *Energy Economics, 34(1)*, 177–188. https://doi.org/10.1016/j.eneco.2011.10.009
 
