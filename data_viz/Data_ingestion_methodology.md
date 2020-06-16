@@ -29,7 +29,7 @@ The following data types have been proposed (an ellipsis ... indicates an option
 
 `@latlong`
 -	Latitude and longitude coordinates
-##Example
+## Example
 A user could create the following column headers:
 `@filter|Generation|Renewable|Solar#Twh`
 `@filter|Generation|Renewable|Wind#Twh`
@@ -39,14 +39,14 @@ A user could create the following column headers:
 This would structure the inputs in the following way:
 Generation(Twh)
 -	Renewable
--	Solar
--	Wind
+  -	Solar
+  -	Wind
 -	Non-renewable
--	Coal
--	Natural Gas
+  -	Coal
+  -	Natural Gas
 
-##Input Format
+## Input Format
 The data ingestion will utilize comma separated value (CSV) spreadsheets rather than Excel files. While powerful, Excel files are more complicated to parse and do not add any significant advantages to this data ingestion model. CSV files are an easy-to-use format than can be opened and modified in many different programs without risking formatting or data corruption issues that may arise from Excel files.
 
-##Conclusion
+## Conclusion
 We feel this column naming convention will support the development of a flexible tool while being simple enough for novice users and our initial prototype.
