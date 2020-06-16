@@ -1,4 +1,4 @@
-# OpenEI Data Visualization Generator – Data Ingestion Methodology
+# [OpenEI](https://openei.org/wiki/Main_Page) Data Visualization Generator – Data Ingestion Methodology
 
 After some discussion, it became evident that the column naming convention would be the key component to the development of a flexible, ingestible data model.  We believe the following column naming convention will afford the tool the most flexibility while meeting the needs for data classification including identification of the data type, categories, label, and units to the data value, which will be stored in rows under the column header.
 
@@ -30,20 +30,20 @@ The following data types have been proposed (an ellipsis ... indicates an option
 `@latlong`
 -	Latitude and longitude coordinates
 ## Example
-A user could create the following column headers:
-`@filter|Generation|Renewable|Solar#Twh`
-`@filter|Generation|Renewable|Wind#Twh`
-`@filter|Generation|Non-Renewable|Coal#Twh`
+A user could create the following column headers:  
+`@filter|Generation|Renewable|Solar#Twh`  
+`@filter|Generation|Renewable|Wind#Twh`  
+`@filter|Generation|Non-Renewable|Coal#Twh`  
 `@filter|Generation|Non-Renewable|Natural Gas#Twh`
 
 This would structure the inputs in the following way:
 Generation(Twh)
--	Renewable
-  -	Solar
-  -	Wind
--	Non-renewable
-  -	Coal
-  -	Natural Gas
+*	Renewable
+    -	Solar
+    -	Wind
+*	Non-renewable
+    -	Coal
+    -	Natural Gas
 
 ## Input Format
 The data ingestion will utilize comma separated value (CSV) spreadsheets rather than Excel files. While powerful, Excel files are more complicated to parse and do not add any significant advantages to this data ingestion model. CSV files are an easy-to-use format than can be opened and modified in many different programs without risking formatting or data corruption issues that may arise from Excel files.
