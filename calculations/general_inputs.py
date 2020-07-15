@@ -27,8 +27,12 @@ class IntensityIndicators:
 
 	def __init__(self, df, ):
 		self.dataset = df 
+
+
 	def sum_row():
 		""""Sum sub-categories of type"""
+
+
 	def energy_consumption():
 		"""
 		Calculate energy shares
@@ -40,21 +44,34 @@ class IntensityIndicators:
 		self.total_source = 
 		self.source_deliveredelectricityratio = 
 
+
 	def activity():
 		"""millionpm_milliontm"""
 		self.source = 
+
+
 	def nominal_energy_intensity():
 		"""btu_per_pm"""
+
+
 	def weather_factors():
 		""""""
 		self.weather_factors_fuels = 
 		self.weather_factors_electricity = 
+
+
 	def structure_index():
 		""""""
+
+
 	def energy_intensity_index():
 		""""""
+
+
 	def structure_index():
 		""""""
+
+
 	def final_indexes(self):  # 1985 = 1.0
 		""""""
 		# Decomposition of Source Energy
@@ -75,39 +92,71 @@ class IntensityIndicators:
 		self.structure_electric_generation_efficiency = 
 		self.aggregate_source_energy_intensity = 
 
+
 	def energy_shares(fuels, source_electricity):
 		""""""
+
+
 	def log_mean_divisia_shares(fuels, source_electricity):
 		""""""
 
+
 	def log_mean_weights(fuels, source_electricity):
 		""""""
+
+
 	def log_mean_divisia_weights_normalized(fuels, source_electricity):
 		""""""
+
+
 	def log_changes_intensity(fuels, delivered_electricity):
 		""""""
+
+
 	def log_changes_total_delivered():
 		""""""
+
+
 	def energy_share_delivered(fuels, electricity):
 		""""""
+
+
 	def log_changes_shares(fuels, electricity):
 		""""""
+
+
 	def log_changes_weather(fuels, delivered_electricity):
 		""""""
+
+
 	def log_changes_source_to_site():
 		""""""
+
+
 	def activity_index(fuels, source_electricity):
 		""""""
+
+
 	def log_changes_activity(fuels, source_electricity):
 		""""""
+
+
 	def source_intensity():
 		""""""
+
+
 	def weather_adjustment():
 		""""""
+
+
 	def electric_power_sector():
 		""""""
+
+
 	def total_delivered():
 		"""check purposes only"""
+
+		
 	def electrification_effect():
 		""""""
 	
