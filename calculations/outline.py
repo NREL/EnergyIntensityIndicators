@@ -10,16 +10,20 @@ class LMDIMultiplicative:
 	def __init__(self, df, categories_list):
 		self.dataset = df 
         self.categories_list = categories_list
-    def sum_row(self):
+
 
     def load_energy_data(self):
         pass
+
+
     def caculate_energy_shares(self):
         """"sum row, calculate each as percentage of total"""
         self.dataset['Energy_Consumption_Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
         for category in self.categories_list:
             self.dataset[f'{category}_energy_shares'] = self.dataset.apply(lamba x: x[category] / x['Total'])
         return self.dataset
+
+
     def calculate_log_mean_weights(self):
         for i in self.categories_list:
             for i in self.dataset.index: 
@@ -29,6 +33,8 @@ class LMDIMultiplicative:
                     self.dataset.loc[i, f'{category}_log_mean_divisia_weights'] = 0
         self.dataset['Log-Mean Divisia Weights Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
         return self.dataset
+
+
     def calculate_log_mean_weights_normalized(self):
         for category in self.categories_list:
             for i in self.dataset.index:
@@ -162,6 +168,10 @@ class LMDIAdditive:
     def structure_index((self, ):
         pass
 
-    
+
     def component_intensity_index((self, ):
         pass
+
+
+
+def sum_row(self):
