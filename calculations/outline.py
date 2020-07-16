@@ -11,10 +11,8 @@ class LMDIMultiplicative:
 		self.dataset = df 
         self.categories_list = categories_list
 
-
     def load_energy_data(self):
         pass
-
 
     def caculate_energy_shares(self):
         """"sum row, calculate each as percentage of total"""
@@ -22,7 +20,6 @@ class LMDIMultiplicative:
         for category in self.categories_list:
             self.dataset[f'{category}_energy_shares'] = self.dataset.apply(lamba x: x[category] / x['Total'])
         return self.dataset
-
 
     def calculate_log_mean_weights(self):
         for i in self.categories_list:
@@ -34,7 +31,6 @@ class LMDIMultiplicative:
         self.dataset['Log-Mean Divisia Weights Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
         return self.dataset
 
-
     def calculate_log_mean_weights_normalized(self):
         for category in self.categories_list:
             for i in self.dataset.index:
@@ -45,7 +41,6 @@ class LMDIMultiplicative:
     def load_activity_data(self):
         pass
 
-
     def calculate_activity_shares(self):
         """"sum row, calculate each as percentage of total"""
         self.dataset['Activity_Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
@@ -53,12 +48,10 @@ class LMDIMultiplicative:
             self.dataset[f'{category}_energy_shares'] = self.dataset.apply(lamba x: x[category] / x['Total'])
         return self.dataset
 
-
     def calculate_log_changes_activity_shares(self, df_name, df):                                                                        
         for i in df.index: 
             for category in self.categories_list:
                 df.at[i, f'{categories_list}_df_name_activities_share'] = df.loc
-
 
     def compute_structure_index(self):
         self.index_chg = 
@@ -70,28 +63,21 @@ class LMDIMultiplicative:
         """input: base_year"""
         pass
 
-
     def calculate_log_changes_intensity(self, ):
         pass
-
 
     def compute_intensity_index(self, ):
         pass
 
-
     ///////////////////////////////////////////////////
-
     def activity_index(self, ):
         pass
-
 
     def index_of_aggregate_intensity(self, ):
         pass
 
-
     def structure_index(self, ):
         pass
-
 
     def component_intensity_index(self, ):
         pass
@@ -106,19 +92,15 @@ class LMDIAdditive:
 	def __init__(self, df, ):
 		self.dataset = df 
 
-
     def load_energy_data(self, ):
         pass
-
 
     def caculate_energy_shares(self, ):
         """"sum row, calculate each as percentage of total"""
         pass
 
-
     def calculate_log_mean_weights(self, ):
         pass
-
 
     def calculate_log_mean_weights_normalized(self, ):
         pass
@@ -127,18 +109,14 @@ class LMDIAdditive:
     def load_activity_data(self, ):
         pass
 
-
     def calculate_activity_shares((self, ):
         pass
-
 
     def calculate_log_changes_activity_shares((self, ):
         pass
 
-
     def compute_structure_index((self, ):
         pass
-
 
     ///////////////////////////////////////////////////
 
@@ -146,32 +124,25 @@ class LMDIAdditive:
         """Input: base_year""""
         pass
 
-
     def calculate_log_changes_intensity((self, ):
         pass
 
-
     def compute_intensity_index((self, ):
         pass
-
 
     ///////////////////////////////////////////////////
 
     def activity_index((self, ):
         pass
 
-
     def index_of_aggregate_intensity((self, ):
         pass
-
 
     def structure_index((self, ):
         pass
 
-
     def component_intensity_index((self, ):
         pass
-
 
 
 def sum_row(self):
