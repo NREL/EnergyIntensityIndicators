@@ -37,7 +37,7 @@ class LMDIMultiplicative:
                 if i >= 1:
                     self.dataset.loc[i, f'{category}_log_mean_divisia_weights_normalized'] = self.dataset.loc[i, f'{category}_log_mean_divisia_weights'] / 
 
-    ///////////////////////////////////////////////////
+    ##################################################
     def load_activity_data(self):
         pass
 
@@ -57,8 +57,8 @@ class LMDIMultiplicative:
         self.index_chg = 
         self.index = 
         self.index_normalized =  # 1985=1
-    ///////////////////////////////////////////////////
 
+    ##################################################
     def calculate_energy_intensity_nominal(self, ):
         """input: base_year"""
         pass
@@ -69,7 +69,7 @@ class LMDIMultiplicative:
     def compute_intensity_index(self, ):
         pass
 
-    ///////////////////////////////////////////////////
+    ##################################################
     def activity_index(self, ):
         pass
 
@@ -105,7 +105,7 @@ class LMDIAdditive:
     def calculate_log_mean_weights_normalized(self, ):
         pass
 
-    ///////////////////////////////////////////////////
+    ##################################################
     def load_activity_data(self, ):
         pass
 
@@ -118,8 +118,7 @@ class LMDIAdditive:
     def compute_structure_index((self, ):
         pass
 
-    ///////////////////////////////////////////////////
-
+    ##################################################
     def calculate_energy_intensity_nominal((self, ):
         """Input: base_year""""
         pass
@@ -130,8 +129,7 @@ class LMDIAdditive:
     def compute_intensity_index((self, ):
         pass
 
-    ///////////////////////////////////////////////////
-
+    ##################################################
     def activity_index((self, ):
         pass
 

@@ -2,8 +2,7 @@ import os
 import json
 import requests
 
-# api_key = os.environ.get("api-token")
-api_key = 'd468f56fc5cfd874b8043a160e401121'
+api_key = os.environ.get("api-token")
 
 api_category_ids = {'seds_consumption_residential': 40209}
 category = 'seds_consumption_residential'
