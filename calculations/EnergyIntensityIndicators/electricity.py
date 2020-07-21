@@ -2,7 +2,22 @@ import pandas as pd
 from sklearn import linear_model
 
 
-class ElectricityIndicators: 
+class ElectricityIndicators(LMDI):
+    
+    categories_electricity = ['Elec Generation Total', 'All CHP']
+    categories_elec_generation = ['Elec Power Sector', 'Commercial Sector', 'Industrial Sector']
+    categories_elec_power_sector = ['Electricity Only', 'Combined Heat & Power']
+    categories_electricity_only = ['Fossil Fuels', 'Nuclear', 'Hydro Electric', 'Renewable']
+    categories_fossil_fuels = ['Coal', 'Petroleum', 'Natural Gas', 'Other Gasses']
+    categories_renewable = ['Wood', 'Waste', 'Geothermal', 'Solar', 'Wind']
+    categories_combined_heat_power = ['Fossil Fuels', 'Renewable']
+    categories_chp_renewable = ['Wood', 'Waste']
+    categories_all_chp = ['Elec Power Sector', 'Industrial Secotor']
+    categories_sub_all_chp = ['Fossil Fuels', 'Renewable', 'Other']
+
+    def super().__init__():
+        pass 
+
     def __init__(self, ):
 		self. =
 
@@ -97,14 +112,5 @@ class ElectricityIndicators:
 
 
 
-categories_electricity = ['Elec Generation Total', 'All CHP']
-categories_elec_generation = ['Elec Power Sector', 'Commercial Sector', 'Industrial Sector']
-categories_elec_power_sector = ['Electricity Only', 'Combined Heat & Power']
-categories_electricity_only = ['Fossil Fuels', 'Nuclear', 'Hydro Electric', 'Renewable']
-categories_fossil_fuels = ['Coal', 'Petroleum', 'Natural Gas', 'Other Gasses']
-categories_renewable = ['Wood', 'Waste', 'Geothermal', 'Solar', 'Wind']
-categories_combined_heat_power = ['Fossil Fuels', 'Renewable']
-categories_chp_renewable = ['Wood', 'Waste']
-categories_all_chp = ['Elec Power Sector', 'Industrial Secotor']
-categories_sub_all_chp = ['Fossil Fuels', 'Renewable', 'Other']
+
 

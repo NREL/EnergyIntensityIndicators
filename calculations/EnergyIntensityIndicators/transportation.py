@@ -1,7 +1,27 @@
 import pandas as pd
 from sklearn import linear_model
 
-class TransportationIndicators:
+class TransportationIndicators(LMDI):
+    
+    categories_total_transportation = ['All Passenger', 'All Freight']
+    categories_passenger_total = ['Highway', 'Rail', 'Air']
+    categories_passenger_highway = ['Passenger Cars and Trucks', 'Buses', 'Paratransit']
+    categories_personal_vehicles = ['Passenger Car – SWB Vehicles', 'Light Trucks – LWB Vehicles', 'Motorcycles']
+    categories_cars_and_swb_vehicles = ['Passenger Car', 'SWB Vehicles']
+    categories_light_trucks_and_lwb = ['Light Trucks', 'LWB Vehicles']
+    categories_buses = ['Urban Bus', 'Intercity Bus', 'School Bus']
+    categories_passenger_air = ['Commercial Carriers', 'General Aviation']
+    categories_passenger_rail = ['Urban Rail', 'Intercity Rail']
+    categories_commuter_rail = ['Commuter Rail', 'Heavy Rail', 'Light Rail']
+    categories_freight_total = ['Highway', 'Rail', 'Air', 'Waterborne', 'Pipeline']
+    categories_freight_trucks = ['Single-Unit Truck', 'Combination Truck']
+    categories_pipelines = ['Oil Pipeline', 'Natural Gas Pipeline']
+    categories_personal_vehicles_aggregate = ['Passenger Car', 'Light Truck', 'Motorcycles']
+
+
+    def super().__init__():
+        pass
+    
     def __init__(self, ):
 		self. =
 
@@ -56,17 +76,3 @@ class TransportationIndicators:
         pass
 
 
-categories_total_transportation = ['All Passenger', 'All Freight']
-categories_passenger_total = ['Highway', 'Rail', 'Air']
-categories_passenger_highway = ['Passenger Cars and Trucks', 'Buses', 'Paratransit']
-categories_personal_vehicles = ['Passenger Car – SWB Vehicles', 'Light Trucks – LWB Vehicles', 'Motorcycles']
-categories_cars_and_swb_vehicles = ['Passenger Car', 'SWB Vehicles']
-categories_light_trucks_and_lwb = ['Light Trucks', 'LWB Vehicles']
-categories_buses = ['Urban Bus', 'Intercity Bus', 'School Bus']
-categories_passenger_air = ['Commercial Carriers', 'General Aviation']
-categories_passenger_rail = ['Urban Rail', 'Intercity Rail']
-categories_commuter_rail = ['Commuter Rail', 'Heavy Rail', 'Light Rail']
-categories_freight_total = ['Highway', 'Rail', 'Air', 'Waterborne', 'Pipeline']
-categories_freight_trucks = ['Single-Unit Truck', 'Combination Truck']
-categories_pipelines = ['Oil Pipeline', 'Natural Gas Pipeline']
-categories_personal_vehicles_aggregate = ['Passenger Car', 'Light Truck', 'Motorcycles']

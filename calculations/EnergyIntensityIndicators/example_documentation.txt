@@ -1,0 +1,16 @@
+      """Parse batch config object for useful data.
+        Parameters
+        ----------
+        config : from reV.config.batch.BatchConfig
+            reV batch config object that emulates a dict.
+        Returns
+        -------
+        arg_combs : list
+            List of dictionaries representing the different arg/value
+            combinations made available in the batch config json.
+        file_sets : list
+            List of same length as arg_combs, representing the files to
+            manipulate for each arg comb.
+        set_tags : list
+            List of strings of tags for each batch job set.
+        """

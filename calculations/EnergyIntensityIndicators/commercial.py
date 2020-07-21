@@ -19,7 +19,11 @@ Methodology: Perpetual inventory model, where estimates of new additions and rem
              to update the current year"""
 
 
-class CommercialIndicators:
+class CommercialIndicators(LMDI):
+    
+    def super().__init__():
+        pass
+
     def __init__(self, ):
 		self. =
 

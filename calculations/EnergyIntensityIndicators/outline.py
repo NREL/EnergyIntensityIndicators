@@ -1,7 +1,8 @@
 import pandas as pd
 from sklearn import linear_model
 
-class LMDIMultiplicative:
+class LMDI:
+    """Base class for LMDI"""
     index_base_year_primary = 1985
 	index_base_year_secondary = 1996  # not used
 	charts_starting_year = 1985
@@ -82,65 +83,11 @@ class LMDIMultiplicative:
     def component_intensity_index(self, ):
         pass
 
+    class LMDIMultiplicative:
 
-class LMDIAdditive:
-    index_base_year_primary = 1985
-	index_base_year_secondary = 1996  # not used
-	charts_starting_year = 1985
-	charts_ending_year = 2003 
-
-	def __init__(self, df, ):
-		self.dataset = df 
-
-    def load_energy_data(self, ):
-        pass
-
-    def caculate_energy_shares(self, ):
-        """"sum row, calculate each as percentage of total"""
-        pass
-
-    def calculate_log_mean_weights(self, ):
-        pass
-
-    def calculate_log_mean_weights_normalized(self, ):
-        pass
-
-    ##################################################
-    def load_activity_data(self, ):
-        pass
-
-    def calculate_activity_shares((self, ):
-        pass
-
-    def calculate_log_changes_activity_shares((self, ):
-        pass
-
-    def compute_structure_index((self, ):
-        pass
-
-    ##################################################
-    def calculate_energy_intensity_nominal((self, ):
-        """Input: base_year""""
-        pass
-
-    def calculate_log_changes_intensity((self, ):
-        pass
-
-    def compute_intensity_index((self, ):
-        pass
-
-    ##################################################
-    def activity_index((self, ):
-        pass
-
-    def index_of_aggregate_intensity((self, ):
-        pass
-
-    def structure_index((self, ):
-        pass
-
-    def component_intensity_index((self, ):
-        pass
+    class LMDIAdditive:
 
 
-def sum_row(self):
+
+
+    

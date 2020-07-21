@@ -1,7 +1,10 @@
 import pandas as pd
 from sklearn import linear_model
 
-class IndustrialIndicators:
+class IndustrialIndicators(LMDI):
+    def super().__init__():
+        pass
+
     def __init__(self, ):
 		self. =
 

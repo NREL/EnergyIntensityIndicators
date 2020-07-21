@@ -2,7 +2,17 @@ import pandas as pd
 from sklearn import linear_model
 from .weather_factors import weather_factors
 
-class ResidentialIndicators:
+class ResidentialIndicators(LMDI):
+    
+    categories_residential_national = ['Northeast', 'Midwest', 'South', 'West']
+    categories_residential_northeast = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
+    categories_residential_midwest = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
+    categories_residential_south = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
+    categories_residential_west = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
+
+    def super().__init__():
+        pass
+
     def __init__(self, ):
 		self. =
 
@@ -86,8 +96,4 @@ class ResidentialIndicators:
         pass
 
 
-categories_residential_national = ['Northeast', 'Midwest', 'South', 'West']
-categories_residential_northeast = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-categories_residential_midwest = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-categories_residential_south = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-categories_residential_west = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
+
