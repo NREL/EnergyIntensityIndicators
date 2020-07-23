@@ -3,12 +3,6 @@ from sklearn import linear_model
 from .weather_factors import weather_factors
 
 class ResidentialIndicators(LMDI):
-    
-    categories_residential_national = ['Northeast', 'Midwest', 'South', 'West']
-    categories_residential_northeast = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-    categories_residential_midwest = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-    categories_residential_south = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
-    categories_residential_west = ['Single-Family', 'Multi-Family', 'Manufactured Homes']
 
     def super().__init__():
         pass
@@ -64,36 +58,14 @@ class ResidentialIndicators(LMDI):
         """Data Source: AHS"""
 
     def residential_total_lmdi_utiladj(self, ):
-        """"""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
-    def national(self, ):
-        """"""
-        pass
-
-    def northeast(self, ):
-        """"""
-        pass
-
-    def midwest(self, ):
-        """"""
-        pass
-
-    def south(self, ):
-        """"""
-        pass
-
-    def west(self, ):
-        """"""
-        pass
-
-    def report_tables(self, ):
-        """"""
-        pass
-
-    def report_graphs(self, ):
-        """"""
-        pass
-
-
-
+ 

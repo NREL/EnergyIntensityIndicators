@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn import linear_model
 
 class IndustrialIndicators(LMDI):
+
     def super().__init__():
         pass
 
@@ -21,33 +22,67 @@ class IndustrialIndicators(LMDI):
         pass
 
     def industrial_total_lmdi_utiladj(self, ):
-        """""""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
     def total_industrial(self, ):
-        """"""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
     def manufacturing(self, ):
-        """"""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
     def nonmanufacturing(self, ):
-        """""""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
     def mining(self, ):
-        """"""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass
 
     def conversion_factors(self, ):
-        """"""
-        pass
-
-    def report_chart(self, ):
-        """""""
-        pass
-
-    def charts_wwww(self, ):
-        """"""
+        """purpose
+           Parameters
+           ----
+           
+           Returns
+           ----
+           
+        """
         pass

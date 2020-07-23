@@ -79,20 +79,9 @@ class CommercialIndicators(LMDI):
         state_level_adjustment = 
         pass
 
-    def total_commercial_lmdi_utiladj(self,):
-        """"""
-        pass
-
-    def commercial_total(self,):
-        """"""
-        pass
-
-    def report_tables(self,):
-        """"""
-        pass
-
     def adjusted_supplier_data(self,):
-        """""""
+        """
+        """"
         pass
 
     def national_calibration(self,):
@@ -102,3 +91,4 @@ class CommercialIndicators(LMDI):
     def regional_intensity_aggregate(self,):
         """""""
         pass
+
