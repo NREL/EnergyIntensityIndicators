@@ -3,11 +3,10 @@ from sklearn import linear_model
 
 class IndustrialIndicators(LMDI):
 
-    # def super().__init__():
-    #     pass
+    def __init__(self, energy_data, activity_data, categories_list):
+        super().__init__(energy_data, activity_data, categories_list)
+        self.sub_categories_list = categories_list['industry']
 
-    def __init__(self, ):
-	    pass
 
     def load_data(self, ):
         MER_Nov19_Table24 = 

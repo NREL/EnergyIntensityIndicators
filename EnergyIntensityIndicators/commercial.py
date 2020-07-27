@@ -21,20 +21,19 @@ Methodology: Perpetual inventory model, where estimates of new additions and rem
 
 class CommercialIndicators(LMDI):
     
-    # def super().__init__():
-    #     pass
-
-    def __init__(self, ):
-		pass
+    def __init__(self, energy_data, activity_data, categories_list):
+        super().__init__(energy_data, activity_data, categories_list)
+        self.sub_categories_list = categories_list['commercial']
 
     def load_data(self,):
-        SEDS_CensusRgn = 
-        mer_data23_May_2016 = 
-        mer_data23_Jan_2017 = 
-        mer_data23_Dec_2019 = 
-        AER11_Table21C_Update = 
-        CDD_by_Division18 = 
-        HDD_by_Division18 =
+        # SEDS_CensusRgn = 
+        # mer_data23_May_2016 = 
+        # mer_data23_Jan_2017 = 
+        # mer_data23_Dec_2019 = 
+        # AER11_Table21C_Update = 
+        # CDD_by_Division18 = 
+        # HDD_by_Division18 =
+        pass
 
     def estimate_fuel_electricity_consumption_regional(self,):
         """Data Source: EIA's State Energy Data System (SEDS)"""

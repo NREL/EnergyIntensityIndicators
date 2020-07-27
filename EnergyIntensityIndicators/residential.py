@@ -4,11 +4,10 @@ from .weather_factors import weather_factors
 
 class ResidentialIndicators(LMDI):
 
-    # def super().__init__():
-    #     pass
+    def __init__(self, energy_data, activity_data, categories_list):
+        super().__init__(energy_data, activity_data, categories_list)
+        self.sub_categories_list = categories_list['residential']
 
-    def __init__(self, ):
-		pass
 
     def load_data(self, ):
         AER11_table2_1b_update = 

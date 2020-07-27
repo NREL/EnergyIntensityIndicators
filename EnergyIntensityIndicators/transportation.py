@@ -3,12 +3,9 @@ from sklearn import linear_model
 
 class TransportationIndicators(LMDI):
 
-    # def super().__init__():
-    #     pass
-    
-    def __init__(self, ):
-		# self. =
-        pass
+    def __init__(self, energy_data, activity_data, categories_list):
+        super().__init__(energy_data, activity_data, categories_list)
+        self.sub_categories_list = categories_list['transportation']
 
     def load_data(self, parameter_list):
         mer_table25_dec_2019 =

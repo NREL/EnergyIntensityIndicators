@@ -23,7 +23,8 @@ class LMDI:
                                             {'Passenger Car – SWB Vehicles', 'Light Trucks – LWB Vehicles', 'Motorcycles'}, 
                                         'Buses': 
                                             {'Urban Bus', 'Intercity Bus', 'School Bus'}, 
-                                        'Paratransit', 
+                                        'Paratransit':
+                                            {}, 
                                         'Personal vehicles-aggregate': 
                                             {'Passenger Car', 'Light Truck', 'Motorcycle'}}, 
                                     'Rail': 
@@ -86,25 +87,29 @@ class LMDI:
     index_base_year_primary = 1985
 	index_base_year_secondary = 1996  # not used
 	charts_starting_year = 1985
-	charts_ending_year = 2003 
+	charts_ending_year = 2003
 
-	def __init__(self, df, categories_list):
+	def __init__(self, energy_data, activity_data, categories_list):
         """
         Parameters
         ----------
-        df: dataframe
-        description
+        energy_data: dataframe
+            description
+        activity_data: dataframe
+            description
         categories_list: list
-        description
+            description
         """
-		self.dataset = df 
+		self.energy_data = energy_data
+        self.activity_data = activity_data 
         self.categories_list = categories_list
-
-    def load_energy_data():
-        pass
     
     @staticmethod
-    def calculate_energy_shares(dataset, categories_list):
+    def select_value(dataframe, base_row, base_column):
+        return dataframe.iloc[base_row, base_column].values()
+        
+    @staticmethod
+    def calculate_shares(dataset, categories_list):
         """"sum row, calculate each type of energy as percentage of total
         Parameters
         ----------
@@ -113,16 +118,65 @@ class LMDI:
         
         Returns
         -------
-        energy_shares: dataframe
+        shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        energy_consumption_total = dataset[[categories_list]].sum(axis=1, skipna=True)
-        # for category in categories_list:
-        #     dataset[f'{category}_energy_shares'] = dataset.apply(lamba x: x[category] / x['Total'])
+        consumption_total = dataset[[categories_list]].sum(axis=0, skipna=True)
+        shares = dataset.divide(consumption_total)
+        return shares
 
-        energy_shares = dataset.divide(energy_consumption_total)
-        return energy_shares
+    @staticmethod
+    def calculate_log_changes(dataset):
+        """Calculate the log changes to intensity
+           Parameters
+           ----------
+           dataset: dataframe
 
+           Returns
+           -------
+           log_ratio: dataframe
+
+        """
+        log_ratio = np.log(dataset[['categories_list']].divide(dataset[['categories_list']].shift()))
+
+        return log_ratio
+
+    @staticmethod
+    def compute_index(log_mean_divisia_weights, log_changes_activity_shares, categories_list):
+        """[summary]
+
+        Args:
+            log_mean_divisia_weights ([type]): [description]
+            log_changes_activity_shares ([type]): [description]
+            categories_list ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """                     
+        index_chg = (log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1)
+        index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
+        index_normalized = index / select_value(dataframe=, base_row=base_row, base_column=1) # 1985=1
+
+        return index_chg, index, index_normalized 
+
+    @staticmethod
+    def calculate_log_changes_activity_shares(dataset, categories_list):
+        """purpose
+           Parameters
+           ----------
+           df_name: str
+
+           df: dataframe
+           Returns
+           -------
+           log_changes: dataframe
+                description
+        """
+        change = dataset[['categories_list']].diff()
+        log_ratio = np.log(dataset[['categories_list']] / dataset[['categories_list']].shift())
+        log_changes = change.divide(log_ratio)
+        return log_changes
+    
     @ staticmethod
     def calculate_log_mean_weights(dataset, categories_list):
         """purpose
@@ -137,15 +191,13 @@ class LMDI:
            -------
 
         """
-        for i in self.categories_list:
-            for i in self.dataset.index: 
-                if i >= 1:
-                    self.dataset.loc[i, f'{category}_log_mean_divisia_weights'] = self.dataset.loc[i, f'{category}_energy_shares'] - self.dataset.loc[i-1, f'{category}_energy_shares'] / (self.dataset.loc[i, f'{category}_energy_shares'] / (math.log(self.dataset.loc[i-1, f'{category}_energy_shares'])))
-                else:
-                    self.dataset.loc[i, f'{category}_log_mean_divisia_weights'] = 0
-        self.dataset['Log-Mean Divisia Weights Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
-        return self.dataset
 
+        change = dataset[['categories_list']].diff()
+        log_ratio = np.log(dataset[['categories_list']] / dataset[['categories_list']].shift())
+        log_changes = change.divide(log_ratio)
+        log_mean_divisia_weights_total = dataset[[categories_list]].sum(axis=0, skipna=True)
+
+        return log_changes, log_mean_divisia_weights_total
 
     @staticmethod
     def calculate_log_mean_weights_normalized(dataset, categories_list):
@@ -158,94 +210,9 @@ class LMDI:
            log_mean_divisia_weights_normalized: dataframe
                 description
         """
-        # for category in self.categories_list:
-        #     for i in self.dataset.index:
-        #         if i >= 1:
-        #             self.dataset.loc[i, f'{category}_log_mean_divisia_weights_normalized'] = self.dataset.loc[i, f'{category}_log_mean_divisia_weights'] / 
-
-
         log_mean_divisia_weights_total = dataset[[categories_list]].sum(axis=1, skipna=True)
         log_mean_divisia_weights_normalized = dataset.divide(log_mean_divisia_weights_total)
         return log_mean_divisia_weights_normalized
-
-    ##################################################
-    def load_activity_data(self):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    @staticmethod
-    def calculate_activity_shares(dataset, categories_list):
-        """sum row, calculate each as percentage of total
-           Parameters
-           ----------
-           dataset: dataframe 
-                description
-            categories_list: list
-           Returns
-           -------
-           activity_shares: dataframe
-                Description
-        """
-        # self.dataset['Activity_Total'] = self.dataset[[self.categories_list]].sum(axis=0, skipna=True)
-        # for category in self.categories_list:
-        #     self.dataset[f'{category}_energy_shares'] = self.dataset.apply(lamba x: x[category] / x['Total'])
-        # return self.dataset
-
-        activity_total = dataset[[categories_list]].sum(axis=1, skipna=True)
-        activity_shares = dataset.divide(activity_total)
-        return activity_shares
-        
-    @staticmethod
-    def calculate_log_changes_activity_shares(dataset, categories_list):
-        """purpose
-           Parameters
-           ----------
-           df_name: str
-
-           df: dataframe
-           Returns
-           -------
-           log_changes: dataframe
-                description
-        """
-        # for i in df.index: 
-        #     for category in self.categories_list:
-        #         df.at[i, f'{categories_list}_df_name_activities_share'] = df.loc
-        
-        change = dataset[['categories_list']].diff()
-        log_ratio = np.log(dataset[['categories_list']] / dataset[['categories_list']].shift())
-        log_changes = change.divide(log_ratio)
-        return log_changes
-
-    @staticmethod
-    def compute_structure_index(log_mean_divisia_weights, log_changes_activity_shares, categories_list):
-        """purpose
-           Parameters
-           ----------
-           log_mean_divisia_weights: dataframe
-                log-mean divisia weights normalized
-
-            log_changes_activity_shares: dataframe
-
-            categories_list: list
-
-           Returns
-           -------
-           
-        """
-        index_chg = (log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1)
-        index = (index * index_chg.shift()).ffill()  # first value should be set to 1? 
-        divide_by_this = 
-        index_normalized = index / divide_by_this # 1985=1
-
-    ##################################################
 
     @staticmethod
     def adjust_for_weather(data, weather_factors):
@@ -262,6 +229,21 @@ class LMDI:
         """
         weather_adjusted_data = data / weather_factors
         return weather_adjusted_data
+
+
+
+
+
+
+    ##################################################
+
+    energy_shares = calculate_shares()
+    activity_shares = calculate_shares()
+
+        
+
+
+    ##################################################
 
     @staticmethod
     def calculate_energy_intensity_nominal(base_year, energy_consumption, activity, adjustment_factor=1):
@@ -283,28 +265,10 @@ class LMDI:
 
         energy_intensity_nominal = energy_consumption.divide((activity * adjustment_factor))
         return energy_intensity_nominal
+    
 
-    def calculate_log_changes_intensity(self, ):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
 
-    def compute_intensity_index(self, ):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
+
 
     ##################################################
     def activity_index(self, ):
@@ -329,27 +293,37 @@ class LMDI:
         """
         pass
 
-    def structure_index(self, ):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
+    def calculate_lmdi(self):
+        """[summary]
+        """        
+        self.
+        intensity_index = compute_index()
+        structure_index = compute_index(log_mean_divisia_weights, log_changes_activity_shares, categories_list)
+        component_intensity_index = 
+        return
 
-    def component_intensity_index(self, ):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def report_tables(self, ):
         """Create tables for report
