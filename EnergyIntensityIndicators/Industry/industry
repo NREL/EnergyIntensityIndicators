@@ -1,0 +1,17 @@
+"""
+[summary]
+"""
+
+import pandas as pd
+
+# Manufacturing
+def manufacturing():
+    """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by 
+    estimates derived from the Annual Survey of Manufactures (ASM) and the Economic Census (EC) conducted every five years)
+    """    
+# Non Manufacturing
+def non_manufacturing():
+    """Primary Data Sources: Economic Census (previously the Census of Manufactures, Census of Agriculture, and Census of Mining)
+                             Prior to 1985, primary data source is the National Energy Accounts (NEA)
+    """    
+
