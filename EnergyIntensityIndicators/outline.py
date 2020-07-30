@@ -121,7 +121,7 @@ class LMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        consumption_total = dataset[[categories_list]].sum(axis=0, skipna=True)
+        consumption_total = dataset[[categories_list]].sum(axis=1, skipna=True)
         shares = dataset.divide(consumption_total)
         return shares
 
@@ -194,25 +194,11 @@ class LMDI:
 
         change = dataset[['categories_list']].diff()
         log_ratio = np.log(dataset[['categories_list']] / dataset[['categories_list']].shift())
-        log_changes = change.divide(log_ratio)
-        log_mean_divisia_weights_total = dataset[[categories_list]].sum(axis=0, skipna=True)
-
-        return log_changes, log_mean_divisia_weights_total
-
-    @staticmethod
-    def calculate_log_mean_weights_normalized(dataset, categories_list):
-        """Normalize the log-mean divsia weights by the total log-mean divisia for each year 
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           log_mean_divisia_weights_normalized: dataframe
-                description
-        """
+        log_mean_divisia_weights = change.divide(log_ratio)
         log_mean_divisia_weights_total = dataset[[categories_list]].sum(axis=1, skipna=True)
-        log_mean_divisia_weights_normalized = dataset.divide(log_mean_divisia_weights_total)
-        return log_mean_divisia_weights_normalized
+        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total)
+
+        return log_mean_divisia_weights, log_mean_divisia_weights_normalized
 
     @staticmethod
     def adjust_for_weather(data, weather_factors):
@@ -236,11 +222,17 @@ class LMDI:
 
 
     ##################################################
+    
+    # Energy
+    energy_shares = calculate_shares(energy_data, categories)
+    log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = calculate_log_mean_weights(energy_shares, categories)
+    log_changes_intensity = calculate_log_changes(energy_intensity_index)
+    index_chg_energy, index_energy, index_normalized_energy = compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity, categories)
 
-    energy_shares = calculate_shares()
-    activity_shares = calculate_shares()
-
-        
+    # Activity
+    activity_shares = calculate_shares(activity_data, categories)
+    log_changes_activity_shares = calculate_log_changes(activity_shares)
+    index_chg_activity, index_activity, index_normalized_activity = compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares, categories)    
 
 
     ##################################################

@@ -1,1 +1,28 @@
-dfg
+import pandas as pd
+
+class ElectricityData:
+
+    def __init__(self, year):
+        self.year = year
+
+    def get_reconciles():
+        """[summary]
+        """        
+        pass
+
+    def process_utility_level_data(self):
+        eia_923_schedules = pd.read_excel('./')
+
+        net_generation = pd.pivot_table(eia_923_schedules, colums='EIA Sector Number', rows='AERFuel Type Code', aggfunc='sum')  # page A-71,
+                                                                                                    # 'Net Generation' lower right-hand quadrant?
+        net_generation['Grand_Total'] = net_generation[[]].sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
+                                                                                    # plus one for 'Grand Total'. Note: rows is not an arg of pd.pivot_table
+        elec_btu_consumption = pd.pivot_table(eia_923_schedules, colums='EIA Sector Number', rows='AERFuel Type Code', aggfunc='sum')  # page A-71,
+                                                                                                    # 'Elec Fuel ConsumptionMMBTU' lower right-hand quadrant?
+        elec_btu_consumption['Grand_Total'] = elec_btu_consumption[[]].sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
+                                                                                    # plus one for 'Grand Total'
+        previous_years_net_gen = pd.read_excel('./')
+        previous_yeas_elec_btu_consumption = pd.read_excel('./')
+        master_net_gen = previous_years_net_gen.concat(net_generation)
+        maseter_elec_btu_consumption = previous_yeas_elec_btu_consumption.concat(elec_btu_consumption)
+        # Aggregate data?? page A-72 fpr net generation and elec btu consumption

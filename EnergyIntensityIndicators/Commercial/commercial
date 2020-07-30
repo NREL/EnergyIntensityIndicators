@@ -1,1 +1,67 @@
-dfhnvds
+"""[summary]
+"""
+import pandas as pd
+
+
+class GetCommercialData:
+    """
+    Data Sources: 
+    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
+    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
+    SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
+    2014 to 2018". 
+    """    
+
+    def __init__(self):
+        pass
+    
+    def floorspace_estimates():
+        previous_year_stock = pd.read_excel('./')
+        new_construction = pd.read_excel('./')  # Floor space reported in million square feet
+        additions_completed_same_year = .4  # Fraction of new construction completed the same year construction began
+        additions_with_lagged_completion = .6  # Fraction of new construction completed the following year'
+        dodge_adjustment = 1.2  # Account for underreporting by Dodge (column AD in spreadsheet)
+
+        def survival_function():
+            """Non-linear regression model applied to the vintage data from the 1989 and 1999 CBECS
+            """
+            recessional_reductions_level_of_removals =  # 30 to 40% 
+            demolitions_before_2008 = 
+            demolitions_after_2008 =             
+            pass
+
+        pass
+
+    def fuel_and_electricity_consumption_census_region():
+        """[summary]
+        """
+        eia_seds =  # 1960-2017 SEDS data: https://wwww.eia.gov/state/seds/seds-data-complete.php?sid=US
+
+    def intensity_indexes_census_region():
+        """[summary]
+        -Regional etsimates of floorspace are derived by applying regional shares to the total national floor space that were 
+        estimatedwithin the spreadsheet historical_floorspace.xlsx
+        -The time series of regional shares are estimated in the worksheet "Regional Shares" (key data for this process are the 
+        shares of regional floor space reported in the various Commercial Building Energy Consumption Surveys (CBECS) or NBECS for 
+        years prior to 1986)
+        -To provide annual estimates of the shares, the assumption was made that commercial floor space in each region would 
+        generally follow the same trends as population or housing units. Here residential estimates of residential housing units
+        were used to reflect these overall trends. 
+        -For each region, a simple regression model was estimated between the regional housing unit share and the regional commmercial
+        building floor space share from the NBECS/CBECS. The regression employed both shares in log form. Based on the estimated 
+        coefficients from this regression, the annual housing unit values are used to predict the share of commercial floor space 
+        in each region. The normalized shares of floorspace by census region (normalized to sum to 1) are contained in Regional_Floorspace
+        columns E through H. 
+        -Regional floor space levels are calculated by multiplying the regional shares times the national estimate of floorspace  (taken 
+        from sheet called Commercial_Total)
+
+        """
+        pass
+
+    def reclassification_electricity_sales():
+        """[summary]
+        """
+                
+
+
+
