@@ -7,17 +7,25 @@ import os
 def get_ahs():
     """Extract and process American Housing Survey (AHS, formerly Annual Housing Survey)
     """    
-    # 2017_AHS_flat = pd.read_csv('./')
-    # columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
-    # extract_ahs = 2017_AHS_flat[columns]
-    # housing_types = ['single_family', 'multifamily', 'manufactured_homes']
-    # housing_occupancy_types = [f'{h}_total' for h in housing_types] + [f'{h}_occupied' for h in housing_types]
+    2017_AHS_flat = pd.read_csv('./')
+    columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
+    extract_ahs = 2017_AHS_flat[columns]
+    extract_ahs= extract_ahs[extract_ahs['build'].isin(['04', '05', '06', '07', '08', '09'])]
+    housing_types = ['single_family', 'multifamily', 'manufactured_homes']
+    housing_occupancy_types = [f'{h}_total' for h in housing_types] + [f'{h}_occupied' for h in housing_types]
+    housing_type_number = dict(zip()) # match the numbers in ['04', '05', '06', '07', '08', '09'] to housing/occupancy type
 
     # Pivot Tables!!
     #  Rows correspond to various size categories columns correspond to census division which are then aggregated to census regions. 
     #  Only Categorical size data were included in the AHS surveys for 2015 and 2017. An effort to 
     # utilize the category data to estimate the average size change between 2015 and 2017 did not provide useful results. Processing of future AHS public use
     # files may exlcude any consideration of this variable. In the current tables, only the values for total units across all sizes were considered.
+    pivot_all = pd.pivot_table(extract_ahs, values='WEIGHT' , index='UNITSIZE' , columns='DIVISION' , aggfunc='sum')
+    pivot_all['housing_occupany_type'] = ['all'] * len(pivot_all)
+    for type_ in housing_occupany_types:
+        type_df = extract_ahs[extract_ahs['build'] == housing_type_number[type_]]
+        pivot_type = pd.pivot_table(extract_ahs, values='WEIGHT' , index='UNITSIZE' , columns='DIVISION' , aggfunc='sum')
+    
     pass
 
 
@@ -25,5 +33,6 @@ def get_ahs():
 
 print(f'current directory: {os.getcwd()}')
 get_seds()
-                       
+                    
 
+def get_census_bureau_survey_of_new_construction()

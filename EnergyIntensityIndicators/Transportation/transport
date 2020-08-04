@@ -8,8 +8,95 @@ class TranportationData:
 
     def transportation_energy_data_book():
         tedbpath = 'c:\irabidea\Downloads\TEDB_38.1_Spreadsheets_06242020\'
+
+
         # INDICATORS BASED ON TEDB 37?
         
+        transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
+                                                                        {'unit': 'gallons', 'source': 'Table 4.1'}
+                                                                 'total_energy': 
+                                                                        {'unit': 'tbtu', 'source': 'Table A.18'}
+                                                                 'vehicle_miles': 
+                                                                        {'unit': 'miles', 'source': 'Table 4.1'}
+                                                                 'passenger_miles': 
+                                                                        {'unit': 'miles', 'source': 'Table A.18'}},
+                               'Light Trucks – LWB Vehicles': {'total_fuel': 
+                                                                        {'unit': 'gallons', 'source': 'Table 4.2'}
+                                                                 'total_energy': 
+                                                                        {'unit': 'tbtu', 'source': 'Table A.5'}
+                                                                 'vehicle_miles': 
+                                                                        {'unit': 'miles', 'source': 'Table 4.2'}
+                                                                 'passenger_miles':
+                                                                        {'unit': 'miles', 'source': 'Table A.19'}},
+                                'Motorcycles': {'total_fuel': 
+                                                        {'unit': 'gallons', 'source': 'Table A.2'}
+                                                    'total_energy': 
+                                                        {'unit': 'tbtu', 'source': 'Assume all motorcycle fuel is gasoline'}
+                                                    'vehicle_miles': 
+                                                        {'unit': 'miles', 'source': 'BTS Table 1-35 with some interpolation prior to 1990'}
+                                                    'passenger_miles':
+                                                        {'unit': 'miles', 'source': vehicle_miles * 1.1}},
+                                'Urban Bus': {'total_fuel': 
+                                                    {'unit': 'gallons', 'source': 'APTA Public Transportation Fact Book'}
+                                            'total_energy': 
+                                                {'unit': '', 'source': 'Apply conversion factors (Btu/gallon)'}
+                                            'passenger_miles':
+                                                {'unit': 'miles', 'source': 'APTA'}},
+                                'Intercity Bus': {'total_fuel': 
+                                                    {'unit': 'gallons', 'source': 'Earlier data from TEDB-19 later from ABA'}
+                                                 'total_energy': 
+                                                    {'unit': 'tbtu', 'source': 'All fuel assumed to be diesel'}
+                                                 'passenger_miles':
+                                                    {'unit': 'miles', 'source': 'Multiple'}},
+                                'School Bus': {'total_fuel': 
+                                                    {'unit': 'gallons', 'source': 'Table A.4'}
+                                               'total_energy': 
+                                                    {'unit': 'tbtu', 'source': 'Table A.4. Fuel assumed to be 90% diesel, 10% gasoline'}
+                                               'passenger_miles':
+                                                    {'unit': 'miles', 'source': 'Multiple'}},
+                                'Commuter Rail': {'total_fuel': 
+                                                    {'unit': 'kwh_gallons', 'source': 'APTA Public Transportation Fact Book'}
+                                                  'total_energy': 
+                                                    {'unit': 'tbtu', 'source': 'Conversion to TBtu with electricity and diesel energy conversion factors (electricity conversion at 10,339 Btu/kWh from TEDB'}
+                                                  'passenger_miles':
+                                                    {'unit': 'miles', 'source': ' Table 3 of Appendix A of APTA'}},
+                                'Transit Rail (Heavy and Light Rail)': {'total_fuel': 
+                                                                            {'unit': 'kwh_gallons', 'source': '(APTA, Fact Book), Tables 38 and 39 in Appendix A'}
+                                                                        'total_energy': 
+                                                                            {'unit': 'tbtu', 'source': 'Conversion to TBtu as for commuter rail'}
+                                                                        'passenger_miles':
+                                                                            {'unit': 'miles', 'source': 'APTA source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
+                                'Intercity Rail': {'total_fuel': 
+                                                        {'unit': 'kwh_gallons', 'source': '1994-2016" TEDB-37 Table A.16; prior data extrapolated from TEDB-30, Table 9.10'}
+                                                   'total_energy': 
+                                                        {'unit': 'tbtu', 'source': 'Conversion to TBtu as for commuter rail'}
+                                                   'passenger_miles':
+                                                        {'unit': 'miles', 'source': 'APTA source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
+                                'Commercial Carriers': {'total_fuel': 
+                                                            {'unit': 'gallons', 'source': 'TEDB-37, Table A.9'}, 
+                                                        'total_energy':
+                                                            {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                        'passenger_miles':
+                                                            {'unit': 'miles', 'source': '1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use'}},
+                                'General Aviation': {'total_fuel': 
+                                                            {'unit': 'gallons', 'source': 'TEDB-37, Table A.10'}, 
+                                                     'total_energy':
+                                                            {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                     'passenger_miles':
+                                                            {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+                           //////     'Single-Unit Truck': {'total_fuel': 
+                                                            {'unit': 'gallons', 'source': 'TEDB-37, Table A.9'}, 
+                                                     'total_energy':
+                                                            {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                     'vehicle_miles':
+                                                            {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'},
+                                                      'ton_miles': {'unit': , 'source': }},
+                                'Combination Truck': {'total_fuel': 
+                                                            {'unit': 'gallons', 'source': 'TEDB-37, Table A.10'}, 
+                                                     'total_energy':
+                                                            {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                     'vehicle_miles':
+                                                            {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}}  ,                      }
         # Passenger cars, short wheelbase vehicles
         total_fuel_gallons =  # TEDB-37 Table 4.1
         total_energy_tbtu =  # TEDB-37 Table A.18
@@ -28,7 +115,7 @@ class TranportationData:
         vehicle_miles =  # Bureau of Transportation Statistics Table 1-35 with some interpolation prior to 1990
         passenger_miles = vehcile_miles * 1.1 # Assumed load factor fo 1.1 (for all years) X vehicle miles
 
-        # Transit Buses
+        # Transit Buses (is this the same as urban buses?)
         total_fuel_gallons = # American Public Transit Association (APTA), Public Transportation Fact Book
                              # https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
         total_energy = # Apply conversion factors (Btu/gallon). Note: APTA reports GNG in diesel equivalent
