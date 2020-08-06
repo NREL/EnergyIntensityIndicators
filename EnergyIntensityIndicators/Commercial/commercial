@@ -14,6 +14,8 @@ class GetCommercialData:
 
     def __init__(self):
         pass
+
+    def get_saus_table_995():
     
     def floorspace_estimates():
         previous_year_stock = pd.read_excel('./')
@@ -35,7 +37,10 @@ class GetCommercialData:
     def fuel_and_electricity_consumption_census_region():
         """[summary]
         """
-        eia_seds =  # 1960-2017 SEDS data: https://wwww.eia.gov/state/seds/seds-data-complete.php?sid=US
+        eia_seds = pd.read_ # 1960-2017 SEDS data: https://www.eia.gov/state/seds/seds-data-complete.php?sid=US
+        eia_pivot = pd.pivot_table(eia_seds, index=['year', 'region'], columns='MSN', aggfunc='sum')
+        eia_pivot = eia_pivot[['ESCCB', 'TNCCB']]
+
 
     def intensity_indexes_census_region():
         """[summary]
@@ -61,7 +66,7 @@ class GetCommercialData:
     def reclassification_electricity_sales():
         """[summary]
         """
-                
+
 
 
 
