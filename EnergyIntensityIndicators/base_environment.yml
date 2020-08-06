@@ -231,8 +231,9 @@ dependencies:
   - zipp=0.6.0=py_0
   - zlib=1.2.11=h2fa13f4_1006
   - zstd=1.4.0=hd8a0e53_0
-  # - pip:
   # - eia-python==1.22
   - pip==18.1
   - pypdf2==1.26.0
+  -pip: 
+    - eiapy=0.1.5
 prefix: C:\Users\irabidea\Anaconda3\envs\EnergyIntensityIndicators

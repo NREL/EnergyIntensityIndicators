@@ -3,6 +3,7 @@ import json
 import requests
 import pandas as pd
 import numpy as np
+import eiapy
 
 class GetEIAData:
     print('current directory', os.getcwd())
@@ -11,7 +12,8 @@ class GetEIAData:
     api_category_ids = {'EIA Datsets': 371, 'seds_consumption_all': 40204, 'seds_consumption_residential': 40209}
     category = 'seds_consumption_all'
     call  = f'http://api.eia.gov/category/?api_key={api_key}&category_id={api_category_ids[category]}'
-
+    seds_consumption_data = eiapy.Category(api_category_ids[category])
+    seds = eiapy.Series('SEDS.PATCB.AL.A')
     r = requests.get(call)
     files = r.json()
     print(files)

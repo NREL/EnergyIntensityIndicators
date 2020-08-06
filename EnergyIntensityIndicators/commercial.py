@@ -1,6 +1,9 @@
 import pandas as pd
 from sklearn import linear_model
 from .weather_factors import weather_factors
+import math
+import statsmodels.api as sm
+from commercial.commercial import GetCommercialData
 
 
 """Overview and Assumptions: 
@@ -19,6 +22,7 @@ Methodology: Perpetual inventory model, where estimates of new additions and rem
              to update the current year"""
 
 
+
 class CommercialIndicators(LMDI):
     
     def __init__(self, energy_data, activity_data, categories_list):
@@ -26,6 +30,9 @@ class CommercialIndicators(LMDI):
         self.sub_categories_list = categories_list['commercial']
 
     def load_data(self,):
+        # GetCommercialData.__()
+        # cbecs = 
+        # residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
         # SEDS_CensusRgn = 
         # mer_data23_May_2016 = 
         # mer_data23_Jan_2017 = 
@@ -35,13 +42,6 @@ class CommercialIndicators(LMDI):
         # HDD_by_Division18 =
         pass
 
-    def estimate_fuel_electricity_consumption_regional(self,):
-        """Data Source: EIA's State Energy Data System (SEDS)"""
-        energy_consumtpion_data_regional = 
-        approximate_intesity_time_series = 
-        weather_adjustment_factors_regional = 
-        energy_consumption_regional = 
-        return None 
 
     def estimate_regional_floorspace_share(self,):
     """assumed commercial floorspace in each region follows same trends as population or housing units"""
@@ -49,23 +49,51 @@ class CommercialIndicators(LMDI):
     def estimate_intensity_indexes_regional(self, parameter_list):
         """Data Sources: Fuel Consumption and electricity consumption from SEDS, Shares of regional floorspace from CBECs
         Purpose: used to produce weather adjustment facotrs"""
+                """[summary]
+        -Regional etsimates of floorspace are derived by applying regional shares to the total national floor space that were 
+        estimatedwithin the spreadsheet historical_floorspace.xlsx
+        -The time series of regional shares are estimated in the worksheet "Regional Shares" (key data for this process are the 
+        shares of regional floor space reported in the various Commercial Building Energy Consumption Surveys (CBECS) or NBECS for 
+        years prior to 1986)
+        -To provide annual estimates of the shares, the assumption was made that commercial floor space in each region would 
+        generally follow the same trends as population or housing units. Here residential estimates of residential housing units
+        were used to reflect these overall trends. 
+        -For each region, a simple regression model was estimated between the regional housing unit share and the regional commmercial
+        building floor space share from the NBECS/CBECS. The regression employed both shares in log form. Based on the estimated 
+        coefficients from this regression, the annual housing unit values are used to predict the share of commercial floor space 
+        in each region. The normalized shares of floorspace by census region (normalized to sum to 1) are contained in Regional_Floorspace
+        columns E through H. 
+        -Regional floor space levels are calculated by multiplying the regional shares times the national estimate of floorspace  (taken 
+        from sheet called Commercial_Total)
+
+        """
+        
         total_national_floorspace = 
 
-        reg = linear_model.LinearRegression()
         X = regional_housing_unit_share
         Y = regional_commercial_building_floorspace_shares  # from historical CBECS
-        reg.fit(X, Y)
-        coefficients = reg.coef_
-        regional_shares_floorspace = dict()  # assumed commercial floorspace in each region follows same trends as population or housing units
-        regional_floorspace = dict()
-        regional_intensity_index = dict()
-        for region in regions: 
-            regional_energy_consumption =  # consumption of electricity and fuels
-            predicted_share = reg.predict(annual_housing_unit_values)
-            regional_shares_floorspace[region] = predicted_share
-            region_floorspace =  predicted_share * total_national_floorspace
-            regional_floorspace[region] = region_floorspace
-            regional_intensity_index[region] = regional_energy_consumption / region_floorspace  
+
+        X = sm.add_constant(x)  # Add constant
+
+        model = sm.OLS(X, Y).fit
+        predictions = model.predict(x)
+
+        print(model.summary())
+
+        # reg = linear_model.LinearRegression()
+        # reg.fit(X, Y)
+        # coefficients = reg.coef_
+        # regional_shares_floorspace = dict()  # assumed commercial floorspace in each region follows same trends as population or housing units
+        # regional_floorspace = dict()
+        # regional_intensity_index = dict()
+        # for region in regions: 
+        #     regional_energy_consumption =  # consumption of electricity and fuels
+        #     predicted_share = reg.predict(annual_housing_unit_values)
+        #     regional_shares_floorspace[region] = predicted_share
+        #     region_floorspace =  predicted_share * total_national_floorspace
+        #     regional_floorspace[region] = region_floorspace
+        #     regional_intensity_index[region] = regional_energy_consumption / region_floorspace  
+
         return None
 
     def estimate_reclassification_electricity_sector_sales(self,):
