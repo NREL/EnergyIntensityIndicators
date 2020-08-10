@@ -42,7 +42,7 @@ class GetEIAData:
         
         """    
 
-        consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')
+        consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')  # Commercial: '40210 , residential : '40209
 
         years = list(range(1960, 2018))
         years = [str(year) for year in years]

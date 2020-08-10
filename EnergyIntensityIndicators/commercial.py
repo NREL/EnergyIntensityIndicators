@@ -37,7 +37,7 @@ class CommercialIndicators(LMDI):
         mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        AER11_Table21C_Update = 
+        AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
         # CDD_by_Division18 = 
         # HDD_by_Division18 =
         pass

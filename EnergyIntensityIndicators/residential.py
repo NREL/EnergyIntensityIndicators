@@ -14,8 +14,8 @@ class ResidentialIndicators(LMDI):
         AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        RECS_intensity_data = 
-        National_Calibration = 
+        RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
+        # National_Calibration = 
         # Weather_Factors = 
         # CDD_by_Division18 = 
         # HDD_by_Division18 = 
