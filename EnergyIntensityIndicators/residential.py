@@ -16,9 +16,9 @@ class ResidentialIndicators(LMDI):
         AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         RECS_intensity_data = 
         National_Calibration = 
-        Weather_Factors = 
-        CDD_by_Division18 = 
-        HDD_by_Division18 = 
+        # Weather_Factors = 
+        # CDD_by_Division18 = 
+        # HDD_by_Division18 = 
 
     def regional_time_series_floor_space(self, ):
         pass

@@ -3,8 +3,8 @@ import pandas as pd
 
 class WeatherFactors:
     def __init__(self, region, energy_type, type):
-        self.hdd_by_division = pd.read_excel('./')
-        self.cdd_by_division = pd.read_excel('./')
+        self.hdd_by_division = GetEIAData.eia_api(id_='1566347')
+        self.cdd_by_division = GetEIAData.eia_api(id_='1566348')
         self.region = region
         self.energy_type = energy_type  # 'electricity' or 'fuels'
         self.type = type  # 'delivered' etc
