@@ -6,32 +6,44 @@ import numpy as np
 import eiapy
 
 class GetEIAData:
-    print('current directory', os.getcwd())
-    api_key = os.environ.get("EIA_API_Key")
+    def __init__(self, id_):
+        self.id_ = id_
 
-    api_category_ids = {'EIA Datsets': 371, 'seds_consumption_all': 40204, 'seds_consumption_residential': 40209}
-    category = 'seds_consumption_all'
-    call  = f'http://api.eia.gov/category/?api_key={api_key}&category_id={api_category_ids[category]}'
-    seds_consumption_data = eiapy.Category(api_category_ids[category])
-    seds = eiapy.Series('SEDS.PATCB.AL.A')
-    r = requests.get(call)
-    files = r.json()
-    print(files)
+    def eia_api(self, category=True, series=False):
+        """[summary]
 
-    call2 = f'http://api.eia.gov/series/?api_key={api_key}&series_id=SEDS.PATCB.AL.A'
-    r = requests.get(call2)
-    j = r.json()
-    # df = pd.DataFrame.from_dict(j)
-    print(j)
-    # print(df)
+        Args:
+            id_ (int): [description]
+            category (bool, optional): [description]. Defaults to True.
+            series (bool, optional): [description]. Defaults to False.
 
-    consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')
-    print(consumption_all_btu.head())
+        Returns:
+            eia_data [type]: [description]
+        """            
+        print('current directory', os.getcwd())
+        api_key = os.environ.get("EIA_API_Key")
+
+        # call  = f'http://api.eia.gov/category/?api_key={api_key}&category_id={category_id}'
+        # call2 = f'http://api.eia.gov/series/?api_key={api_key}&series_id=SEDS.PATCB.AL.A'
+        # r = requests.get(call)
+        # files = r.json()
+        # print(files)
+
+        if category:
+            eia_data = eiapy.Category(self.id_)
+        elif series:
+            eia_data = eiapy.Series(self.id_)
+        else:
+            return None
+        return eia_data
 
     def get_seds():
         """Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
         
         """    
+
+        consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')
+
         years = list(range(1960, 2018))
         years = [str(year) for year in years]
         consumption_all_btu = pd.read_csv('../use_all_btu.csv') # 1960 through 2017 SEDS Data, MSN refers to fuel type
@@ -52,7 +64,9 @@ class GetEIAData:
         ESCCB_by_region = pd.pivot_table(pivotted_by_census_region['ESCCB'], index=years , columns='Census Region', aggfunc='sum')
         TNCCB_by_region = pd.pivot_table(pivotted_by_census_region['TNCCB'], index=years , columns='Census Region', aggfunc='sum')
         # PRINT(TNCCB_by_region)
+
     def get_weather_data():
         """Tables 1.9 and 1.10 in the Monthly Energy Review"""
-        cdd_by_division = 
-        hdd_by_division = 
+        # cdd_by_division = 
+        # hdd_by_division = 
+        pass

@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn import linear_model
+from pull_eia_api import GetEIAData
 
 class IndustrialIndicators(LMDI):
 
@@ -9,11 +10,11 @@ class IndustrialIndicators(LMDI):
 
 
     def load_data(self, ):
-        MER_Nov19_Table24 = 
-        AER10_Table21d = 
-        AER11_Table21d_MER0816 = 
-        mer_dataT0204 =
-        BEA
+        MER_Nov19_Table24 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        AER10_Table21d = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        AER11_Table21d_MER0816 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        mer_dataT0204 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        BEA_Output_data =  # Chain-type Quantity Indexes for Value Added by Industry from Bureau of Economic Analysis
 
     def reconcile_physical_units(self, ):
         """Convert physical units to Btu. (Prior to 2005, the data on energy consumption fuels to produce electricity were supplied in physical units (e.g. mcf of natural gas, tons of coal, etc))

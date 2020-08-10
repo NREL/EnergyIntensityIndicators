@@ -10,10 +10,10 @@ class ResidentialIndicators(LMDI):
 
 
     def load_data(self, ):
-        AER11_table2_1b_update = 
-        AnnualData_MER22_2015 = 
-        AnnualData_MER22_2017 = 
-        AnnualData_MER_22_Dec2019 = 
+        AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
+        AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
+        AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
+        AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         RECS_intensity_data = 
         National_Calibration = 
         Weather_Factors = 

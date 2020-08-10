@@ -30,16 +30,16 @@ class CommercialIndicators(LMDI):
         self.sub_categories_list = categories_list['commercial']
 
     def load_data(self,):
-        # GetCommercialData.__()
-        # cbecs = 
-        # residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
-        # SEDS_CensusRgn = 
-        # mer_data23_May_2016 = 
-        # mer_data23_Jan_2017 = 
-        # mer_data23_Dec_2019 = 
-        # AER11_Table21C_Update = 
-        # CDD_by_Division18 = 
-        # HDD_by_Division18 =
+        GetCommercialData.__()
+        cbecs = 
+        residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
+        SEDS_CensusRgn =  # 'https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv
+        mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        AER11_Table21C_Update = 
+        CDD_by_Division18 = 
+        HDD_by_Division18 =
         pass
 
 
