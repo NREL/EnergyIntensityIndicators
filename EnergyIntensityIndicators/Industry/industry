@@ -21,6 +21,7 @@ class GetIndustryData():
         https://www.eia.gov/consumption/manufacturing/data/2014/
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4 
         """    
+
     def non_manufacturing():
         """Primary Data Sources: Economic Census (previously the Census of Manufactures, Census of Agriculture, and Census of Mining)
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
@@ -36,14 +37,17 @@ class GetIndustryData():
             http://www.census.gov/prod/www/abs/ec1997mining-ind.html
             http://www.census.gov/prod/1/manmin/92mmi/92minif.html
             """            
+            pass
 
         def propane():
             """http://www.eia.gov/totalenergy/data/annual/index.cfm
             """
+            pass
 
         def bureau_labor_statistics_industry_output():
             """https://www.bls.gov/emp/data/industry-out-and-emp.htm
             """ 
+            pass
 
         def construction():
             """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
@@ -52,4 +56,7 @@ class GetIndustryData():
                http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2002_US_23I04A&prodType=table
                http://www.census.gov/epcd/www/97EC23.HTM
                http://www.census.gov/prod/www/abs/cciview.html
-            """                                   
+            """ 
+            pass
+        
+        pass                                  

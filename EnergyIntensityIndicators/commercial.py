@@ -46,6 +46,10 @@ class CommercialIndicators(LMDI):
     def estimate_regional_floorspace_share(self,):
     """assumed commercial floorspace in each region follows same trends as population or housing units"""
 
+    def estimate_regional_floorspace(self):
+        """[summary]
+        """        
+
     def estimate_intensity_indexes_regional(self, parameter_list):
         """Data Sources: Fuel Consumption and electricity consumption from SEDS, Shares of regional floorspace from CBECs
         Purpose: used to produce weather adjustment facotrs"""
@@ -96,6 +100,10 @@ class CommercialIndicators(LMDI):
 
         return None
 
+    def conversion_factors():
+        """[summary]
+        """        
+        
     def estimate_reclassification_electricity_sector_sales(self,):
         """Data Source: Commercial electricity sales from EIA SEDS
         Assumption: The significant changes (same magnitude but opposite directions in the same year) in state-level electricity slaes, typically

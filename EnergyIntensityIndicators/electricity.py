@@ -36,5 +36,7 @@ class ElectricityIndicators(LMDI):
         
    
 
-
+    def reconcile():
+        """Does this need to be done or can download Btu directly instead of converting physical units to Btu
+        """        
 

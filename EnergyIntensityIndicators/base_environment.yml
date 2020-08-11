@@ -234,6 +234,7 @@ dependencies:
   # - eia-python==1.22
   - pip==18.1
   - pypdf2==1.26.0
-  -pip: 
+  - pip:
     - eiapy=0.1.5
+
 prefix: C:\Users\irabidea\Anaconda3\envs\EnergyIntensityIndicators
