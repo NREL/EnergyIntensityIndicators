@@ -4,6 +4,8 @@ from .weather_factors import weather_factors
 import math
 import statsmodels.api as sm
 from commercial.commercial import GetCommercialData
+# from outline import LMDI
+
 
 
 """Overview and Assumptions: 
@@ -20,6 +22,63 @@ Data Sources: New construction is based on data from Dodge Data and Analytics, a
 
 Methodology: Perpetual inventory model, where estimates of new additions and removals are added to the previous year's estimate of stock
              to update the current year"""
+
+class GetCommercialData:
+    """
+    Data Sources: 
+    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
+    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
+    SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
+    2014 to 2018". 
+    """    
+
+    def __init__(self):
+        pass
+
+    def get_saus_table_995():
+        pass
+    
+    @staticmethod
+    def floorspace_estimates():
+        previous_year_stock = pd.read_excel('./')
+        new_construction = pd.read_excel('./')  # Floor space reported in million square feet
+        additions_completed_same_year = .4  # Fraction of new construction completed the same year construction began
+        additions_with_lagged_completion = .6  # Fraction of new construction completed the following year'
+        dodge_adjustment = 1.2  # Account for underreporting by Dodge (column AD in spreadsheet)
+
+        def survival_function():
+            """Non-linear regression model applied to the vintage data from the 1989 and 1999 CBECS
+            """
+            recessional_reductions_level_of_removals =  # 30 to 40% 
+            demolitions_before_2008 = 
+            demolitions_after_2008 =             
+            pass
+
+        pass
+    
+    @staticmethod
+    def fuel_and_electricity_consumption_census_region():
+        """Data Source: EIA's State Energy Data System (SEDS)
+        """
+        eia_seds = pd.read_ # 1960-2017 SEDS data: https://www.eia.gov/state/seds/seds-data-complete.php?sid=US
+        eia_pivot = pd.pivot_table(eia_seds, index=['year', 'region'], columns='MSN', aggfunc='sum')
+        eia_pivot = eia_pivot[['ESCCB', 'TNCCB']]
+        total_fuel_consumption = total_energy - electricity_sales 
+        energy_consumtpion_data_regional = 
+        approximate_intesity_time_series = 
+        weather_adjustment_factors_regional = 
+        energy_consumption_regional = 
+
+    @staticmethod
+
+
+    @staticmethod
+    def reclassification_electricity_sales():
+        """[summary]
+        """
+
+
+
 
 
 
@@ -127,3 +186,11 @@ class CommercialIndicators(LMDI):
         """""""
         pass
 
+    def energy_consumption():
+        """Trillion Btu
+        """
+        pass
+
+    def activity():
+        """Floor Space
+        """                

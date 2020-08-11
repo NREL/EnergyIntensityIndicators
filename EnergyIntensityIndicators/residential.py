@@ -1,26 +1,28 @@
 import pandas as pd
 from sklearn import linear_model
-from .weather_factors import weather_factors
+# from weather_factors import weather_factors
+from pull_eia_api import GetEIAData
+# from outline import LMDI
 
-class ResidentialIndicators(LMDI):
+class ResidentialIndicators(): # LMDI
 
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['residential']
 
-
-    def load_data(self, ):
-        AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
-        AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
+    def load_data(self):
+        self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
+        self.AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
+        self.AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
+        self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
+        # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
         # National_Calibration = 
         # Weather_Factors = 
         # CDD_by_Division18 = 
         # HDD_by_Division18 = 
+        # seds = 
 
-    def regional_time_series_floor_space(self, ):
+    def regional_time_series_floor_space():
         pass
 
     def estimate_fuel_electricity_consumption_regional(self, ):
@@ -55,16 +57,28 @@ class ResidentialIndicators(LMDI):
 
     def estimate_final_floorspace_by_housing_type(self, ):
         """Data Source: AHS"""
-
-    def residential_total_lmdi_utiladj(self, ):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
         pass
 
- 
+    def energy_consumption():
+        """Trillion Btu
+        """        
+        pass
+    
+    def activity():
+        """Occupied Housing Units
+        """        
+        pass
+    
+    def residential_total_lmdi_utiladj(self, ):
+    """purpose
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        
+    """
+        pass
+
+
+ResidentialIndicators.load_data

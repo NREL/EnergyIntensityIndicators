@@ -32,16 +32,16 @@ class GetEIAData:
 
 
         if id_type == 'category':
-            eia_data = GetEIAData.get_category(id_)
+            eia_data = GetEIAData.get_category(api_key, id_)
         elif id_type == 'series':
-            eia_data = GetEIAData.get_series(id_)
+            eia_data = GetEIAData.get_series(api_key, id_)
         else:
             eia_data = None
             print('Error: neither series nor category given')
         return eia_data
     
     @staticmethod
-    def get_category(id_):
+    def get_category(api_key, id_):
             api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
             r = requests.get(api_call)
             data = r.json()
@@ -49,11 +49,11 @@ class GetEIAData:
             eia_series_ids = [i['series_id'] for i in eia_childseries]
             print(eia_series_ids)
             # eia_data = MultiSeries(eia_series_ids).get_data(all_data=True)
-            eia_data = [GetEIAData.get_series(s) for s in eia_series_ids]
+            eia_data = [GetEIAData.get_series(api_key, s) for s in eia_series_ids]
             return eia_data
 
     @staticmethod
-    def get_series(id_):
+    def get_series(api_key, id_):
         api_call = f'http://api.eia.gov/series/?api_key={api_key}E&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()
@@ -94,7 +94,11 @@ class GetEIAData:
         # cdd_by_division = 
         # hdd_by_division = 
         pass
-
+    
+    def get_seds():
+        """https://www.eia.gov/state/seds/seds-data-complete.php?sid=US
+        """    
+        pass
 
 eia_data = GetEIAData.eia_api(id_='711272')
 print(eia_data)

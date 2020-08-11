@@ -291,8 +291,8 @@ class LMDI:
         self.
         intensity_index = compute_index()
         structure_index = compute_index(log_mean_divisia_weights, log_changes_activity_shares, categories_list)
-        component_intensity_index = 
-        return
+        # component_intensity_index = 
+        pass
 
 
 

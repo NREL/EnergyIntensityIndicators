@@ -1,8 +1,0 @@
-import pandas as pd
-
-"""[summary]
-"""
-
-def get_seds():
-    """https://www.eia.gov/state/seds/seds-data-complete.php?sid=US
-    """    
