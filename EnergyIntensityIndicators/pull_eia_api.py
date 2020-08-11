@@ -13,56 +13,52 @@ class GetEIAData:
         pass
 
     @staticmethod
-    def eia_api(id_, category=True, series=False):
+    def eia_api(id_, id_type='category'):
         """[summary]
 
         Args:
-            id_ (int): [description]
-            category (bool, optional): [description]. Defaults to True.
-            series (bool, optional): [description]. Defaults to False.
+            id_ ([type]): [description]
+            id_type (str, optional): [description]. Defaults to 'category'.
 
         Returns:
-            eia_data [type]: [description]
-        """            
+            [type]: [description]
+        """          
         print('current directory', os.getcwd())
         api_key = os.environ.get("EIA_API_Key")
-        EIA_KEY = os.environ['EIA_KEY']
+        # EIA_KEY = os.environ['EIA_KEY']
         print(api_key)
-        print(EIA_KEY)
-        print(api_key==EIA_KEY)
+        # print(EIA_KEY)
+        # print(api_key==EIA_KEY)
 
-        # api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
-        # r = requests.get(api_call)
-        # data = r.json()
-        # eia_childseries = data['category']['childseries']
-        # eia_series_ids = [i['series_id'] for i in eia_childseries]
-        # print(eia_series_ids)
-        # eia_data = MultiSeries(eia_series_ids).get_data(all_data=True)
-        # print(eia_data)
 
-        # print(data['category'])
+        if id_type == 'category':
+            eia_data = GetEIAData.get_category(id_)
+        elif id_type == 'series':
+            eia_data = GetEIAData.get_series(id_)
+        else:
+            eia_data = None
+            print('Error: neither series nor category given')
+        return eia_data
+    
+    @staticmethod
+    def get_category(id_):
+            api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
+            r = requests.get(api_call)
+            data = r.json()
+            eia_childseries = data['category']['childseries']
+            eia_series_ids = [i['series_id'] for i in eia_childseries]
+            print(eia_series_ids)
+            # eia_data = MultiSeries(eia_series_ids).get_data(all_data=True)
+            eia_data = [GetEIAData.get_series(s) for s in eia_series_ids]
+            return eia_data
 
-        # # api_call2 = f'http://api.eia.gov/category/?api_key={EIA_KEY}&category_id={id_}'
-        # # r2 = requests.get(api_call2)
-        # # data2 = r2.json()
-        # # print('//////////////////////////////', data['category'])
-        # if category:
-        #     eia_category = Category(id_)
-        #     print(type(eia_category.get_info()))
-        #     print(eia_category.get_info())
-        #     # eia_childseries = eia_category['category']['childseries']
-        #     # eia_series_ids = [i['series_id'] for i in eia_childseries]
-        #     # eia_data = MultiSeries(eia_series_ids)
-        #     print('retrieved category')
-        # elif series:
-        #     eia_data = Series(id_)
-        # else:
-        #     eia_data = None
-        #     print('No data')
-        
-
-        # return eia_data
-        return None
+    @staticmethod
+    def get_series(id_):
+        api_call = f'http://api.eia.gov/series/?api_key={api_key}E&series_id={id_}'
+        r = requests.get(api_call)
+        eia_data = r.json()
+        # eia_data = pd.read_json(data)
+        return eia_data
 
     def get_seds(self):
         """Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
@@ -100,12 +96,6 @@ class GetEIAData:
         pass
 
 
-# eia_data = GetEIAData.eia_api(id_='711272')
-# print(eia_data)
-# print('done')
-print('current directory', os.getcwd())
-api_key = os.environ.get("EIA_API_Key")
-EIA_KEY = os.environ['EIA_KEY']
-print(api_key)
-print(EIA_KEY)
-print(api_key==EIA_KEY)
+eia_data = GetEIAData.eia_api(id_='711272')
+print(eia_data)
+print('done')
