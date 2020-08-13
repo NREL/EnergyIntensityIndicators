@@ -67,10 +67,11 @@ class GetEIAData:
             pass
         return eia_df
 
-    def get_seds(self):
+    def get_seds(self, sector):
         """Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
         
         """    
+        if sector == ''
 
         consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')  # Commercial: '40210 , residential : '40209
 

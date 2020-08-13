@@ -282,9 +282,21 @@ class TransportationIndicators(LMDI):
     def load_data(self, parameter_list):
         mer_table25_dec_2019 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         mer_table_43_old = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        mer_table_4.3_nov2019 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        mer_table_43_nov2019 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         aer_2010_table_65 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
 
+        pass
+    
+    def passenger_based_energy_use(self):
+        pass
+    
+    def passenger_based_activity(self):
+        pass
+
+    def freight_based_energy_use(self):
+        pass
+
+    def freight_based_activity(self):
         pass
 
     def water_freight_regression(self, ):

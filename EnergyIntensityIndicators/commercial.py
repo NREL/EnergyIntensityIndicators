@@ -92,11 +92,12 @@ class CommercialIndicators(LMDI):
         GetCommercialData.__()
         cbecs = 
         residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
-        SEDS_CensusRgn =  # 'https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv
-        mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
+        SEDS_CensusRgn = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # 'https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv
+        # mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
+        mer_data_23 = GetEIAData.eia_api(id_='711251', id_type='category')
         # CDD_by_Division18 = 
         # HDD_by_Division18 =
         pass
