@@ -3,6 +3,7 @@ import json
 import requests
 import pandas as pd
 import numpy as np
+from functools import reduce 
 # from eiapy import Category
 # from eiapy import Series
 # from eiapy import MultiSeries
@@ -23,13 +24,7 @@ class GetEIAData:
         Returns:
             [type]: [description]
         """          
-        print('current directory', os.getcwd())
         api_key = os.environ.get("EIA_API_Key")
-        # EIA_KEY = os.environ['EIA_KEY']
-        print(api_key)
-        # print(EIA_KEY)
-        # print(api_key==EIA_KEY)
-
 
         if id_type == 'category':
             eia_data = GetEIAData.get_category(api_key, id_)
@@ -47,18 +42,30 @@ class GetEIAData:
             data = r.json()
             eia_childseries = data['category']['childseries']
             eia_series_ids = [i['series_id'] for i in eia_childseries]
-            print(eia_series_ids)
-            # eia_data = MultiSeries(eia_series_ids).get_data(all_data=True)
             eia_data = [GetEIAData.get_series(api_key, s) for s in eia_series_ids]
-            return eia_data
+            all_category = reduce(lambda x, y: pd.merge(x, y, on ='Date'), eia_data)
+            all_category = all_category.set_index('Date')
+            return all_category
 
     @staticmethod
     def get_series(api_key, id_):
-        api_call = f'http://api.eia.gov/series/?api_key={api_key}E&series_id={id_}'
+        api_call = f'http://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()
-        # eia_data = pd.read_json(data)
-        return eia_data
+        date_column_name = str(eia_data['series'][0]['f'])
+        data_column_name =  str(eia_data['series'][0]['name']) + ', ' + str(eia_data['series'][0]['units'])
+        eia_df = pd.DataFrame.from_dict(eia_data['series'][0]['data'])
+        eia_df = eia_df.rename(columns={0: date_column_name, 1: data_column_name})
+        if date_column_name == 'M':
+            eia_df['Date'] = pd.to_datetime(eia_df['M'], format='%Y%m')
+            eia_df = eia_df.drop('M', axis='columns')
+        elif date_column_name == 'A':
+            eia_df['Date'] = pd.to_datetime(eia_df['A'], format='%Y')
+            eia_df = eia_df.drop('A', axis='columns')
+        else:
+            print('No date column')
+            pass
+        return eia_df
 
     def get_seds(self):
         """Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
@@ -100,6 +107,8 @@ class GetEIAData:
         """    
         pass
 
-eia_data = GetEIAData.eia_api(id_='711272')
-print(eia_data)
+eia_data_cat = GetEIAData.eia_api(id_='711272', id_type='category')
+print(eia_data_cat)
+# eia_data = GetEIAData.eia_api(id_='TOTAL.NGACPUS.M', id_type='series')
+# print(eia_data)
 print('done')

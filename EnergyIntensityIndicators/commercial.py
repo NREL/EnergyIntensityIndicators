@@ -189,6 +189,7 @@ class CommercialIndicators(LMDI):
     def energy_consumption():
         """Trillion Btu
         """
+        sources: {}
         pass
 
     def activity():
