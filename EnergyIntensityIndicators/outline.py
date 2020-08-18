@@ -84,12 +84,9 @@ class LMDI:
                                         'Other'}}}}}
 
     """Base class for LMDI"""
-    index_base_year_primary = 1985
-	index_base_year_secondary = 1996  # not used
-	charts_starting_year = 1985
-	charts_ending_year = 2003
 
-	def __init__(self, energy_data, activity_data, categories_list):
+
+	def __init__(self, categories_list, base_year=1985):
         """
         Parameters
         ----------
@@ -103,6 +100,10 @@ class LMDI:
 		self.energy_data = energy_data
         self.activity_data = activity_data 
         self.categories_list = categories_list
+        index_base_year_primary = 1985
+	index_base_year_secondary = 1996  # not used
+	charts_starting_year = 1985
+	charts_ending_year = 2003
     
     @staticmethod
     def select_value(dataframe, base_row, base_column):
@@ -224,11 +225,13 @@ class LMDI:
     ##################################################
     
     # Energy
-    energy_shares = calculate_shares(energy_data, categories)
-    log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = calculate_log_mean_weights(energy_shares, categories)
-    log_changes_intensity = calculate_log_changes(energy_intensity_index)
-    index_chg_energy, index_energy, index_normalized_energy = compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity, categories)
-
+    @staticmethod
+    def calculate_energy(energy_shares):
+        energy_shares = calculate_shares(energy_data, categories)
+        log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = calculate_log_mean_weights(energy_shares, categories)
+        log_changes_intensity = calculate_log_changes(energy_intensity_index)
+        index_chg_energy, index_energy, index_normalized_energy = compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity, categories)
+        
     # Activity
     activity_shares = calculate_shares(activity_data, categories)
     log_changes_activity_shares = calculate_log_changes(activity_shares)
@@ -295,28 +298,6 @@ class LMDI:
         pass
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def report_tables(self, ):
         """Create tables for report
            Parameters
@@ -349,9 +330,10 @@ class LMDI:
            
         """
 
-    class LMDIMultiplicative:
+    def lmdi_multiplicative(self, activity_input_data, energy_input_data):
 
-    class LMDIAdditive:
+
+    def lmdi_additive(self, activity_input_data, energy_input_data):
 
 
     

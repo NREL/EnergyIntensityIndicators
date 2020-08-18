@@ -71,31 +71,30 @@ class GetEIAData:
         """Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
         
         """    
-        if sector == ''
-
-        consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')  # Commercial: '40210 , residential : '40209
+        consumption_all_btu = pd.read_csv('./EnergyIntensityIndicators/use_all_btu.csv')  # Commercial: '40210 , residential : '40209 
+                                                                                          # 1960 through 2017 SEDS Data, MSN refers to fuel type
+        state_to_census_region = pd.read_csv('./state_to_census_region.csv')
+        consumption_census_region = consumption_all_btu.merge(state_to_census_region, left_on='State', right_on='USPC', how='left')
 
         years = list(range(1960, 2018))
         years = [str(year) for year in years]
-        consumption_all_btu = pd.read_csv('../use_all_btu.csv') # 1960 through 2017 SEDS Data, MSN refers to fuel type
-        state_to_census_region = pd.read_csv('./state_to_census_region.csv')
-        consumption_census_region = consumption_all_btu.merge(state_to_census_region, left_on='State', right_on='USPC', how='left')
-        # print(consumption_all_btu.head())
-        
-        pivotted = pd.pivot_table(consumption_census_region, index=years, columns='MSN', aggfunc='sum')  # , values='Census Region'
-        pivotted['Grand Total'] = pivotted.sum()
-        pivotted = pivotted[['ESRCB', 'TNRCB']]
-        print(pivotted)
 
-        pivotted_by_census_region = pd.pivot_table(consumption_census_region, index=years, columns='MSN', aggfunc='sum')
-        # print('pivotted_by_census_region', pivotted_by_census_region.head())
-        esccb_by_census_region = pivotted_by_census_region.reset_index()
-        # print('esccb_by_census_region', esccb_by_census_region)
-        tnccb_by_census_region = pivotted_by_census_region.reset_index()
-        ESCCB_by_region = pd.pivot_table(pivotted_by_census_region['ESCCB'], index=years , columns='Census Region', aggfunc='sum')
-        TNCCB_by_region = pd.pivot_table(pivotted_by_census_region['TNCCB'], index=years , columns='Census Region', aggfunc='sum')
-        # PRINT(TNCCB_by_region)
-        return None
+        if sector == 'residential':
+            pivotted = pd.pivot_table(consumption_census_region, index=years, columns='MSN', aggfunc='sum')  # , values='Census Region'
+            pivotted['Grand Total'] = pivotted.sum()
+            pivotted = pivotted[['ESRCB', 'TNRCB']]
+            pt_results = 
+        elif sector == 'commercial':
+            pivotted_by_census_region = pd.pivot_table(consumption_census_region, index=years, columns='MSN', aggfunc='sum')
+            esccb_by_census_region = pivotted_by_census_region.reset_index()
+            tnccb_by_census_region = pivotted_by_census_region.reset_index()
+            ESCCB_by_region = pd.pivot_table(pivotted_by_census_region['ESCCB'], index=years , columns='Census Region', aggfunc='sum')
+            TNCCB_by_region = pd.pivot_table(pivotted_by_census_region['TNCCB'], index=years , columns='Census Region', aggfunc='sum')
+            pt_results = 
+        else:
+            pt_results = None
+        
+        return pt_results
 
     def get_weather_data(self):
         """Tables 1.9 and 1.10 in the Monthly Energy Review"""

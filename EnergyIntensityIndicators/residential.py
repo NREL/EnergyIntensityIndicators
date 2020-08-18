@@ -2,32 +2,30 @@ import pandas as pd
 from sklearn import linear_model
 # from weather_factors import weather_factors
 from pull_eia_api import GetEIAData
-# from outline import LMDI
+from outline import LMDI
 
-class ResidentialIndicators(): # LMDI
+class ResidentialIndicators(LMDI): 
 
-    def __init__(self, energy_data, activity_data, categories_list):
-        super().__init__(energy_data, activity_data, categories_list)
+    def __init__(self, categories_list, base_year):
+        super().__init__(categories_list, base_year)
         self.sub_categories_list = categories_list['residential']
-
-    def load_data(self):
         self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         self.AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
-        # National_Calibration = 
-        # Weather_Factors = 
-        # CDD_by_Division18 = 
-        # HDD_by_Division18 = 
-        # seds = 
+        self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
+        self.National_Calibration = 
+        self.Weather_Factors = 
+        self.CDD_by_Division18 = 
+        self.HDD_by_Division18 = 
+        self.seds_census_region =  # energy_consumtpion_data_regional
 
     def regional_time_series_floor_space():
         pass
 
-    def estimate_fuel_electricity_consumption_regional(self, ):
+    def estimate_fuel_electricity_consumption_regional(self):
         """Data Source: EIA's State Energy Data System (SEDS)"""
-        energy_consumtpion_data_regional = 
+        energy_consumtpion_data_regional = self.seds_census_region
         approximate_intesity_time_series = 
         weather_adjustment_factors_regional = 
         energy_consumption_regional = 
@@ -59,17 +57,21 @@ class ResidentialIndicators(): # LMDI
         """Data Source: AHS"""
         pass
 
-    def energy_consumption():
-        """Trillion Btu
+    def energy_consumption(self):
+        """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
+        """ 
+        seds_census_region = self.seds_census_region  # Total Consumption (Trillion Btu)
+        energy_consumption_input_data = source1.merge(self.source2)
+        return energy_consumption_input_data
+
+    def activity(self):
+        """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """        
-        pass
-    
-    def activity():
-        """Occupied Housing Units
-        """        
-        pass
-    
-    def residential_total_lmdi_utiladj(self, ):
+        source1 = self.source1
+        activity_input_data = source1.merge(self.source2)
+        return activity_input_data
+
+    def residential_total_lmdi_utiladj(self, _base_year=None):
     """purpose
         Parameters
         ----------
@@ -78,7 +80,22 @@ class ResidentialIndicators(): # LMDI
         -------
         
     """
+        if not base_year:
+            _base_year = self.base_year
+        else:
+            _base_year = _base_year
+        
+
+        for key in self.sub_categories_list.keys():
+            energy_input_data = ResidentialIndicators.energy_consumption(key)
+            activity_input_data = ResidentialIndicators.activity(key)
+
+
+
+        energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, base_year)
+
+
         pass
 
 
-ResidentialIndicators.load_data
+x = ResidentialIndicators()
