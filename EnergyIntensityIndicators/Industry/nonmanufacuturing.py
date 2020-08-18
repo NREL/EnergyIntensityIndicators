@@ -17,9 +17,15 @@ class NonManufacturing:
 
     def agriculture(self):
         miranowski_data =  # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
-        nass_expenses_data =  # 
+        nass_expenses_data =  # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
+
         nass_average_prices_data =  # 
         MER_fuel_price_data =  # 
+        eia_table33 =  # Consumer Price estimates for Energy by Source, 1970-2009
+        eia_table34 =  # Consumer price estimates for energy by end-use sector, 1970-2009
+        eia_table523 = # All sellers sales prices for selected petroleum products, 1994-2010
+        eia_table524 =  # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
+        
         pass
 
     def mining(self):
@@ -44,13 +50,23 @@ class NonManufacturing:
         essentially 6-digit NAICS since 1997 and 4-digit SIC in earlier years. At the NAICS level, there are 29
         specific industries as shown in Table A.11 (the word “mining” has been omitted from most of the official
         NAICS titles in the table). 
+
+        With regard to “Other fuels”, the assumption was that the dominant fuel was propane. The cost
+        estimates were converted to quantities by the use of the price of propane published by EIA.1
+        For
+        undistributed fuels, the assumption was that the average price of the unreported fuels was the same as
+        the reported fuels. Operationally, this assumption was implemented as follows. The cost and quantity
+        of reported fuels was estimated. Then the ratio of the total cost of all fuels with respect to the cost of
+        reported fuels was calculated. This ratio (> 1.0) was then used as multiplicative adjustment factor
+        applied to the quantity of all reported fuels. 
         """        
-        pass
         mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
         mining_2012 = 'https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk'
         mining_2007 = 'http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table'
         mining_2002 = 'https://www.census.gov/econ/census02/guide/INDRPT21.HTM'  # extract Table 3 and Table 7
         mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
         mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
+        
+
     def construction(self):
         pass
