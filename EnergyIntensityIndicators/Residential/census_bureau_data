@@ -1,0 +1,125 @@
+"""
+[summary]
+"""
+import pandas as pd
+import os
+import requests
+from zipfile import ZipFile
+
+class GetCensusData:
+    
+    def __init__(self): 
+        pass
+
+    def update_ahs_data():
+        """Spreadsheet equivalent: AHS_2017_extract
+        Extract and process American Housing Survey (AHS, formerly Annual Housing Survey) 
+        web: https://www.census.gov/programs-surveys/ahs/data.html
+        ? https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html 
+        """    
+        ahs_url_folder   'http://www2.census.gov/programs-surveys/ahs/2017/AHS%202017%20National%20PUF%20v3.0%20CSV.zip?#' 
+        
+        if os.path.exists('./household.csv'):
+            pass
+        else: 
+            with ZipFile(ahs_url_folder, 'r') as zipOjb:
+                zipObj.extact('household.csv')
+       
+        ahs_household_data = pd.read_csv('./household.csv')
+        columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
+        extract_ahs = ahs_household_data[columns]
+        extract_ahs= extract_ahs[extract_ahs['BLD'].isin(['04', '05', '06', '07', '08', '09'])]
+        housing_types = ['single_family', 'multifamily', 'manufactured_homes']
+        housing_occupancy_types = [f'{h}_total' for h in housing_types] + [f'{h}_occupied' for h in housing_types]
+        housing_type_number = dict(zip()) # match the numbers in ['04', '05', '06', '07', '08', '09'] to housing/occupancy type
+        #  For the total number of units of each building type, the variable
+        # s, the pivot table processing
+        # generated six tables shown below the active pivot table in the first 16 rows of the worksheet. The six
+        # tables are for Single Family (SF) units (Total and Occupied), Multi-Family (MF) units (Total and Occupied),
+        # and Manufactured Home (Man.Homes) units (Total and Occupied). These tables were obtained by
+        # copying the values from the active pivot table at the top of the worksheet, each table reflecting a
+        # different choice for VACANCY and BLD. VACANCY is set to “All”. For occupied units, set the VACANCY variable to ‘-6’. For the building type,
+        # single family units are obtained by selecting building code ‘02’ and ’03’ (corresponding to detached and
+        # attached units). Multi-family units are selected by checking the boxes under BLD, ‘04’ through ‘09’).
+        # Manufactured homes are selected with a check of the code ’01.’
+
+        # Pivot Tables!!
+        #  Rows correspond to various size categories columns correspond to census division which are then aggregated to census regions. 
+        #  Only Categorical size data were included in the AHS surveys for 2015 and 2017. An effort to 
+        # utilize the category data to estimate the average size change between 2015 and 2017 did not provide useful results. Processing of future AHS public use
+        # files may exlcude any consideration of this variable. In the current tables, only the values for total units across all sizes were considered.
+        pivot_census_division = pd.pivot_table(extract_ahs, values='WEIGHT' , index=['BLD', 'UNITSIZE'] , columns='DIVISION' , aggfunc='sum')  
+        pivot_census_division['census_region_1'] = pivot_census_division['1'] + pivot_census_division['2']   # alternative method: df['C'] = df.apply(lambda row: row['A'] + row['B'], axis=1)
+        pivot_census_division['census_region_2'] = pivot_census_division['3'] + pivot_census_division['4']
+        pivot_census_division['census_region_3'] = pivot_census_division['5'] + pivot_census_division['6'] + pivot_census_division['7']
+        pivot_census_division['census_region_4'] = pivot_census_division['8'] + pivot_census_division['8']
+        pivot_census_division['total'] = pivot_census_division['census_region_1'] + pivot_census_division['census_region_2'] + 
+                                                pivot_census_division['census_region_3'] + pivot_census_division['census_region_4']
+        pivot_census_division.loc['Grand Total',:]= pivot_census_division.sum(axis=0)
+
+
+        # Housing type first level in index, 
+        pass                    
+
+    def survival_curve():
+        """The objective function is set to minimize the squared differences between the
+            predicted stock and the actual stock.
+
+        Returns:
+            output_data (dataframe): These columns represent the
+            existing (prior year’s) stock, estimated retirements, and new units. The sum of these columns is the
+            estimated end-of-year stock shown in column AM. The actual stock reported by the AHS is shown in
+            column AN.
+        """    """
+        """    
+        pass
+
+    def get_housing_stock(housing_type):
+        """Spreadsheet equivalent: Comps Ann, place_nsa_all
+        Data Sources: 
+            - Census Bureau Survey of  New Construction https://www.census.gov/construction/nrc/historical_data/index.html
+            - Manufactured Housing Survey: Annual data for the most current years were not found on the Census Bureau website.
+            Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
+            worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
+            2014 through 2018 on these worksheets and the annual values appended to the existing data in the
+            place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
+            Bureau for the most recent years but was not found as part of the 2020 update work.)
+        """
+        url = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
+
+        if housing_type == 'single_family' | housing_type == 'multi_family':
+            housing_units_completed = pd.read_excel(url)
+        elif housing_type == 'manufactured': 
+            housing_units_completed =  # "Completed" refers to manufactured housing "placed"
+        survival = survival_curve()
+
+        # Methodology used in early days
+        for_sale_for_rent_units = 
+        ahs_vacant_units = for_sale_for_rent_units 
+        occupied_units = total_units - ahs_vacant_units
+
+        # New Methodology
+        vacancy_rate = 
+        occupancy_fraction = 1 - vacancy_rate
+        predicted_total_stock = 
+        estimate_occupied_units = predicted_total_stock * occupancy_fraction
+
+        **National Estimates of housing unit size**
+        **Regional Shares of national-level housing**
+
+        
+
+
+        return housing_units_completed
+
+
+    def get_census_bureau_manufactured_housing_survey():
+        """[summary]
+        Annual data for the most current years were not found on the Census Bureau website.
+        Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
+        worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
+        2014 through 2018 on these worksheets and the annual values appended to the existing data in the
+        place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
+        Bureau for the most recent years but was not found as part of the 2020 update work.)
+        """
+        pass    

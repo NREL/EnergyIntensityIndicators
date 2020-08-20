@@ -47,4 +47,13 @@ class WeatherFactors:
 
     def 
 
-    
+
+
+
+
+
+
+
+"""RESIDENTIAL NOTE: The methodology for the estimation of “weather factors” is the same as the one set out at the beginning
+of this summary write-up with one addition/modification. The weather factors are applied at the
+regional level to generate the weather-normalized intensity indexes for each of the four census regions."""
