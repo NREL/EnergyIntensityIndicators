@@ -61,7 +61,10 @@ class GetCensusData:
         # Housing type first level in index, 
         pass                    
 
-    def survival_curve():
+    def get_percent_remaining_surviving(factor, lifetime, gamma):
+        return 1 / (1 + (factor / lifetime) ** gamma)   
+
+    def survival_curve(ahs_tables_data):
         """The objective function is set to minimize the squared differences between the
             predicted stock and the actual stock.
 
@@ -70,9 +73,38 @@ class GetCensusData:
             existing (prior year’s) stock, estimated retirements, and new units. The sum of these columns is the
             estimated end-of-year stock shown in column AM. The actual stock reported by the AHS is shown in
             column AN.
-        """    """
-        """    
+        """   
+        gamma = 4.261172611 # comes from T182
+        lifetime = 85.95544078 # comes from T183
+        current_year = 2020  # use datetime to get current year
+        years = list(range(1870, current_year + 1)) 
+        age = [current_year - y for y in years]
+        dataframe = pd.DataFrame([years, years_ago]).transpose()
+        dataframe = dataframe.columns(['years', 'age'])
+        dataframe['remaining']  = dataframe['age'].apply(lambda x: get_percent_remaining_surviving(x, lifetime, gamma))
+        dataframe['remaining_inverse'] = dataframe['remaining'].apply(lambda x: 1 / x)
+        dataframe['inflation_factor'] = dataframe['age'].subtract(dataframe['age'][0].values())
+        dataframe['pct_surviving'] = dataframe['inflation_factor'].apply(lambda x: get_percent_remaining_surviving(x, lifetime, gamma))
+        
+
+        column_years = [1930, 1948, 1955, 1965, 1975, 1985, 1995]
+        row_years = [1999, 2001, 2003, 2005, 2007, 2009]
+
+        year_differences = []
+        for r in row_years:
+            row = [r - c for c in column years]
+            year_difference.append(row)
+
+        years_difference_df = pd.DataFrame(year_differences, columns=column_years).set_index(row_years)  # Check this
+
+        for value in years_difference_df:
+            dataframe[['year_index'] == value]
+
+
+
         pass
+
+
 
     def get_housing_stock(housing_type):
         """Spreadsheet equivalent: Comps Ann, place_nsa_all
@@ -88,9 +120,25 @@ class GetCensusData:
         url = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
 
         if housing_type == 'single_family' | housing_type == 'multi_family':
-            housing_units_completed = pd.read_excel(url)
-        elif housing_type == 'manufactured': 
-            housing_units_completed =  # "Completed" refers to manufactured housing "placed"
+            housing_units_completed_or_placed = pd.read_excel(url) # completed
+
+        else:
+            pass
+
+        if housing_type == 'single_family':
+            columns = 'In structures with -- 1 unit'
+            factor = 0.95
+
+        elif housing_type == 'multifamily'
+            columns = ['In structures with -- 2 to 4 units', 'In structures with -- 5 Units or more']
+            factor = 0.96
+        else: 
+            housing_units_completed_or_placed =   # Added (place_nsa_all)
+            columns = 'US Total'
+            factor = 0.96
+
+        new_units = housing_units_completed_or_placed[columns]
+        new_units_adjusted = new_units * factor
         survival = survival_curve()
 
         # Methodology used in early days
