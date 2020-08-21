@@ -18,6 +18,7 @@ from weather_factors import WeatherFactors
 from pull_eia_api import GetEIAData
 from outline import LMDI
 from census_bureau_data import GetCensusData
+from pull_eia_api import GetEIAData
 
 
 class ResidentialIndicators(LMDI): 
@@ -25,20 +26,20 @@ class ResidentialIndicators(LMDI):
     def __init__(self, categories_list, base_year):
         super().__init__(categories_list, base_year)
         self.sub_categories_list = categories_list['residential']
+        self.national_calibration = GetEIAData.national_calibration()
+        self.seds_census_region =  GetEIAData.get_seds('residential') # energy_consumtpion_data_regional
+        self.ahs_Data = GetCensusData.update_ahs_data()
+        self.conversion_factors = GetEIAData.conversion_factors('residential')
+        self.Weather_Factors = WeatherFactors.weather_factors('residential')
+
+
         self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         self.AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
-        self.National_Calibration = 
-        self.Weather_Factors = 
-        self.CDD_by_Division18 = 
-        self.HDD_by_Division18 = 
-        self.seds_census_region =  # energy_consumtpion_data_regional
-        self.ahs_Data = GetCensusData.update_ahs_data()
-
-
-
+        self.hdd_by_division = GetEIAData.eia_api(id_='1566347') # Is this actually used here or just in weather_factors.py?
+        self.cdd_by_division = GetEIAData.eia_api(id_='1566348') # Is this actually used here or just in weather_factors.py?
 
     def regional_time_series_floor_space():
         pass
@@ -105,6 +106,10 @@ class ResidentialIndicators(LMDI):
             stock_units_pre_1985 = 
             stock_units_post_1985 =  # including 1985
 
+        housing_stock = GetCensusData.get_housing_stock(housing_type)
+
+        
+
     def estimate_floorspace_regional_shares_national_level_housing_units(self, ):
         """Smooth out some of the implausible changes in the reported number of housing from one AHS to the next. The overall methodology is described more
            generally in the comprehensive documentation report, Section A.1.2. The regional shares for the non-AHS years are computed via a simple average of the preceding (odd) year and subsequent (odd) year.
@@ -130,12 +135,17 @@ class ResidentialIndicators(LMDI):
 
                     ahs_tables = 
 
-        national_calibration =
+        national_calibration = self.national_calibration
         comps_ann_2015 =  housing_units_completed
         total_stock = 
 
         weighted_floorspace = 
         pass
+
+    def conversion_factors(self):
+
+
+
 
     def fuel_electricity_consumption(self):
         """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
@@ -143,7 +153,8 @@ class ResidentialIndicators(LMDI):
         approximate_intesity_time_series = 
         weather_adjustment_factors_regional = 
 
-        seds_census_region = self.seds_census_region  # Total Consumption (Trillion Btu)
+        seds_regional_fuel = self.seds_census_region # select census region and fuel # Total Consumption (Trillion Btu)
+        seds_regional_electricity = self.seds_census_region
         energy_consumption_input_data = source1.merge(self.source2)
         return energy_consumption_input_data
         return None 
@@ -155,6 +166,11 @@ class ResidentialIndicators(LMDI):
         """ 
         final_floorspace_estimates =        
         source1 = self.source1
+
+        occupied_housing_units = GetCensusData.get_final_floorspace_estimates('occupied_housing_units')
+        floorspace_square_feet = GetCensusData.get_final_floorspace_estimates('floorspace_square_feet')
+        household_size_square_feet_per_hu = GetCensusData.get_final_floorspace_estimates('household_size_square_feet_per_hu')
+
         
 
         activity_input_data = source1.merge(self.source2)
@@ -184,7 +200,12 @@ class ResidentialIndicators(LMDI):
         for key in self.sub_categories_list.keys():
             energy_input_data = ResidentialIndicators.fuel_electricity_consumption(key)
             activity_input_data = ResidentialIndicators.activity(key)
-
+            energy_activity_data = energy_input_data.merge(activity_input_data, on= , how='outer')
+            energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] = 
+            nominal_energy_intensity_kbtu_per_sf = 
+            nominal_energy_intensity_kbtu_per_sf_weather_adjusted = 
+            weather_factors_actual_by_30_year_normal = 
+            energy_intensity_btu_per_sf_weather_adjusted_index = 
 
 
         energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, base_year)

@@ -3,7 +3,7 @@ from sklearn import linear_model
 from .weather_factors import weather_factors
 import math
 import statsmodels.api as sm
-from commercial.commercial import GetCommercialData
+from pull_eia_api import GetEIAData
 # from outline import LMDI
 
 
@@ -87,21 +87,20 @@ class CommercialIndicators(LMDI):
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['commercial']
+        self.conversion_factors = GetEIAData.conversion_factors('commercial')
+        self.cbecs = 
+        self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
+        self.SEDS_CensusRgn = GetEIAData.get_seds(sector='commercial')
+        self.national_calibration = GetEIAData.national_calibration(sector='commercial')
+        self.Weather_Factors = WeatherFactors.weather_factors('commercial')
+        self.hdd_by_division = GetEIAData.eia_api(id_='1566347') # Is this actually used here or just in weather_factors.py?
+        self.cdd_by_division = GetEIAData.eia_api(id_='1566348') # Is this actually used here or just in weather_factors.py?
 
-    def load_data(self,):
-        GetCommercialData.__()
-        cbecs = 
-        residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
-        SEDS_CensusRgn = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # 'https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv
-        # mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        # mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        # mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
-        # AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
-        mer_data_23 = GetEIAData.eia_api(id_='711251', id_type='category')
-        # CDD_by_Division18 = 
-        # HDD_by_Division18 =
-        pass
-
+        # self.mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # self.mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # self.mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
+        # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
+        self.mer_data_23 = GetEIAData.eia_api(id_='711251', id_type='category')
 
     def estimate_regional_floorspace_share(self,):
     """assumed commercial floorspace in each region follows same trends as population or housing units"""
@@ -176,8 +175,44 @@ class CommercialIndicators(LMDI):
 
     def adjusted_supplier_data(self,):
         """
+        This worksheet adjusts some of commercial energy consumption data
+        as reported in the Annual Energy Review.  These adjustments are 
+        based upon state-by-state analysis of energy consumption in the 
+        industrial and commercial sectors.  For electricity, there have been 
+        a number of reclassifications by utilities since 1990 that has moved 
+        sales from the industrial sector to the commercial sector. 
+
+        The adjustment for electricity consumption is based upon a
+        state-by-state examination of commercial and electricity 
+        sales from 1990 through 2011.  This data is collected
+        by EIA via Survey EIA-861.  Significant discontinuities
+        in the sales data from one year to the next were removed.  
+        In most cases, these adjustments caused industrial consumption
+        to increase and commercial consumption to decrease.  The
+        spreadsheet with these adjustments is Sectoral_reclassification5.xls  (10/25/2012).
+
+        In 2009, there was a significant decline in commercial
+        electricity sales in MA and a corresponding increase in industrial sales
+        Assuming that industrial consumption would have
+        fallen by 2% between 2008 and 2009, the adjustment
+        to both the commercial (+) and industrial sectors (-) was
+        estimated to be 7.61 TWh.  .
+        The 7.61 TWh converted to Tbtu is 26.0.  This value is then added 
+        to the negative 164.0 Tbtu in 2009 and subsequent years.  
+
+        State Energy Data System (Jan. 2017) via National Calibration worksheet 
+
         """"
-        pass
+        # 1949-1969 
+        published_consumption_trillion_btu = list(self.AER11_Table2.1C_Update[])  # Column W
+        # 1970-2018
+        published_consumption_trillion_btu.append(list(self.national_calibration[]))  # Column G
+        # 1977-1989
+        adjustment_to_commercial_trillion_btu_early = number_for_1990
+        adjustment_to_commercial_trillion_btu_early # WHERE DOES THIS FORM FROM
+        adjusted_consumption_trillion_btu = published_consumption_trillion_btu + adjustment_to_commercial_trillion_btu_early
+        
+        return adjusted_consumption_trillion_btu
 
     def national_calibration(self,):
         """"""

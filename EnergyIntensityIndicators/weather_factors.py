@@ -1,14 +1,30 @@
 from sklearn import linear_model
 import pandas as pd
 
-class WeatherFactors:
-    def __init__(self, region, energy_type, type):
+class WeatherFactors(LMDI):
+    def __init__(self, region, energy_type, type, sector):
         self.hdd_by_division = GetEIAData.eia_api(id_='1566347')
         self.cdd_by_division = GetEIAData.eia_api(id_='1566348')
         self.region = region
         self.energy_type = energy_type  # 'electricity' or 'fuels'
         self.type = type  # 'delivered' etc
+        self.setor = sector
 
+        """need tables:
+        Table 5.2, RECS C&E 1993 (Household Energy Consumption and Expenditures 1993)
+        Table 5.14, RECS C&E 1993, calculated from kWh converted to Btu
+        Table 5.20, RECS C&E 1993
+        Table 5.2, RECS C&E 1993; Major energy sources, column 1.
+        Table 5.2, RECS C&E 1993; Major energy sources, column 3.
+        Table 5.11, RECS C&E 1993
+        Table 5.14, RECS C&E 1993 
+        Table 5.20, RECS C&E 1993
+        
+        EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
+
+    def lmdi_prices():
+        pass
+    
     def adjust_data(self):
         adjustment_factor_electricity =  # Weights derived from 1995 CBECS
         adjustment_factor_fuels = 
