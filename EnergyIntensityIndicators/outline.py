@@ -32,7 +32,7 @@ class LMDI:
                                             {'Commuter Rail', 'Heavy Rail', 'Light Rail'}, 
                                         'Intercity Rail'}, 
                                     'Air': {'Commercial Carriers', 'General Aviation'}}, 
-                                'All Freight': 
+                                'All_Freight': 
                                     {'Highway': 
                                         {'Freight-Trucks': 
                                             {'Single-Unit Truck', 'Combination Truck'}}, 

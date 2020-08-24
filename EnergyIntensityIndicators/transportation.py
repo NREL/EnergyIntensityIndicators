@@ -261,9 +261,30 @@ class TranportationData:
         """        
         pass
 
-    def passenger_based_activity(data): 
+    def passenger_based_activity(self): 
         """Time series for the activity measures for passenger transportation
+        """ 
+
+        # Highway
+        self.intercity_buses = 'Detailed  data_Intercity buses' # Column E
+
+        """1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
+           1977-2017 American Public Transportation Association. 2019 Public Transportation Fact Book. Appendix A, Table 3, Pt. A
+           Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years. 
+           https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
+
+            Note: Series not continuous for transit bus between 2006 and 2007; estimation procedures changed for bus systems outside urban areas
+            Note: Series not continuous between 1983 and 1984.
+
         """        
+        self.transit_bus = 'READ NOTE ^'
+        self.paratransit = "1984:20172019 Public Transportation Fact Book, Appendix A, Table 3, Pt. A		
+        					" https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
+                            " Note: Data prior to 1984 was not collected by APTA ""
+
+
+
+        for 
         pass
 
     def freight_based_activity(data):
@@ -288,15 +309,89 @@ class TransportationIndicators(LMDI):
         pass
     
     def passenger_based_energy_use(self):
+        all_passenger_categories = self.sub_categories_list['All_Passenger']
+        for passenger_category in all_passenger_categories.keys():
+            for transportation_mode in passenger_category.keys():
+                if transportation_mode == 'Passenger Car – SWB Vehicles':
+                    # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
+                elif transportation_mode == 'Light Trucks – LWB Vehicles':
+                    # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
+                else: 
+        urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
+        passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
         pass
     
     def passenger_based_activity(self):
+        """Note: Transit Bus == Urban Bus 
+        This method is horribly structured. 
+        """        
+        all_passenger_categories = self.sub_categories_list['All_Passenger']
+        for passenger_category in all_passenger_categories.keys():
+            for transportation_mode in passenger_category.keys():
+                if transportation_mode == 'Passenger Car – SWB Vehicles':
+                    # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
+                elif transportation_mode == 'Light Trucks – LWB Vehicles':
+                    # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
+                else: 
+        urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
+        passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
+        
         pass
 
     def freight_based_energy_use(self):
+        """Need FuelConsump, Fuel Heat Content
+        """        
+        all_freight_categories = self.sub_categories_list['All_Freight']
+        for freight_category in all_freight_categories.keys():
+            for freight_mode in freight_category.keys():
+
+
+
         pass
 
     def freight_based_activity(self):
+        all_freight_categories = self.sub_categories_list['All_Freight']
+        for freight_category in all_freight_categories.keys():
+            for freight_mode in freight_category.keys():
+
+                if freight_category == 'Waterborne':
+                    domestic_vessel = 
+                    international_vessel_in_us_waters = 
+                    total_commerce_us_waters = domestic_vessel + international_vessel_in_us_waters
+                
+                elif freight_category == 'Highway':
+                    highway_published = 
+                    
+                    if freight_mode == 'Combination Truck':
+                        freight_based_energy_use_df['Old Series from 2001 Eno, Trans. In America'] = 
+
+                        # 1950-1989: 
+                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = # 1990 value for this column divided by 1990 value for 'Old Series from 2001 Eno, Trans. In America' * contemporary year from old series
+                        # 1990-2003
+                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = 
+                        # 2004-2017
+                        vehicle_miles_combination_trucks_adjusted =  # from adjust truck freight column K
+
+                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = # contemporary value of vehicle_miles_combination_trucks_adjusted divided by 2003 value of vehicle_miles_combination_trucks_adjusted times  2003 value of this
+                    
+                    elif freight_mode == 'Single-Unit Truck':
+                        # 1970-2006 
+                        freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] =  # Adjust_truck_Freight Column J
+                        # 2007-2017
+                        freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] = highway_published['Single-Unit Truck (million vehicle-miles)']
+
+
+                if freight_mode == 'Natural Gas Pipeline':
+                    natrual_gas_delivered_to_end_users = self.table65_AER2010 # Column AH, million cu. ft.
+                    natural_gas_delivered_lease_plant_pipeline_fuel = self.MER_Table43_Nov2019 # Column M - column D - column I
+                    natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
+                    natural_gas_consumption_million_tons = natrual_gas_delivered_to_end_users * natural_gas_delivered_lease_plant_pipeline_fuel[0]
+                    avg_length_natural_gas_shipment_miles = 620
+                    freight_based_energy_use_df[freight_mode] = natural_gas_consumption_million_tons * 620
+                
+                
+
+
         pass
 
     def water_freight_regression(self, ):
