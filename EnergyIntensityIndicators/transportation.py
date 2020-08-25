@@ -563,6 +563,19 @@ class TransportationIndicators(LMDI):
         """        
         pass
     
+    def call_lmdi(self, categories): 
+        """Gather activity and energy data and calculate LMDI, not sure if the use of super(). requires this to 
+        be a class method or if static
+
+        Args:
+            categories ([type]): [description]
+        """        
+        energy_input_data = TransportationIndicators.fuel_electricity_consumption(categories)
+        activity_input_data = TransportationIndicators.activity(categories)
+
+        lmdi = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
+        return lmdi
+
     def transportation_lmdi(self, _base_year=None):
         """[summary]
 
@@ -574,16 +587,54 @@ class TransportationIndicators(LMDI):
         else: 
             _base_year = _base_year
 
+
+        # Personal vehicles - aggregate
+        personal_vehicles_aggregate_cats = ['Passenger Car', 'Light Truck', 'Motorcycles']
+        personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
+
+        # Pipelines
+        pipeline_cats = sub_categories_list['All_Freight']['Pipeline'].keys()
+        pipelines_lmdi  = call_lmdi(pipeline_cats)
+
+        # Freight-Trucks
+        freight_truck_cats = sub_categories_list['All_Freight']['Highway']['Freight-Trucks'].keys()
+        freight_trucks_lmdi = call_lmdi(freight_truck_cats)
+
+        # Freight_Total
+        freight_total_cats = sub_categories_list['All_Freight'].keys()
+        freight_total_lmdi = call_lmdi(freight_total_cats)
+
+        # Urban_Rail
+        urban_rail_cats = sub_categories_list['All_Passenger']['Rail']['Urban Rail'].keys()
+        urban_rail_lmdi = call_lmdi(urban_rail_cats)
+
+        # Passenger Rail
+        passenger_rail_cats = sub_categories_list['All_Passenger']['Rail'].keys()
+        passenger_rail_lmdi = call_lmdi(passenger_rail_cats)
+
+        # Passenger Air
+        sub_categories_list['All_Passenger']['Air'].keys()
         
-        for key in self.sub_categories_list.keys():
-            energy_input_data = ResidentialIndicators.fuel_electricity_consumption(key)
-            activity_input_data = ResidentialIndicators.activity(key)
-            energy_activity_data = energy_input_data.merge(activity_input_data, on= , how='outer')
+        # Buses
+        sub_categories_list['All_Passenger']['Highway']['Buses'].keys()
 
+        # Trucks and LWB
+        sub_categories_list['All_Passenger']['Highway']['Light Trucks – LWB Vehicles'].keys()
 
-            energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
+        # Cars and SWB Vehicles
+        sub_categories_list['All_Passenger']['Highway']['Passenger Car – SWB Vehicles'].keys()
 
+        # Personal Passenger Vehicles
+        sub_categories_list['All_Passenger']['Highway']['Passenger Cars and Trucks'].keys()
 
+        # Passenger-Highway
+        sub_categories_list['All_Passenger']['Highway'].keys()
+
+        # Passenger_Total
+        sub_categories_list['All_Passenger'].keys()
+
+        # Total_Transportation
+        sub_categories_list.keys()
         pass
         
 

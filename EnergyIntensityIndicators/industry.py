@@ -131,7 +131,6 @@ class IndustrialIndicators(LMDI):
 
     def industry_lmdi(self):
 
-        for key in self.sub_categories_list.keys():
 
         # Mining
         mining_categories =  self.sub_categories_list['Nonmanufcaturing']['Mining']:

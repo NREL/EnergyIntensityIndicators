@@ -15,22 +15,24 @@ class LMDI:
                                                'Fabricated Metal Products', 'Machinery', 'Computer & Electronic Products',
                                                'Electical Equip. & Appliances', 'Transportation Equipment',
                                                'Furniture & Related Products', 'Miscellaneous'},
-                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': {},
+                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
                                                   'Mining': {'Petroleum and Natural Gas', 
                                                              'Other Mining', 
                                                              'Petroleum drilling and Mining Services'},
-                                                  'Construction'}}, 
+                                                  'Construction': None}}, 
               'commercial': {'Commercial_Total', 'Total_Commercial_LMDI_UtilAdj'}, 
               'transportation': {'All_Passenger':
                                     {'Highway': 
                                         {'Passenger Cars and Trucks': 
-                                            {'Passenger Car – SWB Vehicles', 'Light Trucks – LWB Vehicles', 'Motorcycles'}, 
+                                            {'Passenger Car – SWB Vehicles': 
+                                                {'Passenger Car', 'SWB Vehicles'},
+                                             'Light Trucks – LWB Vehicles': 
+                                                {'Light Trucks', 'LWB Vehicles'},
+                                             'Motorcycles'}, 
                                         'Buses': 
                                             {'Urban Bus', 'Intercity Bus', 'School Bus'}, 
                                         'Paratransit':
-                                            {}, 
-                                        'Personal vehicles-aggregate': 
-                                            {'Passenger Car', 'Light Truck', 'Motorcycle'}}, 
+                                            None}, 
                                     'Rail': 
                                         {'Urban Rail': 
                                             {'Commuter Rail', 'Heavy Rail', 'Light Rail'}, 
