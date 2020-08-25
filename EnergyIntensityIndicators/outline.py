@@ -15,7 +15,11 @@ class LMDI:
                                                'Fabricated Metal Products', 'Machinery', 'Computer & Electronic Products',
                                                'Electical Equip. & Appliances', 'Transportation Equipment',
                                                'Furniture & Related Products', 'Miscellaneous'},
-                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing', 'Mining', 'Construction'}}, 
+                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': {},
+                                                  'Mining': {'Petroleum and Natural Gas', 
+                                                             'Other Mining', 
+                                                             'Petroleum drilling and Mining Services'},
+                                                  'Construction'}}, 
               'commercial': {'Commercial_Total', 'Total_Commercial_LMDI_UtilAdj'}, 
               'transportation': {'All_Passenger':
                                     {'Highway': 
@@ -86,7 +90,7 @@ class LMDI:
     """Base class for LMDI"""
 
 
-	def __init__(self, categories_list, base_year=1985):
+	def __init__(self, categories_list, energy_data, activity_data, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
@@ -100,11 +104,11 @@ class LMDI:
 		self.energy_data = energy_data
         self.activity_data = activity_data 
         self.categories_list = categories_list
-        index_base_year_primary = 1985
-	index_base_year_secondary = 1996  # not used
-	charts_starting_year = 1985
-	charts_ending_year = 2003
-    
+        self.index_base_year_primary = base_year
+        self.index_base_year_secondary = base_year_secondary  # not used
+        self.charts_starting_year = base_year
+        self.charts_ending_year = charts_ending_year
+        
     @staticmethod
     def select_value(dataframe, base_row, base_column):
         return dataframe.iloc[base_row, base_column].values()

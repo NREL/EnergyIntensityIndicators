@@ -177,11 +177,6 @@ class ResidentialIndicators(LMDI):
         return activity_input_data
 
 
-
-
-
-
-
     def residential_total_lmdi_utiladj(self, _base_year=None):
     """purpose
         Parameters
@@ -208,7 +203,7 @@ class ResidentialIndicators(LMDI):
             energy_intensity_btu_per_sf_weather_adjusted_index = 
 
 
-        energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, base_year)
+            energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
 
 
         pass

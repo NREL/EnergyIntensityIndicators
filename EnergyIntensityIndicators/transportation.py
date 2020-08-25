@@ -294,6 +294,19 @@ class TranportationData:
             data ([type]): [description]
         """        
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 class TransportationIndicators(LMDI):
 
     def __init__(self, energy_data, activity_data, categories_list):
@@ -308,7 +321,86 @@ class TransportationIndicators(LMDI):
 
         pass
     
+    def fuel_heat_content(self, parameter_list):
+            """This dataframe is not time variant (no need to update it with subsquent indicator updates)
+            Parameters
+            ----------
+            
+            Returns
+            -------
+            
+            """
+
+            pass
+
+    def fuel_consump(self, parameter_list):
+        """purpose
+           Parameters
+           ----------
+           
+           Returns
+           -------
+           
+        """
+        swb_vehciles_all_fuel = 
+        light_trucks_all_fuel = 
+        lwb_vehicles_all_fuel = 
+
+        bus_urban_diesel = 
+        bus_urban_cng = 
+        bus_urban_gasoline = 
+        bus_urban_lng = 
+        bus_urban_bio_diesel = 
+        bus_urban_other = 
+        bus_urban_lpg = 
+        paratransit = 
+        bus_school = 
+        bus_school_million_bbl = 
+        bus_intercity =  # Not used
+        waterborne = 
+        air = 
+        rail_intercity_diesel_million_gallons = 
+        rail_intercity_diesel_electricity_gwhrs = 
+        rail_intercity_total_energy_tbtu =
+        rail_intercity_total_energy_tbtu_old =
+        rail_intercity_total_energy_tbtu_adjusted = 
+
+        rail_commuter_diesel = 
+        rail_commuter_electricity_gwhrs = 
+        rail_heavy_electricity_gwhrs = 
+        rail_light_electricity_gwhrs = 
+        class_I_freight_distillate_fuel_oil =
+
+        pipeline_natural_gas_million_cu_ft = 
+        pipeline_natutral_gas_electricity_million_kwh = 
+
+
+
+        pass
+
+    def adjust_truck_freight(self, parameter_list):
+        """purpose
+           Parameters
+           ----------
+           
+           Returns
+           -------
+        DOES THIS WORK ? dataframes
+        """
+        gross_output = bls_data[] # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model, 
+                    # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
+        vehicle_miles_fhwa_tvm1 =  
+        old_methodology_2007_extrapolated = gross_output.iloc[2007] / gross_output.iloc[2006] * vehicle_miles_fhwa_tvm1.iloc[2006, :]
+        old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated  
+
+
+        **come back**
+        pass
+
+
     def passenger_based_energy_use(self):
+        """[summary]
+        """        
         all_passenger_categories = self.sub_categories_list['All_Passenger']
         for passenger_category in all_passenger_categories.keys():
             for transportation_mode in passenger_category.keys():
@@ -350,6 +442,8 @@ class TransportationIndicators(LMDI):
         pass
 
     def freight_based_activity(self):
+        """[summary]
+        """        
         all_freight_categories = self.sub_categories_list['All_Freight']
         for freight_category in all_freight_categories.keys():
             for freight_mode in freight_category.keys():
@@ -419,6 +513,8 @@ class TransportationIndicators(LMDI):
            -------
            
         """
+
+
         pass
 
     def detailed_data_intercity_buses(self, parameter_list):
@@ -430,94 +526,20 @@ class TransportationIndicators(LMDI):
            -------
            
         """
-        pass
+        passenger_miles =
+        revised_passenger_miles =
+        number_of_buses = 
+        number_of_buses_old =  # Not used
+        vehicle_miles_commercial =  # Not used
+        vehicle_miles_intercity = 
+        implied_load_factor = 
+        energy_use_tedb_19_32 =  # Not used
+        implied_mpg =  # Not used
+        blended_mpg_miles_per_gallon =  #
+        revised_energy_use = 
 
-    def fuel_heat_content(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def fuel_consump(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def adjust_truck_freight(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def freight_based_energy_use(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def freight_based_activity(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def passenger_based_energy_use(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def passenger_based_activity(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
-        pass
-
-    def compare_aggregates(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
-           
-           Returns
-           -------
-           
-        """
+        number_of_motorcoaches = 
+        number_of_motorcoaches['Ratio'] = number_of_motorcoaches['US'] / number_of_motorcoaches['Total N.A.']
         pass
 
     def mpg_check(self, parameter_list):
@@ -531,15 +553,54 @@ class TransportationIndicators(LMDI):
         """
         pass
 
-    def energy_consumption():
-        """TBtu
+    def energy_consumption(self):
+        """Gather Energy Data to use in LMDI Calculation TBtu
         """        
         pass
 
     def activity():
-        """passenger-miles [P-M], ton-miles [T-M]
+        """Gather Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
         """        
         pass
+    
+    def transportation_lmdi(self, _base_year=None):
+        """[summary]
+
+        Args:
+            _base_year ([type], optional): [description]. Defaults to None.
+        """        
+        if not base_year: 
+            _base_year = self.base_year
+        else: 
+            _base_year = _base_year
+
+        
+        for key in self.sub_categories_list.keys():
+            energy_input_data = ResidentialIndicators.fuel_electricity_consumption(key)
+            activity_input_data = ResidentialIndicators.activity(key)
+            energy_activity_data = energy_input_data.merge(activity_input_data, on= , how='outer')
+
+
+            energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
+
+
+        pass
+        
+
+    def compare_aggregates(self, parameter_list):
+        """purpose
+           Parameters
+           ----------
+           
+           Returns
+           -------
+           
+        """
+        total_fuel_tbtu_published_mer = self.mer_table_25_dec_2019['Total Energy Consumed by the Transportation Sector']  # j
+        sum_of_modes = self.total_transportation['Energy_Consumption_Total']  # F
+        difference = sum_of_modes - total_fuel_tbtu_published_mer
+        pct_difference = difference / total_fuel_tbtu_published_mer
+        return pct_difference
 
 
 
