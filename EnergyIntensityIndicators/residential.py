@@ -26,7 +26,7 @@ class ResidentialIndicators(LMDI):
     def __init__(self, categories_list, base_year):
         super().__init__(categories_list, base_year)
         self.sub_categories_list = categories_list['residential']
-        self.national_calibration = GetEIAData.national_calibration()
+        self.national_calibration = GetEIAData.national_calibration('residential')
         self.seds_census_region =  GetEIAData.get_seds('residential') # energy_consumtpion_data_regional
         self.ahs_Data = GetCensusData.update_ahs_data()
         self.conversion_factors = GetEIAData.conversion_factors('residential')
@@ -37,9 +37,8 @@ class ResidentialIndicators(LMDI):
         self.AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
-        self.hdd_by_division = GetEIAData.eia_api(id_='1566347') # Is this actually used here or just in weather_factors.py?
-        self.cdd_by_division = GetEIAData.eia_api(id_='1566348') # Is this actually used here or just in weather_factors.py?
+        # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
+
 
     def regional_time_series_floor_space():
         pass
@@ -187,7 +186,7 @@ class ResidentialIndicators(LMDI):
         LMDI.get_fuels()
         LMDI.get_deliv()
         LMDI.get_source()
-        
+
     def west():
         LMDI.get_elec()
         LMDI.get_fuels()
@@ -240,4 +239,3 @@ class ResidentialIndicators(LMDI):
         pass
 
 
-x = ResidentialIndicators()

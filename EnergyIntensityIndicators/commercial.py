@@ -93,8 +93,7 @@ class CommercialIndicators(LMDI):
         self.SEDS_CensusRgn = GetEIAData.get_seds(sector='commercial')
         self.national_calibration = GetEIAData.national_calibration(sector='commercial')
         self.Weather_Factors = WeatherFactors.weather_factors('commercial')
-        self.hdd_by_division = GetEIAData.eia_api(id_='1566347') # Is this actually used here or just in weather_factors.py?
-        self.cdd_by_division = GetEIAData.eia_api(id_='1566348') # Is this actually used here or just in weather_factors.py?
+
 
         # self.mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'

@@ -9,7 +9,8 @@ from functools import reduce
 # from eiapy import MultiSeries
 
 class GetEIAData:
-    def __init__(self):
+    def __init__(self, sector):
+        self.sector = sector
         # self.id_ = id_
         pass
 
@@ -117,12 +118,15 @@ class GetEIAData:
 
     def national_calibration(self):
         """Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review
+
+        TODO: 
+        The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
         """
         ***NEED YEAR COLUMNS***
 
         if self.sector == 'residential':
-            AER11_table21b_update = 
-            AnnualData_MER_22_Dec2019 =         
+            AER11_table2_1b_update = GetEIAData.eia_api(id_='711250')
+            AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250')         
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = # Column S
             electricity_df['MER, 12/19 (Trillion Btu)'] = # Column K
@@ -145,8 +149,8 @@ class GetEIAData:
             aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
         
         elif self.sector === 'commercial':
-            AER11_Table21C_Update =  
-            MER_Data23_Dec_2019 =  
+            AER11_Table21C_Update =  GetEIAData.eia_api(id_='711251')
+            mer_data23_Dec_2019 = GetEIAData.eia_api(id_='711251')
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = # Column W
             electricity_df['MER, 12/19 (Trillion Btu)'] = # Column M
@@ -168,44 +172,34 @@ class GetEIAData:
         national_calibration = electricity_df.merge(fuels_df, on='year', how='outer')
         return national_calibration
 
-    def conversion_factors(self):
+    def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=True):
         """can streamline this function 
 
         Returns:
             [type]: [description]
         """        
+                                              
         if self.sector == 'residential':
-            data_source = self.AnnualData_MER_22_Dec2019
-            conversion_factors_df = data_source[['Annual Total', 'Electricity Retail Sales to the Residential Sector (Trillion Btu)',
-                                                                'Residential Sector Electrical System Energy Losses (Trillion Btu)']]
-            conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
-                                                                            'year', 
-                                                                        'Electricity Retail Sales to the Residential Sector (Trillion Btu)':
-                                                                            'electricity_retail_sales', 
-                                                                        'Residential Sector Electrical System Energy Losses (Trillion Btu)':
-                                                                            'electrical_system_energy_losses'})
+            datasource =  GetEIAData.eia_api(id_='711250')  # AnnualData_MER_22_Dec2019
+
         elif self.sector == 'commercial': 
-            data_source = self.MER_data23_Dec_2019
-            conversion_factors_df = data_source[['Electricity Retail Sales to the Commercial Sector (Trillion Btu)', 
-                                                 'Commercial Sector Electrical System Energy Losses (Trillion Btu)']]
-            conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
-                                                                            'year', 
-                                                                        'Electricity Retail Sales to the Commercial Sector (Trillion Btu)':
-                                                                            'electricity_retail_sales', 
-                                                                        'Commercial Sector Electrical System Energy Losses (Trillion Btu)':
-                                                                            'electrical_system_energy_losses'})                                     
+            datasource = GetEIAData.eia_api(id_='711251') # mer_data23_Dec_2019
+                                  
         elif self.sector == 'industrial': 
-            data_source = self.MER_Nov19_Table24
-            conversion_factors_df = data_source[['Electricity Retail Sales to the Industrial Sector (Trillion Btu)', 
-                                                 'Industrial Sector Electrical System Energy Losses (Trillion Btu)']]
-            conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
-                                                                            'year', 
-                                                                        'Electricity Retail Sales to the Industrial Sector (Trillion Btu)':
-                                                                            'electricity_retail_sales', 
-                                                                        'Industrial Sector Electrical System Energy Losses (Trillion Btu)':
-                                                                            'electrical_system_energy_losses'})  
+            datasource =  GetEIAData.eia_api(id_='711252') # MER_Nov19_Table24
+
         else: # Electricity and Tranportation don't use conversion factors
             return None
+        
+        sector_name = self.sector.capitalize()
+        conversion_factors_df = datasource[['Annual Total', f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)',
+                                                                f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)']]
+        conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
+                                                                            'year', 
+                                                                        f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)':
+                                                                            'electricity_retail_sales', 
+                                                                        f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)':
+                                                                            'electrical_system_energy_losses'})       
 
         conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])  
         conversion_factors_df['source-site conversion factor'] = conversion_factors_df['Losses/Sales'].add(1)
