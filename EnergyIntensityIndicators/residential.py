@@ -176,6 +176,36 @@ class ResidentialIndicators(LMDI):
         activity_input_data = source1.merge(self.source2)
         return activity_input_data
 
+    def northeast():
+        LMDI.get_elec()
+        LMDI.get_fuels()
+        LMDI.get_deliv()
+        LMDI.get_source()
+
+    def south():
+        LMDI.get_elec()
+        LMDI.get_fuels()
+        LMDI.get_deliv()
+        LMDI.get_source()
+        
+    def west():
+        LMDI.get_elec()
+        LMDI.get_fuels()
+        LMDI.get_deliv()
+        LMDI.get_source()
+
+    def midwest():
+        LMDI.get_elec()
+        LMDI.get_fuels()
+        LMDI.get_deliv()
+        LMDI.get_source()
+
+    def national():
+        LMDI.get_elec()
+        LMDI.get_fuels()
+        LMDI.get_deliv()
+        LMDI.get_source()
+        LMDI.get_source_adj()
 
     def residential_total_lmdi_utiladj(self, _base_year=None):
     """purpose
@@ -195,7 +225,8 @@ class ResidentialIndicators(LMDI):
         for key in self.sub_categories_list.keys():
             energy_input_data = ResidentialIndicators.fuel_electricity_consumption(key)
             activity_input_data = ResidentialIndicators.activity(key)
-            energy_activity_data = energy_input_data.merge(activity_input_data, on= , how='outer')
+
+         
             energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] = 
             nominal_energy_intensity_kbtu_per_sf = 
             nominal_energy_intensity_kbtu_per_sf_weather_adjusted = 

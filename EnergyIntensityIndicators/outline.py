@@ -4,73 +4,73 @@ from sklearn import linear_model
 
 class LMDI:
 
-    sectors = {'residential': {'Northeast': {'Single-Family', 'Multi-Family', 'Manufactured Homes'}, 
-                               'Midwest': {'Single-Family', 'Multi-Family', 'Manufactured Homes'},
-                               'South': {'Single-Family', 'Multi-Family', 'Manufactured Homes'},
-                               'West': {'Single-Family', 'Multi-Family', 'Manufactured Homes'}},
-              'industrial': {'Manufacturing': {'Food, Beverages, & Tobacco', 'Textile Mills and Products', 
-                                               'Apparel & Leather', 'Wood Products', 'Paper',
-                                               'Printing & Allied Support', 'Petroleum & Coal Products', 'Chemicals',
-                                               'Plastics & Rubber Products', 'Nonmetallic Mineral Products', 'Primary Metals',
-                                               'Fabricated Metal Products', 'Machinery', 'Computer & Electronic Products',
-                                               'Electical Equip. & Appliances', 'Transportation Equipment',
-                                               'Furniture & Related Products', 'Miscellaneous'},
+    sectors = {'residential': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
+                               'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
+                               'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
+                               'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}},
+              'industrial': {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
+                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
+                                               'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
+                                               'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
+                                               'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
+                                               'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
+                                               'Furniture & Related Products': None, 'Miscellaneous': None},
                              'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
-                                                  'Mining': {'Petroleum and Natural Gas', 
-                                                             'Other Mining', 
-                                                             'Petroleum drilling and Mining Services'},
+                                                  'Mining': {'Petroleum and Natural Gas': None, 
+                                                             'Other Mining': None, 
+                                                             'Petroleum drilling and Mining Services': None},
                                                   'Construction': None}}, 
-              'commercial': {'Commercial_Total', 'Total_Commercial_LMDI_UtilAdj'}, 
+              'commercial': {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}, 
               'transportation': {'All_Passenger':
                                     {'Highway': 
                                         {'Passenger Cars and Trucks': 
                                             {'Passenger Car – SWB Vehicles': 
-                                                {'Passenger Car', 'SWB Vehicles'},
+                                                {'Passenger Car': None, 'SWB Vehicles': None},
                                              'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks', 'LWB Vehicles'},
-                                             'Motorcycles'}, 
+                                                {'Light Trucks': None, 'LWB Vehicles': None},
+                                             'Motorcycles': None}, 
                                         'Buses': 
-                                            {'Urban Bus', 'Intercity Bus', 'School Bus'}, 
+                                            {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
                                         'Paratransit':
                                             None}, 
                                     'Rail': 
                                         {'Urban Rail': 
-                                            {'Commuter Rail', 'Heavy Rail', 'Light Rail'}, 
-                                        'Intercity Rail'}, 
-                                    'Air': {'Commercial Carriers', 'General Aviation'}}, 
+                                            {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
+                                        'Intercity Rail': None}, 
+                                    'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
                                 'All_Freight': 
                                     {'Highway': 
                                         {'Freight-Trucks': 
-                                            {'Single-Unit Truck', 'Combination Truck'}}, 
-                                    'Rail', 
-                                    'Air', 
-                                    'Waterborne',
+                                            {'Single-Unit Truck': None, 'Combination Truck': None}}, 
+                                    'Rail': None, 
+                                    'Air': None, 
+                                    'Waterborne': None,
                                     'Pipeline': 
-                                        {'Oil Pipeline', 'Natural Gas Pipeline'}}}, 
+                                        {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}, 
               'electricity': {'Elec Generation Total': 
                                 {'Elec Power Sector': 
                                     {'Electricity Only':
                                         {'Fossil Fuels': 
-                                            {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
-                                         'Nuclear', 
-                                         'Hydro Electric', 
+                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
+                                         'Nuclear': None, 
+                                         'Hydro Electric': None, 
                                          'Renewable':
-                                            {'Wood', 'Waste', 'Geothermal', 'Solar', 'Wind'}},
+                                            {'Wood': None, 'Waste': None, 'Geothermal': None, 'Solar': None, 'Wind': None}},
                                      'Combined Heat & Power': 
                                         {'Fossil Fuels'
-                                            {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
+                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
                                          'Renewable':
-                                            {'Wood', 'Waste'}}}, 
-                                'Commercial Sector', 
-                                'Industrial Sector'},
+                                            {'Wood': None, 'Waste': None}}}, 
+                                'Commercial Sector': None, 
+                                'Industrial Sector': None},
                               'All CHP':
                                 {'Elec Power Sector': 
                                     {'Combined Heat & Power':
                                         {'Fossil Fuels':
-                                            {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
+                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
                                         'Renewable':
-                                            {'Wood', 'Waste'},
-                                        'Other'}},
+                                            {'Wood': None, 'Waste': None},
+                                        'Other': None}},
                                     
                                 'Commercial Sector':
                                     {'Combined Heat & Power':
@@ -111,6 +111,33 @@ class LMDI:
         self.charts_starting_year = base_year
         self.charts_ending_year = charts_ending_year
         
+    def get_elec(self, delivered_electricity):
+        delivered_electricity = delivered_electricity.set_index('year')
+        delivered_electricity['Total'] = delivered_electricity.sum(axis=1)
+        delivered_electricity['Energy_Type'] = 'Electricity'
+        return delivered_electricity
+
+    def get_fuels(self, fuels):
+        fuels = fuels.set_index('year')
+        fuels['Total'] = fuels.sum(axis=1)
+        fuels['Energy_Type'] = 'Fuels'
+        return fuels
+
+    def get_deliv(self, delivered_electricity, fuels):
+        delivered = delivered_electricity.add(fuels)
+        delivered['Energy_Type'] = 'Delivered'
+        return delivered
+
+    def get_source(self, delivered_electricity, conversion_factors):
+        source_electricity = delivered_electricity.multiply(conversion_factors['Total/Sales']) # Column A
+        total_source = source_electricity.add(fuels)     
+        total_source['Energy_Type'] = 'Source'
+        
+    def get_source_adj(self, delivered_electricity, conversion_factors):
+        source_electricity_adj = delivered_electricity.multiply(conversion_factors['Conversion Factor (Contant 1985)']) # Column M
+        source_adj = source_electricity_adj.add(fuels)
+        source_adj['Energy_Type'] = 'Source_Adj'
+
     @staticmethod
     def select_value(dataframe, base_row, base_column):
         return dataframe.iloc[base_row, base_column].values()
@@ -335,6 +362,19 @@ class LMDI:
            -------
            
         """
+    
+    def call_lmdi(self, categories): 
+        """Gather activity and energy data and calculate LMDI, not sure if the use of super(). requires this to 
+        be a class method or if static
+
+        Args:
+            categories ([type]): [description]
+        """        
+        energy_input_data = TransportationIndicators.fuel_electricity_consumption(categories)
+        activity_input_data = TransportationIndicators.activity(categories)
+
+        lmdi = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
+        return lmdi
 
     def lmdi_multiplicative(self, activity_input_data, energy_input_data):
 

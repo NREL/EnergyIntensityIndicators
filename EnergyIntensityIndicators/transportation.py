@@ -497,8 +497,9 @@ class TransportationIndicators(LMDI):
            -------
            
         """
-        X =
-        Y = 
+        intensity = 
+        X = math.log(intensity)
+        Y = years
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
@@ -563,21 +564,9 @@ class TransportationIndicators(LMDI):
         """        
         pass
     
-    def call_lmdi(self, categories): 
-        """Gather activity and energy data and calculate LMDI, not sure if the use of super(). requires this to 
-        be a class method or if static
-
-        Args:
-            categories ([type]): [description]
-        """        
-        energy_input_data = TransportationIndicators.fuel_electricity_consumption(categories)
-        activity_input_data = TransportationIndicators.activity(categories)
-
-        lmdi = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
-        return lmdi
-
     def transportation_lmdi(self, _base_year=None):
-        """[summary]
+        """potentially refactor later
+    
 
         Args:
             _base_year ([type], optional): [description]. Defaults to None.
@@ -586,11 +575,6 @@ class TransportationIndicators(LMDI):
             _base_year = self.base_year
         else: 
             _base_year = _base_year
-
-
-        # Personal vehicles - aggregate
-        personal_vehicles_aggregate_cats = ['Passenger Car', 'Light Truck', 'Motorcycles']
-        personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
 
         # Pipelines
         pipeline_cats = sub_categories_list['All_Freight']['Pipeline'].keys()
@@ -614,7 +598,7 @@ class TransportationIndicators(LMDI):
 
         # Passenger Air
         sub_categories_list['All_Passenger']['Air'].keys()
-        
+
         # Buses
         sub_categories_list['All_Passenger']['Highway']['Buses'].keys()
 
@@ -632,6 +616,10 @@ class TransportationIndicators(LMDI):
 
         # Passenger_Total
         sub_categories_list['All_Passenger'].keys()
+
+        # Personal vehicles - aggregate
+        personal_vehicles_aggregate_cats = ['Passenger Car', 'Light Truck', 'Motorcycles']
+        personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
 
         # Total_Transportation
         sub_categories_list.keys()

@@ -79,44 +79,32 @@ class IndustrialIndicators(LMDI):
         Data Source: EIA's Annual Energy Review (AER)"""
         pass
 
+
+
     def fuel_electricity_consumption(categories, elec=True, fuels=True, deliv=True, source=True, source_adj=True):
         """Trillion Btu
         """        
-
         conversion_factors = GetEIAData.conversion_factors('industry')
         conversion_factors = conversion_factors.set_index('year')
         energy_type_dfs = []
         
         if  elec:
-            delivered_electricity = 
-            delivered_electricity = delivered_electricity.set_index('year')
-            delivered_electricity['Total'] = delivered_electricity.sum(axis=1)
-            delivered_electricity['Energy_Type'] = 'Electricity'
             energy_type_dfs.append(delivered_electricity)
 
         if fuels: 
-            fuels = 
-            fuels = fuels.set_index('year')
 
-            fuels['Total'] = fuels.sum(axis=1)
-            fuels['Energy_Type'] = 'Fuels'
             energy_type_dfs.append(fuels)
 
         if deliv: 
-            delivered = delivered_electricity.add(fuels)
-            delivered['Energy_Type'] = 'Delivered'
+
             energy_type_dfs.append(delivered)
 
         if source:
-            source_electricity = delivered_electricity.multiply(conversion_factors['Total/Sales']) # Column A
-            total_source = source_electricity.add(fuels)     
-            total_source['Energy_Type'] = 'Source'
+
             energy_type_dfs.append(total_source)
     
         if source_adj:
-            source_electricity_adj = delivered_electricity.multiply(conversion_factors['Conversion Factor (Contant 1985)']) # Column M
-            source_adj = source_electricity_adj.add(fuels)
-            source_adj['Energy_Type'] = 'Source_Adj'
+
             energy_type_dfs.append(source_adj)
 
         fuel_electricity_consumption = pd.concat(energy_type_dfs)
@@ -129,27 +117,28 @@ class IndustrialIndicators(LMDI):
         activity_df['total'] = activity_df.sum(axis=1)        
         return activity_df 
 
-    def industry_lmdi(self):
-
-
-        # Mining
+    def mining_lmdi():
         mining_categories =  self.sub_categories_list['Nonmanufcaturing']['Mining']:
         mining_energy_input_data = IndustrialIndicators.fuel_electricity_consumption(mining_categories, source_adj=False)
         mining_activity_input_data = IndustrialIndicators.activity(mining_categories)
+        deliv = super().get_deliv()
+        
         mining = super().lmdi_multiplicative(mining_activity_input_data, mining_energy_input_data, _base_year)
 
-        # Nonmanufacturing
+    def nonmanufacturing_lmdi():
         nonmanufcaturing_categories =  self.sub_categories_list['Nonmanufcaturing']
         nonmanufcaturing_energy_input_data = IndustrialIndicators.fuel_electricity_consumption(nonmanufcaturing_categories)
+
         nonmanufcaturing_activity_input_data = IndustrialIndicators.activity(nonmanufcaturing_categories)
         nonmanufacturing = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
 
-        # Total Industrial
+    def total_industrial_lmdi():
         industrial_categories = self.sub_categories_list.keys()
         industry_energy_input_data = IndustrialIndicators.fuel_electricity_consumption(industrial_categories)
         industry_energy_input_data = IndustrialIndicators.activity(industrial_categories)
         total_industrial = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
 
-        # Total Industrial Util Adj
+    def total_industrial_util_adj_lmdi():
         util_adj_categories = ['Fuels', 'Delivered Electricity', 'Source Electricity', 'Total Source']
         industrial_total_lmdi_utiladj = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year) # This case is quite different from the others
+
