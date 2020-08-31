@@ -9,6 +9,7 @@ class WeatherFactors(LMDI):
         self.energy_type = energy_type  # 'electricity' or 'fuels'
         self.type = type  # 'delivered' etc
         self.sector = sector
+        self.lmdi_prices = pd.read_excel('./EnergyPrices_by_Sector_010820_DBB', sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
 
         self.residential_data_electricity = {'total_elec_tbtu': {'northeast': 470, 'midwest': 740, 'south': 1510,
                                  'west': 560}, 'heating_tbtu': {'northeast': 12 * 3.412, 'midwest': 22 * 3.412, 'south': 61 * 3.412,
@@ -37,7 +38,7 @@ class WeatherFactors(LMDI):
         self.commercial_cooling_floorspace_million_sf = [5919, 1472, 4447, 10860, 7301, 3559, 13666, 6512, 3265, 3889, 7058, 2812, 4246]
         self.commercial_all_energy = [7661, 2031, 5630, 10860, 7301, 3559, 13666, 6512, 3265, 3889, 7065, 2819, 4246]
         self.commercial_electricity = [657, 137, 520, 779, 345, 434, 3189, 1648, 1140, 401, 1219, 469, 750]
-        """need tables:
+        """
         Table 5.2, RECS C&E 1993 (Household Energy Consumption and Expenditures 1993)
         Table 5.14, RECS C&E 1993, calculated from kWh converted to Btu
         Table 5.20, RECS C&E 1993
@@ -48,10 +49,6 @@ class WeatherFactors(LMDI):
         Table 5.20, RECS C&E 1993
         
         EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
-
-    def lmdi_prices():
-        
-        pass
     
     def adjust_data(self):
         adjustment_factor_electricity =  # Weights derived from 1995 CBECS
@@ -59,15 +56,23 @@ class WeatherFactors(LMDI):
         self.adjusted_hdd = weights * self.hdd_by_division
         self.adjusted_cdd = weights * self.cdd_by_division
 
-    def collect_data():
-        """[summary]
+    def collect_data(self):
+        """Create dataframe of electricity and fuel data
         """
-        residential_electricity = pd.DataFrame(self.residential_data_electricity) 
-        residential_fuels = pd.DataFrame(self.residential_data_fuels)  
-        commercial_electricity = pd.DataFrame(self.commercial_data_electricity)
-        commercial_fuels = pd.DataFrame(self.commercial_data_fuels)     
+        if self.sector == 'residential':
+            residential_electricity = pd.DataFrame(self.residential_data_electricity) 
+            residential_fuels = pd.DataFrame(self.residential_data_fuels)  
+            return residential_electricity, residential_fuels
+        elif self.sector == 'commercial':
+            commercial_electricity = pd.DataFrame(self.commercial_data_electricity)
+            commercial_fuels = pd.DataFrame(self.commercial_data_fuels)     
+            return commercial_electricity, commercial_fuels
 
-        
+    def process_prices(self):
+        lmdi_prices = self.lmdi_prices
+        distributed_lag = 
+        time_cubed = 
+        selected_variable = 
 
     def weather_factors(self):
         """Estimate a simple regression model to fit the regional intensity to a linear function of time (included squared and cubed values of time) and degree days. 
