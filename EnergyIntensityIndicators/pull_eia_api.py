@@ -122,8 +122,6 @@ class GetEIAData:
         TODO: 
         The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
         """
-        ***NEED YEAR COLUMNS***
-
         if self.sector == 'residential':
             AER11_table2_1b_update = GetEIAData.eia_api(id_='711250')
             AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250')         
@@ -216,7 +214,8 @@ class GetEIAData:
         return conversion_factors_df['selected site-source conversion factor']
 
 
-eia_data_cat = GetEIAData.eia_api(id_='711272', id_type='category')
+eia_data_cat = GetEIAData.eia_api(id_='711250', id_type='category')
+# GetEIAData.eia_api(id_='711250')
 print(eia_data_cat)
 # eia_data = GetEIAData.eia_api(id_='TOTAL.NGACPUS.M', id_type='series')
 # print(eia_data)
