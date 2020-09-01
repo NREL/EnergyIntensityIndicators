@@ -11,8 +11,6 @@ from functools import reduce
 class GetEIAData:
     def __init__(self, sector):
         self.sector = sector
-        # self.id_ = id_
-        pass
 
     @staticmethod
     def eia_api(id_, id_type='category'):
@@ -75,22 +73,23 @@ class GetEIAData:
         """    
         consumption_all_btu = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # Commercial: '40210 , residential : '40209 
                                                                                           # 1960 through 2017 SEDS Data, MSN refers to fuel type
-        state_to_census_region = pd.read_csv('./state_to_census_region.csv')
+        state_to_census_region = pd.read_csv('./EnergyIntensityIndicators/state_to_census_region.csv')
         consumption_census_region = consumption_all_btu.merge(state_to_census_region, left_on='State', right_on='USPC', how='left')
-
         years = list(range(1960, 2018))
         years = [str(year) for year in years]
-
-        pivotted_by_census_region = pd.pivot_table(consumption_census_region, index=years, columns='MSN', aggfunc='sum').reset_index()  # , values='Census Region'
-        pivotted_by_census_region['Grand Total'] = pivotted_by_census_region.sum()
-
+        
+        consumption_census_region = consumption_census_region[['Census Region', 'MSN'] + years]
 
         if self.sector == 'residential':
-            pivotted_by_census_region = pivotted_by_census_region[['ESRCB', 'TNRCB']]
+            consumption_census_region = consumption_census_region[consumption_census_region['MSN'].isin(['ESRCB', 'TNRCB'])]
 
-            ESRCB_by_region = pd.pivot_table(pivotted_by_census_region['ESRCB'], index=years , columns='Census Region', aggfunc='sum')
-            TNRCB_by_region = pd.pivot_table(pivotted_by_census_region['TNRCB'], index=years , columns='Census Region', aggfunc='sum')
-            
+            consumption_census_region = consumption_census_region.set_index(['MSN', 'Census Region'])
+
+            consumption_census_region = consumption_census_region.stack().reset_index().rename(columns={'level_2': 'year', 0: 'value'})
+
+            ESRCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'ESRCB'].drop('MSN', axis=1).set_index(['Census Region', 'year'], append='True').reset_index().pivot(index='year', columns='Census Region', values='value') # .set_index(['Census Region', 'year'], append='True')
+            TNRCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'TNRCB'].drop('MSN', axis=1).set_index(['Census Region', 'year'], append='True').reset_index().pivot(index='year', columns='Census Region', values='value') # .set_index(['Census Region', 'year'], append='True')
+
             elec_to_indicators = ESRCB_by_region.multiply(0.001)
             elec_to_indicators['US'] = elec_to_indicators.sum(1)
 
@@ -99,10 +98,14 @@ class GetEIAData:
             total_primary_to_indicators['US'] = total_primary_to_indicators.sum(1)
 
         elif self.sector == 'commercial':
-            pivotted_by_census_region = pivotted_by_census_region[['ESCCB', 'TNCCB']]
+            consumption_census_region = consumption_census_region[consumption_census_region['MSN'].isin(['ESCCB', 'TNCCB'])]
+            consumption_census_region = consumption_census_region.set_index('MSN', 'Census Region')
+            consumption_census_region = consumption_census_region.stack()
+            consumption_census_region = consumption_census_region.unstack('MSN')
 
-            ESCCB_by_region = pd.pivot_table(pivotted_by_census_region['ESCCB'], index=years , columns='Census Region', aggfunc='sum')
-            TNCCB_by_region = pd.pivot_table(pivotted_by_census_region['TNCCB'], index=years , columns='Census Region', aggfunc='sum')
+            print(consumption_census_region)
+            ESCCB_by_region = consumption_census_region.drop('TNCCB', axis='columns').unstack('Census Region')
+            TNCCB_by_region = consumption_census_region.drop('ESCCB', axis='columns').unstack('Census Region')
 
             elec_to_indicators = ESCCB_by_region.multiply(0.001)
             elec_to_indicators['US'] = elec_to_indicators.sum(1)
@@ -116,106 +119,114 @@ class GetEIAData:
         
         return total_primary_to_indicators, elec_to_indicators
 
-    def national_calibration(self):
-        """Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review
+    # def national_calibration(self):
+    #     """Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review
 
-        TODO: 
-        The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
-        """
-        if self.sector == 'residential':
-            AER11_table2_1b_update = GetEIAData.eia_api(id_='711250')
-            AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250')         
-            electricity_df = pd.DataFrame()
-            electricity_df['AER 11 (Billion Btu)'] = # Column S
-            electricity_df['MER, 12/19 (Trillion Btu)'] = # Column K
-            electricity_df['SEDS (10/18) (Trillion Btu)'] =  # Column G
-            electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (10/18) (Trillion Btu)'])
-            electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (10/18) (Trillion Btu)'].multiply(electricity_df['Ratio MER/SEDS'])
-            # If SEDS is 0, replace with MER
+    #     TODO: 
+    #     The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
+    #     """
+    #     if self.sector == 'residential':
+    #         AER11_table2_1b_update = GetEIAData.eia_api(id_='711250')
+    #         AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250')         
+    #         electricity_df = pd.DataFrame()
+    #         electricity_df['AER 11 (Billion Btu)'] = # Column S
+    #         electricity_df['MER, 12/19 (Trillion Btu)'] = # Column K
+    #         electricity_df['SEDS (10/18) (Trillion Btu)'] =  # Column G
+    #         electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (10/18) (Trillion Btu)'])
+    #         electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (10/18) (Trillion Btu)'].multiply(electricity_df['Ratio MER/SEDS'])
+    #         # If SEDS is 0, replace with MER
 
-            fuels_df['AER 11 (Billion Btu)'] = # Column Q
-            fuels_df['MER, 12/19 (Trillion Btu)'] =  # Column J
-            fuels_df['SEDS (10/18) (Trillion Btu)'] =  # Column N
-            fuels_df['Ratio MER/SEDS'] = fuels_df['MER, 12/19 (Trillion Btu)'].div(fuels_df['SEDS (10/18) (Trillion Btu)'])
-            fuels_df['Final Est. (Trillion Btu)'] = fuels_df['SEDS (10/18) (Trillion Btu)'].multiply(fuels_df['Ratio MER/SEDS'])
-            # If SEDS is 0, replace with MER
+    #         fuels_df['AER 11 (Billion Btu)'] = # Column Q
+    #         fuels_df['MER, 12/19 (Trillion Btu)'] =  # Column J
+    #         fuels_df['SEDS (10/18) (Trillion Btu)'] =  # Column N
+    #         fuels_df['Ratio MER/SEDS'] = fuels_df['MER, 12/19 (Trillion Btu)'].div(fuels_df['SEDS (10/18) (Trillion Btu)'])
+    #         fuels_df['Final Est. (Trillion Btu)'] = fuels_df['SEDS (10/18) (Trillion Btu)'].multiply(fuels_df['Ratio MER/SEDS'])
+    #         # If SEDS is 0, replace with MER
 
-            # Not sure if these are needed
-            recs_millions =  # RECS (millions) column AF
-            recs_btu_hh = electricity_df['SEDS (10/18) (Trillion Btu)'].add(fuels_df['SEDS (10/18) (Trillion Btu)']).div(recs_millions)  # How do order of operations work here ?? (should be add and then divide)
-            calibrated_hh = # National column N
-            aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
+    #         # Not sure if these are needed
+    #         recs_millions =  # RECS (millions) column AF
+    #         recs_btu_hh = electricity_df['SEDS (10/18) (Trillion Btu)'].add(fuels_df['SEDS (10/18) (Trillion Btu)']).div(recs_millions)  # How do order of operations work here ?? (should be add and then divide)
+    #         calibrated_hh = # National column N
+    #         aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
         
-        elif self.sector === 'commercial':
-            AER11_Table21C_Update =  GetEIAData.eia_api(id_='711251')
-            mer_data23_Dec_2019 = GetEIAData.eia_api(id_='711251')
-            electricity_df = pd.DataFrame()
-            electricity_df['AER 11 (Billion Btu)'] = # Column W
-            electricity_df['MER, 12/19 (Trillion Btu)'] = # Column M
-            electricity_df['SEDS (01/20) (Trillion Btu)'] =  # Column G
-            electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (01/20) (Trillion Btu)']])
-            electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (01/20) (Trillion Btu)']].multiply(electricity_df['Ratio MER/SEDS'])
+    #     elif self.sector === 'commercial':
+    #         AER11_Table21C_Update =  GetEIAData.eia_api(id_='711251')
+    #         mer_data23_Dec_2019 = GetEIAData.eia_api(id_='711251')
+    #         electricity_df = pd.DataFrame()
+    #         electricity_df['AER 11 (Billion Btu)'] = # Column W
+    #         electricity_df['MER, 12/19 (Trillion Btu)'] = # Column M
+    #         electricity_df['SEDS (01/20) (Trillion Btu)'] =  # Column G
+    #         electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (01/20) (Trillion Btu)']])
+    #         electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (01/20) (Trillion Btu)']].multiply(electricity_df['Ratio MER/SEDS'])
 
-            fuels_df = pd.DataFrame()
-            fuels_df['AER 11 (Billion Btu)'] = # Column U
-            fuels_df['MER, 12/19 (Trillion Btu)'] =  # Column L
-            fuels_df['SEDS (01/20) (Trillion Btu)'] =  # Column N
-            fuels_df['Ratio MER/SEDS'] = fuels_df['MER, 12/19 (Trillion Btu)'].div(fuels_df['SEDS (01/20) (Trillion Btu)'])
-            fuels_df['Final Est. (Trillion Btu)'] = fuels_df['SEDS (01/20) (Trillion Btu)'].multiply(fuels_df['Ratio MER/SEDS'])
-            # If SEDS is 0, replace with MER
+    #         fuels_df = pd.DataFrame()
+    #         fuels_df['AER 11 (Billion Btu)'] = # Column U
+    #         fuels_df['MER, 12/19 (Trillion Btu)'] =  # Column L
+    #         fuels_df['SEDS (01/20) (Trillion Btu)'] =  # Column N
+    #         fuels_df['Ratio MER/SEDS'] = fuels_df['MER, 12/19 (Trillion Btu)'].div(fuels_df['SEDS (01/20) (Trillion Btu)'])
+    #         fuels_df['Final Est. (Trillion Btu)'] = fuels_df['SEDS (01/20) (Trillion Btu)'].multiply(fuels_df['Ratio MER/SEDS'])
+    #         # If SEDS is 0, replace with MER
     
-        else: 
-            pass
+    #     else: 
+    #         pass
 
-        national_calibration = electricity_df.merge(fuels_df, on='year', how='outer')
-        return national_calibration
+    #     national_calibration = electricity_df.merge(fuels_df, on='year', how='outer')
+    #     return national_calibration
 
-    def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=True):
-        """can streamline this function 
+    # def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=True):
+    #     """can streamline this function 
 
-        Returns:
-            [type]: [description]
-        """        
+    #     Returns:
+    #         [type]: [description]
+    #     """        
                                               
-        if self.sector == 'residential':
-            datasource =  GetEIAData.eia_api(id_='711250')  # AnnualData_MER_22_Dec2019
+    #     if self.sector == 'residential':
+    #         datasource =  GetEIAData.eia_api(id_='711250')  # AnnualData_MER_22_Dec2019
 
-        elif self.sector == 'commercial': 
-            datasource = GetEIAData.eia_api(id_='711251') # mer_data23_Dec_2019
+    #     elif self.sector == 'commercial': 
+    #         datasource = GetEIAData.eia_api(id_='711251') # mer_data23_Dec_2019
                                   
-        elif self.sector == 'industrial': 
-            datasource =  GetEIAData.eia_api(id_='711252') # MER_Nov19_Table24
+    #     elif self.sector == 'industrial': 
+    #         datasource =  GetEIAData.eia_api(id_='711252') # MER_Nov19_Table24
 
-        else: # Electricity and Tranportation don't use conversion factors
-            return None
+    #     else: # Electricity and Tranportation don't use conversion factors
+    #         return None
         
-        sector_name = self.sector.capitalize()
-        conversion_factors_df = datasource[['Annual Total', f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)',
-                                                                f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)']]
-        conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
-                                                                            'year', 
-                                                                        f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)':
-                                                                            'electricity_retail_sales', 
-                                                                        f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)':
-                                                                            'electrical_system_energy_losses'})       
+    #     sector_name = self.sector.capitalize()
+    #     conversion_factors_df = datasource[['Annual Total', f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)',
+    #                                                             f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)']]
+    #     conversion_factors_df = conversion_factors_df.rename(columns={'Annual Total: 
+    #                                                                         'year', 
+    #                                                                     f'Electricity Retail Sales to the {sector_name} Sector (Trillion Btu)':
+    #                                                                         'electricity_retail_sales', 
+    #                                                                     f'{sector_name} Sector Electrical System Energy Losses (Trillion Btu)':
+    #                                                                         'electrical_system_energy_losses'})       
 
-        conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])  
-        conversion_factors_df['source-site conversion factor'] = conversion_factors_df['Losses/Sales'].add(1)
-        base_year_source_site_conversion_factor = conversion_factors_df[conversion_factors_df['year'] == base_year]['source-site conversion factor'].values()[0]
-        conversion_factors_df['conversion factor index'] = conversion_factors_df['source-site conversion factor'].div(base_year_source_site_conversion_factor)
+    #     conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])  
+    #     conversion_factors_df['source-site conversion factor'] = conversion_factors_df['Losses/Sales'].add(1)
+    #     base_year_source_site_conversion_factor = conversion_factors_df[conversion_factors_df['year'] == base_year]['source-site conversion factor'].values()[0]
+    #     conversion_factors_df['conversion factor index'] = conversion_factors_df['source-site conversion factor'].div(base_year_source_site_conversion_factor)
         
-        if include_utility_sector_efficiency_in_total_energy_intensity:
-            conversion_factors_df['utility efficiency adjustment factor'] = conversion_factors_df['conversion factor index']
-            conversion_factors_df['selected site-source conversion factor'] = conversion_factors_df['source-site conversion factor']
-        else: 
-            conversion_factors_df['utility efficiency adjustment factor'] = 1
-            conversion_factors_df['selected site-source conversion factor'] = base_year_source_site_conversion_factor
+    #     if include_utility_sector_efficiency_in_total_energy_intensity:
+    #         conversion_factors_df['utility efficiency adjustment factor'] = conversion_factors_df['conversion factor index']
+    #         conversion_factors_df['selected site-source conversion factor'] = conversion_factors_df['source-site conversion factor']
+    #     else: 
+    #         conversion_factors_df['utility efficiency adjustment factor'] = 1
+    #         conversion_factors_df['selected site-source conversion factor'] = base_year_source_site_conversion_factor
 
-        return conversion_factors_df['selected site-source conversion factor']
+    #     return conversion_factors_df['selected site-source conversion factor']
+print(os.getcwd())
+res = GetEIAData(sector='residential')
+x, y = res.get_seds()
+print(x, y)
+exit()
+p, q = GetEIAData(sector='commercial').get_seds()
+print(p, q)
 
 
 eia_data_cat = GetEIAData.eia_api(id_='711250', id_type='category')
 # GetEIAData.eia_api(id_='711250')
+print(eia_data_cat.columns)
 print(eia_data_cat)
 # eia_data = GetEIAData.eia_api(id_='TOTAL.NGACPUS.M', id_type='series')
 # print(eia_data)
