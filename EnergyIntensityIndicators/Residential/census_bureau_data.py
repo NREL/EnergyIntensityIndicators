@@ -56,7 +56,7 @@ class GetCensusData:
         pivot_census_division['census_region_4'] = pivot_census_division['8'] + pivot_census_division['8']
         pivot_census_division['total'] = pivot_census_division['census_region_1'] + pivot_census_division['census_region_2'] + 
                                                 pivot_census_division['census_region_3'] + pivot_census_division['census_region_4']
-        pivot_census_division.loc['Grand Total',:]= pivot_census_division.sum(axis=0)
+        pivot_census_division.loc['Grand Total', :]= pivot_census_division.sum(axis=0)
 
         return pivot_census_division          
 
@@ -195,11 +195,12 @@ class GetCensusData:
         # if housing_type == 'single_family':
         # Model Two
         fraction_of_retirements = 
-        fixed_value =
+        fixed_value = 1
         constant_adjustment = 
         objective_function = 
         adjustment_factor = 0.7  # comes from solver? 
 
+        new_comps_ann =  # from comps ann column C
         pub_total = 
         occupied_published = 
 
@@ -211,11 +212,11 @@ class GetCensusData:
         adjusted_new_units = new_units ** adjustment_factor
         existing_stock = 
         predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
-        new_units = ((existing_stock + existing_stock.shift(1)) / 2 ) ** fixed_value
+        new_units = ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value # is this shifted in the right way? 
         predicted_total_stock = existing_stock + predicted_retirement + new_units
         actual_stock = pub_total
-        AO = actual_stock - predicted_total_stock
-        AP = AO ** 2
+        diff = actual_stock - predicted_total_stock
+        squared_difference = diff ** 2
         implied_retirement_rate = predicted_retirement / existing_stock
 
         
@@ -224,6 +225,19 @@ class GetCensusData:
         total_vacancy_rate = 
         sf_occupied_predicted = (1 - total_vacancy_rate) * predicted_total_stock 
         sf_occupied_actual = occupied_published
+
+        # Model for average housing unit size
+        new_comps_ann_adj = new_comps_ann * fixed_value
+        cnh_avg_size = # SFTotalMedAvgSqFt column G
+        BH = new_comps_ann * cnh_avg_size
+        BI_0 = BH[0]
+        BI = 
+        post_1984_units = 
+        avg_size_post84_units =
+        BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
+        pre_1985_stock = 
+        total_sq_feet_pre_1985 = 
+
 
         # elif housing_type == 'multi_family':
         all_single_family = actual_stock

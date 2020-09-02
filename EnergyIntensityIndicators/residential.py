@@ -18,18 +18,18 @@ from weather_factors import WeatherFactors
 from pull_eia_api import GetEIAData
 from outline import LMDI
 from census_bureau_data import GetCensusData
-from pull_eia_api import GetEIAData
 
 
 class ResidentialIndicators(LMDI): 
 
     def __init__(self, categories_list, base_year):
         super().__init__(categories_list, base_year)
+        self.eia_res = GetEIAData('residential')
         self.sub_categories_list = categories_list['residential']
-        self.national_calibration = GetEIAData.national_calibration('residential')
-        self.seds_census_region =  GetEIAData.get_seds('residential') # energy_consumtpion_data_regional
+        self.national_calibration = eia_res.national_calibration()
+        self.seds_census_region = eia_res.get_seds() # energy_consumtpion_data_regional
         self.ahs_Data = GetCensusData.update_ahs_data()
-        self.conversion_factors = GetEIAData.conversion_factors('residential')
+        self.conversion_factors = eia_res.conversion_factors()
         self.Weather_Factors = WeatherFactors.weather_factors('residential')
 
 
@@ -141,22 +141,21 @@ class ResidentialIndicators(LMDI):
         weighted_floorspace = 
         pass
 
-    def conversion_factors(self):
-
-
-
-
-    def fuel_electricity_consumption(self):
+    def fuel_electricity_consumption(self, region=None):
         """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
         Data Source: EIA's State Energy Data System (SEDS)"""
-        approximate_intesity_time_series = 
-        weather_adjustment_factors_regional = 
+        census_regions = {'West': 4, 'South': 3, 'Midwest': 2, 'Northeast': 1}
+        total_fuels = self.seds_census_region[0]
+        elec = self.seds_census_region[1]
 
-        seds_regional_fuel = self.seds_census_region # select census region and fuel # Total Consumption (Trillion Btu)
-        seds_regional_electricity = self.seds_census_region
-        energy_consumption_input_data = source1.merge(self.source2)
-        return energy_consumption_input_data
-        return None 
+        if region: 
+            fuels_dataframe = total_fuels[census_regions[region]]
+            elec_dataframe = elec[census_regions[region]]
+        else: 
+            fuels_dataframe = total_fuels.drop('National', axis=1)
+            elec_dataframe = elec.drop('National', axis=1)
+
+        return fuels_dataframe, elec_dataframe
 
 
 
@@ -182,7 +181,7 @@ class ResidentialIndicators(LMDI):
         LMDI.get_source()
 
     def south():
-        LMDI.get_elec()
+        LMDI().get_elec(delivered_electricity=)
         LMDI.get_fuels()
         LMDI.get_deliv()
         LMDI.get_source()

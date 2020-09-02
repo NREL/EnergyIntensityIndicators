@@ -1,8 +1,13 @@
+import os
 import pytest
 import unittest
+import pandas as pd
 # from ElectricityIntensityIndicators.outline import LMDI
 # from ElectricityIntensityIndicators.residential.ahs import * 
-from pull_eia_api import GetEIAData
+import pull_eia_api
+
+print(os.getcwd())
+os.chdir('./EnergyIntensityIndicators')
 
 class TestClass:
 
@@ -76,7 +81,7 @@ class TestClass:
 
     @pytest.mark.parametrize('energy_type', ['electricity', 'total_fuels'])
     def test_seds(energy_type):
-        res =  GetEIAData('residential')
+        res =  pull_eia_api().GetEIAData('residential')
         total_primary_to_indicators, elec_to_indicators = res.get_seds()
 
         if energy_type == 'electricity':
