@@ -14,6 +14,7 @@ class GetIndustryData():
         “Construction (NAICS Sector 23)” is found. After selecting this entry, the user is then automatically
         transferred to: https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector23.html. 
     """    
+    BEA_data = pd.read_excel('./GrossOutput_1969-2018_PNN:_123119.xlsx', sheet_name='ChainQTYIndexes', skiprows=298, usecols="DC, EA:EJ")
 
     def manufacturing():
         """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by 
@@ -27,7 +28,31 @@ class GetIndustryData():
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
-    
+
+        def agriculture():
+            miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0, skip_footer=)# Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+            nass_expenses_data =  # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
+
+            nass_average_prices_data =  # 
+            MER_fuel_price_data =  # 
+            eia_table33 =  # Consumer Price estimates for Energy by Source, 1970-2009
+            eia_table34 =  # Consumer price estimates for energy by end-use sector, 1970-2009
+            eia_table523 = # All sellers sales prices for selected petroleum products, 1994-2010
+            eia_table524 =  # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
+            
+            adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
+            gross_output =  # NonMan_output_data_010420.xlsx column S
+            value_added =  # NonMan_output_data_010420.xlsx column G
+            elec_prm = miranowski_data[0]
+            elec_site = elec_prm.divide(adjustment_factor)
+            fuels = miranowski_data[0].subtract(miranowski_data[0])
+            electricity_intensity = elec_site.divide(0.001)
+            fuels_intensity = fuels.divide(0.001)
+            input_for_indicators = pd.DataFrame([electricity_intesity, fuels_intensity, gross_output,
+                                                 value_added]).transpose().columns(['electricity_intesity', 
+                                                                                    'fuels_intensity', 
+                                                                                    'gross_output', 
+                                                                                    'value_added'])
         def mining():
             """[summary]
             https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html
@@ -37,6 +62,13 @@ class GetIndustryData():
             http://www.census.gov/prod/www/abs/ec1997mining-ind.html
             http://www.census.gov/prod/1/manmin/92mmi/92minif.html
             """            
+            BLS_data = pd.read_csv('./BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
+            BEA_mining_data = BEA_data[['Oil and Gas Extraction', 'Mining, except oil and gas', 'Support Activities for Mining']]
+            NEA_data = # NEA_Data
+
+            crude_petroleum_natgas = BEA_mining_data['Oil and Gas Extraction'].multiply(0.001)
+            crude_petroleum_natgas['Elec'] = 
+
             pass
 
         def propane():
@@ -67,11 +99,11 @@ class IndustrialIndicators(LMDI):
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['industry']
-        self.conversion_factors = GetEIAData.conversion_factors('industry')
-        self.MER_Nov19_Table24 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.AER10_Table21d = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.AER11_Table21d_MER0816 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.mer_dataT0204 = GetEIAData.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.conversion_factors = GetEIAData('industry').conversion_factors()
+        self.MER_Nov19_Table24 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.AER10_Table21d = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.AER11_Table21d_MER0816 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.mer_dataT0204 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
         self.BEA_Output_data =  # Chain-type Quantity Indexes for Value Added by Industry from Bureau of Economic Analysis
 
     def reconcile_physical_units(self, ):

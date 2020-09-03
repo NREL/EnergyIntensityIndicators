@@ -86,12 +86,13 @@ class CommercialIndicators(LMDI):
     
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
+        self.eia_comm = GetEIAData('commercial')
         self.sub_categories_list = categories_list['commercial']
-        self.conversion_factors = GetEIAData.conversion_factors('commercial')
+        self.conversion_factors = eia_comm.conversion_factors()
         self.cbecs = 
         self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
-        self.SEDS_CensusRgn = GetEIAData.get_seds(sector='commercial')
-        self.national_calibration = GetEIAData.national_calibration(sector='commercial')
+        self.SEDS_CensusRgn = eia_comm.get_seds()
+        self.national_calibration = eia_comm.national_calibration()
         self.Weather_Factors = WeatherFactors.weather_factors('commercial')
 
 
@@ -99,7 +100,7 @@ class CommercialIndicators(LMDI):
         # self.mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
-        self.mer_data_23 = GetEIAData.eia_api(id_='711251', id_type='category')
+        self.mer_data_23 = eia_comm.eia_api(id_='711251', id_type='category')
 
     def estimate_regional_floorspace_share(self,):
     """assumed commercial floorspace in each region follows same trends as population or housing units"""
@@ -202,13 +203,24 @@ class CommercialIndicators(LMDI):
         State Energy Data System (Jan. 2017) via National Calibration worksheet 
 
         """"
+        years = list(range(1949, 2019))
         # 1949-1969 
-        published_consumption_trillion_btu = list(self.AER11_Table2.1C_Update[])  # Column W
+        published_consumption_trillion_btu = list(self.AER11_Table2.1C_Update[])  # Column W (electricity retail sales to the commercial sector) # for years 1949-69
         # 1970-2018
-        published_consumption_trillion_btu.append(list(self.national_calibration[]))  # Column G
+        published_consumption_trillion_btu.append(list(self.national_calibration[]))  # Column G (electricity final est) # for years 1970-2018
         # 1977-1989
         adjustment_to_commercial_trillion_btu_early = number_for_1990
-        adjustment_to_commercial_trillion_btu_early # WHERE DOES THIS FORM FROM
+        adjustment_to_commercial_trillion_btu = [9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975
+                                                 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975,
+                                                 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340654000005, 
+                                                 29.77918535999970, 10.21012680399960, 1.70263235599987, -40.63866012000020, -40.63865670799990, 
+                                                 -117.72073870000000, -117.72073528800000, -117.72073187600000, -117.72072846400000, -162.61452790400100, 
+                                                 -136.25241618800100, -108.91594645600000, -125.97594304400000, -125.97593963200100, -163.95020989600000,
+                                                 -163.95020648400000, -163.95020307200000, -137.98708428968000, -137.98487966000100, -137.98487966000100, 
+                                                 -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100, 
+                                                 -137.98487966000100, -137.98487966000100] # First value is for 1977 - 2018
+        adjusted_supplier_data = pd.DataFrame([years, adjustment_to_commercial_trillion_btu]).transpose()
+        adjusted_supplier_data.columns = ['year', 'adjustment_to_commercial_trillion_btu']
         adjusted_consumption_trillion_btu = published_consumption_trillion_btu + adjustment_to_commercial_trillion_btu_early
         
         return adjusted_consumption_trillion_btu

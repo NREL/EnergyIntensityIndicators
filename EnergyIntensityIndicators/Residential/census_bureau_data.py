@@ -135,9 +135,14 @@ class GetCensusData:
 
         return None
 
+    def get_place_nsa_all():
+        years = list(range(1994, 2013 + 1))
+        for year in years:
+            url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
+            placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
+            
 
-
-    def get_housing_stock(housing_type):
+    def get_housing_stock(housing_type, units_model='Model2'):
         """Spreadsheet equivalent: Comps Ann, place_nsa_all
         Data Sources: 
             - Census Bureau Survey of  New Construction https://www.census.gov/construction/nrc/historical_data/index.html
@@ -148,10 +153,10 @@ class GetCensusData:
             place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
             Bureau for the most recent years but was not found as part of the 2020 update work.)
         """
-        url = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
+        url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
 
         if housing_type == 'single_family' | housing_type == 'multi_family':
-            housing_units_completed_or_placed = pd.read_excel(url) # completed
+            housing_units_completed_or_placed = pd.read_excel(url_) # completed
 
         else:
             pass
@@ -168,83 +173,80 @@ class GetCensusData:
             columns = 'US Total'
             factor = 0.96
 
-        new_units = housing_units_completed_or_placed[columns]
-        new_units_adjusted = new_units * factor
-        retirements = survival_curve(ahs_tables_data, housing_type)
-        net_change = new_units_adjusted + retirements
-        benchmark  = ?? # 
+        if units_model == 'Model1':
+            new_units = housing_units_completed_or_placed[columns]
+            new_units_adjusted = new_units * factor
+            retirements = survival_curve(ahs_tables_data, housing_type)
+            net_change = new_units_adjusted + retirements
+            benchmark  = ?? # 
+
+            # Methodology used in early days
+            for_sale_for_rent_units = 
+            ahs_vacant_units = for_sale_for_rent_units 
+            occupied_units = total_units - ahs_vacant_units
+
+            # New Methodology
+            vacancy_rate = 
+            occupancy_fraction = 1 - vacancy_rate
+            predicted_total_stock = 
+            estimate_occupied_units = predicted_total_stock * occupancy_fraction
+
+            **National Estimates of housing unit size**
+            **Regional Shares of national-level housing**
+
+        else: # Model Two
+            # if housing_type == 'single_family':
+            fraction_of_retirements = 
+            fixed_value = 1
+            constant_adjustment = 
+            objective_function = 
+            adjustment_factor = 0.7  # comes from solver? 
+
+            new_comps_ann =  # from comps ann column C
+            pub_total = 
+            occupied_published = 
+
+            extisting_stock_0 = pub_total[0] + constant_adjustment
+            extisting_stock_1 = extisting_stock_0
+            predicted_retirement_0 = 0
+            new_units_0 = 0
+
+            adjusted_new_units = new_units ** adjustment_factor
+            existing_stock = 
+            predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
+            new_units = ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value # is this shifted in the right way? 
+            predicted_total_stock = existing_stock + predicted_retirement + new_units
+            actual_stock = pub_total
+            diff = actual_stock - predicted_total_stock
+            squared_difference = diff ** 2
+            implied_retirement_rate = predicted_retirement / existing_stock
+
+            
+            total_pub_occupied = pub_total - occupied_single_family  # Spreadsheet is confused about what this is, CHECK
+            
+            total_vacancy_rate = 
+            sf_occupied_predicted = (1 - total_vacancy_rate) * predicted_total_stock 
+            sf_occupied_actual = occupied_published
+
+            # Model for average housing unit size
+            new_comps_ann_adj = new_comps_ann * fixed_value
+            cnh_avg_size = # SFTotalMedAvgSqFt column G
+            BH = new_comps_ann * cnh_avg_size
+            BI_0 = BH[0]
+            BI = 
+            post_1984_units = 
+            avg_size_post84_units =
+            BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
+            pre_1985_stock = 
+            total_sq_feet_pre_1985 = 
 
 
-        # Methodology used in early days
-        for_sale_for_rent_units = 
-        ahs_vacant_units = for_sale_for_rent_units 
-        occupied_units = total_units - ahs_vacant_units
-
-        # New Methodology
-        vacancy_rate = 
-        occupancy_fraction = 1 - vacancy_rate
-        predicted_total_stock = 
-        estimate_occupied_units = predicted_total_stock * occupancy_fraction
-
-        **National Estimates of housing unit size**
-        **Regional Shares of national-level housing**
-
-        ///////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////
-
-        # if housing_type == 'single_family':
-        # Model Two
-        fraction_of_retirements = 
-        fixed_value = 1
-        constant_adjustment = 
-        objective_function = 
-        adjustment_factor = 0.7  # comes from solver? 
-
-        new_comps_ann =  # from comps ann column C
-        pub_total = 
-        occupied_published = 
-
-        extisting_stock_0 = pub_total[0] + constant_adjustment
-        extisting_stock_1 = extisting_stock_0
-        predicted_retirement_0 = 0
-        new_units_0 = 0
-
-        adjusted_new_units = new_units ** adjustment_factor
-        existing_stock = 
-        predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
-        new_units = ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value # is this shifted in the right way? 
-        predicted_total_stock = existing_stock + predicted_retirement + new_units
-        actual_stock = pub_total
-        diff = actual_stock - predicted_total_stock
-        squared_difference = diff ** 2
-        implied_retirement_rate = predicted_retirement / existing_stock
-
-        
-        total_pub_occupied = pub_total - occupied_single_family  # Spreadsheet is confused about what this is, CHECK
-        
-        total_vacancy_rate = 
-        sf_occupied_predicted = (1 - total_vacancy_rate) * predicted_total_stock 
-        sf_occupied_actual = occupied_published
-
-        # Model for average housing unit size
-        new_comps_ann_adj = new_comps_ann * fixed_value
-        cnh_avg_size = # SFTotalMedAvgSqFt column G
-        BH = new_comps_ann * cnh_avg_size
-        BI_0 = BH[0]
-        BI = 
-        post_1984_units = 
-        avg_size_post84_units =
-        BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
-        pre_1985_stock = 
-        total_sq_feet_pre_1985 = 
-
-
-        # elif housing_type == 'multi_family':
-        all_single_family = actual_stock
-        occupied_single_family =  # column J Total_stock_SF
-        households =  # National_Calibration'!E13
-        year = 
-        
+            # elif housing_type == 'multi_family':
+            all_single_family = actual_stock
+            occupied_single_family =  # column J Total_stock_SF
+            households =  # National_Calibration'!E13
+            year = 
+            
 
         return housing_units_completed
 

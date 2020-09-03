@@ -140,10 +140,10 @@ class TransportationIndicators(LMDI):
     def __init__(self, energy_data, activity_data, categories_list, tedb_date='04302020'):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['transportation']
-        self.mer_table25_dec_2019 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_old = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_nov2019 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.aer_2010_table_65 = GetEIAData.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table25_dec_2019 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table_43_old = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table_43_nov2019 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.aer_2010_table_65 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.tedb_date = tedb_date
 
        

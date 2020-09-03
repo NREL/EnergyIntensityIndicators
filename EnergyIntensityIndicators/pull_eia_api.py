@@ -58,7 +58,7 @@ class GetEIAData:
         if date_column_name == 'M':
             eia_df['Date'] = pd.to_datetime(eia_df['M'], format='%Y%m')
             eia_df = eia_df.drop('M', axis='columns')
-        elif date_column_name == 'A':
+        elif date_column_name == 'A' | date_column_name == 'Year':
             eia_df['Date'] = pd.to_datetime(eia_df['A'], format='%Y')
             eia_df = eia_df.drop('A', axis='columns')
         else:
@@ -162,7 +162,7 @@ class GetEIAData:
             calibrated_hh = # National column N
             aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
         
-        elif self.sector === 'commercial':
+        elif self.sector == 'commercial':
             comm = GetEIAData('commercial')
             electricity_retail_sales_commercial_sector = comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')
             total_primary_energy_consumed_commercial_sector = comm.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series')
@@ -236,7 +236,7 @@ class GetEIAData:
 
 
 
-eia_data_cat = GetEIAData('residential').eia_api(id_='711250', id_type='category')
+eia_data_cat = GetEIAData('residential').eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
 # GetEIAData.eia_api(id_='711250')
 print(eia_data_cat.columns)
 print(eia_data_cat)
