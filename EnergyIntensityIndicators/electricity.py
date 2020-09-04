@@ -8,31 +8,23 @@ class ElectricityIndicators(LMDI):
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['electricity']
-        self.Table21f10 = GetEIAData.eia_api(id_='711254') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711254'
-        self.Table21f11 = GetEIAData.eia_api(id_='711254') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711254'
-        self.Table82a10 = None  # blank ?
-        self.Table82a11 = GetEIAData.eia_api(id_='3') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=3'
-        self.Table82b10 = GetEIAData.eia_api(id_='21')  #  'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
-        self.Table82b11 = GetEIAData.eia_api(id_='21')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
-        self.Table82c11 = GetEIAData.eia_api(id_='1736765') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1736765' ?
-        self.Table82d10 = GetEIAData.eia_api(id_='711282') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711282'
-        self.Table82d11 = GetEIAData.eia_api(id_='711282') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711282'
-        self.Table82d11_2012_and_later = GetEIAData.eia_api(id_='1017') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1017'
+        self.Table21f = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.06') #GetEIAData.eia_api(id_='711254') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711254'
+        self.Table82a = GetEIAData.eia_api(id_='3') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=3'
+        self.Table82b = GetEIAData.eia_api(id_='21')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
+        self.Table82c = GetEIAData.eia_api(id_='1736765') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1736765' ?
+        self.Table82d = GetEIAData.eia_api(id_='711282') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711282'
+        self.Table82d_2012_and_later = GetEIAData.eia_api(id_='1017') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1017'
         self.Table83d_03 = GetEIAData.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
-        self.Table84b10 = GetEIAData.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
-        self.Table84b11 = GetEIAData.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
-        self.Table84c11_industrial = GetEIAData.eia_api(id_='456') 
-        self.Table84c11_commercial = GetEIAData.eia_api(id_='453') 
-        self.Table85c10 = GetEIAData.eia_api(id_='379')  # ?
-        self.Table84c10_industrial = GetEIAData.eia_api(id_='456') 
-        self.Table84c10_commercial = GetEIAData.eia_api(id_='453') 
-        self.Table85c11 = GetEIAData.eia_api(id_='379')  # ?
-        self.Table86b09 = GetEIAData.eia_api(id_='463')  # ?
-        self.Table86b10 = GetEIAData.eia_api(id_='463') # ?
-        self.Table86b11 = GetEIAData.eia_api(id_='463') # ?
+        self.Table84b = GetEIAData.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
+        self.Table85c = GetEIAData.eia_api(id_='379')  # ?
+        self.Table86b = GetEIAData.eia_api(id_='463') # ?
         self.MER_T72b_1013_AnnualData = GetEIAData.eia_api(id_='21')  #'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
         self.MER_T72c_1013_AnnualData = GetEIAData.eia_api(id_='2') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=2'
         
+        self.Table84c_url = 'https://www.eia.gov/totalenergy/data/annual/xls/stb0804c.xls' # GetEIAData.eia_api(id_='456') 
+        self.Table82d_url = 'https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T07.02C'
+        self.Table85c_url = 'https://www.eia.gov/totalenergy/data/annual/xls/stb0805c.xls'
+        self.Table82c_url = 'https://www.eia.gov/totalenergy/data/annual/xls/stb0802c.xls'
     @staticmethod
     def get_eia_aer():
         """Prior to 2012, the data for the indicators were taken directly from tables published (and downloaded in 
@@ -236,8 +228,8 @@ def othgas_reconcile():
 # print(consumption_combustible_fuels_useful_thermal_output)
 
 def industrial_sector_chp_renew():
-    wood_energy =  self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C column P # TBtu
-    waste_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C column R # TBtu
+    wood_energy =  pd.read_excel(self.Table84c_url, index_col=0, usecols='P', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C column P # TBtu
+    waste_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='R', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C column R # TBtu
 
     wood_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column R
     waste_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column T
@@ -245,10 +237,10 @@ def industrial_sector_chp_renew():
     # only primary 
 
 def industrial_sector_chp_fossil():
-    coal_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column B # TBtu
-    petroleum_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column D # TBtu
-    natgas_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column F # TBtu
-    othgas_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column H # TBtu
+    coal_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='B', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4c column B # TBtu
+    petroleum_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='D', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4c column D # TBtu
+    natgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='F', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4c column F # TBtu
+    othgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='H', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4c column H # TBtu
 
     coal_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column B
     petroleum_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column D
@@ -262,9 +254,9 @@ def industrial_sector_total():
 
     """    
     fossil_fuels_total_energy = # from industrial_sector_chp_fossil total 
-    hydroelectric_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C11 column N
+    hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C11 column N
     renewable_energy =  # from industrial_sector_chp_renew total 
-    other_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C11 column AB
+    other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C11 column AB
 
     fossil_fuels_total_activity = # from industrial_sector_chp_fossil total 
     hydroelectric_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column P
@@ -274,17 +266,17 @@ def industrial_sector_total():
 def comm_sector_chp_renew():
     """As is, these are the same sources as ind sector, but should be different part of columns? 
     """    
-    wood_energy =  self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C column P # TBtu
-    waste_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4C column R # TBtu
+    wood_energy =  pd.read_excel(self.Table84c_url, index_col=0, usecols='P', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C column P # TBtu
+    waste_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='R', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C column R # TBtu
 
     wood_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column R
     waste_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column T
 
-def industrial_sector_chp_fossil():
-    coal_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column B # TBtu
-    petroleum_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column D # TBtu
-    natgas_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column F # TBtu
-    othgas_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.4c column H # TBtu
+def comm_sector_chp_fossil():
+    coal_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='B', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4c column B # TBtu
+    petroleum_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='D', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4c column D # TBtu
+    natgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='F', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4c column F # TBtu
+    othgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='H', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4c column H # TBtu
 
     coal_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column B
     petroleum_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column D
@@ -293,9 +285,23 @@ def industrial_sector_chp_fossil():
 
     # Industrial and Commercial have same spreadsheet sources but different parts of the columns
 
+def comm_sector_total():
+    """Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
+
+    """    
+    fossil_fuels_total_energy = # from comm_sector_chp_fossil total 
+    hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C11 column N
+    renewable_energy =  # from comm_sector_chp_renew total 
+    other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C11 column AB
+
+    fossil_fuels_total_activity = # from comm_sector_chp_fossil total 
+    hydroelectric_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column P
+    renewable_activity =  # from comm_sector_chp_renew total 
+    other_activity = pd.read_excel(self.Table82d_url, sheet_name='Annual Data', skiprows=9, header=10, index_col=0, usecols=).multiply(0.001) # Table 8.2d11 Column AD
+
 def elec_power_sector_chp_renew():
-    wood_energy =  self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.5C column R # TBtu
-    waste_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.5C column T # TBtu
+    wood_energy =  pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.5C column R # TBtu
+    waste_energy = pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.5C column T # TBtu
 
     wood_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2c column R
     waste_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2c column T
@@ -311,7 +317,7 @@ def elec_power_sector_chp_fossil():
 def elec_power_sector_chp_total():
     fossil_fuels_total_energy = 
     renewable_total_energy = 
-    other_energy = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.5c column V
+    other_energy = pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.5c column V
     
     fossil_fuels_total_activity = 
     renewable_total_activity = 

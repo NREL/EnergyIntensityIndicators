@@ -26,16 +26,14 @@ class ResidentialIndicators(LMDI):
         super().__init__(categories_list, base_year)
         self.eia_res = GetEIAData('residential')
         self.sub_categories_list = categories_list['residential']
-        self.national_calibration = eia_res.national_calibration()
-        self.seds_census_region = eia_res.get_seds() # energy_consumtpion_data_regional
+        self.national_calibration = self.eia_res.national_calibration()
+        self.seds_census_region = self.eia_res.get_seds() # energy_consumtpion_data_regional
         self.ahs_Data = GetCensusData.update_ahs_data()
-        self.conversion_factors = eia_res.conversion_factors()
+        self.conversion_factors = self.eia_res.conversion_factors()
         self.Weather_Factors = WeatherFactors.weather_factors('residential')
 
 
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
-        # self.AnnualData_MER22_2015 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
-        # self.AnnualData_MER22_2017 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
 

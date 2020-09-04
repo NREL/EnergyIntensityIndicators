@@ -12,8 +12,7 @@ class GetEIAData:
     def __init__(self, sector):
         self.sector = sector
 
-    @staticmethod
-    def eia_api(id_, id_type='category'):
+    def eia_api(self, id_, id_type='category'):
         """[summary]
 
         Args:
@@ -26,22 +25,21 @@ class GetEIAData:
         api_key = os.environ.get("EIA_API_Key")
 
         if id_type == 'category':
-            eia_data = GetEIAData.get_category(api_key, id_)
+            eia_data = self.get_category(api_key, id_)
         elif id_type == 'series':
-            eia_data = GetEIAData.get_series(api_key, id_)
+            eia_data = self.get_series(api_key, id_)
         else:
             eia_data = None
             print('Error: neither series nor category given')
         return eia_data
     
-    @staticmethod
-    def get_category(api_key, id_):
+    def get_category(self, api_key, id_):
             api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
             r = requests.get(api_call)
             data = r.json()
             eia_childseries = data['category']['childseries']
             eia_series_ids = [i['series_id'] for i in eia_childseries]
-            eia_data = [GetEIAData.get_series(api_key, s) for s in eia_series_ids]
+            eia_data = [self.get_series(api_key, s) for s in eia_series_ids]
             all_category = reduce(lambda x, y: pd.merge(x, y, on ='Date'), eia_data)
             all_category = all_category.set_index('Date')
             return all_category
@@ -134,14 +132,14 @@ class GetEIAData:
         The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
         """
         if self.sector == 'residential':
-            AER11_table2_1b_update = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02') #  GetEIAData.eia_api(id_='711250')
-            AnnualData_MER_22_Dec2019 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.02') # GetEIAData.eia_api(id_='711250')
+            AER11_table2_1b_update = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02') #  self.eia_api(id_='711250')
+            AnnualData_MER_22_Dec2019 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.02') # self.eia_api(id_='711250')
             
-            res = GetEIAData('residential')  # .eia_api(id_=, id_type='category')
-            electricity_retail_sales_residential_sector = res.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
-            total_primary_energy_consumed_residential_sector = res.eia_api(id_='TOTAL.TXRCBUS.A', id_type='series')
+              # .eia_api(id_=, id_type='category')
+            electricity_retail_sales_residential_sector = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
+            total_primary_energy_consumed_residential_sector = self.eia_api(id_='TOTAL.TXRCBUS.A', id_type='series')
 
-            fuels_census_region, electricity_census_region = res.get_seds()  
+            fuels_census_region, electricity_census_region = self.get_seds()  
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Electricity Retail Sales']  # Column S
             electricity_df['MER, 12/19 (Trillion Btu)'] =  electricity_retail_sales_residential_sector # AnnualData_MER_22_Dec2019['Electricity Retail Sales to the Residential Sector'] # Column K
@@ -163,14 +161,13 @@ class GetEIAData:
             aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
         
         elif self.sector == 'commercial':
-            comm = GetEIAData('commercial')
-            electricity_retail_sales_commercial_sector = comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')
-            total_primary_energy_consumed_commercial_sector = comm.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series')
+            electricity_retail_sales_commercial_sector = self.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')
+            total_primary_energy_consumed_commercial_sector = self.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series')
 
 
             AER11_Table21C_Update = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.03')  # GetEIAData.eia_api(id_='711251')
             mer_data23_Dec_2019 = pd.read_csv()  # GetEIAData.eia_api(id_='711251')
-            fuels_census_region, electricity_census_region = comm.get_seds()
+            fuels_census_region, electricity_census_region = self.get_seds()
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = AER11_Table21C_Update['Electricity Retail Sales'] # Column W
             electricity_df['MER, 12/19 (Trillion Btu)'] = electricity_retail_sales_commercial_sector # mer_data23_Dec_2019['Electricty Retail Sales to the Commercial Sector'] # Column M
@@ -200,19 +197,16 @@ class GetEIAData:
         """        
                                               
         if self.sector == 'residential':
-            res = GetEIAData('residential')
-            electricity_retail_sales = res.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series') # electricity retail sales to the residential sector
-            electrical_system_energy_losses = res.eia_api(id_='TOTAL.LORCBUS.A', id_type='series')  # Residential Sector Electrical System Energy Losses
+            electricity_retail_sales = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series') # electricity retail sales to the residential sector
+            electrical_system_energy_losses = self.eia_api(id_='TOTAL.LORCBUS.A', id_type='series')  # Residential Sector Electrical System Energy Losses
 
         elif self.sector == 'commercial': 
-            comm = GetEIAData('commercial')
-            electricity_retail_sales = comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series') # electricity retail sales to the commercial sector
-            electrical_system_energy_losses = comm.eia_api(id_='TOTAL.LOCCBUS.A', id_type='series')  # Commercial Sector Electrical System Energy Losses
+            electricity_retail_sales = self.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series') # electricity retail sales to the commercial sector
+            electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOCCBUS.A', id_type='series')  # Commercial Sector Electrical System Energy Losses
                                   
         elif self.sector == 'industrial': 
-            ind = GetEIAData('industrial')
-            electricity_retail_sales = ind.eia_api(id_='TOTAL.ESICBUS.A', id_type='series') # electricity retail sales to the industrial sector
-            electrical_system_energy_losses = ind.eia_api(id_='TOTAL.LOICBUS.A', id_type='series') # Industrial Sector Electrical System Energy Losses
+            electricity_retail_sales = self.eia_api(id_='TOTAL.ESICBUS.A', id_type='series') # electricity retail sales to the industrial sector
+            electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOICBUS.A', id_type='series') # Industrial Sector Electrical System Energy Losses
 
         else: # Electricity and Tranportation don't use conversion factors
             return None

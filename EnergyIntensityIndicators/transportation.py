@@ -139,20 +139,13 @@ class TransportationIndicators(LMDI):
 
     def __init__(self, energy_data, activity_data, categories_list, tedb_date='04302020'):
         super().__init__(energy_data, activity_data, categories_list)
+        self.transit_eia = GetEIAData('transportation')
         self.sub_categories_list = categories_list['transportation']
-        self.mer_table25_dec_2019 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_old = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_nov2019 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.aer_2010_table_65 = GetEIAData('transportation').eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.tedb_date = tedb_date
 
-       
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-        # FREIGHT
-
-        
         self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
                                                                 {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'} # Table4_01_{date}
                                                             'total_energy': 
@@ -237,7 +230,31 @@ class TransportationIndicators(LMDI):
                                                             'total_energy':
                                                                 {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
                                                             'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}}  ,                      }
+                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+                                    'Rail': {'total_fuel': 
+                                                                {'unit': 'gallons', 'source': 'TEDB', 'A_10'}, 
+                                                            'total_energy':
+                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                            'vehicle_miles':
+                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+                                    'Air Carriers': {'total_fuel': 
+                                                                {'unit': 'gallons', 'source': 'TEDB', 'A_10'}, 
+                                                            'total_energy':
+                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                            'vehicle_miles':
+                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+                                    'Waterborne': {'total_fuel': 
+                                                                {'unit': 'gallons', 'source': 'TEDB', 'A_10'}, 
+                                                            'total_energy':
+                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                            'vehicle_miles':
+                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+                                    'Natural Gas Pipelines': {'total_fuel': 
+                                                                {'unit': 'gallons', 'source': 'TEDB', 'A_10'}, 
+                                                            'total_energy':
+                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+                                                            'vehicle_miles':
+                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},}
 
     def import_tedb_data(self, table_number):
         file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'

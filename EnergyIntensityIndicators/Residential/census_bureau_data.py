@@ -140,7 +140,7 @@ class GetCensusData:
         for year in years:
             url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
-            
+
 
     def get_housing_stock(housing_type, units_model='Model2'):
         """Spreadsheet equivalent: Comps Ann, place_nsa_all
@@ -250,6 +250,47 @@ class GetCensusData:
 
         return housing_units_completed
 
+    def final_floorspace_estimates():
+        
+        number_occupied_units_national, average_size_national = get_housing_stock()
+
+        regions = ['National', 'Northeast', 'Midwest', 'South', 'West']
+        final_results_total_floorspace_regions = dict()
+
+        for region in regions: 
+            calculated_shares_by_region =  # From AHS tables
+            ratios_to_national_average_size = # From AHS tables
+
+            regional_estimates = number_occupied_units_national.multiply(calculated_shares_by_region)
+            regional_estimates['Total'] = regional_estimates.sum(axis=1)
+            shares_by_type = regional_estimates[['Single Family', 'Multi-Family', 'Man. Homes']].divide(regional_estimates['Total'])
+            
+            # Calibration Procedure
+            sum_of_regions = 
+            scale_factor = 
+            final_check =
+            average_size_all_housing_units =
+            number_of_units = 
+
+            total_square_feet =
+            average_size = 
+            ratios_national_average_size = 
+
+            average_size_after_calibration = 
+
+
+            final_results_total_floorspace = number_occupied_units.multiply(average_size).multiply(0.000001)
+            final_results_total_floorspace['Total'] = final_results_total_floorspace.sum(axis=1)
+
+            number_occupied_units['Total'] = number_occupied_units.sum(axis=1)
+            
+            final_results_total_floorspace_regions[region] = final_results_total_floorspace
+
+        return final_results_total_floorspace_regions
+
+    def weighted_floorspace():
+        energy_types = ['Electricity', 'Fuels', 'Delivered', 'Source']
+        constant_electricity_factor = 3.2
 
     def get_census_bureau_manufactured_housing_survey():
         """[summary]

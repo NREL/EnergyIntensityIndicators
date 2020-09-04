@@ -99,11 +99,12 @@ class IndustrialIndicators(LMDI):
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
         self.sub_categories_list = categories_list['industry']
-        self.conversion_factors = GetEIAData('industry').conversion_factors()
-        self.MER_Nov19_Table24 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.AER10_Table21d = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.AER11_Table21d_MER0816 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
-        self.mer_dataT0204 = GetEIAData('industry').eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.ind_eia = GetEIAData('industry')
+        self.conversion_factors = self.ind_eia.conversion_factors()
+        self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.AER10_Table21d = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.AER11_Table21d_MER0816 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
+        self.mer_dataT0204 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
         self.BEA_Output_data =  # Chain-type Quantity Indexes for Value Added by Industry from Bureau of Economic Analysis
 
     def reconcile_physical_units(self, ):
@@ -116,7 +117,7 @@ class IndustrialIndicators(LMDI):
     def fuel_electricity_consumption(categories, elec=True, fuels=True, deliv=True, source=True, source_adj=True):
         """Trillion Btu
         """        
-        conversion_factors = GetEIAData.conversion_factors('industry')
+        conversion_factors = self.ind_eia.conversion_factors('industry')
         conversion_factors = conversion_factors.set_index('year')
         energy_type_dfs = []
         
