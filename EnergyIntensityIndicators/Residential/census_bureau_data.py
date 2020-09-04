@@ -63,83 +63,15 @@ class GetCensusData:
     def get_percent_remaining_surviving(factor, lifetime, gamma):
         return 1 / (1 + (factor / lifetime) ** gamma)   
 
-    def survival_curve(ahs_tables_data, housing_type):
-        """The objective function is set to minimize the squared differences between the
-            predicted stock and the actual stock.
-
-        Returns:
-            output_data (dataframe): These columns represent the
-            existing (prior year’s) stock, estimated retirements, and new units. The sum of these columns is the
-            estimated end-of-year stock shown in column AM. The actual stock reported by the AHS is shown in
-            column AN.
-        """   
-        gamma = 4.261172611 # comes from T182
-        lifetime = 85.95544078 # comes from T183
-        scalar = 1.000217584 # comes from T184
-
-        objective_function_SSRD = sum() * 0.001
-        from_regression =  # AHS_tables!$IK$16
-
-
-        current_year = 2020  # use datetime to get current year
-        years = list(range(1870, current_year + 1)) 
-        age = [current_year - y for y in years]
-        dataframe = pd.DataFrame([years, years_ago]).transpose()
-        dataframe = dataframe.columns(['year', 'age'])
-        dataframe['remaining']  = dataframe['age'].apply(lambda x: get_percent_remaining_surviving(x, lifetime, gamma))
-        dataframe['remaining_inverse'] = dataframe['remaining'].apply(lambda x: 1 / x)
-        dataframe['inflation_factor'] = dataframe['age'].subtract(dataframe['age'][0].values())
-        dataframe['pct_surviving'] = dataframe['inflation_factor'].apply(lambda x: get_percent_remaining_surviving(x, lifetime, gamma))
-
-        if housing_type == 'single_family':
-            column_years = [1910, 1948, 1955, 1965, 1975, 1985, 1995]  # Was 1910 a typo in the spreadsheet? 
-        else:
-            column_years = [1930, 1948, 1955, 1965, 1975, 1985, 1995]
-
-        row_years = [1999, 2001, 2003, 2005, 2007, 2009]
-
-        ahs_decades = ['<1940', '1940-49', '1950-59', '1960-1969', '1970-1979', '1980-1989', '1990-1999']
-        column_years_to_decade = dict(zip(column_years, ahs_decades))
-
-        for c in column_years: 
-            dataframe[str(c)] = [dataframe[['age'] == (y - c)]['remaining'].values() for y in dataframe['year']]  # Starts at 1979 ?
-            dataframe.loc[dataframe.year <= dataframe[str(c)], dataframe[str(c)]] = 1  # Survival_curve_SF has this different but the spreadsheet seems wrong?
-            dataframe.loc[dataframe.year < 1979, dataframe[str(c)]] = None  # or np.nan? 
-
-            dataframe[f'adjusted_{c}'] = dataframe[str(c)].multiply(column_years_to_decade[c])
-
-        dataframe = dataframe.set_index('year')
-        retirement_calc_df = dataframe[[f'adjusted_{c}' for c in column years]].divide(dataframe[['year'] == 1999][list(map(str, column_years))])
-        retirement_calc_df['total'] = retirement_calc_df.sum(1)
-        retirement_calc_df['total_shifted_down'] = retirement_calc_df['total'].shift(periods=1, axis='index')
-        retirement_calc_df['retirements'] = retirement_calc_df['total'].subtract(retirement_calc_df['total_shifted_down'])
-        retirement_calc_df['retirement_ratio'] = retirement_calc_df['retirements'].div(retirement_calc_df['total'])
-
-        pct_surviving = []
-        for r in row_years:
-            row = [dataframe[['inflation_factor'] == (r - c)]['pct_surviving'].values() for c in column years]
-            pct_surviving.append(row)
-
-        pct_surviving_df = pd.DataFrame(pct_surviving, columns=column_years).set_index(row_years)  # Check this
-        fraction_of_1999 = pct_surviving_df.apply(lambda x: x.div(x.iloc[0]), axis=index) # Check this
-        adjusted_fraction_of_1999 = fraction_of_1999.multiply(scalar) # ALSO HAVE TO MULTIPLY EACH ROW BY VALUE FOR DECADE FROM AHS TABLES
-        adjusted_fraction_of_1999['total'] = adjusted_fraction_of_1999.sum(1)
-
-        another_ahs_table =
-        actual_total = another_ahs_table.sum(1)
-        predicted_total = adjusted_fraction_of_1999['total'] * scalar
-        diff = (actual_total - predicted_total).pow(2) # check types
-
-        difference =  adjusted_fraction_of_1999.subtract(another_ahs_table)
-        squared_difference = difference.pow(2)
-
-        return None
 
     def get_place_nsa_all():
         years = list(range(1994, 2013 + 1))
         for year in years:
             url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
+
+  
+
 
 
     def get_housing_stock(housing_type, units_model='Model2'):
@@ -188,52 +120,44 @@ class GetCensusData:
             columns = 'US Total'
             factor = 0.96
 
-        if units_model == 'Model1':
-            new_units = housing_units_completed_or_placed[columns]
-            new_units_adjusted = new_units * factor
-            retirements = survival_curve(ahs_tables_data, housing_type)
-            net_change = new_units_adjusted + retirements
-            benchmark  = ?? # 
-
-            # Methodology used in early days
-            for_sale_for_rent_units = 
-            ahs_vacant_units = for_sale_for_rent_units 
-            occupied_units = total_units - ahs_vacant_units
-
-            # New Methodology
-            vacancy_rate = 
-            occupancy_fraction = 1 - vacancy_rate
-            predicted_total_stock = 
-            estimate_occupied_units = predicted_total_stock * occupancy_fraction
-
-            **National Estimates of housing unit size**
-            **Regional Shares of national-level housing**
-
         else: # Model Two
             # if housing_type == 'single_family':
             fraction_of_retirements = 
             fixed_value = 1
             constant_adjustment = 
-            objective_function = 
             adjustment_factor = 0.7  # comes from solver? 
 
             new_comps_ann =  # from comps ann column C
             pub_total = 
             occupied_published = 
 
-            extisting_stock_0 = pub_total[0] + constant_adjustment
-            extisting_stock_1 = extisting_stock_0
-            predicted_retirement_0 = 0
-            new_units_0 = 0
 
-            adjusted_new_units = new_units ** adjustment_factor
-            existing_stock = 
-            predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
-            new_units = ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value # is this shifted in the right way? 
-            predicted_total_stock = existing_stock + predicted_retirement + new_units
-            actual_stock = pub_total
-            diff = actual_stock - predicted_total_stock
-            squared_difference = diff ** 2
+
+            def objective_function(constant_adjustment, fraction_of_retirements, fixed_value, new_units, actual_stock):
+                for year in years:
+
+                def housing_stock_model(year_):
+                        if year_ == 1985: 
+                            existing_stock = pub_total[0] + constant_adjustment
+                            predicted_retirement = 0 
+                            new_units = 0
+                        else:
+                            adjusted_new_units = new_units ** adjustment_factor
+                            existing_stock = housing_stock(year_-1)
+                            predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
+                            new_units = ((new_comps_ann[year_] + new_comps_ann[year_-1]) / 2 ) * fixed_value # is this shifted in the right way? 
+                            predicted_total_stock = existing_stock + predicted_retirement + new_units
+                            actual_stock = pub_total
+                            diff = actual_stock - predicted_total_stock
+                            squared_difference = diff ** 2
+
+                    if year > min(years):
+                        model += 
+                # objective_function = sum(squared_difference) * 0.001
+                return actual_stock - (existing_stock + (-1 * existing_stock) * ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)**0.7 * fraction_of_retirements + ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)
+            
+            scipy.optimize.leastsq(objective_function, args=[new_units_data, actual_stock_data])
+
             implied_retirement_rate = predicted_retirement / existing_stock
 
             
