@@ -152,6 +152,21 @@ class GetCensusData:
             2014 through 2018 on these worksheets and the annual values appended to the existing data in the
             place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
             Bureau for the most recent years but was not found as part of the 2020 update work.)
+        Estimate regional housing and regional floorspace by housing type (single family, multifamily, manufactured homes)
+        Data Sources: 
+            - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate floor space for three types
+              of housing units: single-family (attached and detached), multi-family, and manufactured homes
+        Spreadsheet Equivalents:
+            - AHS_summary_results_date \Total_Stock_SF.xlsx (single family)
+            - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily)
+            - AHD_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) 
+        Methodology: 
+            1. An estimated survival curve was first developed from vintage data over the 1999 through
+               2009 AHS surveys.
+            2. Curve was used along with reported new construction from the Characteristics of New
+               Housing reports from the Census Bureau.
+            3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
+               at the national level.
         """
         url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
 

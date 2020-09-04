@@ -42,21 +42,7 @@ class ResidentialIndicators(LMDI):
         pass
 
     def estimate_floorspace_occupied_housing_units_regional(self, ):
-        """Estimate regional housing and regional floorspace by housing type (single family, multifamily, manufactured homes)
-        Data Sources: 
-            - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate floor space for three types
-              of housing units: single-family (attached and detached), multi-family, and manufactured homes
-        Spreadsheet Equivalents:
-            - AHS_summary_results_date \Total_Stock_SF.xlsx (single family)
-            - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily)
-            - AHD_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) 
-        Methodology: 
-            1. An estimated survival curve was first developed from vintage data over the 1999 through
-               2009 AHS surveys.
-            2. Curve was used along with reported new construction from the Characteristics of New
-               Housing reports from the Census Bureau.
-            3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
-               at the national level."""
+        
         estimated_survival_curve =  # Estimate from vintage data over the 1999 through 2009 AHS surveys
         new_housing =  # From Characteristics of New Housing reports from the Census Bureau
         stock_adjustment_model = 
