@@ -132,29 +132,40 @@ class GetCensusData:
             occupied_published = 
 
 
+            def housing_stock_model(new_units, actual_stock, constant_adjustment, fraction_of_retirements, fixed_value):
+                adjustment_factor=0.7
+                model = []
+                for year_ in dataframe.index():
+                    if year_ == 1985: 
+                        existing_stock = pub_total[0] + constant_adjustment
+                        predicted_retirement = 0 
+                        new_units = 0
+                    else:
+                        adjusted_new_units = new_units ** adjustment_factor
+                        existing_stock = housing_stock(year_-1)
+                        predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
+                        new_units = ((new_comps_ann[year_] + new_comps_ann[year_-1]) / 2 ) * fixed_value 
+                    
+                    predicted_total_stock = existing_stock + predicted_retirement + new_units
+                    diff = pub_total - predicted_total_stock
+                    squared_difference = diff ** 2
+                    
+                    model += squared_difference * 0.001
+                    return model 
 
-            def objective_function(constant_adjustment, fraction_of_retirements, fixed_value, new_units, actual_stock):
-                for year in years:
 
-                def housing_stock_model(year_):
-                        if year_ == 1985: 
-                            existing_stock = pub_total[0] + constant_adjustment
-                            predicted_retirement = 0 
-                            new_units = 0
-                        else:
-                            adjusted_new_units = new_units ** adjustment_factor
-                            existing_stock = housing_stock(year_-1)
-                            predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
-                            new_units = ((new_comps_ann[year_] + new_comps_ann[year_-1]) / 2 ) * fixed_value # is this shifted in the right way? 
-                            predicted_total_stock = existing_stock + predicted_retirement + new_units
-                            actual_stock = pub_total
-                            diff = actual_stock - predicted_total_stock
-                            squared_difference = diff ** 2
 
-                    if year > min(years):
-                        model += 
+            popt, pcov = scipy.optimize.curve_fit(housing_stock_model, new_units, actual_stock)
+
+
+
+
+                    
                 # objective_function = sum(squared_difference) * 0.001
                 return actual_stock - (existing_stock + (-1 * existing_stock) * ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)**0.7 * fraction_of_retirements + ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)
+
+
+
             
             scipy.optimize.leastsq(objective_function, args=[new_units_data, actual_stock_data])
 
@@ -188,6 +199,25 @@ class GetCensusData:
             
 
         return housing_units_completed
+
+
+    # Equation representing columns AI:AL
+    def model(t, coeffs):
+    # S_star_t = predicted stock at time t
+    # ca_t = Comps Ann at time t
+    # S_0 = actual housing stock at time zero (constant == 65121)
+    # S_star_0 = coeffs[0] + S_0
+        return  S_star_t-1 - coeffs[1] * S_star_t-1 * ((ca_t - ca_t-1)/)**0.7 + coeffs[2]*(ca_t - ca_t-1)/2
+        
+    # S is the actual housing stock (column X)
+    # ca is the Comps Ann (column E)
+    # Maybe use scipy.optimize.curve_fit?
+    def residuals(coeffs, S, ca):
+        return S - model(ca, coeffs)
+    x0 = [-826, 9.8e-6, 1]  # use Excel solver values as starting?
+    x, flag = scipy.optimize.leastsq(residuals, x0, args=(S, ca))
+
+
 
     def final_floorspace_estimates():
         
