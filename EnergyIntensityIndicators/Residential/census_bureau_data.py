@@ -132,7 +132,7 @@ class GetCensusData:
             occupied_published = 
 
 
-            def housing_stock_model(new_units, actual_stock, constant_adjustment, fraction_of_retirements, fixed_value):
+            def housing_stock_model(year_array, new_comps_ann, actual_stock, constant_adjustment, fraction_of_retirements, fixed_value):
                 adjustment_factor=0.7
                 model = []
                 for year_ in dataframe.index():
@@ -147,15 +147,17 @@ class GetCensusData:
                         new_units = ((new_comps_ann[year_] + new_comps_ann[year_-1]) / 2 ) * fixed_value 
                     
                     predicted_total_stock = existing_stock + predicted_retirement + new_units
+
+
                     diff = pub_total - predicted_total_stock
                     squared_difference = diff ** 2
                     
                     model += squared_difference * 0.001
-                    return model 
+                return sum(model) 
 
 
 
-            popt, pcov = scipy.optimize.curve_fit(housing_stock_model, new_units, actual_stock)
+            popt, pcov = scipy.optimize.curve_fit(housing_stock_model, year_array, new_comps_ann, actual_stock)
 
 
 

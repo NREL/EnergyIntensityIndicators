@@ -5,6 +5,8 @@ Purpose is to identify the necessary components of re-creating the PNNL spreadsh
 Sphinx documentation based on docstrings.
 
 What are the remaining tasks/issues?
+* [] Reference each script (high level outline)
+* [] Edit/clean up docstrings
 
 ## 2. LMDI
 Shared classes/methods for end-use sector decomposition
@@ -20,19 +22,25 @@ Shared classes/methods for end-use sector decomposition
 ## 3. Data Collection
 Processes for automated (where possible) retrieval of primary activity and energy data.
 ### 3a. EIA API
+* [x] Get EIA Data with `pull_eia_api` eia_api
 * [x] SEDS. Implemented with `pull_eia_api`.
     - SEDS by Census Region from use_all_btu.csv
-* [x] AER. Implemented with `pull_eia_api`.
-* [x] SEDS. Implemented with `pull_eia_api`.
+* [x] AER. Implemented with `pull_eia_api` \ with read_csv and url
 * [x] Conversion Factors. Implemented with `pull_eia_api`
 * [X] National Calibration. Implemented with `pull_eia_api`
+        - fill values
 * [] Weather factors. Implemented with `weather_factors`
 #### 3.a.i. 
 * [] Calculate LMDI for Prices (used in weather factors)    
 
 ### 3b.Census Bureau API
-* [ ] Annual Survey of Manufacturers
-* [ ] Economic Census
+* [ ] Annual Survey of Manufacturers (CM to send starting points)
+* [ ] Economic Census (CM to send starting points)
+* [] American\Annual Housing Survey
+    * [] Housing Stock Model
+
+### 3a. Bureau of Economic Analysis
+* [] Process ChainQtyIndexes
 
 ### 3c. Transportation Energy Databook (downloaded excel file)
 
@@ -57,20 +65,27 @@ Processing data from collection to input for LMDI calculations
 * [] Energy data: adjusted supplier data
     - Uses data from AER11 Table 2.1, National Calibration, EIA via Survey EIA-861
     * [] Get EIA Survey 861 Data (Sectoral_reclassification5.xls  (10/25/2012))
-* [] Activity data: Floorspace estimates
+        * [] create method for adjusment with if statement for year (e.g. if year > 2009, do this calculation)
+* [] Activity data: Floorspace estimates (don't want this array hard coded)
     - Historical Floorspace --> CO-StatePop2.xls
     - Regional Floorspace
     - Regional Shares
         - CBECS Data
         - Residential Sector Final Floorspace Estimates
+    - NEMS logistic
 
 ### 4c. Transportation
-* [] Passenger based activity
-* [] Passenger based energy use
-* [] Freight based activity
-* [] Freight based energy use
+* [] Create Passenger based activity dataframe
+* [] Create Passenger based energy use dataframe
+* [] Create Freight based activity dataframe
+* [] Create Freight based energy use dataframe
+     * [] ENO
 
 ### 4d. Industrial
+* [] Manufacturing Data
+* [] Agriculture Data
+* [] Mining Data
+* [] Construction Data
 
 ### 4e. Electricity
 * [] Reconcile physical units
