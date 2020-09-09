@@ -275,29 +275,49 @@ class LMDI:
 
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
-    def call_lmdi_multiplicative(self):
+    def collect_energy_data(self):
+        energy_data_by_type = dict()
         if 'elec' in self.energy_types:
             elec = self.get_elec(delivered_electricity=)
+            energy_data_by_type['elec'] = elec
         else:
-            pass
+            continue
         if 'fuels' in self.energy_types:
             fuels = self.get_fuels(fuels=)
+            energy_data_by_type['fuels'] = fuels
         else:
-            pass
+            continue
         if 'deliv' in self.energy_types:
             deliv = self.get_deliv(elec, fuels)
+            energy_data_by_type['deliv'] = deliv
         else: 
-            pass
+            continue
         if 'source' in self.energy_types: 
             conversion_factors = GetEIAData(self.sector).conversion_factors()
             source = self.get_source(elec, conversion_factors)
+            energy_data_by_type['source'] = source
         else:
-            pass
+            continue
         if 'source_adj' in self.energy_types:
             conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
             source_adj = self.get_source_adj(elec, conversion_factors)
+            energy_data_by_type['elec'] = elec
+        
+        return energy_data_by_type
 
-        self.weather_factors = 
+    def call_lmdi_multiplicative(self, unit_conversion_factor, adjust_for_weather=False):
+        energy_data_by_type = self.collect_energy_data()
+        
+        if adjust_for_weather: 
+            for type, energy_dataframe in energy_data_by_type.items():
+                region = 
+                weather_adj_energy = adjust_for_weather(energy_dataframe, type, region) 
+                
+
+        for type, energy_dataframe in energy_data_by_type.items():
+            activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
+        
+        return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
     def lmdi_additive(self, activity_input_data, energy_input_data):
 

@@ -2,12 +2,11 @@ from sklearn import linear_model
 import pandas as pd
 
 class WeatherFactors(LMDI):
-    def __init__(self, region, energy_type, type, sector):
+    def __init__(self, region, energy_type, sector):
         self.hdd_by_division = GetEIAData.eia_api(id_='1566347')
         self.cdd_by_division = GetEIAData.eia_api(id_='1566348')
         self.region = region
-        self.energy_type = energy_type  # 'electricity' or 'fuels'
-        self.type = type  # 'delivered' etc
+        self.energy_type = energy_type  # 'electricity' or 'fuels' or 'delivered'
         self.sector = sector
         self.lmdi_prices = pd.read_excel('./EnergyPrices_by_Sector_010820_DBB', sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
 
@@ -149,7 +148,7 @@ class WeatherFactors(LMDI):
             weather_factors_df['Price'] = selected_variable
             X = 
 
-        elif self.type == 'delivered':
+        elif self.energy_type == 'delivered':
             weather_factor = (reported_electricity + fuels) / (weather_adjusted_electrity + weather_adjusted_fuels)
             return weather_factor
         else:
