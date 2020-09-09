@@ -72,7 +72,7 @@ class IntensityIndicators:
 		self.component_intensity_index = 
 		self.product_activity_structure_intensity = weighted_activity_index *  # Product: Activity x
 													 # Structure X Intensity
-		self.actual_energy_use = 
+		self.y_use = 
 		self.total_structure = 
 
 		# Decomposition with Delivered Intensity

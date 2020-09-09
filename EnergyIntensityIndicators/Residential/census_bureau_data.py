@@ -6,6 +6,8 @@ import os
 import requests
 from zipfile import ZipFile
 import numpy as np
+import scipy
+from scipy import optimize
 
 class GetCensusData:
     
@@ -63,163 +65,153 @@ class GetCensusData:
     def get_percent_remaining_surviving(factor, lifetime, gamma):
         return 1 / (1 + (factor / lifetime) ** gamma)   
 
-
     def get_place_nsa_all():
         years = list(range(1994, 2013 + 1))
         for year in years:
             url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
 
-  
+    def housing_stock_model(year_array, new_comps_ann, coeffs):
+        """[summary]
 
+        Args:
+            year_array (array): [description]
+            new_comps_ann (array): New annual completed housing
+            actual_stock (array): [description]
 
+            coeffs (array): constant_adjustment, fraction_of_retirements, fixed_value
 
-    def get_housing_stock(housing_type, units_model='Model2'):
-        """Spreadsheet equivalent: Comps Ann, place_nsa_all
-        Data Sources: 
-            - Census Bureau Survey of  New Construction https://www.census.gov/construction/nrc/historical_data/index.html
-            - Manufactured Housing Survey: Annual data for the most current years were not found on the Census Bureau website.
-            Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
-            worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
-            2014 through 2018 on these worksheets and the annual values appended to the existing data in the
-            place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
-            Bureau for the most recent years but was not found as part of the 2020 update work.)
-        Estimate regional housing and regional floorspace by housing type (single family, multifamily, manufactured homes)
-        Data Sources: 
-            - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate floor space for three types
-              of housing units: single-family (attached and detached), multi-family, and manufactured homes
-        Spreadsheet Equivalents:
-            - AHS_summary_results_date \Total_Stock_SF.xlsx (single family)
-            - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily)
-            - AHD_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) 
-        Methodology: 
-            1. An estimated survival curve was first developed from vintage data over the 1999 through
-               2009 AHS surveys.
-            2. Curve was used along with reported new construction from the Characteristics of New
-               Housing reports from the Census Bureau.
-            3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
-               at the national level.
-        """
-        url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
+        Returns:
+            [type]: [description]
+        """          
+        adjustment_factor = 0.7
+        pub_total = [65121]
 
-        if housing_type == 'single_family' | housing_type == 'multi_family':
-            housing_units_completed_or_placed = pd.read_excel(url_) # completed
+        predicted_total_stock_series = []
 
-        else:
-            pass
-
-        if housing_type == 'single_family':
-            columns = 'In structures with -- 1 unit'
-            factor = 0.95
-
-        elif housing_type == 'multifamily'
-            columns = ['In structures with -- 2 to 4 units', 'In structures with -- 5 Units or more']
-            factor = 0.96
-        else: 
-            housing_units_completed_or_placed =   # Added (place_nsa_all)
-            columns = 'US Total'
-            factor = 0.96
-
-        else: # Model Two
-            # if housing_type == 'single_family':
-            fraction_of_retirements = 
-            fixed_value = 1
-            constant_adjustment = 
-            adjustment_factor = 0.7  # comes from solver? 
-
-            new_comps_ann =  # from comps ann column C
-            pub_total = 
-            occupied_published = 
-
-
-            def housing_stock_model(year_array, new_comps_ann, actual_stock, constant_adjustment, fraction_of_retirements, fixed_value):
-                adjustment_factor=0.7
-                model = []
-                for year_ in dataframe.index():
-                    if year_ == 1985: 
-                        existing_stock = pub_total[0] + constant_adjustment
-                        predicted_retirement = 0 
-                        new_units = 0
-                    else:
-                        adjusted_new_units = new_units ** adjustment_factor
-                        existing_stock = housing_stock(year_-1)
-                        predicted_retirement = (-1 * existing_stock) * adjusted_new_units * fraction_of_retirements
-                        new_units = ((new_comps_ann[year_] + new_comps_ann[year_-1]) / 2 ) * fixed_value 
-                    
-                    predicted_total_stock = existing_stock + predicted_retirement + new_units
-
-
-                    diff = pub_total - predicted_total_stock
-                    squared_difference = diff ** 2
-                    
-                    model += squared_difference * 0.001
-                return sum(model) 
-
-
-
-            popt, pcov = scipy.optimize.curve_fit(housing_stock_model, year_array, new_comps_ann, actual_stock)
-
-
-
-
-                    
-                # objective_function = sum(squared_difference) * 0.001
-                return actual_stock - (existing_stock + (-1 * existing_stock) * ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)**0.7 * fraction_of_retirements + ((new_comps_ann + new_comps_ann.shift(-1)) / 2 ) * fixed_value)
-
-
-
+        for index_, year_ in enumerate(year_array):
+            if index_ == 0: 
+                existing_stock = pub_total[index_] + coeffs[0]
+                predicted_retirement = 0 
+                new_units = 0
+                existing_stock_series = np.array([existing_stock])
+                predicted_total_stock_series = np.array([existing_stock])
+            else:
+                new_units = ((new_comps_ann[index_] + new_comps_ann[index_-1]) / 2 ) * coeffs[2] 
+                adjusted_new_units = np.sign(new_units) * (np.abs(new_units)) ** adjustment_factor
+                existing_stock = predicted_total_stock_series[index_ - 1]
+                predicted_retirement = (-1 * existing_stock) * adjusted_new_units * coeffs[1]
             
-            scipy.optimize.leastsq(objective_function, args=[new_units_data, actual_stock_data])
-
-            implied_retirement_rate = predicted_retirement / existing_stock
-
+                predicted_total_stock = existing_stock + predicted_retirement + new_units
             
-            total_pub_occupied = pub_total - occupied_single_family  # Spreadsheet is confused about what this is, CHECK
-            
-            total_vacancy_rate = 
-            sf_occupied_predicted = (1 - total_vacancy_rate) * predicted_total_stock 
-            sf_occupied_actual = occupied_published
-
-            # Model for average housing unit size
-            new_comps_ann_adj = new_comps_ann * fixed_value
-            cnh_avg_size = # SFTotalMedAvgSqFt column G
-            BH = new_comps_ann * cnh_avg_size
-            BI_0 = BH[0]
-            BI = 
-            post_1984_units = 
-            avg_size_post84_units =
-            BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
-            pre_1985_stock = 
-            total_sq_feet_pre_1985 = 
-
-
-            # elif housing_type == 'multi_family':
-            all_single_family = actual_stock
-            occupied_single_family =  # column J Total_stock_SF
-            households =  # National_Calibration'!E13
-            year = 
-            
-
-        return housing_units_completed
-
-
-    # Equation representing columns AI:AL
-    def model(t, coeffs):
-    # S_star_t = predicted stock at time t
-    # ca_t = Comps Ann at time t
-    # S_0 = actual housing stock at time zero (constant == 65121)
-    # S_star_0 = coeffs[0] + S_0
-        return  S_star_t-1 - coeffs[1] * S_star_t-1 * ((ca_t - ca_t-1)/)**0.7 + coeffs[2]*(ca_t - ca_t-1)/2
+                existing_stock_series = np.vstack([existing_stock_series, existing_stock])
+                predicted_total_stock_series = np.vstack([predicted_total_stock_series, predicted_total_stock])
         
-    # S is the actual housing stock (column X)
-    # ca is the Comps Ann (column E)
-    # Maybe use scipy.optimize.curve_fit?
-    def residuals(coeffs, S, ca):
-        return S - model(ca, coeffs)
-    x0 = [-826, 9.8e-6, 1]  # use Excel solver values as starting?
-    x, flag = scipy.optimize.leastsq(residuals, x0, args=(S, ca))
+        predicted_total_stock_series = predicted_total_stock_series.flatten()
+        print(predicted_total_stock_series)
+        predicted_total_stock_series_skip = predicted_total_stock_series[0::2]
+        print(predicted_total_stock_series_skip)
+        return predicted_total_stock_series_skip
+
+    def get_housing_stock(housing_type):
+            """Spreadsheet equivalent: Comps Ann, place_nsa_all
+            Data Sources: 
+                - Census Bureau Survey of  New Construction https://www.census.gov/construction/nrc/historical_data/index.html
+                - Manufactured Housing Survey: Annual data for the most current years were not found on the Census Bureau website.
+                Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
+                worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
+                2014 through 2018 on these worksheets and the annual values appended to the existing data in the
+                place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
+                Bureau for the most recent years but was not found as part of the 2020 update work.)
+            Estimate regional housing and regional floorspace by housing type (single family, multifamily, manufactured homes)
+            Data Sources: 
+                - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate floor space for three types
+                of housing units: single-family (attached and detached), multi-family, and manufactured homes
+            Spreadsheet Equivalents:
+                - AHS_summary_results_date \Total_Stock_SF.xlsx (single family)
+                - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily)
+                - AHD_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) 
+            Methodology: 
+                1. An estimated survival curve was first developed from vintage data over the 1999 through
+                2009 AHS surveys.
+                2. Curve was used along with reported new construction from the Characteristics of New
+                Housing reports from the Census Bureau.
+                3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
+                at the national level.
+            """
+            url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
+
+            if housing_type == 'single_family' | housing_type == 'multi_family':
+                housing_units_completed_or_placed = pd.read_excel(url_) # completed
+
+            else:
+                pass
+
+            if housing_type == 'single_family':
+                factor = 0.95
+                use_columns = "C"
+                actual_stock = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
+                77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
+
+            elif housing_type == 'multifamily'
+                factor = 0.96
+                use_columns = "D:E"
+                pub_total = [99931-6094, 102852-6688, 105661-6908, 104592-6983, 106611-7072, 109457-7647, 112357-8301, 115253-8433, 119117-8876, 120777-8971,
+                             124377-8630, 128203-8705, 130112-8769, 132419-9049, 132832-8603, 33046, 34067]
+                all_single_fam = 
+                actual_stock = pub_total - all_single_fam
+                actual_stock = actual_stock.multiply()
+
+            else: 
+                housing_units_completed_or_placed =   # Added (place_nsa_all)
+                columns = 'US Total'
+                factor = 0.96
+
+            new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
+                                        usecols=use_columns, header=None).dropna()
+            print(new_comps_ann)
+            year_array = list(range(1985, 2019))
+
+            # predicted_total_stock_series = housing_stock_model(year_array, new_comps_ann.values, coeffs=x0)
+            # print(predicted_total_stock_series)
+
+            # S is the actual housing stock (column X)
+            # ca is the Comps Ann (column E)
+            # Maybe use scipy.optimize.curve_fit?
+            def residuals(coeffs, actual_stock, year_array, ca):
+                return actual_stock - housing_stock_model(year_array, ca, coeffs)
+
+            # x0 = [-826, 9.8e-6, 1]  # use Excel solver values as starting?
+            x0 = [-825, 9.7e-6, 0.9]
+            ca = new_comps_ann.values
+            x, flag = scipy.optimize.leastsq(residuals, x0, args=(actual_stock, year_array, ca), maxfev=1600)
+            print('X: ', x)
+            print('flag: ', flag)
 
 
+
+
+                # Model for average housing unit size
+                new_comps_ann_adj = new_comps_ann * fixed_value
+                cnh_avg_size = # SFTotalMedAvgSqFt column G
+                BH = new_comps_ann * cnh_avg_size
+                BI_0 = BH[0]
+                BI = 
+                post_1984_units = 
+                avg_size_post84_units =
+                BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
+                pre_1985_stock = 
+                total_sq_feet_pre_1985 = 
+
+
+                # elif housing_type == 'multi_family':
+                all_single_family = actual_stock
+                occupied_single_family =  # column J Total_stock_SF
+                households =  # National_Calibration'!E13
+                year = 
+                
+
+            return housing_units_completed
 
     def final_floorspace_estimates():
         
@@ -273,3 +265,8 @@ class GetCensusData:
         Bureau for the most recent years but was not found as part of the 2020 update work.)
         """
         pass    
+
+
+
+
+
