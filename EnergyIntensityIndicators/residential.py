@@ -158,67 +158,54 @@ class ResidentialIndicators(LMDI):
         activity_input_data = source1.merge(self.source2)
         return activity_input_data
 
-    def northeast():
-        LMDI.get_elec()
-        LMDI.get_fuels()
-        LMDI.get_deliv()
-        LMDI.get_source()
-
-    def south():
-        LMDI().get_elec(delivered_electricity=)
-        LMDI.get_fuels()
-        LMDI.get_deliv()
-        LMDI.get_source()
-
-    def west():
-        LMDI.get_elec()
-        LMDI.get_fuels()
-        LMDI.get_deliv()
-        LMDI.get_source()
-
-    def midwest():
-        LMDI.get_elec()
-        LMDI.get_fuels()
-        LMDI.get_deliv()
-        LMDI.get_source()
-
-    def national():
-        LMDI.get_elec()
-        LMDI.get_fuels()
-        LMDI.get_deliv()
-        LMDI.get_source()
-        LMDI.get_source_adj()
-
-    def residential_total_lmdi_utiladj(self, _base_year=None):
-    """purpose
-        Parameters
-        ----------
+    def main(lmdi_model='multiplicative'):
+        regions = ['Northeast', 'South', 'West', 'Midwest', 'National']
+        region_results = dict()
+        unit_conversion_factor = 
+        for r in regions: 
+            if r == 'National':
+                fuels_dataframe, elec_dataframe = self.fuel_electricity_consumption()
+            else:
+                fuels_dataframe, elec_dataframe = self.fuel_electricity_consumption(region=r)
+            
+            results = self.call_lmdi(unit_conversion_factor=unit_conversion_factor, adjust_for_weather=True, lmdi_model=lmdi_model)
+            region_results[r] = results
         
-        Returns
-        -------
+        return region_results
+
+
+    # def residential_total_lmdi_utiladj(self, _base_year=None):
+    # """purpose
+    #     Parameters
+    #     ----------
         
-    """
-        if not base_year:
-            _base_year = self.base_year
-        else:
-            _base_year = _base_year
+    #     Returns
+    #     -------
+        
+    # """
+    #     if not base_year:
+    #         _base_year = self.base_year
+    #     else:
+    #         _base_year = _base_year
         
 
-        for key in self.sub_categories_list.keys():
-            energy_input_data = ResidentialIndicators.fuel_electricity_consumption(key)
-            activity_input_data = ResidentialIndicators.activity(key)
+    #     for key in self.sub_categories_list.keys():
+    #         energy_input_data = self.fuel_electricity_consumption(key)
+    #         activity_input_data = self.activity(key)
 
          
-            energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] = 
-            nominal_energy_intensity_kbtu_per_sf = 
-            nominal_energy_intensity_kbtu_per_sf_weather_adjusted = 
-            weather_factors_actual_by_30_year_normal = 
-            energy_intensity_btu_per_sf_weather_adjusted_index = 
+    #         energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] = 
+    #         nominal_energy_intensity_kbtu_per_sf = 
+    #         nominal_energy_intensity_kbtu_per_sf_weather_adjusted = 
+    #         weather_factors_actual_by_30_year_normal = 
+    #         energy_intensity_btu_per_sf_weather_adjusted_index = 
 
 
-            energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
+    #         energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
 
 
-        pass
+    #     pass
 
 
+if __name__ == '__main__':
+    main()

@@ -3,101 +3,14 @@ import numpy as np
 from sklearn import linear_model
 
 class LMDI:
-
-    sectors = {'residential': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
-                               'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
-                               'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
-                               'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}},
-              'industrial': {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
-                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
-                                               'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
-                                               'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
-                                               'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
-                                               'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
-                                               'Furniture & Related Products': None, 'Miscellaneous': None},
-                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
-                                                  'Mining': {'Petroleum and Natural Gas': None, 
-                                                             'Other Mining': None, 
-                                                             'Petroleum drilling and Mining Services': None},
-                                                  'Construction': None}}, 
-              'commercial': {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}, 
-              'transportation': {'All_Passenger':
-                                    {'Highway': 
-                                        {'Passenger Cars and Trucks': 
-                                            {'Passenger Car – SWB Vehicles': 
-                                                {'Passenger Car': None, 'SWB Vehicles': None},
-                                             'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks': None, 'LWB Vehicles': None},
-                                             'Motorcycles': None}, 
-                                        'Buses': 
-                                            {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
-                                        'Paratransit':
-                                            None}, 
-                                    'Rail': 
-                                        {'Urban Rail': 
-                                            {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
-                                        'Intercity Rail': None}, 
-                                    'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
-                                'All_Freight': 
-                                    {'Highway': 
-                                        {'Freight-Trucks': 
-                                            {'Single-Unit Truck': None, 'Combination Truck': None}}, 
-                                    'Rail': None, 
-                                    'Air': None, 
-                                    'Waterborne': None,
-                                    'Pipeline': 
-                                        {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}, 
-              'electricity': {'Elec Generation Total': 
-                                {'Elec Power Sector': 
-                                    {'Electricity Only':
-                                        {'Fossil Fuels': 
-                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                         'Nuclear': None, 
-                                         'Hydro Electric': None, 
-                                         'Renewable':
-                                            {'Wood': None, 'Waste': None, 'Geothermal': None, 'Solar': None, 'Wind': None}},
-                                     'Combined Heat & Power': 
-                                        {'Fossil Fuels'
-                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                         'Renewable':
-                                            {'Wood': None, 'Waste': None}}}, 
-                                'Commercial Sector': None, 
-                                'Industrial Sector': None},
-                              'All CHP':
-                                {'Elec Power Sector': 
-                                    {'Combined Heat & Power':
-                                        {'Fossil Fuels':
-                                            {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                        'Renewable':
-                                            {'Wood': None, 'Waste': None},
-                                        'Other': None}},
-                                    
-                                'Commercial Sector':
-                                    {'Combined Heat & Power':
-                                        {'Fossil Fuels':
-                                            {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
-                                        'Hydroelectric',
-                                        'Renewable':
-                                            {'Wood', 'Waste'},
-                                        'Other'}},, 
-                                'Industrial Sector':
-                                    {'Combined Heat & Power':
-                                        {'Fossil Fuels':
-                                            {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
-                                        'Hydroelectric',
-                                        'Renewable':
-                                            {'Wood', 'Waste'},
-                                        'Other'}}}}}
-
     """Base class for LMDI"""
-
 
 	def __init__(self, categories_list, energy_data, activity_data, energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
-        energy_data: dataframe
-            Energy input data
+        energy_data: dictionary of dataframes
+            Energy input data, keys are the energy_type
         activity_data: dataframe
             Activity input data
         categories_list: list
@@ -112,13 +25,15 @@ class LMDI:
         self.charts_ending_year = charts_ending_year
         self.energy_types = 
         
-    def get_elec(self, delivered_electricity):
+    def get_elec(self):
+        delivered_electricity = self.energy_data['elec']
         delivered_electricity = delivered_electricity.set_index('year')
         delivered_electricity['Total'] = delivered_electricity.sum(axis=1)
         delivered_electricity['Energy_Type'] = 'Electricity'
         return delivered_electricity
 
-    def get_fuels(self, fuels):
+    def get_fuels(self):
+        fuels = self.energy_data['fuels']
         fuels = fuels.set_index('year')
         fuels['Total'] = fuels.sum(axis=1)
         fuels['Energy_Type'] = 'Fuels'
@@ -129,12 +44,16 @@ class LMDI:
         delivered['Energy_Type'] = 'Delivered'
         return delivered
 
-    def get_source(self, delivered_electricity, conversion_factors):
+    def get_source(self, delivered_electricity):
+        conversion_factors = GetEIAData(self.sector).conversion_factors()
+
         source_electricity = delivered_electricity.multiply(conversion_factors) # Column A
         total_source = source_electricity.add(fuels)     
         total_source['Energy_Type'] = 'Source'
     
-    def get_source_adj(self, delivered_electricity, conversion_factors):
+    def get_source_adj(self, delivered_electricity):
+        conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
+
         source_electricity_adj = delivered_electricity.multiply(conversion_factors) # Column M
         source_adj = source_electricity_adj.add(fuels)
         source_adj['Energy_Type'] = 'Source_Adj'
@@ -275,51 +194,48 @@ class LMDI:
 
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
+    def lmdi_additive(self, activity_input_data, energy_input_data):
+        pass
+
     def collect_energy_data(self):
         energy_data_by_type = dict()
-        if 'elec' in self.energy_types:
-            elec = self.get_elec(delivered_electricity=)
-            energy_data_by_type['elec'] = elec
-        else:
-            continue
-        if 'fuels' in self.energy_types:
-            fuels = self.get_fuels(fuels=)
-            energy_data_by_type['fuels'] = fuels
-        else:
-            continue
-        if 'deliv' in self.energy_types:
-            deliv = self.get_deliv(elec, fuels)
-            energy_data_by_type['deliv'] = deliv
-        else: 
-            continue
-        if 'source' in self.energy_types: 
-            conversion_factors = GetEIAData(self.sector).conversion_factors()
-            source = self.get_source(elec, conversion_factors)
-            energy_data_by_type['source'] = source
-        else:
-            continue
-        if 'source_adj' in self.energy_types:
-            conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
-            source_adj = self.get_source_adj(elec, conversion_factors)
-            energy_data_by_type['elec'] = elec
+
+        funcs = {'elec': self.get_elec(), 
+                 'fuels': self.get_fuels(), 
+                 'deliv': self.get_deliv(energy_data_by_type['elec'], energy_data_by_type['fuels']), 
+                 'source': self.get_source(energy_data_by_type['elec']), 
+                 'source_adj': self.get_source_adj(energy_data_by_type['elec'])}
+        
+        for e_type in energy_types:
+            e_type_df = funcs[e_type]
+            energy_data_by_type[e_type] = e_type_df
         
         return energy_data_by_type
 
-    def call_lmdi_multiplicative(self, unit_conversion_factor, adjust_for_weather=False):
+    def call_lmdi(self, unit_conversion_factor, adjust_for_weather=False, lmdi_model='multiplicative'):
+        
         energy_data_by_type = self.collect_energy_data()
         
         if adjust_for_weather: 
             for type, energy_dataframe in energy_data_by_type.items():
                 region = 
                 weather_adj_energy = adjust_for_weather(energy_dataframe, type, region) 
-                
-
-        for type, energy_dataframe in energy_data_by_type.items():
-            activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
         
-        return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
+        if adjust_for_weather:
 
-    def lmdi_additive(self, activity_input_data, energy_input_data):
+        multiplicative_results = []
+        additive_results = []
+
+        if lmdi_model == 'multiplicative':
+            for type, energy_dataframe in energy_data_by_type.items():
+                results = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
+                multiplicative_results.append(results)
+        elif lmdi_model == 'additive': 
+                        for type, energy_dataframe in energy_data_by_type.items():
+                results = self.lmdi_additive(self.activity_data, energy_dataframe, unit_conversion_factor)
+                additive_results.aapend(results)
+        
+        return multiplicative_results, additive_results
 
     def data_visualization(self,):
             """Format data for proper visualization

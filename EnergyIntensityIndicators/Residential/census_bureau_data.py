@@ -84,10 +84,9 @@ class GetCensusData:
         Returns:
             [type]: [description]
         """          
-        adjustment_factor = 0.7
-        pub_total = [65121]
 
-        predicted_total_stock_series = []
+        elasticity_of_retirements = 0.7
+        pub_total = [65121]
 
         for index_, year_ in enumerate(year_array):
             if index_ == 0: 
@@ -98,7 +97,7 @@ class GetCensusData:
                 predicted_total_stock_series = np.array([existing_stock])
             else:
                 new_units = ((new_comps_ann[index_] + new_comps_ann[index_-1]) / 2 ) * coeffs[2] 
-                adjusted_new_units = np.sign(new_units) * (np.abs(new_units)) ** adjustment_factor
+                adjusted_new_units = np.sign(new_units) * (np.abs(new_units)) ** elasticity_of_retirements
                 existing_stock = predicted_total_stock_series[index_ - 1]
                 predicted_retirement = (-1 * existing_stock) * adjusted_new_units * coeffs[1]
             
@@ -112,6 +111,71 @@ class GetCensusData:
         predicted_total_stock_series_skip = predicted_total_stock_series[0::2]
         print(predicted_total_stock_series_skip)
         return predicted_total_stock_series_skip
+    
+    def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs):
+        """[summary]
+
+        Args:
+            year_array ([type]): [description]
+            new_comps_ann ([type]): [description]
+            coeffs ([type]): [description]
+        """                
+        new_comps_ann_adj = new_comps_ann * x[2]
+        cnh_avg_size = # SFTotalMedAvgSqFt column G
+        column_bh = new_comps_ann.multiply(cnh_avg_size)
+        select_index = 27
+        for index_, year_ in enumerate(year_array):
+            if index_ == 0: 
+                bi = column_bh[index_]
+                column_bi = np.array([bi])
+
+                post_1984_units = new_comps_ann[_index]
+                post_1984_units_series = np.array([post_1984_units])
+
+                pre_1985_stock = occupied_predicted[index_]
+                pre_85_stock_series = np.array([pre_1985_stock])
+
+                bl = pre_1985_stock
+            else:
+                bi =  column_bh[index_] + column_bi[index_ - 1]
+                column_bi = np.vstack([column_bi, bi])
+
+                post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
+                post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
+
+                pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
+                pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
+
+                bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
+
+            ave_size_post_84_units = bi / post_1984_units
+            
+            if index_ == select_index:
+                predicted_size_pre_1985_stock = coeffs[0]
+            else: 
+                predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+
+            total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
+            bp = post_1984_units / (post_1984_units + pre_1985_stock)
+            
+            total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+
+            predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+
+            if index_ == 0:
+                predicted_ave_size_series = np.array([predicted_ave_size])
+            else:
+                predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
+
+        predicted_ave_size_series = predicted_ave_size_series.flatten()
+        predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
+
+        return predicted_ave_size_series_skip
+
+       
+    def model_average_housing_unit_size_mf():
+
+    def model_average_housing_unit_size_mh():
 
     def get_housing_stock(housing_type):
             """Spreadsheet equivalent: Comps Ann, place_nsa_all
@@ -152,20 +216,26 @@ class GetCensusData:
                 use_columns = "C"
                 actual_stock = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
                 77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
+                elasticity_of_retirements = 0.7
 
             elif housing_type == 'multifamily'
                 factor = 0.96
                 use_columns = "D:E"
                 pub_total = [99931-6094, 102852-6688, 105661-6908, 104592-6983, 106611-7072, 109457-7647, 112357-8301, 115253-8433, 119117-8876, 120777-8971,
                              124377-8630, 128203-8705, 130112-8769, 132419-9049, 132832-8603, 33046, 34067]
-                all_single_fam = 
-                actual_stock = pub_total - all_single_fam
+                all_stock_sf = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
+                77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
+                actual_stock = pub_total - all_stock_sf
                 actual_stock = actual_stock.multiply()
+                elasticity_of_retirements = 0.8
+
 
             else: 
                 housing_units_completed_or_placed =   # Added (place_nsa_all)
                 columns = 'US Total'
                 factor = 0.96
+                elasticity_of_retirements = 0.5
+
 
             new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
                                         usecols=use_columns, header=None).dropna()
@@ -188,20 +258,12 @@ class GetCensusData:
             print('X: ', x)
             print('flag: ', flag)
 
-
+            predicted_total_stock = housing_stock_model(year_array, ca, x)  # need the one that doesn't "skip"
+            total_vacancy_rate = 
+            occupied_predicted = (1 - total_vacancy_rate).multiply(predicted_total_stock)
 
 
                 # Model for average housing unit size
-                new_comps_ann_adj = new_comps_ann * fixed_value
-                cnh_avg_size = # SFTotalMedAvgSqFt column G
-                BH = new_comps_ann * cnh_avg_size
-                BI_0 = BH[0]
-                BI = 
-                post_1984_units = 
-                avg_size_post84_units =
-                BL = (post_1984_units + post_1984_units.shift(-1)) * 0.5 * bn7_factor + predicted_size_pre_1985_stock
-                pre_1985_stock = 
-                total_sq_feet_pre_1985 = 
 
 
                 # elif housing_type == 'multi_family':
