@@ -71,7 +71,7 @@ class GetCensusData:
             url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
 
-    def housing_stock_model(year_array, new_comps_ann, coeffs):
+    def housing_stock_model(year_array, new_comps_ann, full_data=False, coeffs):
         """[summary]
 
         Args:
@@ -107,10 +107,12 @@ class GetCensusData:
                 predicted_total_stock_series = np.vstack([predicted_total_stock_series, predicted_total_stock])
         
         predicted_total_stock_series = predicted_total_stock_series.flatten()
-        print(predicted_total_stock_series)
         predicted_total_stock_series_skip = predicted_total_stock_series[0::2]
-        print(predicted_total_stock_series_skip)
-        return predicted_total_stock_series_skip
+
+        if full_data:
+            return predicted_total_stock_series
+        else:
+            return predicted_total_stock_series_skip
     
     def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs):
         """[summary]
@@ -123,7 +125,7 @@ class GetCensusData:
         new_comps_ann_adj = new_comps_ann * x[2]
         cnh_avg_size = # SFTotalMedAvgSqFt column G
         column_bh = new_comps_ann.multiply(cnh_avg_size)
-        select_index = 27
+        select_index = 24
         for index_, year_ in enumerate(year_array):
             if index_ == 0: 
                 bi = column_bh[index_]
@@ -173,7 +175,71 @@ class GetCensusData:
         return predicted_ave_size_series_skip
 
        
-    def model_average_housing_unit_size_mf():
+    def model_average_housing_unit_size_mf(year_array, new_comps_ann, predicted_retirement, coeffs):
+        """[summary]
+
+        Args:
+            year_array ([type]): [description]
+            new_comps_ann (series): [description]
+            predicted_retirement ([type]): [description]
+            coeffs ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
+        new_comps_ann_adj = new_comps_ann * x[2]
+        new_comps_ann_multifamily = 
+
+        cnh_avg_size = # SFTotalMedAvgSqFt column I
+        column_bh = new_comps_ann.multiply(cnh_avg_size)
+        select_index = 24
+        for index_, year_ in enumerate(year_array):
+            if index_ == 0: 
+                bi = column_bh[index_]
+                column_bi = np.array([bi])
+
+                post_1984_units = new_comps_ann[_index]
+                post_1984_units_series = np.array([post_1984_units])
+
+                pre_1985_stock = occupied_predicted[index_]
+                pre_85_stock_series = np.array([pre_1985_stock])
+
+                bl = pre_1985_stock
+            else:
+                bi =  column_bh[index_] + column_bi[index_ - 1]
+                column_bi = np.vstack([column_bi, bi])
+
+                post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
+                post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
+
+                pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
+                pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
+
+                bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
+
+            ave_size_post_84_units = bi / post_1984_units
+            
+            if index_ == select_index:
+                predicted_size_pre_1985_stock = coeffs[0]
+            else: 
+                predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+
+            total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
+            bp = post_1984_units / (post_1984_units + pre_1985_stock)
+            
+            total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+
+            predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+
+            if index_ == 0:
+                predicted_ave_size_series = np.array([predicted_ave_size])
+            else:
+                predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
+
+        predicted_ave_size_series = predicted_ave_size_series.flatten()
+        predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
+
+        return predicted_ave_size_series_skip
 
     def model_average_housing_unit_size_mh():
 
