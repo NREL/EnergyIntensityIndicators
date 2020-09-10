@@ -11,11 +11,36 @@ class BEA_api:
         self.base_params = {'UserID': apik, 'method': 'GetData',  # apik is API key
                             'Industry': 'ALL', 'Frequency': 'A',
                             'Format': 'json'}
+        self.tableID_dict = {'go_quant_index': 16, 'go_nominal': 15,
+                             'va_nominal': 1, 'va_quant_index': 8}
 
     def call_api(self, years, params):
-        """ Method for calling BEA api for given range of years [min, max]"""
+        """
+        Method for calling BEA api for given range of years [min, max]
 
-        r = requests.get(self.base_url, params=params)
+        Parameters
+        ----------
+        years : list
+            List of begnning year and ending year of data to retrieve from
+            BEA API.
+
+        params : dict
+            Dictionary of DataSetName and tableID.
+
+        Returns
+        -------
+        data : dataframe
+            Dataframe of results. Will print API error, if applicable.
+        """
+
+        api_params = self.base_params.copy()
+        api_params['Year'] = \
+            [str(y)+',' for y in range(years[0], years[1]+1)]
+
+        for k, v in params.items():
+            api_params[k] = v
+
+        r = requests.get(self.base_url, params=api_params)
 
         try:
             data = pd.DataFrame.from_records(
@@ -44,14 +69,33 @@ class BEA_api:
 
         return pivoted_data
 
-    def get_gross_output(self, years):
-        """ API call for gross output"""
+    def get_data(self, years, table_name):
+        """
+        Get data using the BEA API call.
 
-        api_params = self.base_params.copy()
-        api_params['Year'] = \
-            [str(y)+',' for y in range(years[0], years[1]+1)]
-        api_params['DataSetName'] = 'GDPbyIndustry'
-        api_params['tableID'] = 1
+        Parameters
+        ----------
+        years : list
+            List of begnning year and ending year of data to retrieve from
+            BEA API.
+
+        table_name : str
+            go_quant_index (Industry Gross Output, quantity indexes),
+            go_nominal (Industry Gross Output, nominal),
+            va_nominal (Industry Value Added, nominal),
+            va_quant_index (Industry Value Added, quanitity indexes).
+            Additional values can be added with their corresponding tableID
+            number to tableID_dict
+
+        Returns
+        -------
+        data : dataframe
+            Dataframe of BEA data.
+
+        """
+
+        api_params = {'DataSetName': 'GDPbyIndustry',
+                      'tableID': self.tableID_dict[table_name]}
 
         data = self.call_api(years, params=api_params)
 
@@ -62,20 +106,5 @@ class BEA_api:
         else:
             return
 
-    def get_quantity_indexes(self, years):
-        """ API call for gross output quantity indexes"""
-
-        api_params = self.base_params.copy()
-        api_params['Year'] = \
-            [str(y)+',' for y in range(years[0], years[1]+1)]
-        api_params['DataSetName'] = 'GDPbyIndustry'
-        api_params['tableID'] = 16
-
-        data = self.call_api(years, params=api_params)
-
-        if data:
-            data = self.format_data(data)
-            return data
-
-        else:
-            return
+    def import_historical():
+        """Method for importing historical BEA data, saved as csv"""
