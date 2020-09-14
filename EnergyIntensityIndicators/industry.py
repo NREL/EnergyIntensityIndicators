@@ -14,7 +14,6 @@ class GetIndustryData():
         “Construction (NAICS Sector 23)” is found. After selecting this entry, the user is then automatically
         transferred to: https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector23.html. 
     """    
-    BEA_data = pd.read_excel('./GrossOutput_1969-2018_PNNL:_123119.xlsx', sheet_name='ChainQTYIndexes', skiprows=298, usecols="DC, EA:EJ")
 
     def manufacturing():
         """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by 

@@ -242,6 +242,38 @@ class GetCensusData:
         return predicted_ave_size_series_skip
 
     def model_average_housing_unit_size_mh():
+        """Create average housing unit size dataframe for Manufactured housing
+
+        Returns:
+            [type]: [description]
+        """        
+        pre_1980_ratios = {1970: 0.838421513, 1974: 0.944122109}  # from 'D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size'
+        recs_total =  {1980: 826.0869565, 1984: 843.1372549, 1987: 864.7058824, 1990: 942.3076923, 
+                                   1993: 989.0909091, 1997: 995.2380952, 2001: 1061.995005, 2005: 1062.008978, 2009: 1087}  # from 'D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)'
+        for y in [1970, 1974]:
+            recs_total[y] = recs_total[1980] * pre_1980_ratios[y]
+        
+        recs_total[2015] = 1191.2  # From 'RECS_4_adj'
+
+        manh_size = dict()
+        increment_years = [1970, 1974, 1980, 1984, 1987, 1990, 1993, 1997, 2001, 2005, 2009, 2015]
+        
+        for index, y_ in enumerate(increment_years):
+            if index > 0:
+                year_before = increment_years[index - 1]
+                num_years = y_ - year_before
+                difference = recs_total[y_] - recs_total[year_before]
+                increment = difference / num_years
+                for delta in range(num_years):
+                    value = recs_total[year_before]  + delta * increment
+                    year = year_before + delta
+                    manh_size[year] = value
+        
+        manh_size[2016] = 1196  # Assume smaller change - 5 sq. ft. per year,  rounded?
+        manh_size[2017] = manh_size[2016] + 5 # Assume smaller change - 5 sq. ft. per year 
+        
+        manh_size_df = pd.DataFrame(manh_size, columns=['year', 'manh_size']).set_index('year')
+        return manh_size
 
     def get_housing_stock(housing_type):
             """Spreadsheet equivalent: Comps Ann, place_nsa_all
