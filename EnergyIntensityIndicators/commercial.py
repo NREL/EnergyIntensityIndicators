@@ -86,7 +86,7 @@ class CommercialIndicators(LMDI):
     
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
-        self.eia_comm = GetEIAData('commercial')
+         
         self.sub_categories_list = categories_list['commercial']
         self.conversion_factors = eia_comm.conversion_factors()
         self.cbecs = 
