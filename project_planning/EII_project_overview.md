@@ -28,20 +28,21 @@ outside of EII spreadsheets).
 
 ## Rough Project Plan
 
-| Task  |  Duration (Completion Date)|Deliverable |
-| ----- | --------- | ------- |
-| Review PNNL Methodology and EIA AEO data | 2 weeks (6/26) | No|
-| Create draft model architecture and data connections| 2 weeks (7/10)| No|
-| **DOE status meeting** | **7/16** | No|
-| Code data collection (API) | 2 weeks (7/24) | No |
-| Model beta (historical and projection)| 7 weeks (9/4) | No |
-| Draft model documentation (GitHub) | 7 weeks (9/4) | No|
-| Model and documentation review | 2 weeks (9/18)|No |
-| **DOE status meeting**| **9/23**| No|
-| Model revisions | 3 weeks (10/9) |No |
-| Final model and documentation | 1 week (10/16)|**Yes** |
-| **DOE status meeting** | **10/21**| No| 
-| Final data uploaded to NREL data catalog | (10/30)| **Yes**|
+| Task  |  Duration (Completion Date)|Proposed Revised Duration (Completed Date)|Deliverable |Completed|
+| ----- | --------- |---| ------- |-- |
+| Review PNNL Methodology and EIA AEO data | 2 weeks (6/26)|n/a | No|Yes |
+| Create draft model architecture and data connections| 2 weeks (7/10)|n/a| No|Yes |
+| **DOE status meeting** | **7/16** |n/a| No|Yes |
+| Code data collection (API) | 2 weeks (7/24)|5 weeks (8/14) | No |Yes |
+| **DOE status meeting**| **9/23**|n/a| No|-- |
+| **DOE status meeting** | **10/21**|---| No|-- | 
+| Model beta (historical and projection)| 7 weeks (9/4)|*14 weeks (10/23)* | No |**No** |
+| Draft model documentation (GitHub) | 7 weeks (9/4)|*14 weeks (10/23)* | No|**No**  |
+| Model and documentation review | 2 weeks (9/18)|9 weeks (|No |-- |
+| Model revisions | 3 weeks (10/9)|*3 weeks (11/13)* |No |-- |
+|***DOE status meeting*** | ***11/18***|---| *No*|--| 
+| Final model and documentation | 1 week (10/16)|*1 week (11/20)*|**Yes** |-- |
+| Final data uploaded to NREL data catalog | (10/30)| *(12/18)* | **Yes**|-- |
 
 ### Miscellaneous Thoughts
 * Model should offer choice in calculating LDMI (i.e., both additive and multiplicative form)
