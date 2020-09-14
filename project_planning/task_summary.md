@@ -45,7 +45,7 @@ Processes for automated (where possible) retrieval of primary activity and energ
 ### 3c. Transportation Energy Databook (downloaded excel file)
 
 
-## 4. Data Processing
+## 4. Data Processing (Historical)
 Processing data from collection to input for LMDI calculations
 
 ### 4a. Residential
@@ -92,3 +92,44 @@ Processing data from collection to input for LMDI calculations
 * [] Create Energy and Activity dataframes
 
 ### 4f. Economywide
+
+## 5. Data Processing (Projection)
+All data come from EIA API for AEO (category_id=964164).
+Will need to identify AEO data that are analgous to data used for historical projections.
+### 5a. Residential
+AEO projects annual estimates for cooling degree days
+* [] Energy data: 
+
+* [] Activity data: 
+    - Occupied Housing Units
+    - Floorspace (Final Floorspace Estimates)
+    
+### 5b. Commercial
+* [] Energy data: adjusted supplier data
+
+* [] Activity data: Floorspace estimates (don't want this array hard coded)
+    - Historical Floorspace --> CO-StatePop2.xls
+    - Regional Floorspace
+    - Regional Shares
+        - CBECS Data
+        - Residential Sector Final Floorspace Estimates
+    - NEMS logistic
+
+### 5c. Transportation
+* [] Create Passenger based activity dataframe
+* [] Create Passenger based energy use dataframe
+* [] Create Freight based activity dataframe
+* [] Create Freight based energy use dataframe
+     * [] ENO
+
+### 5d. Industrial
+* [] Manufacturing Data
+* [] Agriculture Data
+* [] Mining Data
+* [] Construction Data
+
+### 5e. Electricity
+* [] Reconcile physical units
+* [] Create Energy and Activity dataframes
+
+### 5f. Economywide
