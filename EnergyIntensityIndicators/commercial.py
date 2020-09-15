@@ -25,19 +25,12 @@ Methodology: Perpetual inventory model, where estimates of new additions and rem
              to update the current year"""
 
 class GetCommercialData:
-    """
-    Data Sources: 
-    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
-    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
-    SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
-    2014 to 2018". 
-    """    
+
 
     def __init__(self):
         pass
+    
 
-    def get_saus_table_995():
-        pass
     
     @staticmethod
     def floorspace_estimates():
@@ -79,12 +72,14 @@ class GetCommercialData:
         """
 
 
-
-
-
-
 class CommercialIndicators(LMDI):
-    
+        """
+    Data Sources: 
+    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
+    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
+    SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
+    2014 to 2018". 
+    """    
     def __init__(self, energy_data, activity_data, categories_list):
         super().__init__(energy_data, activity_data, categories_list)
          
@@ -102,6 +97,26 @@ class CommercialIndicators(LMDI):
         # self.mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
         self.mer_data_23 = eia_comm.eia_api(id_='711251', id_type='category')
+
+    @staticmethod
+    def get_saus():
+        """Get Data from the Statistical Abstract of the United States (SAUS)
+        """        
+        saus_2002 = pd.read_csv('./SAUS2002_table995.csv').set_index('Year')
+        saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
+                    1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
+        saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
+                    1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700, 
+                    1996: 723, 1997: 855, 1998: 1106, 1999: 1117, 2000: 1176}
+        saus_merged = dict() 
+        for (year, value) in saus_2001.items():
+            if value == None: 
+                set_value = saus_1994[year]
+            else: 
+                set_value = value
+            saus_merged[year] = set_value
+
+        return saus_2002, saus_merged
 
     def estimate_regional_floorspace_share(self,):
     """assumed commercial floorspace in each region follows same trends as population or housing units"""
@@ -245,31 +260,66 @@ class CommercialIndicators(LMDI):
         """                
 
 @staticmethod
+def dod_compare_old():
+    dod_old = pd.read_csv('./').set_index('Year')
+    # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
+    # dod_old = dod_old.drop(columns='Soc/Misc')
+    # dod_old['Total'] = dod_old.sum(axis=1)
+    dod_old['Commercial'] = dod_old[['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
+
+    dod_old_subset = dod_old.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]]
+    dod_old_hotel = dod_old.loc[list(range(1980, 1990)), ['Commercial']]
+    return dod_old_subset, dod_old_hotel 
+
+@staticmethod
+def dodge_adjustment_ratios(dodge_dataframe, start_year, stop_year):
+    (1985, 1990) or (1960, 1970)
+    year_indices = list(range(start_year, stop_year))
+    revision_factor_commercial = sum(list(dodge_revised.loc[year_indices, ['Commercial']]))
+    categories = ['Retail', 'Auto R', 'Office', 'Warehouse']
+    revision_factors = []
+    for category in categories: 
+        revision_factor_cat = sum(list(dodge_revised.loc[year_indices, [category]])) / revision_factor_commercial
+        revision_factors.append(revision_factor_cat)
+    return revision_factors
+
+@staticmethod
+def west_inflation():
+    # hist_stat column E
+    # west inflation column Q
+    
+
+@staticmethod
 def dodge_revised():
     """Dodge Additions, adjusted for omission of West Census Region prior to 1956
-    """    
-    commercial_excl_hotel = []  # hist_stat_adj column Q
-    saus_2002_commercial = {1990: 694, 1991: 476, 1192: 462, 1993: 481}
-    commercial_incl_hotel
+    """       
+    saus_2002, saus_merged = get_saus()
+    dod_old_subset, dod_old_hotel = dod_compare_old()
+    west_inflation = 
+
     dodge_revised = pd.DataFrame().set_index('Year')
     dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Incl Hotel']] = dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Excl Hotel']].add(dodge_revised.loc[list(range(1919, 1990)), ['Hotel']])
-    dodge_revised.loc[list(range(1990, 1998)), ['Commercial, Incl Hotel']] =  # SAUS2002 column E
-    dodge_revised.loc[list(range(1998, 2018)), ['Commercial, Incl Hotel']] =  
+    dodge_revised.loc[list(range(1990, 1998)), ['Commercial, Incl Hotel']] =  saus_2002.loc[list(range(1990, 1998)), ['Commercial']]
+    dodge_revised.loc[list(range(1998, 2018)), ['Commercial, Incl Hotel']] =  # hard coded
 
-    revision_factor_commercial = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Commercial']]))
-    revision_factor_retail = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Retail']])) / revision_factor_commercial
-    revision_factor_auto_r = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Auto R']])) / revision_factor_commercial
-    revision_factor_office = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Office']])) / revision_factor_commercial
-    revision_factor_warehouse = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Warehouse']])) / revision_factor_commercial
-    revision_factor_hotel = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Hotel']])) / revision_factor_commercial
+    revision_factors_60_69 = dodge_adjustment_ratios(dodge_revised, 1960, 1969 + 1)
+    revision_factors_85_89 = dodge_adjustment_ratios(dodge_revised, 1985, 1989 + 1)
 
+    dodge_revised.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dod_old_subset 
 
-    dodge_revised.loc[list(range(1919, 1960)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = 
+    dodge_revised.loc[list(range(1919, 1960)), ['Commercial, Excl Hotel']] =  # hist_stat_adj column Q
+    dodge_revised.loc[list(range(1960, 1990)), ['Commercial, Excl Hotel']] =  dodge_revised.loc[list(range(1960, 1990)), [['Retail', 'Auto R', 'Office', 'Warehouse']]].sum(index=1)
+    dodge_revised.loc[list(range(1990, 2019)), ['Commercial, Excl Hotel']] = np.nan
+
+    dodge_revised.loc[list(range(1919, 1960)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dodge_revised.loc[list(range(1919, 1960)), ['Commercial, Excl Hotel']].multiply(revision_factors_60_69) 
+    dodge_revised.loc[list(range(1990, 2019)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dodge_revised.loc[list(range(1919, 1960)), ['Commercial']].multiply(revision_factors_85_89) 
+
+    hotel_80_89 = saus_merged.subtract(dod_old_hotel) 
+    dodge_revised.loc[list(range(1980, 1990)), ['Hotel']] = hotel_80_89
     
-    dodge_revised.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = # DODCompareOld columns B,D,C,E
+    hotel_80_89_ratio = sum(hotel_80_89) / sum(dodge_revised.loc[list(range(1980, 1990)), ['Commercial, Excl Hotel']])
+    dodge_revised.loc[list(range(1919, 1980)), ['Hotel']] = dodge_revised.loc[list(range(1919, 1980)), ['Commercial, Excl Hotel']].multiply(hotel_80_89_ratio)
 
-    dodge_revised.loc[list(range(1919, 1980)), ['Hotel']] = 
-    dodge_revised.loc[list(range(1980, 1990)), ['Hotel']] = # DODCompareOld column AB
 
     dodge_revised.loc[list(range(1990, 2019)), [['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']]] = 
 
