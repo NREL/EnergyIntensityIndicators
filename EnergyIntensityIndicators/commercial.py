@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime as dt
 from sklearn import linear_model
 from .weather_factors import weather_factors
 import math
@@ -242,3 +243,85 @@ class CommercialIndicators(LMDI):
     def activity():
         """Floor Space
         """                
+
+@staticmethod
+def dodge_revised():
+    """Dodge Additions, adjusted for omission of West Census Region prior to 1956
+    """    
+    commercial_excl_hotel = []  # hist_stat_adj column Q
+    saus_2002_commercial = {1990: 694, 1991: 476, 1192: 462, 1993: 481}
+    commercial_incl_hotel
+    dodge_revised = pd.DataFrame().set_index('Year')
+    dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Incl Hotel']] = dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Excl Hotel']].add(dodge_revised.loc[list(range(1919, 1990)), ['Hotel']])
+    dodge_revised.loc[list(range(1990, 1998)), ['Commercial, Incl Hotel']] =  # SAUS2002 column E
+    dodge_revised.loc[list(range(1998, 2018)), ['Commercial, Incl Hotel']] =  
+
+    revision_factor_commercial = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Commercial']]))
+    revision_factor_retail = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Retail']])) / revision_factor_commercial
+    revision_factor_auto_r = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Auto R']])) / revision_factor_commercial
+    revision_factor_office = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Office']])) / revision_factor_commercial
+    revision_factor_warehouse = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Warehouse']])) / revision_factor_commercial
+    revision_factor_hotel = sum(list(dodge_revised.loc[list(range(1985, 1990)), ['Hotel']])) / revision_factor_commercial
+
+
+    dodge_revised.loc[list(range(1919, 1960)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = 
+    
+    dodge_revised.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = # DODCompareOld columns B,D,C,E
+
+    dodge_revised.loc[list(range(1919, 1980)), ['Hotel']] = 
+    dodge_revised.loc[list(range(1980, 1990)), ['Hotel']] = # DODCompareOld column AB
+
+    dodge_revised.loc[list(range(1990, 2019)), [['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']]] = 
+
+
+@staticmethod
+def dodge_to_cbecs():
+    """Redefine the Dodge building categories more along the lines of CBECS categories. Constant fractions of floor space are moved among categories. 
+
+    Returns:
+        dodge_to_cbecs (dataframe): redefined data
+    """    
+    # Key Assumptions: 
+    education_floor_space_office = .10
+    auto_repair_retail = .80
+    retail_merc_service = .80  # remainder to food service and sales
+    retail_merc_service_food_sales = .11
+    retail_merc_service_food_service = .90
+    education_assembly = .05
+    education_misc = .05 # (laboratories)
+    health_transfered_to_cbecs_health = .75 # 25% to lodging (nursing homes)
+    misc_public_assembly = .10 # (passenger terminals)
+
+    dodge_revised = # dataframe
+    
+    dodge_to_cbecs = pd.dataframe(dodge_revised[['Year', 'Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'}).set_index('index')
+
+    dodge_to_cbecs['Office'] = dodge_revised['Office'] + education_floor_space_office * dodge_revised['Education']
+    dodge_to_cbecs['Merc/Serv'] = retail_merc_service * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
+    dodge_to_cbecs['Food_Sales'] = retail_merc_service_food_sales * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
+    dodge_to_cbecs['Food_Serv'] = retail_merc_service_food_service * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
+    dodge_to_cbecs['Education'] = (1 - education_floor_space_office - education_assembly - education_misc) * dodge_revised['Education']
+    dodge_to_cbecs['Health'] = health_transfered_to_cbecs_health * dodge_revised['Hospital']
+    dodge_to_cbecs['Lodging'] = dodge_revised['Hotel']+ (1 - health_transfered_to_cbecs_health) * dodge_revised['Hospital']
+    dodge_to_cbecs['Assembly'] = dodge_revised['Soc/Amus'] +  misc_public_assembly * dodge_revised['Misc'] + education_assembly * dodge_revised['Education']
+    dodge_to_cbecs['Other'] = dodge_revised['Public'] + (1 - misc_public_assembly) * dodge_revised['Misc'] + (1 - auto_repair_retail) * dodge_revised['Auto R'] + education_misc * dodge_revised['Education']
+    dodge_to_cbecs['Redefined_Totals'] = dodge_to_cbecs.sum(index=1)
+    
+    # dodge_to_cbecs = dodge_to_cbecs.drop()  # don't need totals?
+    return dodge_to_cbecs
+
+def nems_logistic(self, dataframe, params):
+    """[summary]
+
+    Args:
+        dataframe ([type]): [description]
+        params (list): gamma, lifetime, 
+    """    
+    current_year = dt.datetime.now().year
+    dataframe['age'] = dataframe['year'].subtract(current_year).multiply(-1)
+    dataframe['remaining'] = 1.divide(1.add(dataframe['age'].divide(params[1])).pow(params[0]))
+    dataframe['inflate_fac'] = 1.divide(dataframe['remaining'])
+
+    dodge_to_cbecs = self.dodge_to_cbecs() # columns c-m starting with year 1920 (row 17)
+
+x0 = [3.92276415, 73.2238120168849]  # [gamma, lifetime]

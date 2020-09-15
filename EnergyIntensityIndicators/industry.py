@@ -22,6 +22,38 @@ class GetIndustryData():
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4 
         """    
 
+        def get_historical_mecs():
+            """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
+            """            
+            historical_mecs = pd.read_csv('./') 
+            return historical_mecs
+
+        def get_asm_data():
+            """Call ASM API method from Asm class in get_census_data.py
+            Specify three-digit NAICS Codes
+            """ 
+
+            return asm_price_data           
+
+        def fit_mecs_price(asm_data, mecs_data, params, ):
+            """[summary]
+
+            Args:
+                asm_data ([type]): [description]
+                mecs_data ([type]): [description]
+                params ([type]): [Column_H, Column_I]
+            """             
+            y_t = x_t * params[0] + x_t_minus_1 * params[1]
+            # potentially use scipy.optimize.curve_fit()
+
+        def predict_mecs_prices():
+            """[summary]
+            """
+
+        fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual', 'LPG', 'Coke', 'Other']
+
+
+
     def non_manufacturing():
         """Primary Data Sources: Economic Census (previously the Census of Manufactures, Census of Agriculture, and Census of Mining)
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)

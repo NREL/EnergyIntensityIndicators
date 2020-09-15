@@ -65,6 +65,10 @@ class MakeProjections:
         """activity: floorspace
         energy: consumption trillion Btu
         """        
+        # Commercial : Total Floorspace : New Additions, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_NADN_USA_BLNSQFT.A'
+        # Commercial : Total Floorspace : Surviving, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_SURV_USA_BLNSQFT.A'
+        # Commercial : Total Floorspace : Total, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A'
+
 
         commercial_categories = {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
 
@@ -85,6 +89,9 @@ class MakeProjections:
                 - Value Added
             energy: Energy Consumption Trillion Btu
         """        
+        # Industrial : Value of Shipments : Agriculture, Mining, and Construction, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NMFG_VOS_NA_USA_BLNY09DLR.A'
+        # Industrial : Value of Shipments : Manufacturing, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_MANF_VOS_NA_USA_BLNY09DLR.A'
+        # Industrial : Value of Shipments : Total, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NA_VOS_NA_USA_BLNY09DLR.A'
 
         industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
                                                'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
@@ -97,8 +104,7 @@ class MakeProjections:
                                                   'Mining': {'Petroleum and Natural Gas': None, 
                                                              'Other Mining': None, 
                                                              'Petroleum drilling and Mining Services': None},
-                                                  'Construction': None}}, 
-              'commercial': {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
+                                                  'Construction': None}}
 
         industrial_eia = GetEIAData('industrial')
         energy_use_industrial_electricity_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_ELC_NA_NA_QBTU.A', id_type='series')
