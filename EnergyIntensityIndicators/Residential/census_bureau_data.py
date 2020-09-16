@@ -301,14 +301,6 @@ class GetCensusData:
                 3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
                 at the national level.
             """
-            url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
-
-            if housing_type == 'single_family' | housing_type == 'multi_family':
-                housing_units_completed_or_placed = pd.read_excel(url_) # completed
-
-            else:
-                pass
-
             if housing_type == 'single_family':
                 factor = 0.95
                 use_columns = "C"
@@ -327,17 +319,22 @@ class GetCensusData:
                 actual_stock = actual_stock.multiply()
                 elasticity_of_retirements = 0.8
 
-
             else: 
-                housing_units_completed_or_placed =   # Added (place_nsa_all)
-                columns = 'US Total'
+                # new_comps_ann =   pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/placensa_all.xls', sheet_name='histplac', skiprows= , usecols=)# Added (place_nsa_all)
+                # NEED TO PROCESS 
+                new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='place_nsa_all', skiprows=8, 
+                        usecols="C", header=None).dropna()
                 factor = 0.96
                 elasticity_of_retirements = 0.5
 
 
-            new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
+            if housing_type == 'single_family' | housing_type == 'multi_family':
+                # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
+                # new_comps_ann = pd.read_excel(url_) # completed
+                
+                new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
                                         usecols=use_columns, header=None).dropna()
-            print(new_comps_ann)
+
             year_array = list(range(1985, 2019))
 
             # predicted_total_stock_series = housing_stock_model(year_array, new_comps_ann.values, coeffs=x0)
@@ -425,6 +422,8 @@ class GetCensusData:
         Bureau for the most recent years but was not found as part of the 2020 update work.)
         """
         pass    
+
+
 
 
 

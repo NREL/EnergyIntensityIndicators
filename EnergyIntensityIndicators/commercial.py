@@ -287,7 +287,13 @@ def dodge_adjustment_ratios(dodge_dataframe, start_year, stop_year):
 def west_inflation():
     # hist_stat column E
     # west inflation column Q
-    
+    ornl_78 = 
+    final_factors = dict()
+    for year_ in list(range(1925, 1955 + 1)): 
+        if year_ in ornl_years: 
+            final_factors[year_] = ornl_78[year]
+        else: 
+            diff = 
 
 @staticmethod
 def dodge_revised():
