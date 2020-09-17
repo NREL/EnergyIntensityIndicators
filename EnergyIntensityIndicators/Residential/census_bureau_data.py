@@ -273,6 +273,9 @@ class GetCensusData:
         
         manh_size_df = pd.DataFrame(manh_size, columns=['year', 'manh_size']).set_index('year')
         return manh_size
+    
+    def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
+            return actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
 
     def get_housing_stock_sf(self):
         factor = 0.95
@@ -296,14 +299,9 @@ class GetCensusData:
         # S is the actual housing stock (column X)
         # ca is the Comps Ann (column E)
         # Maybe use scipy.optimize.curve_fit?
-        def residuals(coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
-            return actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
-
-            year_array, new_comps_ann, pub_total, elasticity_of_retirements, coeffs, full_data=False
-
-        x0 = [-826, 9.8e-6, 1]  # use Excel solver values as starting?
+        x0 = [-826, 0.00000982007075752705, 1]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
@@ -313,36 +311,40 @@ class GetCensusData:
         # total_vacancy_rate = pup_total_occupied.divide(actual_stock)
         # occupied_predicted = (1 - total_vacancy_rate).multiply(predicted_total_stock)
 
-        return predicted_total_stock
+        return predicted_total_stock, actual_stock
 
     def get_housing_stock_mf(self):
         factor = 0.96
         use_columns = "D:E"
         pub_total = [99931-6094, 102852-6688, 105661-6908, 104592-6983, 106611-7072, 109457-7647, 112357-8301, 115253-8433, 119117-8876, 120777-8971,
                         124377-8630, 128203-8705, 130112-8769, 132419-9049, 132832-8603, 33046, 34067]
-        all_stock_sf = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
-        77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
-        actual_stock = map(operator.sub, pub_total, all_stock_sf)
-         actual_stock = actual_stock.multiply()
+        # all_stock_sf = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
+        # 77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
+        adjustment_factors = [1, 1, 1, 1.06, 1, 1, 1, 1.03, 1.04, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        predicted_total_stock_sf, all_stock_sf = self.get_housing_stock_sf()
+
+        actual_stock = np.subtract(pub_total, all_stock_sf)
+        actual_stock = np.multiply(actual_stock, adjustment_factors)
         elasticity_of_retirements = 0.8
+
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
         
-        new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
+        new_comps_ann_df = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
                                 usecols=use_columns, header=None).dropna()
+        new_comps_ann_df['New'] = new_comps_ann_df.sum(axis=1)
+        new_comps_ann = new_comps_ann_df['New']
 
         all_single_family = actual_stock
-        occupied_single_family = [0] # column J Total_stock_SF
+        occupied_single_family = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, ] # column J Total_stock_SF, append prortion from AHS tables, etc
         households = [0] # National_Calibration'!E13
         year = [0]
 
-        def residuals(coeffs, actual_stock, year_array, ca):
-            return actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
-
         x0 = [-1171.75478590956, 0.0000292335584342192, 0.8]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
@@ -358,12 +360,9 @@ class GetCensusData:
         factor = 0.96
         elasticity_of_retirements = 0.5
 
-        def residuals(coeffs, actual_stock, pub_total, elasticity_of_retirements, year_array, ca):
-            return actual_stock - self.housing_stock_model(year_array, ca, coeffs, pub_total, elasticity_of_retirements, full_data=False)
-
         x0 = [216.913442843698, 0.00109247463281509, 1.05]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
