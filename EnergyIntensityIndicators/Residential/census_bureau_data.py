@@ -4,8 +4,7 @@ import requests
 from zipfile import ZipFile
 import numpy as np
 import scipy
-from scipy import optimize
-
+from scipy.optimize import leastsq
 
 class GetCensusData:
     
@@ -280,7 +279,7 @@ class GetCensusData:
     def get_housing_stock_sf(self):
         factor = 0.95
         use_columns = "C"
-        actual_stock = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
+        actual_stock = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 74916+7227, 
         77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
         elasticity_of_retirements = 0.7
         pub_total = actual_stock[0]
@@ -301,17 +300,37 @@ class GetCensusData:
         # Maybe use scipy.optimize.curve_fit?
         x0 = [-826, 0.00000982007075752705, 1]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+
+        x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        print('X0:', x0)
         print('X: ', x)
         print('flag: ', flag)
 
-        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
-        # occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, ]  # different_sources
-        # pup_total_occupied = actual_stock.subtract(occupied_published)
-        # total_vacancy_rate = pup_total_occupied.divide(actual_stock)
-        # occupied_predicted = (1 - total_vacancy_rate).multiply(predicted_total_stock)
+        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
+        # residuals = self.residuals(x0, actual_stock=actual_stock , year_array=year_array, ca=ca , pub_total=pub_total , elasticity_of_retirements=elasticity_of_retirements)
 
-        return predicted_total_stock, actual_stock
+        occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, 67951, 71499, 74434, 74026, 
+                              76147, 77491, 79052, 80526, 80942, 83272, 85790]  # different_sources
+        pub_total_occupied = np.subtract(actual_stock, occupied_published)
+        total_vacancy_rate = np.divide(pub_total_occupied, actual_stock)
+        
+        total_vacancy_rate_all = []
+        for index, rate in enumerate(list(total_vacancy_rate)): 
+            if index == 0: 
+                total_vacancy_rate_all.append(rate)
+            elif index > 0: 
+                previous_rate = total_vacancy_rate[index - 1]
+                average_rate = (rate + previous_rate) / 2
+                total_vacancy_rate_all.append(average_rate)
+                total_vacancy_rate_all.append(rate)
+
+        total_vacancy_rate_all.append(total_vacancy_rate_all[-1])  # 2018 just takes 2017 value, need to automate for future years
+
+        occupation_rate = [1 - r for r in total_vacancy_rate_all]
+        
+        occupied_predicted = np.multiply(occupation_rate, predicted_total_stock)
+
+        return occupied_predicted
 
     def get_housing_stock_mf(self):
         factor = 0.96
@@ -328,6 +347,7 @@ class GetCensusData:
         actual_stock = np.multiply(actual_stock, adjustment_factors)
         elasticity_of_retirements = 0.8
 
+        year_array = list(range(1985, 2019))
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
@@ -344,7 +364,7 @@ class GetCensusData:
 
         x0 = [-1171.75478590956, 0.0000292335584342192, 0.8]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
@@ -359,10 +379,13 @@ class GetCensusData:
         new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='place_nsa_all', skiprows=8, usecols="C", header=None).dropna()
         factor = 0.96
         elasticity_of_retirements = 0.5
+        
+        year_array = list(range(1985, 2019))
+
 
         x0 = [216.913442843698, 0.00109247463281509, 1.05]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = scipy.optimize.leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
@@ -456,9 +479,10 @@ class GetCensusData:
 
 
 data = GetCensusData()
+
 x = data.get_housing_stock_sf()
-y = data.get_housing_stock_mf()
-z = data.get_housing_stock_mh()
+# y = data.get_housing_stock_mf()
+# z = data.get_housing_stock_mh()
 print('sf results:', x)
-print('mf results:', y)
-print('mh results:', z)
+# print('mf results:', y)
+# print('mh results:', z)
