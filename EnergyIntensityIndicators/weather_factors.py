@@ -87,8 +87,6 @@ class WeatherFactors(LMDI):
 
         TODO: Input data and 
         """
-
-
         sub_regions_dict = {'northeast': ['New England', 'Middle Atlantic'], 'midwest': ['East North Central', 'West North Central'], 
                     'south': ['South Atlantic', 'East South Central', 'West South Central'], 'west': ['Mountain', 'Pacific']}
         subregions = sub_regions_dict[self.region]
@@ -154,7 +152,7 @@ class WeatherFactors(LMDI):
         else:
             return None
 
-        actual_intensity =  # from region_intensity (aggregate)
+        actual_intensity =  # from region_intensity (aggregate): just seds_census_rgn / regional_floorspace
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_

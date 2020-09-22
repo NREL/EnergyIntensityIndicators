@@ -23,7 +23,7 @@ class LMDI:
         self.index_base_year_secondary = base_year_secondary  # not used
         self.charts_starting_year = base_year
         self.charts_ending_year = charts_ending_year
-        self.energy_types = 
+        self.energy_types = energy_types
         
     def get_elec(self):
         delivered_electricity = self.energy_data['elec']
@@ -206,7 +206,7 @@ class LMDI:
                  'source': self.get_source(energy_data_by_type['elec']), 
                  'source_adj': self.get_source_adj(energy_data_by_type['elec'])}
         
-        for e_type in energy_types:
+        for e_type in self.energy_types:
             e_type_df = funcs[e_type]
             energy_data_by_type[e_type] = e_type_df
         
@@ -231,7 +231,7 @@ class LMDI:
                 results = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
                 multiplicative_results.append(results)
         elif lmdi_model == 'additive': 
-                        for type, energy_dataframe in energy_data_by_type.items():
+            for type, energy_dataframe in energy_data_by_type.items():
                 results = self.lmdi_additive(self.activity_data, energy_dataframe, unit_conversion_factor)
                 additive_results.aapend(results)
         

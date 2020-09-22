@@ -37,142 +37,47 @@ class ResidentialIndicators(LMDI):
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
 
-
-    def regional_time_series_floor_space():
-        pass
-
-    def estimate_floorspace_occupied_housing_units_regional(self, ):
-        
-        estimated_survival_curve =  # Estimate from vintage data over the 1999 through 2009 AHS surveys
-        new_housing =  # From Characteristics of New Housing reports from the Census Bureau
-        stock_adjustment_model = 
-        estimated_occupied_housing_units =  # from stock adjustment level
-        return estimated_occupied_housing_units
-
-    def estimate_floorspace_housing_unit_size_national(self, housing_type='single_family'):
-        """Single family and multi-family units use AHS data, combined with adjusted Characteristics of New Housing Data. Manufactured homes use RECS data
-        Data Sources: 
-            - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate
-              floor space for three types of housing units: single-family (attached and detached), multi-family, and
-              manufactured homes. 
-            - RECS 
-            - Characteristics of New Housing
-        Spreadsheet Equivalents: 
-            - AHS_summary_results_date \Total_Stock_SF.xlsx (single family) – estimates for housing unit size are
-              to be found in this worksheet to the right of the estimates for the number of “single family” units.
-            - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily) - estimates for housing unit size are
-              to be found in this worksheet to the right of the estimates for the number of “multifamily” units.
-            - AHS_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) - estimates for housing
-              unit size are to be found in this worksheet to the right of the estimates for the number of
-              “manufactured homes” units. 
-        Methodology: 
-        - Single family
-            1. Estimate the average size for existing units after 1985.
-            2. Estimates of the stock for units constructed prior to 1985, and for 1985 and subsequent
-               years, were made separately. 
-            3. The average size of new single-family homes to the existing housing stock was based upon
-               data from the Characteristics of New Housing (with a 15% upward adjustment to better
-               match the AHS data).
-        - Multifamily
-            The same procedure was followed for multi-family units to estimate average national unit size.
-        - Manufactured Homes
-            1. The estimates for manufactured home size from the AHS were deemed unsuitable for
-               inclusion in the time series estimates of residential floor space.
-            2. Instead, the size estimates for mobile homes from the various RECS were employed. While
-               the RECS had inconsistent methods of estimating square footage for single- and multi-family
-               housing units, that does not appear to be the case for mobile homes. 
-                """
-        if housing_type == 'manufactured_homes':
-            size_estimates = 
-        else: 
-            average_size_post_1985 = 
-            stock_units_pre_1985 = 
-            stock_units_post_1985 =  # including 1985
-
-        housing_stock = GetCensusData.get_housing_stock(housing_type)
-
-        
-
-    def estimate_floorspace_regional_shares_national_level_housing_units(self, ):
-        """Smooth out some of the implausible changes in the reported number of housing from one AHS to the next. The overall methodology is described more
-           generally in the comprehensive documentation report, Section A.1.2. The regional shares for the non-AHS years are computed via a simple average of the preceding (odd) year and subsequent (odd) year.
-        Data Source: AHS
-        Spreadsheet Equivalent: 
-            - AHS_Summary_Results.xlsx
-        Methodology: 
-            - The regional shares for the non-AHS years are computed via a simple average of the preceding (odd)
-              year and subsequent (odd) year."""
-        
-
-        return final_floorspace_estimates
-
-    def estimate_final_floorspace_by_housing_type(self, ):
-        """Data Source: AHS
-        Spreadsheet Equivalent: AHS_Summary_Results_date \Final Floorspace Estimates.xlsx
-        Methodology:  
-            - The estimates of floor space are calculated by multiplying the number of housing
-              units times the average size per unit
-            - Use regional based estimates of floor space (as explained in the sections above) as control 
-              totals to which the regional estimates are calibrated. 
-            - """
-
-                    ahs_tables = 
-
-        national_calibration = self.national_calibration
-        comps_ann_2015 =  housing_units_completed
-        total_stock = 
-
-        weighted_floorspace = 
-        pass
-
-    def fuel_electricity_consumption(self, region=None):
+    def fuel_electricity_consumption(self, region):
         """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
         Data Source: EIA's State Energy Data System (SEDS)"""
         census_regions = {'West': 4, 'South': 3, 'Midwest': 2, 'Northeast': 1}
         total_fuels = self.seds_census_region[0]
         elec = self.seds_census_region[1]
 
-        if region: 
+        if region == 'National': 
+            fuels_dataframe = total_fuels.drop(region, axis=1)
+            elec_dataframe = elec.drop(region, axis=1)
+        else: 
             fuels_dataframe = total_fuels[census_regions[region]]
             elec_dataframe = elec[census_regions[region]]
-        else: 
-            fuels_dataframe = total_fuels.drop('National', axis=1)
-            elec_dataframe = elec.drop('National', axis=1)
 
-        return fuels_dataframe, elec_dataframe
-
-
+        energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
+        return energy_data
 
     def activity(self):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """ 
-        final_floorspace_estimates =        
-        source1 = self.source1
+        census_data = GetCensusData()
+        occupied_housing_units = census_data.final_floorspace_estimates('occupied_housing_units')
+        floorspace_square_feet = census_data.final_floorspace_estimates('floorspace_square_feet')
+        household_size_square_feet_per_hu = census_data.final_floorspace_estimates('household_size_square_feet_per_hu')
 
-        occupied_housing_units = GetCensusData.get_final_floorspace_estimates('occupied_housing_units')
-        floorspace_square_feet = GetCensusData.get_final_floorspace_estimates('floorspace_square_feet')
-        household_size_square_feet_per_hu = GetCensusData.get_final_floorspace_estimates('household_size_square_feet_per_hu')
-
-        
-
-        activity_input_data = source1.merge(self.source2)
+        activity_input_data = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
+                               'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
         return activity_input_data
 
-    def main(lmdi_model='multiplicative'):
+    def main(self, lmdi_model='multiplicative'):
         regions = ['Northeast', 'South', 'West', 'Midwest', 'National']
         region_results = dict()
         unit_conversion_factor = 
+        
         for r in regions: 
-            if r == 'National':
-                fuels_dataframe, elec_dataframe = self.fuel_electricity_consumption()
-            else:
-                fuels_dataframe, elec_dataframe = self.fuel_electricity_consumption(region=r)
-            
+            energy_data = self.fuel_electricity_consumption(region=r)
+            activity_data = self.activity()
             results = self.call_lmdi(unit_conversion_factor=unit_conversion_factor, adjust_for_weather=True, lmdi_model=lmdi_model)
             region_results[r] = results
         
         return region_results
-
 
     # def residential_total_lmdi_utiladj(self, _base_year=None):
     # """purpose
@@ -209,3 +114,108 @@ class ResidentialIndicators(LMDI):
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def regional_time_series_floor_space():
+#         pass
+
+#     def estimate_floorspace_occupied_housing_units_regional(self, ):
+        
+#         estimated_survival_curve =  # Estimate from vintage data over the 1999 through 2009 AHS surveys
+#         new_housing =  # From Characteristics of New Housing reports from the Census Bureau
+#         stock_adjustment_model = 
+#         estimated_occupied_housing_units =  # from stock adjustment level
+#         return estimated_occupied_housing_units
+
+#     def estimate_floorspace_housing_unit_size_national(self, housing_type='single_family'):
+#         """Single family and multi-family units use AHS data, combined with adjusted Characteristics of New Housing Data. Manufactured homes use RECS data
+#         Data Sources: 
+#             - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate
+#               floor space for three types of housing units: single-family (attached and detached), multi-family, and
+#               manufactured homes. 
+#             - RECS 
+#             - Characteristics of New Housing
+#         Spreadsheet Equivalents: 
+#             - AHS_summary_results_date \Total_Stock_SF.xlsx (single family) – estimates for housing unit size are
+#               to be found in this worksheet to the right of the estimates for the number of “single family” units.
+#             - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily) - estimates for housing unit size are
+#               to be found in this worksheet to the right of the estimates for the number of “multifamily” units.
+#             - AHS_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) - estimates for housing
+#               unit size are to be found in this worksheet to the right of the estimates for the number of
+#               “manufactured homes” units. 
+#         Methodology: 
+#         - Single family
+#             1. Estimate the average size for existing units after 1985.
+#             2. Estimates of the stock for units constructed prior to 1985, and for 1985 and subsequent
+#                years, were made separately. 
+#             3. The average size of new single-family homes to the existing housing stock was based upon
+#                data from the Characteristics of New Housing (with a 15% upward adjustment to better
+#                match the AHS data).
+#         - Multifamily
+#             The same procedure was followed for multi-family units to estimate average national unit size.
+#         - Manufactured Homes
+#             1. The estimates for manufactured home size from the AHS were deemed unsuitable for
+#                inclusion in the time series estimates of residential floor space.
+#             2. Instead, the size estimates for mobile homes from the various RECS were employed. While
+#                the RECS had inconsistent methods of estimating square footage for single- and multi-family
+#                housing units, that does not appear to be the case for mobile homes. 
+#                 """
+#         if housing_type == 'manufactured_homes':
+#             size_estimates = 
+#         else: 
+#             average_size_post_1985 = 
+#             stock_units_pre_1985 = 
+#             stock_units_post_1985 =  # including 1985
+
+#         housing_stock = GetCensusData.get_housing_stock(housing_type)
+
+        
+
+#     def estimate_floorspace_regional_shares_national_level_housing_units(self, ):
+#         """Smooth out some of the implausible changes in the reported number of housing from one AHS to the next. The overall methodology is described more
+#            generally in the comprehensive documentation report, Section A.1.2. The regional shares for the non-AHS years are computed via a simple average of the preceding (odd) year and subsequent (odd) year.
+#         Data Source: AHS
+#         Spreadsheet Equivalent: 
+#             - AHS_Summary_Results.xlsx
+#         Methodology: 
+#             - The regional shares for the non-AHS years are computed via a simple average of the preceding (odd)
+#               year and subsequent (odd) year."""
+        
+
+#         return final_floorspace_estimates
+
+#     def estimate_final_floorspace_by_housing_type(self, ):
+#         """Data Source: AHS
+#         Spreadsheet Equivalent: AHS_Summary_Results_date \Final Floorspace Estimates.xlsx
+#         Methodology:  
+#             - The estimates of floor space are calculated by multiplying the number of housing
+#               units times the average size per unit
+#             - Use regional based estimates of floor space (as explained in the sections above) as control 
+#               totals to which the regional estimates are calibrated. 
+#             - """
+
+#                     ahs_tables = 
+
+#         national_calibration = self.national_calibration
+#         comps_ann_2015 =  housing_units_completed
+#         total_stock = 
+
+#         weighted_floorspace = 
+#         pass

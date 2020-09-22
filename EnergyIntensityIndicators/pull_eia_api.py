@@ -186,7 +186,7 @@ class GetEIAData:
         else: 
             pass
 
-        national_calibration = electricity_df.merge(fuels_df, on='year', how='outer')
+        national_calibration = electricity_df.merge(fuels_df, on='year', how='outer', suffixes='_elec','fuels')
         return national_calibration
 
     def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=False):

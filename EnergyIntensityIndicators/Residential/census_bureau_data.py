@@ -4,7 +4,8 @@ import requests
 from zipfile import ZipFile
 import numpy as np
 import scipy
-from scipy.optimize import leastsq
+from scipy.optimize import leastsq, least_squares, minimize
+
 
 class GetCensusData:
     
@@ -274,7 +275,10 @@ class GetCensusData:
         return manh_size
     
     def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
-            return actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
+        residuals = actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
+        residuals_sq = np.square(residuals)
+        sum_residuals_sq = np.sum(residuals_sq)
+        return sum_residuals_sq
 
     def get_housing_stock_sf(self):
         factor = 0.95
@@ -292,9 +296,6 @@ class GetCensusData:
 
         year_array = list(range(1985, 2019))
 
-        # predicted_total_stock_series = housing_stock_model(year_array, new_comps_ann.values, coeffs=x0)
-        # print(predicted_total_stock_series)
-
         # S is the actual housing stock (column X)
         # ca is the Comps Ann (column E)
         # Maybe use scipy.optimize.curve_fit?
@@ -302,11 +303,19 @@ class GetCensusData:
         ca = new_comps_ann.values
 
         x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
-        print('X0:', x0)
-        print('X: ', x)
-        print('flag: ', flag)
 
-        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
+        # result = least_squares(self.residuals, x0, meht)
+        # x =  result.x
+        # success = result.success
+        # residuals = result.fun
+
+        = curve_fit(self.residuals, )
+
+        # print('X0:', x0)
+        # print('X: ', x)
+        # print('flag: ', flag)
+
+        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
         # residuals = self.residuals(x0, actual_stock=actual_stock , year_array=year_array, ca=ca , pub_total=pub_total , elasticity_of_retirements=elasticity_of_retirements)
 
         occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, 67951, 71499, 74434, 74026, 
