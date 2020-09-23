@@ -1,63 +1,65 @@
 import pandas as pd
 import numpy as np
+import requests
 from scipy.optimize import leastsq
 
 
-# Industry to do:
-# * Energy Prices
-#     * difference between ASM_EnergyPrices and ASMdata_ spreadsheets
-
-# Should this be its own class?
-class mfg_prices:
+class Mfg_prices:
+    # def __ini__(self):
+    #     """
+    #     Class for importing and interpolating historical energy prices for
+    #     the manufacturing sector.
+    #
+    #     Historical Manufacturing Energy Consumption Survey (MECS) data are
+    #     based on prior work from the Pacific Northwest National Laboratory
+    #     (PNNL).
+    #     """
+    #     # Historical MECS data with missing observations estimated
+    #     # ad-hoc by PNNL.
+    #     self.mecs_historical_prices = pd.read_csv('mecs_historical_prices.csv')
 
     @staticmethod
-    def get_asm_prices():
-        """Get fuel prices"""
+    def get_asm_prices(latest_year):
+        """
+        Get fuel prices from Census Bureau's Annual Survey of
+        Manufacturers.
+
+        Parameters
+        ----------
+        latest_year : int
+            Most recent year of historical LMDI analysis.
+
+        Returns
+        -------
+        asm_prices : pandas.Series
+            Pandas series of ASM price data from YYYY - latest_year
+        """
+
+        return asm_prices
+
+    @staticmethod
+    def get_latest_mecs(latest_year):
+        """
+        Deterime status of most recent MECS price data. MECS data are released
+        on a quadrennial schedule, with 2014 as the last available year
+        (as of October 2020).
+
+        """
+        if (latest_year - 2014)/4 < 1:
+            latest_mecs_year = 2014
+        # Test if latest mecs is available.
+        r = requests.get('https://www.eia.gov/consumption/manufacturing/' +
+                         'data/{}/pdf/table7_2.pdf'.format(latest_mecs_year))
+        print(r.raise_for_status())
+
+        # alse need to get MECS price data from Table 7.6"""
 
         return
 
     @staticmethod
-    def get_mecs_prices_1985_1994():
+    def build_price_df(asm_prices, mecs_prices):
         """
-        Import CSV of MECS fuel prices for 1985, 1988, 1991, and 1994 by
-        3-digit NAICS code level
-        """
-        return
-
-
-    def get_mecs_1998():
-        url = 'https://www.eia.gov/consumption/manufacturing/data/1998/xls/d98e8_2.xls'
-        return mecs_prices_1998
-
-
-    def get_mecs_prices_1998_onwards(year):
-        """download post-1998 MECS price data from Table 7.2"
-
-        """
-        if year > 2010:
-            f_ex = '.xlsx'
-        else:
-            f_ex = '.xls'
-
-        price_url = 'https://www.eia.gov/consumption/manufacturing/data/{}/xls/table7_2{}'.format(year, f_ex)
-
-        price_df = pd.read_excel(price_url, sheet_name=[0], skiprows=19,
-                                 usecols='A:AN')
-
-        # There are manual assumptions made for filling in withheld data.
-        # Should these simply be hard coded and the method written to raise
-        # exceptions for any new MECS data that have missing values?
-
-        return
-
-
-    def get_mecs_prices_other(year):
-        """Get MECS price data from Table 7.6"""
-        return mecs_other_prices
-
-
-    def build_price_df():
-        """Build a dataframe for ASM prices and MECS prices, including
+        Build a dataframe for ASM prices and MECS prices, including
         a column for year
         """
 
@@ -92,10 +94,15 @@ class mfg_prices:
         return mecs_prices - price_func(asm_prices, *params)
 
     @staticmethod
-    def predict_prices(asm_prices, mecs_prices, start_params):
+    def calc_predicted_coeffs(asm_prices, mecs_prices, start_params):
         """
         Parameters
         ----------
+        asm_prices : numpy.array
+            Array of ASM prices
+
+        mecs_prices : numpy.array
+            Array of MECS prices, including nan values
 
         start_params : list
             starting parameters for optimization
@@ -128,83 +135,107 @@ class mfg_prices:
         array([0.91430597, 0.1074011 ])
         """
 
-        coeff, flag = leastsq(mfg_prices.residuals, start_params,
+        coeff, flag = leastsq(Mfg_prices.residuals, start_params,
                               args=(asm_prices, mecs_prices,
-                                    mfg_prices.price_func))
+                                    Mfg_prices.price_func))
 
         return coeff
 
     @staticmethod
-    def calc_predicted_prices(coeff, asm_prices, price_func):
+    def calc_predicted_prices(coeff, asm_prices):
         """Calculate predicted price with leastsq coeffs"""
-        return mfg_prices.price_func(asm_prices, *coeff)
+        return Mfg_prices.price_func(asm_prices, *coeff)
 
     @staticmethod
-    def resid_filler(residual):
+    def resid_filler(price_df):
         """
         Apply to a dataframe that includes year and residual.
+
+        price_df.columns = ['year', 'asm_price', 'MECS_price', 'predicted',
+        'residual']
 
         Parameters
         ----------
         residual : np.array
             Array of residuals, including nan values.
         """
-        fill = 1
-        for index, r in enumerate(residual):
-            if index == 0:
-                r_fill = np.array([0])
-            elif index < 3:
-                r_fill = np.vstack([r_fill, 0])
-            else:
-                if np.isnan(r):
-                    r_fill = np.vstack([r_fill, fill])
-                    fill += 1
-                else:
-                    r_fill = np.vstack([r_fill, r])
-                    fill = 1
 
-        # Code from @iisabeller
-        # Define increment_years by dropping nan values in Residual series.
-        # increment_years = [1970, 1974, 1980, 1984, 1987, 1990, 1993, 1997,
-        #                     2001, 2005, 2009, 2015]
-        #
-        # for index, y_ in enumerate(increment_years):
-        #     if index > 0:
-        #         year_before = increment_years[index - 1]
-        #         num_years = y_ - year_before
-        #         difference = recs_total[y_] - recs_total[year_before]
-        #         increment = difference / num_years
-        #         for delta in range(num_years):
-        #             value = recs_total[year_before]  + delta * increment
-        #             year = year_before + delta
-        #             manh_size[year] = value
+        increment_years = price_df.dropna()['year'].values
 
-        return r_fill
+        # Lines 165 - 173 should be placed in separate method.
+        predicted_prices = Mfg_prices.calc_predicted_prices(coeff, asm_prices)
+        predicted_prices = pd.DataFrame(predicted_prices,
+                                        columns=['predicted'],
+                                        index=increment_years)
 
-    @staticmethod
-    def interpolate_residuals(predicted_prices, price_df):
-        """Interpolate residuals"""
+        price_df.set_index('year', inplace=True)
+        price_df = pd.concat([price_df, predicted_prices], axis=1)
+        price_df['residual'] = price_df.MECS_price - price_df.predicted
 
-        price_df_updated = price_df.copy(deep=True)
-        price_df_updated['predicted_price'] = predicted_prices
-        price_df_updated['residual'] = price_df_updated.mecs.subtract(
-            price_df_updated.predicted_price
-            )
+        price_df['interp_resid'] = np.nan
 
-        fill = price_df_updated.dropna(subset=['residual'], axis=0).year.diff()
-        # fill.fillna(0, inplace=True)
+        for index, y_ in enumerate(increment_years):
+            if index > 0:
+                year_before = increment_years[index - 1]
+                num_years = y_ - year_before
+                resid_year_before = price_df.xs(year_before)['residual']
+                resid_y_ = price_df.xs(y_)['residual']
+                increment = 1 / num_years
+                for delta in range(num_years):
+                    value = resid_year_before * (1 - increment * delta) + \
+                        resid_y_ * (increment * delta)
+                    year = year_before + delta
+                    price_df.loc[year, 'interp_resid'] = value
 
-        price_df_updated['fill'] = fill
+        # Fill in remaining missing values
+        price_df.loc[increment_years[-1], 'interp_resid'] = \
+            price_df.xs(increment_years[-1])['residual']
+        price_df.interp_resid.fillna(method='ffill', inplace=True)
+
+        price_df['calibrated_prediction'] = \
+            price_df.predicted + price_df.interp_resid
+
+        price_df.reset_index(inplace=True)
+
+        return price_df
 
 
-        return interpolated_resid
-
-    @staticmethod
-    def calc_calibrated_predicted_price(interpolated_resid, asm_prices):
+    def calc_calibrated_predicted_price(self, latest_year, fuel_type, naics):
         """
         Return the calibrated prediced prices, which is calculated as the
 
         """
-        calibrated = interpolated_resid + asm_prices
+        # Get asm prices from separate method?
 
-        return calibrated
+        mecs_prices = self.mecs_historical_prices(fuel_type, naics)
+
+        fit_coeffs = Mfg_prices.calc_predicted_coeffs()
+        predicted = Mfg_prices.calc_predicted_prices()
+    
+
+
+        price_df['calibrated_prediction'] = \
+            price_df.interp_resid + price_df.predicted
+
+        return price_df
+
+    # @staticmethod
+    # def interpolate_residuals(predicted_prices, price_df):
+    #     """Interpolate residuals"""
+    #
+    #     price_df_updated = price_df.copy(deep=True)
+    #     price_df_updated['predicted_price'] = predicted_prices
+    #     price_df_updated['residual'] = price_df_updated.mecs.subtract(
+    #         price_df_updated.predicted_price
+    #         )
+    #
+    #     fill = price_df_updated.dropna(subset=['residual'], axis=0).year.diff()
+    #     # fill.fillna(0, inplace=True)
+    #
+    #     price_df_updated['fill'] = fill
+    #
+    #
+    #     return interpolated_resid
+    #
+
+    # Predicted prices are use where? Check documentation to figure out [Search NAICS]
