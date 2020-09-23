@@ -1,5 +1,7 @@
 electricity module
-=============
+===================
 
 .. automodule:: EnergyIntensityIndicators.electricity
    :members:
+   :undoc-members:
+   :show-inheritance:

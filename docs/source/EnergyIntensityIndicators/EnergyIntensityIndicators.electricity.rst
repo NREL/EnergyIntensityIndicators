@@ -1,5 +1,5 @@
-electricity module
-=============
+Electric Power Sector
+======================
 
 .. automodule:: EnergyIntensityIndicators.electricity
    :members:

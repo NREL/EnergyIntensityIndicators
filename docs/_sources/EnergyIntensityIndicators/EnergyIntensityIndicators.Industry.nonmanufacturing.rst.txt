@@ -1,0 +1,7 @@
+nonmanufacturing module
+========================
+
+.. automodule:: EnergyIntensityIndicators.Industry.nonmanufacturing
+   :members:
+   :undoc-members:
+   :show-inheritance:

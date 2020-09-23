@@ -10,13 +10,13 @@ Welcome to EnergyIntensityIndicators's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   EnergyIntensityIndicators/EnergyIntensityIndicators.outline
+   EnergyIntensityIndicators/EnergyIntensityIndicators.LMDI
+   EnergyIntensityIndicators/EnergyIntensityIndicators.commercial
+   EnergyIntensityIndicators/EnergyIntensityIndicators.electricity
    EnergyIntensityIndicators/EnergyIntensityIndicators.industry
    EnergyIntensityIndicators/EnergyIntensityIndicators.residential
-   EnergyIntensityIndicators/EnergyIntensityIndicators.commercial
    EnergyIntensityIndicators/EnergyIntensityIndicators.transportation
-   EnergyIntensityIndicators/EnergyIntensityIndicators.electricity
-
+   EnergyIntensityIndicators/Industry.industry
 
 
 Indices and tables

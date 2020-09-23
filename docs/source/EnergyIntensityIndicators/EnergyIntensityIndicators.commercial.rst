@@ -1,5 +1,5 @@
-commercial module
-=============
+Commercial Sector
+==================
 
 .. automodule:: EnergyIntensityIndicators.commercial
    :members:

@@ -1,5 +1,6 @@
-industry module
-=============
+Industrial Sector
+==================
 
 .. automodule:: EnergyIntensityIndicators.industry
    :members:
+

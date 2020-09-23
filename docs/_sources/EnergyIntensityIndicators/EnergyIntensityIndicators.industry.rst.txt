@@ -1,5 +1,7 @@
 industry module
-=============
+================
 
 .. automodule:: EnergyIntensityIndicators.industry
    :members:
+   :undoc-members:
+   :show-inheritance:

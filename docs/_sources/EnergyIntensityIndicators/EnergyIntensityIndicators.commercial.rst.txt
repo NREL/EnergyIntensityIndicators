@@ -1,5 +1,7 @@
 commercial module
-=============
+==================
 
 .. automodule:: EnergyIntensityIndicators.commercial
    :members:
+   :undoc-members:
+   :show-inheritance:

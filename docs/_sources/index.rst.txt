@@ -10,12 +10,18 @@ Welcome to EnergyIntensityIndicators's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   EnergyIntensityIndicators.outline
+   EnergyIntensityIndicators.LMDI
    EnergyIntensityIndicators.industry
+   EnergyIntensityIndicators.Industry.asm_price_fit
+   EnergyIntensityIndicators.Industry.manufacturing
+   EnergyIntensityIndicators.Industry.nonmanufacturing
+   EnergyIntensityIndicators.pull_eia_api
+   EnergyIntensityIndicators.pull_bea_api
    EnergyIntensityIndicators.residential
    EnergyIntensityIndicators.commercial
    EnergyIntensityIndicators.transportation
    EnergyIntensityIndicators.electricity
+
 
 
 
