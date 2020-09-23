@@ -65,7 +65,6 @@ sectors = {'residential': {'Northeast': {'Single-Family': None, 'Multi-Family': 
                                         'Renewable':
                                             {'Wood': None, 'Waste': None},
                                         'Other': None}},
-                                    
                                 'Commercial Sector':
                                     {'Combined Heat & Power':
                                         {'Fossil Fuels':

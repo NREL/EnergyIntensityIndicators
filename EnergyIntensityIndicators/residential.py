@@ -16,16 +16,19 @@ import pandas as pd
 from sklearn import linear_model
 from weather_factors import WeatherFactors
 from pull_eia_api import GetEIAData
-from outline import LMDI
-from census_bureau_data import GetCensusData
+from LMDI import LMDI
+from Residential.census_bureau_data import GetCensusData
 
 
 class ResidentialIndicators(LMDI): 
 
-    def __init__(self, categories_list, base_year):
-        super().__init__(categories_list, base_year)
+    def __init__(self, base_year):
+        super().__init__(base_year)
         self.eia_res = GetEIAData('residential')
-        self.sub_categories_list = categories_list['residential']
+        self.sub_categories_list = {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
+                                    'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
+                                    'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
+                                    'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}}
         self.national_calibration = self.eia_res.national_calibration()
         self.seds_census_region = self.eia_res.get_seds() # energy_consumtpion_data_regional
         self.ahs_Data = GetCensusData.update_ahs_data()
@@ -69,7 +72,7 @@ class ResidentialIndicators(LMDI):
     def main(self, lmdi_model='multiplicative'):
         regions = ['Northeast', 'South', 'West', 'Midwest', 'National']
         region_results = dict()
-        unit_conversion_factor = 
+        unit_conversion_factor = 1
         
         for r in regions: 
             energy_data = self.fuel_electricity_consumption(region=r)

@@ -1,13 +1,51 @@
 import pandas as pd
 from sklearn import linear_model
-from outline import LMDI
+from LMDI import LMDI
 
 
 class ElectricityIndicators(LMDI):
 
-    def __init__(self, energy_data, activity_data, categories_list):
-        super().__init__(energy_data, activity_data, categories_list)
-        self.sub_categories_list = categories_list['electricity']
+    def __init__(self):
+        self.sub_categories_list = {'Elec Generation Total': 
+                                        {'Elec Power Sector': 
+                                            {'Electricity Only':
+                                                {'Fossil Fuels': 
+                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
+                                                'Nuclear': None, 
+                                                'Hydro Electric': None, 
+                                                'Renewable':
+                                                    {'Wood': None, 'Waste': None, 'Geothermal': None, 'Solar': None, 'Wind': None}},
+                                            'Combined Heat & Power': 
+                                                {'Fossil Fuels'
+                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
+                                                'Renewable':
+                                                    {'Wood': None, 'Waste': None}}}, 
+                                        'Commercial Sector': None, 
+                                        'Industrial Sector': None},
+                                    'All CHP':
+                                        {'Elec Power Sector': 
+                                            {'Combined Heat & Power':
+                                                {'Fossil Fuels':
+                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
+                                                'Renewable':
+                                                    {'Wood': None, 'Waste': None},
+                                                'Other': None}},
+                                        'Commercial Sector':
+                                            {'Combined Heat & Power':
+                                                {'Fossil Fuels':
+                                                    {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
+                                                'Hydroelectric',
+                                                'Renewable':
+                                                    {'Wood', 'Waste'},
+                                                'Other'}},, 
+                                        'Industrial Sector':
+                                            {'Combined Heat & Power':
+                                                {'Fossil Fuels':
+                                                    {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
+                                                'Hydroelectric',
+                                                'Renewable':
+                                                    {'Wood', 'Waste'},
+                                                'Other'}}}}
         self.Table21f = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.06') #GetEIAData.eia_api(id_='711254') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711254'
         self.Table82a = GetEIAData.eia_api(id_='3') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=3'
         self.Table82b = GetEIAData.eia_api(id_='21')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
@@ -70,21 +108,23 @@ class ElectricityIndicators(LMDI):
     def energy_consumption(self):
         """Trillion Btu
         """      
-        sources = {'wood': 'Table84c', 'waste': 'Table84c'} 'Table84c'
-        'Elec_Power_Sector_CHP>Renewable': 'Table85c'
-        'Elec_Power_Sector_CHP>Total-other': 'Table85c'
-        return self.sub_categories_list
+        # sources = {'wood': 'Table84c', 'waste': 'Table84c'} 'Table84c'
+        # 'Elec_Power_Sector_CHP>Renewable': 'Table85c'
+        # 'Elec_Power_Sector_CHP>Total-other': 'Table85c'
+        # return self.sub_categories_list
+        pass
 
     def activity(self):
         """Million kWh
         """          
-        sources = {'wood': 'Table82d', 'waste': 'Table82d'} 'Table82d'
-                'Elec_Power_Sector_CHP>Renewable': 'Table82c'
-                'Elec_Power_Sector_CHP>Fossil': 'Table82c'
-                        'Elec_Power_Sector_CHP>Total-other': 'Table82c'
+        # sources = {'wood': 'Table82d', 'waste': 'Table82d'} 'Table82d'
+        #         'Elec_Power_Sector_CHP>Renewable': 'Table82c'
+        #         'Elec_Power_Sector_CHP>Fossil': 'Table82c'
+        #                 'Elec_Power_Sector_CHP>Total-other': 'Table82c'
+        pass
 
 
-def reconcile(total, elec_gen, elec_only_plants, chp_elec, assumed_conv_factor, chp_heat)
+def reconcile(total, elec_gen, elec_only_plants, chp_elec, assumed_conv_factor, chp_heat):
     """total: df, Btu
        elec_gen: df, Btu 
        elec_only_plants: df, Short tons

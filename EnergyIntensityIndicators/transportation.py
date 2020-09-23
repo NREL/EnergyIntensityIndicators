@@ -137,10 +137,34 @@ ton_miles = # Natural gas converted to tons using methane density of 0.0448 lb/c
 
 class TransportationIndicators(LMDI):
 
-    def __init__(self, energy_data, activity_data, categories_list, tedb_date='04302020'):
-        super().__init__(energy_data, activity_data, categories_list)
+    def __init__(self, tedb_date='04302020'):
         self.transit_eia = GetEIAData('transportation')
-        self.sub_categories_list = categories_list['transportation']
+        self.sub_categories_list = {'All_Passenger':
+                                    {'Highway': 
+                                        {'Passenger Cars and Trucks': 
+                                            {'Passenger Car – SWB Vehicles': 
+                                                {'Passenger Car': None, 'SWB Vehicles': None},
+                                             'Light Trucks – LWB Vehicles': 
+                                                {'Light Trucks': None, 'LWB Vehicles': None},
+                                             'Motorcycles': None}, 
+                                        'Buses': 
+                                            {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
+                                        'Paratransit':
+                                            None}, 
+                                    'Rail': 
+                                        {'Urban Rail': 
+                                            {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
+                                        'Intercity Rail': None}, 
+                                    'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
+                                'All_Freight': 
+                                    {'Highway': 
+                                        {'Freight-Trucks': 
+                                            {'Single-Unit Truck': None, 'Combination Truck': None}}, 
+                                    'Rail': None, 
+                                    'Air': None, 
+                                    'Waterborne': None,
+                                    'Pipeline': 
+                                        {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
         self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'

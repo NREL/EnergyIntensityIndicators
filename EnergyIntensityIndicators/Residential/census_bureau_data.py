@@ -5,6 +5,7 @@ from zipfile import ZipFile
 import numpy as np
 import scipy
 from scipy.optimize import leastsq, least_squares, minimize
+import matplotlib.pyplot as plt
 
 
 class GetCensusData:
@@ -25,7 +26,7 @@ class GetCensusData:
             pass
         else: 
             with ZipFile(ahs_url_folder, 'r') as zipOjb:
-                zipObj.extact('household.csv')
+                zipOjb.extact('household.csv')
        
         ahs_household_data = pd.read_csv('./household.csv')
         columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
@@ -276,9 +277,15 @@ class GetCensusData:
     
     def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
         residuals = actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
-        residuals_sq = np.square(residuals)
-        sum_residuals_sq = np.sum(residuals_sq)
-        return sum_residuals_sq
+        # residuals_sq = np.square(residuals)
+        # sum_residuals_sq = np.sum(residuals_sq)
+        # return sum_residuals_sq
+        return residuals
+
+    def sum_squared_residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
+        residuals_ = self.residuals(coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
+        residuals_sq = [r**2 for r in residuals_]
+        return sum(residuals_sq)
 
     def get_housing_stock_sf(self):
         factor = 0.95
@@ -309,14 +316,31 @@ class GetCensusData:
         # success = result.success
         # residuals = result.fun
 
-        = curve_fit(self.residuals, )
+        # = curve_fit(self.residuals, )
 
-        # print('X0:', x0)
-        # print('X: ', x)
-        # print('flag: ', flag)
+        print('X0:', x0)
+        print('X: ', x)
+        print('flag: ', flag)
+        ssr_x0 = self.sum_squared_residuals(x0, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
+        ssr_x = self.sum_squared_residuals(x, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
+        print('ssr_x0:', ssr_x0)
+        print('ssr_x:', ssr_x)
+        print(ssr_x < ssr_x0)
+
+        predicted_total_stock_pnnl = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
 
         predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
         # residuals = self.residuals(x0, actual_stock=actual_stock , year_array=year_array, ca=ca , pub_total=pub_total , elasticity_of_retirements=elasticity_of_retirements)
+        plt.style.use('seaborn-darkgrid')
+        palette = plt.get_cmap('Set1')
+        plt.plot(year_array[0::2], predicted_total_stock[0::2], marker='', color=palette(1), linewidth=1, alpha=0.9, label='SciPy Prediction')
+        plt.plot(year_array[0::2], predicted_total_stock_pnnl[0::2], marker='', color=palette(2), linewidth=1, alpha=0.9, label='Solver Prediction')
+        plt.plot(year_array[0::2], actual_stock, marker='', color=palette(3), linewidth=1, alpha=0.9, label='Actual Stock')
+        plt.title('A Comparison of Optimization Software Results', fontsize=12, fontweight=0)
+        plt.xlabel('Year')
+        plt.ylabel('Housing Stock')
+        plt.legend(loc=2, ncol=2)
+        plt.show()
 
         occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, 67951, 71499, 74434, 74026, 
                               76147, 77491, 79052, 80526, 80942, 83272, 85790]  # different_sources

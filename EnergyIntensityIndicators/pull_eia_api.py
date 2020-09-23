@@ -34,18 +34,22 @@ class GetEIAData:
         return eia_data
     
     def get_category(self, api_key, id_):
-            api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
-            r = requests.get(api_call)
-            data = r.json()
-            eia_childseries = data['category']['childseries']
-            eia_series_ids = [i['series_id'] for i in eia_childseries]
-            eia_data = [self.get_series(api_key, s) for s in eia_series_ids]
-            all_category = reduce(lambda x, y: pd.merge(x, y, on ='Year'), eia_data)
-            all_category = all_category.set_index('Year')
-            return all_category
+        """Collect categorical data from EIA API by merging data for all child series
+        """        
+        api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
+        r = requests.get(api_call)
+        data = r.json()
+        eia_childseries = data['category']['childseries']
+        eia_series_ids = [i['series_id'] for i in eia_childseries]
+        eia_data = [self.get_series(api_key, s) for s in eia_series_ids]
+        all_category = reduce(lambda x, y: pd.merge(x, y, on ='Year'), eia_data)
+        all_category = all_category.set_index('Year')
+        return all_category
 
     @staticmethod
     def get_series(api_key, id_):
+        """Collect series data from EIA API, format in dataframe with year as index
+        """        
         api_call = f'http://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()

@@ -209,31 +209,29 @@ class LMDI:
         for e_type in self.energy_types:
             e_type_df = funcs[e_type]
             energy_data_by_type[e_type] = e_type_df
-        
-        return energy_data_by_type
 
-    def call_lmdi(self, unit_conversion_factor, adjust_for_weather=False, lmdi_model='multiplicative'):
-        
-        energy_data_by_type = self.collect_energy_data()
-        
         if adjust_for_weather: 
             for type, energy_dataframe in energy_data_by_type.items():
-                region = 
-                weather_adj_energy = adjust_for_weather(energy_dataframe, type, region) 
+                weather_adj_energy = adjust_for_weather(energy_dataframe, type) 
+                energy_data_by_type[f'{type}_weather_adj'] = weather_adj_energy
+                
+        return energy_data_by_type
+
+    def call_lmdi(self, unit_conversion_factor, adjust_for_weather=False, lmdi_models=['multiplicative']):
         
-        if adjust_for_weather:
+        energy_data_by_type = self.collect_energy_data()
 
-        multiplicative_results = []
-        additive_results = []
+        multiplicative_results = dict()
+        additive_results = dict()
 
-        if lmdi_model == 'multiplicative':
+        if 'multiplicative'.isin(lmdi_models):
             for type, energy_dataframe in energy_data_by_type.items():
                 results = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
-                multiplicative_results.append(results)
-        elif lmdi_model == 'additive': 
+                multiplicative_results[type] = results
+        elif 'additive'.isin(lmdi_models): 
             for type, energy_dataframe in energy_data_by_type.items():
                 results = self.lmdi_additive(self.activity_data, energy_dataframe, unit_conversion_factor)
-                additive_results.aapend(results)
+                additive_results[type] = results
         
         return multiplicative_results, additive_results
 

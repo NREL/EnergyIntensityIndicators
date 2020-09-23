@@ -61,7 +61,7 @@ class GetIndustryData():
         """    
 
         def agriculture():
-            miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0, skip_footer=)# Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+            miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skip_footer= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
             nass_expenses_data =  # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
 
             nass_average_prices_data =  # 
@@ -127,9 +127,19 @@ class GetIndustryData():
 
 class IndustrialIndicators(LMDI):
 
-    def __init__(self, energy_data, activity_data, categories_list):
-        super().__init__(energy_data, activity_data, categories_list)
-        self.sub_categories_list = categories_list['industry']
+    def __init__(self):
+        self.sub_categories_list = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
+                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
+                                               'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
+                                               'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
+                                               'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
+                                               'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
+                                               'Furniture & Related Products': None, 'Miscellaneous': None},
+                                    'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
+                                                        'Mining': {'Petroleum and Natural Gas': None, 
+                                                                    'Other Mining': None, 
+                                                                    'Petroleum drilling and Mining Services': None},
+                                                        'Construction': None}}
         self.ind_eia = GetEIAData('industry')
         self.conversion_factors = self.ind_eia.conversion_factors()
         self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'

@@ -4,7 +4,7 @@ from pull_eia_api import GetEIAData
 
 # from LMDI import LMDI
 
-class WeatherFactors(): # LMDI
+class WeatherFactors: # LMDI
     def __init__(self, region, energy_type, sector, directory):
         self.directory = directory
         self.sector = sector
