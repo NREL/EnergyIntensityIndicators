@@ -40,8 +40,8 @@ class GetEIAData:
             eia_childseries = data['category']['childseries']
             eia_series_ids = [i['series_id'] for i in eia_childseries]
             eia_data = [self.get_series(api_key, s) for s in eia_series_ids]
-            all_category = reduce(lambda x, y: pd.merge(x, y, on ='Date'), eia_data)
-            all_category = all_category.set_index('Date')
+            all_category = reduce(lambda x, y: pd.merge(x, y, on ='Year'), eia_data)
+            all_category = all_category.set_index('Year')
             return all_category
 
     @staticmethod
@@ -54,13 +54,13 @@ class GetEIAData:
         eia_df = pd.DataFrame.from_dict(eia_data['series'][0]['data'])
         eia_df = eia_df.rename(columns={0: date_column_name, 1: data_column_name})
         if date_column_name == 'M':
-            eia_df['Date'] = pd.to_datetime(eia_df['M'], format='%Y%m')
+            eia_df['Year'] = pd.to_datetime(eia_df['M'], format='%Y%m').dt.to_period('Y')
             eia_df = eia_df.drop('M', axis='columns')
-        elif date_column_name == 'A' | date_column_name == 'Year':
-            eia_df['Date'] = pd.to_datetime(eia_df['A'], format='%Y')
+        elif date_column_name == 'A' or date_column_name == 'Year':
+            eia_df['Year'] = pd.to_datetime(eia_df['A'], format='%Y').dt.to_period('Y')
             eia_df = eia_df.drop('A', axis='columns')
         else:
-            print('No date column')
+            print('No year column')
             pass
         return eia_df
 
@@ -148,6 +148,7 @@ class GetEIAData:
             electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (10/18) (Trillion Btu)'].multiply(electricity_df['Ratio MER/SEDS'])
             # If SEDS is 0, replace with MER
 
+            fuels_df = pd.DataFrame()
             fuels_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Total Primary'] # Column Q
             fuels_df['MER, 12/19 (Trillion Btu)'] =  total_primary_energy_consumed_residential_sector # AnnualData_MER_22_Dec2019['Total Primary Energy Consumed by the Residential Sector']# Column J
             fuels_df['SEDS (10/18) (Trillion Btu)'] = fuels_census_region['National'] # Column N
@@ -157,7 +158,7 @@ class GetEIAData:
 
             # Not sure if these are needed
             recs_btu_hh = electricity_df['SEDS (10/18) (Trillion Btu)'].add(fuels_df['SEDS (10/18) (Trillion Btu)']).div(recs_millions)  # How do order of operations work here ?? (should be add and then divide)
-            calibrated_hh = # National column N
+            # calibrated_hh = # National column N
             aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
         
         elif self.sector == 'commercial':
@@ -172,8 +173,8 @@ class GetEIAData:
             electricity_df['AER 11 (Billion Btu)'] = AER11_Table21C_Update['Electricity Retail Sales'] # Column W
             electricity_df['MER, 12/19 (Trillion Btu)'] = electricity_retail_sales_commercial_sector # mer_data23_Dec_2019['Electricty Retail Sales to the Commercial Sector'] # Column M
             electricity_df['SEDS (01/20) (Trillion Btu)'] =  electricity_census_region['National'] # Column G
-            electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (01/20) (Trillion Btu)']])
-            electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (01/20) (Trillion Btu)']].multiply(electricity_df['Ratio MER/SEDS'])
+            electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (01/20) (Trillion Btu)'])
+            electricity_df['Final Est. (Trillion Btu)'] = electricity_df['SEDS (01/20) (Trillion Btu)'].multiply(electricity_df['Ratio MER/SEDS'])
 
             fuels_df = pd.DataFrame()
             fuels_df['AER 11 (Billion Btu)'] = AER11_Table21C_Update['Total Primary'] # Column U
@@ -186,7 +187,7 @@ class GetEIAData:
         else: 
             pass
 
-        national_calibration = electricity_df.merge(fuels_df, on='year', how='outer', suffixes='_elec','fuels')
+        national_calibration = electricity_df.merge(fuels_df, on='year', how='outer', suffixes=['_elec','fuels'])
         return national_calibration
 
     def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=False):
@@ -230,10 +231,10 @@ class GetEIAData:
 
 
 
-eia_data_cat = GetEIAData('residential').eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
-# GetEIAData.eia_api(id_='711250')
-print(eia_data_cat.columns)
-print(eia_data_cat)
-# eia_data = GetEIAData.eia_api(id_='TOTAL.NGACPUS.M', id_type='series')
-# print(eia_data)
-print('done')
+# eia_data_cat = GetEIAData('residential').eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
+# # GetEIAData.eia_api(id_='711250')
+# # print(eia_data_cat.columns)
+# print(eia_data_cat)
+# # eia_data = GetEIAData.eia_api(id_='TOTAL.NGACPUS.M', id_type='series')
+# # print(eia_data)
+# print('done')

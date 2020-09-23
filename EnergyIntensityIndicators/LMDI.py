@@ -5,7 +5,7 @@ from sklearn import linear_model
 class LMDI:
     """Base class for LMDI"""
 
-	def __init__(self, categories_list, energy_data, activity_data, energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
+    def __init__(self, categories_list, energy_data, activity_data, energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
@@ -16,7 +16,7 @@ class LMDI:
         categories_list: list
             Sector or subsector categories over which to calculate LMDI
         """
-		self.energy_data = energy_data
+	    self.energy_data = energy_data
         self.activity_data = activity_data 
         self.categories_list = categories_list
         self.index_base_year_primary = base_year
