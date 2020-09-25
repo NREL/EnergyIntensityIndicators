@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
+from weather_factors import WeatherFactors
 
 class LMDI:
     """Base class for LMDI"""
-
     def __init__(self, categories_list, energy_data, activity_data, energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
@@ -16,7 +16,7 @@ class LMDI:
         categories_list: list
             Sector or subsector categories over which to calculate LMDI
         """
-	    self.energy_data = energy_data
+        self.energy_data = energy_data
         self.activity_data = activity_data 
         self.categories_list = categories_list
         self.index_base_year_primary = base_year
@@ -91,12 +91,11 @@ class LMDI:
            log_ratio: dataframe
 
         """
-        log_ratio = np.log(dataset[categories_list].divide(dataset[categories_list].shift()))
+        log_ratio = np.log(dataset[self.categories_list].divide(dataset[self.categories_list].shift()))
 
         return log_ratio
 
-    @staticmethod
-    def compute_index(log_mean_divisia_weights, log_changes_activity_shares, categories_list):
+    def compute_index(self, log_mean_divisia_weights, log_changes_activity_shares, categories_list):
         """[summary]
 
         Args:
@@ -109,7 +108,7 @@ class LMDI:
         """                     
         index_chg = (log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1)
         index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
-        index_normalized = index / select_value(dataframe=, base_row=base_row, base_column=1) # 1985=1
+        index_normalized = index / self.select_value(dataframe=index, base_row=self.index_base_year_primary, base_column=1) # 1985=1
 
         return index_chg, index, index_normalized 
 
@@ -166,7 +165,8 @@ class LMDI:
             -------
             weather_adjusted_data: dataframe ? 
         """
-        weather_factors = WeatherFactors(region, energy_type, type, sector=self.sector)
+        weather = WeatherFactors(region, energy_type, type, sector=self.sector, directory=self.directory)
+        weather_factors = weather.national_method1_fixed_end_use_share_weights()
         weather_adjusted_data = data / weather_factors
         return weather_adjusted_data
 

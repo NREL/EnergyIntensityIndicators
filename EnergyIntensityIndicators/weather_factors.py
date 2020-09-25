@@ -261,11 +261,11 @@ of this summary write-up with one addition/modification. The weather factors are
 regional level to generate the weather-normalized intensity indexes for each of the four census regions."""
 
 
-comm = WeatherFactors('northeast', 'electricity', 'commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020')
-# x = comm.cbecs_1995_shares() \\ works
-# x = comm.national_method1_fixed_end_use_share_weights()
-# x = comm.national_method2_regression_models
-x = comm.weather_factors('northeast')
-# x = comm.gather_weights_data() \\works
-# x = comm.hdd_by_division.columns
-print('here:', x)
+# comm = WeatherFactors('northeast', 'electricity', 'commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020')
+# # x = comm.cbecs_1995_shares() \\ works
+# # x = comm.national_method1_fixed_end_use_share_weights()
+# # x = comm.national_method2_regression_models
+# x = comm.weather_factors('northeast')
+# # x = comm.gather_weights_data() \\works
+# # x = comm.hdd_by_division.columns
+# print('here:', x)
