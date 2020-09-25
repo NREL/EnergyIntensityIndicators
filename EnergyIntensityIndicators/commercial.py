@@ -7,6 +7,7 @@ import statsmodels.api as sm
 from pull_eia_api import GetEIAData
 from scipy.optimize import curve_fit
 from LMDI import LMDI
+import numpy as np
 
 """Overview and Assumptions: 
 A. A national time series of floorspace for the commercial buildings in the US
@@ -48,26 +49,6 @@ class CommercialIndicators(LMDI):
                     'SEDS_CensusRgn': self.eia_comm.get_seds(), 'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
         return datasets[dataset_name]
 
-    @staticmethod
-    def get_saus():
-        """Get Data from the Statistical Abstract of the United States (SAUS)
-        """        
-        saus_2002 = pd.read_csv('./SAUS2002_table995.csv').set_index('Year')
-        saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
-                    1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
-        saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
-                    1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700, 
-                    1996: 723, 1997: 855, 1998: 1106, 1999: 1117, 2000: 1176}
-        saus_merged = dict() 
-        for (year, value) in saus_2001.items():
-            if value == None: 
-                set_value = saus_1994[year]
-            else: 
-                set_value = value
-            saus_merged[year] = set_value
-
-        return saus_2002, saus_merged
-
     def adjusted_supplier_data(self):
         """
         This worksheet adjusts some of commercial energy consumption data
@@ -104,9 +85,7 @@ class CommercialIndicators(LMDI):
         published_consumption_trillion_btu = published_consumption_trillion_btu.rename(columns={'Electricity Retail Sales to the Commercial Sector, Annual, Trillion Btu': 'published_consumption_trillion_btu'})
         # 1970-2018
         national_calibration = self.collect_data('national_calibration')
-        print('replacement data:', national_calibration.loc['1970': '2018', ['Final Est. (Trillion Btu)_elec']])
         published_consumption_trillion_btu.loc['1970':, ['published_consumption_trillion_btu']] = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_elec']].values  # Column G (electricity final est) # for years 1970-2018
-        print('published_consumption_trillion_btu:', published_consumption_trillion_btu)
         # 1977-1989
 
         years = list(range(1977, max(published_consumption_trillion_btu.index.astype(int)) + 1))
@@ -126,90 +105,196 @@ class CommercialIndicators(LMDI):
 
         adjusted_supplier_data = adjustment_df.merge(published_consumption_trillion_btu, how='outer', on='Year')
         adjusted_supplier_data['adjustment_to_commercial_trillion_btu'] = adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].fillna(0)
+
         adjusted_supplier_data = adjusted_supplier_data.set_index('Year')
-        print(adjusted_supplier_data)
         adjusted_supplier_data['adjusted_consumption_trillion_btu'] = adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].add(adjusted_supplier_data['published_consumption_trillion_btu'])
-        print('adjusted_supplier_data:', adjusted_supplier_data)
         adjusted_supplier_data = adjusted_supplier_data.sort_index(ascending=True)
-        return adjusted_supplier_data['adjusted_consumption_trillion_btu']
+
+        return adjusted_supplier_data[['adjusted_consumption_trillion_btu']]
 
     def regional_intensity_aggregate(self):
         """, """
         pass
+    
+    @staticmethod
+    def get_saus():
+        """Get Data from the Statistical Abstract of the United States (SAUS)
+        """        
+        saus_2002 = pd.read_csv('./SAUS2002_table995.csv').set_index('Year')
+        saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
+                    1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
+        saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
+                    1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700, 
+                    1996: 723, 1997: 855, 1998: 1106, 1999: 1117, 2000: 1176}
+        saus_merged = dict() 
+        for (year, value) in saus_2001.items():
+            if value == None: 
+                set_value = saus_1994[year]
+            else: 
+                set_value = value
+            saus_merged[year] = set_value
+
+        saus_merged_df = pd.DataFrame.from_dict(saus_merged, orient='index', columns=['Value'])
+        return saus_2002, saus_merged_df
 
     @staticmethod
     def dod_compare_old():
-        dod_old = pd.read_csv('./').set_index('Year')
+        """[summary]
+
+        DODCompareOld Note from PNNL (David B. Belzer): "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
+
+        Returns:
+            [type]: [description]
+        """        
+        dod_old = pd.read_csv('./DODCompareOld.csv').set_index('Year')
+  
         # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
         # dod_old = dod_old.drop(columns='Soc/Misc')
         # dod_old['Total'] = dod_old.sum(axis=1)
         dod_old['Commercial'] = dod_old[['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
 
-        dod_old_subset = dod_old.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]]
+        dod_old_subset = dod_old.loc[list(range(1960, 1982)), ['Retail', 'Auto R', 'Office', 'Warehouse']]
         dod_old_hotel = dod_old.loc[list(range(1980, 1990)), ['Commercial']]
-        return dod_old_subset, dod_old_hotel 
+        return dod_old, dod_old_subset, dod_old_hotel 
 
-    @staticmethod
-    def dodge_adjustment_ratios(dodge_dataframe, start_year, stop_year):
-        (1985, 1990) or (1960, 1970)
-        year_indices = list(range(start_year, stop_year))
-        revision_factor_commercial = sum(list(dodge_revised.loc[year_indices, ['Commercial']]))
+    def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year):
+        """(1985, 1990) or (1960, 1970)
+
+        Args:
+            dodge_dataframe ([type]): [description]
+            start_year ([type]): [description]
+            stop_year ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
+        print('columns:', dodge_dataframe.columns)
+        print(dodge_dataframe)
+        year_indices = self.years_to_str(start_year, stop_year)
+        print('look at this:', dodge_dataframe.loc[year_indices, ['Commercial']].values)
+        revision_factor_commercial = sum(dodge_dataframe.loc[year_indices, ['Commercial']].values)
         categories = ['Retail', 'Auto R', 'Office', 'Warehouse']
         revision_factors = []
         for category in categories: 
-            revision_factor_cat = sum(list(dodge_revised.loc[year_indices, [category]])) / revision_factor_commercial
+            revision_factor_cat = sum(list(dodge_dataframe.loc[year_indices, [category]])) / revision_factor_commercial
             revision_factors.append(revision_factor_cat)
         return revision_factors
 
-    @staticmethod
-    def west_inflation():
-        # hist_stat column E
-        # west inflation column Q
-        # ornl_78 = 
-        final_factors = dict()
-        for year_ in list(range(1925, 1955 + 1)): 
-            if year_ in ornl_years: 
-                final_factors[year_] = ornl_78[year]
-            else: 
-                diff = []
+    def west_inflation(self):
+        """Jackson and Johnson Estimate of West Census Region Inflation Factor, West Region Shares Based on CBECS
+
+        Note from PNNL: "Staff: Based upon CBECS, the percentage of construction in west census region was slightly greater
+         in the 1900-1919 period than in 1920-1945.  Thus, factor is set to 1.12, approximately same as 1925 value published
+         by Jackson and Johnson"
+"
+        """        
+        # hist_stat = self.hist_stat()['Commercial  (million SF)'] # hist_stat column E
+        # # west inflation column Q
+        ornl_78 = {1925: 1.127, 1930: 1.144, 1935: 1.12, 1940: 1.182, 1945: 1.393, 1950: 1.216, 1951: 1.237, 
+                   1952: 1.224, 1953: 1.209, 1954: 1.213, 1955: 1.229}
+        all_years = list(range(min(ornl_78.keys()), max(ornl_78.keys()) + 1))
+        increment_years = list(ornl_78.keys())
+        
+        final_factors = {year: 1.12 for year in list(range(1919, 1925))}
+        for index, y_ in enumerate(increment_years):
+            if index > 0:
+                year_before = increment_years[index - 1]
+                num_years = y_ - year_before
+                infl_factor_year_before = ornl_78[year_before] 
+                infl_factor_y_ = ornl_78[y_]  
+                increment = 1 / num_years
+                for delta in range(num_years):
+                    value = infl_factor_year_before * (1 - increment * delta) + \
+                        infl_factor_y_ * (increment * delta)
+                    year = year_before + delta
+                    final_factors[year] = value
+        final_factors_df = pd.DataFrame.from_dict(final_factors, columns=['Final Factors'], orient='index')
+        print(final_factors_df)
+        return final_factors_df
 
     @staticmethod
-    def dodge_revised():
+    def years_to_str(start_year, end_year):
+        list_ = list(range(start_year, end_year + 1))
+        return [str(l) for l in list_]
+    
+    def hist_stat(self):
+        """Historical Dodge Data through 1970
+
+        Data Source: Series N 90-100 Historical Statistics of the U.S., Colonial Times to 1970
+        """
+        historical_dodge = pd.read_csv('./historical_dodge_data.csv').set_index('Year')        
+        pub_inst_values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].values
+        total_1925_6 = pd.DataFrame.sum(historical_dodge.loc[list(range(1925, 1927)),], axis=0).drop(index='Commercial  (million SF)')
+        inst_pub_total_1925 = pd.DataFrame.sum(historical_dodge.loc[1925,].drop('Commercial  (million SF)'), axis=0)
+        inst_pub_total_1926 = pd.DataFrame.sum(historical_dodge.loc[1926,].drop('Commercial  (million SF)'), axis=0)
+        inst_pub_total_1925_6 = inst_pub_total_1925 + inst_pub_total_1926
+
+        shares = total_1925_6.divide(inst_pub_total_1925_6)
+        for col in list(total_1925_6.index): 
+            values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].multiply(shares[col]).values
+            historical_dodge.at[list(range(1919, 1925)), col] = values
+
+        historical_dodge.at[list(range(1919, 1925)), ['Pub&Institutional']] = pub_inst_values
+        return historical_dodge
+
+    def hist_stat_adj(self):
+        """Adjust historical Dodge data to account for omission of data for the West Census Region prior to 1956
+
+        Returns:
+            [type]: [description]
+        """        
+        hist_data = self.hist_stat()
+        west_inflation = self.west_inflation()
+        hist_data = hist_data.merge(west_inflation, how='outer', left_index=True, right_index=True)
+        hist_data['Final Factors'] = hist_data['Final Factors'].fillna(1)
+        adjusted_for_west = hist_data.drop(columns=['Final Factors', 'Pub&Institutional']).multiply(hist_data['Final Factors'].values, axis=0)
+        return adjusted_for_west.loc[list(range(1919, 1960)), ['Commercial  (million SF)']]
+
+    def dodge_revised(self):
         """Dodge Additions, adjusted for omission of West Census Region prior to 1956
         """       
-        saus_2002, saus_merged = get_saus()
-        dod_old_subset, dod_old_hotel = dod_compare_old()
-        # west_inflation = 
+        saus_2002, saus_merged = self.get_saus()
+        dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
+        west_inflation = self.hist_stat_adj()
+        
+        cols = list(dod_old.columns) + ['Commercial, Excl Hotel', 'Commercial, Incl Hotel', 'Hotel']
+        dodge_revised = pd.DataFrame(index=self.years_to_str(1919, 2020), columns=cols)
+        years_1919_1989 = self.years_to_str(1919, 1990)
+        years_1990_1997 = self.years_to_str(1990, 1997)
 
-        dodge_revised = pd.DataFrame().set_index('Year')
-        dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Incl Hotel']] = dodge_revised.loc[list(range(1919, 1990)), ['Commercial, Excl Hotel']].add(dodge_revised.loc[list(range(1919, 1990)), ['Hotel']])
-        dodge_revised.loc[list(range(1990, 1998)), ['Commercial, Incl Hotel']] =  saus_2002.loc[list(range(1990, 1998)), ['Commercial']]
+        dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset 
+        print(dodge_revised)
+        dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation.values # hist_stat_adj column Q
+
+
+        dodge_revised.loc[self.years_to_str(1960, 1989), ['Commercial, Excl Hotel']] =  dodge_revised.loc[self.years_to_str(1960, 1989), ['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
+        dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Excl Hotel']] = np.nan
+        print(dodge_revised)
+
+        dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']])
+        dodge_revised.loc[years_1990_1997, ['Commercial, Incl Hotel']] =  saus_2002.loc[years_1990_1997, ['Commercial']]
         # dodge_revised.loc[list(range(1998, 2018)), ['Commercial, Incl Hotel']] =  # hard coded
 
-        revision_factors_60_69 = dodge_adjustment_ratios(dodge_revised, 1960, 1969 + 1)
-        revision_factors_85_89 = dodge_adjustment_ratios(dodge_revised, 1985, 1989 + 1)
-
-        dodge_revised.loc[list(range(1960, 1982)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dod_old_subset 
-
-        # dodge_revised.loc[list(range(1919, 1960)), ['Commercial, Excl Hotel']] =  # hist_stat_adj column Q
-        dodge_revised.loc[list(range(1960, 1990)), ['Commercial, Excl Hotel']] =  dodge_revised.loc[list(range(1960, 1990)), [['Retail', 'Auto R', 'Office', 'Warehouse']]].sum(index=1)
-        dodge_revised.loc[list(range(1990, 2019)), ['Commercial, Excl Hotel']] = np.nan
-
-        dodge_revised.loc[list(range(1919, 1960)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dodge_revised.loc[list(range(1919, 1960)), ['Commercial, Excl Hotel']].multiply(revision_factors_60_69) 
-        dodge_revised.loc[list(range(1990, 2019)), [['Retail', 'Auto R', 'Office', 'Warehouse']]] = dodge_revised.loc[list(range(1919, 1960)), ['Commercial']].multiply(revision_factors_85_89) 
+        print(dodge_revised)
 
         hotel_80_89 = saus_merged.subtract(dod_old_hotel) 
-        dodge_revised.loc[list(range(1980, 1990)), ['Hotel']] = hotel_80_89
-        
-        hotel_80_89_ratio = sum(hotel_80_89) / sum(dodge_revised.loc[list(range(1980, 1990)), ['Commercial, Excl Hotel']])
-        dodge_revised.loc[list(range(1919, 1980)), ['Hotel']] = dodge_revised.loc[list(range(1919, 1980)), ['Commercial, Excl Hotel']].multiply(hotel_80_89_ratio)
+        dodge_revised.loc[self.years_to_str(1980, 1989), ['Hotel']] = hotel_80_89
+        print(hotel_80_89)
+        print(dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']])
 
+        hotel_80_89_ratio = sum(hotel_80_89) / sum(dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']])
+        dodge_revised.loc[self.years_to_str(1919, 1979), ['Hotel']] = dodge_revised.loc[self.years_to_str(1919, 1979), ['Commercial, Excl Hotel']].multiply(hotel_80_89_ratio)
+        revision_factors_60_69 = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969 + 1)
+        revision_factors_85_89 = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989 + 1)
 
-        dodge_revised.loc[list(range(1990, 2019)), [['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']]] = []
+        dodge_revised.loc[self.years_to_str(1919, 1959), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']].multiply(revision_factors_60_69) 
+        dodge_revised.loc[self.years_to_str(1990, 2018), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial']].multiply(revision_factors_85_89) 
+        print(dodge_revised)
 
+        dodge_revised.loc[self.years_to_str(1990, 2018), ['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']] = []
+        return dodge_revised
 
-    @staticmethod
-    def dodge_to_cbecs():
+    def dodge_to_cbecs(self):
         """Redefine the Dodge building categories more along the lines of CBECS categories. Constant fractions of floor space are moved among categories. 
 
         Returns:
@@ -226,9 +311,9 @@ class CommercialIndicators(LMDI):
         health_transfered_to_cbecs_health = .75 # 25% to lodging (nursing homes)
         misc_public_assembly = .10 # (passenger terminals)
 
-        # dodge_revised = # dataframe
+        dodge_revised = self.dodge_revised() # dataframe
         
-        dodge_to_cbecs = pd.dataframe(dodge_revised[['Year', 'Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'}).set_index('index')
+        dodge_to_cbecs = pd.DataFrame(dodge_revised[['Year', 'Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'}).set_index('index')
 
         dodge_to_cbecs['Office'] = dodge_revised['Office'] + education_floor_space_office * dodge_revised['Education']
         dodge_to_cbecs['Merc/Serv'] = retail_merc_service * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
@@ -355,11 +440,8 @@ class CommercialIndicators(LMDI):
         # total_primary_energy_consumption = total_primary_energy_consumption.multiply(0.001)
 
         fuels_dataframe = total_primary_energy_consumption.copy()
-        print('fuels_dataframe', fuels_dataframe)
         replacement_data = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_fuels']]  # >= 1970: National Calibration Column 0
-        print('replacement_data:', replacement_data)
         fuels_dataframe.loc['1970':, ['total_primary']] = replacement_data.values
-        print(fuels_dataframe)
         elec_dataframe =  self.adjusted_supplier_data() 
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
@@ -369,19 +451,24 @@ class CommercialIndicators(LMDI):
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
-        energy_data = self.fuel_electricity_consumption()
-        print('energy data:', energy_data)
+        
         activity_data = self.activity()
         print('activity data:', activity_data)
+
+        # energy_data = self.fuel_electricity_consumption()
+        # print('elec data:', energy_data['elec'])
+        # print('elec data:', energy_data['fuels'])
+
         # results = self.call_lmdi(unit_conversion_factor=, adjust_for_weather=False, lmdi_model=lmdi_model)
 
 
 if __name__ == '__main__':
     # CommercialIndicators().main()
-    # y = CommercialIndicators().fuel_electricity_consumption()
+    CommercialIndicators().dodge_revised()
+    # CommercialIndicators().main()
     # print(y)
-    x = CommercialIndicators().adjusted_supplier_data()
-    print(x)
+    # x = CommercialIndicators().adjusted_supplier_data()
+    # print(x)
 
 # CommercialIndicators().collect_data()
 

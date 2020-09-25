@@ -176,7 +176,6 @@ class GetEIAData:
             # AER11_Table21C_Update = AER11_Table21C_Update.query('Month != "NaT"')
             AER11_Table21C_Update = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.03')
             # AER11_Table21C_Update['YYYYMM'] = pd.to_datetime(AER11_Table21C_Update['YYYYMM'], format='%Y%m')
-            print(AER11_Table21C_Update.columns)
             AER11_Table21C_Update['YYYYMM'] = AER11_Table21C_Update['YYYYMM'].astype(str)
             AER11_Table21C_Update['Month'] = AER11_Table21C_Update['YYYYMM'].str[-2:]
             AER11_Table21C_Update['Year'] = AER11_Table21C_Update['YYYYMM'].str[:-2]
