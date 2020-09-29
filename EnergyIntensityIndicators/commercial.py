@@ -33,9 +33,10 @@ class CommercialIndicators(LMDI):
     2014 to 2018". 
     """    
 
-    def __init__(self):
+    def __init__(self, directory):
         self.sub_categories_list = {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
+        self.directory = directory
         # self.cbecs = 
         # self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -157,7 +158,7 @@ class CommercialIndicators(LMDI):
         dod_old_hotel = dod_old.loc[list(range(1980, 1990)), ['Commercial']]
         return dod_old, dod_old_subset, dod_old_hotel 
 
-    def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years):
+    def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years, late):
         """(1985, 1990) or (1960, 1970)
 
         Args:
@@ -170,14 +171,15 @@ class CommercialIndicators(LMDI):
         """        
         year_indices = self.years_to_str(start_year, stop_year)
         revision_factor_commercial = dodge_dataframe.loc[year_indices, ['Commercial']].sum(axis=0).values
-        categories = ['Retail', 'Auto R', 'Office', 'Warehouse']
+        categories = ['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']
+        if late:
+            col = 'Commercial'
+        else: 
+            col = 'Commercial, Excl Hotel'
         for category in categories: 
+
             revision_factor_cat = dodge_dataframe.loc[year_indices, [category]].sum(axis=0).values / revision_factor_commercial
-            print('here dodge:', revision_factor_cat)
-            print('CHECKES:', dodge_dataframe.loc[adjust_years, ['Commercial, Excl Hotel']])
-            dodge_dataframe.loc[adjust_years, [category]] = dodge_dataframe.loc[adjust_years, ['Commercial, Excl Hotel']].multiply(revision_factor_cat)
-            print('check:', dodge_dataframe.loc[adjust_years, [category]])
-            print('there dodge:', dodge_dataframe)
+            dodge_dataframe.loc[adjust_years, [category]] = dodge_dataframe.loc[adjust_years, [col]].values * revision_factor_cat[0]
 
         return dodge_dataframe
 
@@ -210,7 +212,6 @@ class CommercialIndicators(LMDI):
                     year = year_before + delta
                     final_factors[year] = value
         final_factors_df = pd.DataFrame.from_dict(final_factors, columns=['Final Factors'], orient='index')
-        print(final_factors_df)
         return final_factors_df
 
     @staticmethod
@@ -249,28 +250,33 @@ class CommercialIndicators(LMDI):
         hist_data = hist_data.merge(west_inflation, how='outer', left_index=True, right_index=True)
         hist_data['Final Factors'] = hist_data['Final Factors'].fillna(1)
         adjusted_for_west = hist_data.drop(columns=['Final Factors', 'Pub&Institutional']).multiply(hist_data['Final Factors'].values, axis=0)
-        return adjusted_for_west.loc[list(range(1919, 1960)), ['Commercial  (million SF)']]
+        return adjusted_for_west.loc[list(range(1919, 1960)), :]
 
     def dodge_revised(self):
         """Dodge Additions, adjusted for omission of West Census Region prior to 1956
         """       
         saus_2002, saus_merged = self.get_saus()
-        print(saus_2002, saus_merged)
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
         
         dodge_revised = pd.read_csv('./Dodge_Data.csv').set_index('Year')
         dodge_revised.index = dodge_revised.index.astype(str)
 
-        dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Commercial, Incl Hotel', 'Hotel'], axis=1).fillna(np.nan)
+        dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Hotel'], axis=1).fillna(np.nan)
 
         years_1919_1989 = self.years_to_str(1919, 1990)
         years_1990_1997 = self.years_to_str(1990, 1997)
 
         dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset.values 
-
-        dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation.values # hist_stat_adj column Q
         
+        dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation['Commercial  (million SF)'].values.reshape(41, 1) # hist_stat_adj column Q
+        hist_adj_cols = ['Education', 'Hospital', 'Public', 'Religious', 'Soc/Amuse', 'Misc']
+        dodge_revised.loc[self.years_to_str(1919, 1959), hist_adj_cols] = west_inflation.drop('Commercial  (million SF)', axis=1).values
+        dodge_revised.loc[self.years_to_str(1990, 1998), hist_adj_cols] = saus_2002.loc[self.years_to_str(1990, 1998), ['Educational', 'Health', 'Pub. Bldg', 'Religious', 'Soc/Rec', 'Misc.']].values
+        dodge_revised.loc[self.years_to_str(1990, 2003), ['Soc/Misc']] = saus_2002.loc[self.years_to_str(1990, 2001), ['Soc/Rec']].add(saus_2002.loc[self.years_to_str(1990, 2001), ['Misc.']].values)
+        dodge_revised.loc[self.years_to_str(1999, 2001), 'Misc']  = saus_2002.loc[self.years_to_str(1999, 2001), ['Misc.']].values.reshape(3,)
+        dodge_revised.loc[self.years_to_str(1961, 1989), 'Misc'] = dodge_revised.loc[self.years_to_str(1961, 1989), 'Soc/Misc'].subtract(dodge_revised.loc[self.years_to_str(1961, 1989), 'Soc/Amuse'].values)
+        dodge_revised.loc[str(2000), 'Hospital'] = saus_2002.loc[str(2000), 'Health']
 
         dodge_revised.loc[self.years_to_str(1960, 1989), ['Commercial, Excl Hotel']] =  dodge_revised.loc[self.years_to_str(1960, 1989), ['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
 
@@ -280,22 +286,22 @@ class CommercialIndicators(LMDI):
         dodge_revised.loc[self.years_to_str(1980, 1989), ['Hotel']] = hotel_80_89
 
         hotel_80_89_ratio = hotel_80_89.sum(axis=0).values / dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']].sum(axis=0).values
-        dodge_revised.loc[self.years_to_str(1919, 1979), ['Hotel']] = dodge_revised.loc[self.years_to_str(1919, 1979), ['Commercial, Excl Hotel']].multiply(hotel_80_89_ratio)
-        print(dodge_revised)
 
-        dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']].values)
-  
+        dodge_revised.loc[self.years_to_str(1919, 1979), ['Hotel']] = dodge_revised.loc[self.years_to_str(1919, 1979), ['Commercial, Excl Hotel']].values * hotel_80_89_ratio
+
+
         dodge_revised.loc[years_1990_1997, ['Commercial, Incl Hotel']] =  saus_2002.loc[years_1990_1997, ['Commercial']].values
 
+  
         dodge_revised.loc[self.years_to_str(1985, 1989), ['Commercial']] = saus_merged.loc[list(range(1985, 1989 + 1)), ['Value']].values
-        dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial']] = dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Excl Hotel']]
+        dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial']] = dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Incl Hotel']].values
 
-        print(dodge_revised)
+        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969, adjust_years=self.years_to_str(1919, 1959), late=False)
+        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989, adjust_years=self.years_to_str(1990, 2018), late=True)
+        
 
-        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969, adjust_years=self.years_to_str(1919, 1959))
-        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989, adjust_years=self.years_to_str(1990, 2018))
-
-        print(dodge_revised)
+        dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']].values)
+        dodge_revised['Total'] = dodge_revised.drop(['Commercial, Incl Hotel', 'Commercial, Excl Hotel'], axis=1).sum(axis=1).values
         return dodge_revised
 
     def dodge_to_cbecs(self):
@@ -317,8 +323,7 @@ class CommercialIndicators(LMDI):
 
         dodge_revised = self.dodge_revised() # dataframe
         
-        dodge_to_cbecs = pd.DataFrame(dodge_revised[['Year', 'Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'}).set_index('index')
-
+        dodge_to_cbecs = pd.DataFrame(dodge_revised[['Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'})
         dodge_to_cbecs['Office'] = dodge_revised['Office'] + education_floor_space_office * dodge_revised['Education']
         dodge_to_cbecs['Merc/Serv'] = retail_merc_service * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
         dodge_to_cbecs['Food_Sales'] = retail_merc_service_food_sales * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
@@ -326,10 +331,9 @@ class CommercialIndicators(LMDI):
         dodge_to_cbecs['Education'] = (1 - education_floor_space_office - education_assembly - education_misc) * dodge_revised['Education']
         dodge_to_cbecs['Health'] = health_transfered_to_cbecs_health * dodge_revised['Hospital']
         dodge_to_cbecs['Lodging'] = dodge_revised['Hotel']+ (1 - health_transfered_to_cbecs_health) * dodge_revised['Hospital']
-        dodge_to_cbecs['Assembly'] = dodge_revised['Soc/Amus'] +  misc_public_assembly * dodge_revised['Misc'] + education_assembly * dodge_revised['Education']
+        dodge_to_cbecs['Assembly'] = dodge_revised['Soc/Amuse'] +  misc_public_assembly * dodge_revised['Misc'] + education_assembly * dodge_revised['Education']
         dodge_to_cbecs['Other'] = dodge_revised['Public'] + (1 - misc_public_assembly) * dodge_revised['Misc'] + (1 - auto_repair_retail) * dodge_revised['Auto R'] + education_misc * dodge_revised['Education']
-        dodge_to_cbecs['Redefined_Totals'] = dodge_to_cbecs.sum(index=1)
-        
+        dodge_to_cbecs['Redefined_Totals'] = dodge_to_cbecs.sum(axis=1).values
         # dodge_to_cbecs = dodge_to_cbecs.drop()  # don't need totals?
         return dodge_to_cbecs
 
@@ -341,44 +345,58 @@ class CommercialIndicators(LMDI):
             params (list): gamma, lifetime, 
         """    
         current_year = dt.datetime.now().year
-        dataframe['age'] = dataframe['Year'].astype(int).subtract(current_year).multiply(-1)
+        dataframe['Year_Int'] = dataframe.index.astype(int)
+        dataframe['age'] = dataframe['Year_Int'].subtract(current_year).multiply(-1)
         dataframe['remaining'] = ((dataframe['age'].divide(params[1]).add(1)).pow(params[0])).pow(-1)
         dataframe['inflate_fac'] = dataframe['remaining'].pow(-1)
 
-        link_factors = pd.read_excel(f'{self.directory}/CO-EST_statepop2.xls', sheet_name='Stock', usecols='E', index_col='D', skiprows=158, header=4)
-        column_t_0 = 0.1
-        column_t_1 = 40
-        column_t = link_factors.multiply(column_t_0)
+        link_factors = pd.read_excel(f'{self.directory}/CO-EST_statepop2.xls', sheet_name='Stock', usecols='D:E', header=1, skiprows=158).rename(columns={1789: 'Year'})
+        link_factors = link_factors.set_index('Year').rename(columns={' New': 'state_pop'})
+        state_pop = link_factors.loc[list(range(1838, 1919 + 1)), ]
+
+        dataframe = dataframe.merge(state_pop, how='outer', left_index=True, right_index=True)
+        dataframe = dataframe[dataframe.index.notnull()]
+
+        print(dataframe)
+
+        link_factor = 0.1
+        adjusted_state_pop_1 = 40
+
+        dataframe['adjusted_state_pop'] = dataframe.state_pop.multiply(link_factor)
+        print('adjusted_state_pop:', dataframe['adjusted_state_pop'])
 
         timing_wgts_current_yr = 0.4
         timing_wgts_lag_yr = 0.6
         benchmark_factor = 1
 
         vpip_estimates = []
-        for index, value in enumerate(link_factors):
-            if index == 0: 
-                vpip_estimate = column_t[index]
-            elif index == 14: ######YEAR??##### == 1920: 
-                vpip_estimate = column_t[index]
-            elif index > 0:
-                vpip_estimate = (timing_wgts_current_yr * column_t[index] + timing_wgts_lag_yr * column_t[index - 1]) * benchmark_factor
-            vpip_estimates.append(vpip_estimate)
-
+        for year in dataframe.index:
+            adjusted_state_pop_value = dataframe.loc[year, ['adjusted_state_pop']].values
+            if year == '1838': 
+                vpip_estimate = adjusted_state_pop_value
+            elif year == '1920': 
+                vpip_estimate = adjusted_state_pop_value
+            elif year > '1838':
+                adjusted_state_pop_year_before = dataframe.loc[str(int(year) - 1), ['adjusted_state_pop']].values
+                vpip_estimate = (timing_wgts_current_yr * adjusted_state_pop_value + timing_wgts_lag_yr * adjusted_state_pop_year_before) * benchmark_factor
+            dataframe.loc[year, 'VPIP-Estimate'] = vpip_estimate
+        print(dataframe)
+        exit()
         x_column_value = [_variable] * len(range(1990, 2021))
         db_estimates = [1.2] * len(range(1990, 2021))
         db_estimates2 = [1.25 - 0.01*d for d in list(range(1990, 2021))]
 
         post_1989_scaling_factor_key = db_estimates # Should choose this
 
-        without_lags = column_t * post_1989_scaling_factor_key
+        without_lags = adjusted_state_pop * post_1989_scaling_factor_key
 
         scaled_additions_estimate_a = vpip_estimates * _variable_2
-        column_t_adjusted = 1.15 * column_t
+        adjusted_state_pop_adjusted = adjusted_state_pop.multiply(1.15)
         scaled_additions_estimate_b = []
         scaled_additions_estimate_c = []
 
-        for index_, value in enumerate(column_t_adjusted):
-            calc_value_b = np.dot(column_t_adjusted[:index_], dataframe.loc[:index_, ['remaining']])
+        for index_, value in enumerate(adjusted_state_pop_adjusted):
+            calc_value_b = np.dot(adjusted_state_pop_adjusted[:index_], dataframe.loc[:index_, ['remaining']])
             scaled_additions_estimate_b.append(calc_value_b)
 
             calc_value_c = np.dot(scaled_additions_estimate_a[:index_], dataframe.loc[:index_, ['remaining']])
@@ -468,7 +486,7 @@ class CommercialIndicators(LMDI):
 
 if __name__ == '__main__':
     # CommercialIndicators().main()
-    CommercialIndicators().dodge_revised()
+    CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').activity()
     # CommercialIndicators().main()
     # print(y)
     # x = CommercialIndicators().adjusted_supplier_data()

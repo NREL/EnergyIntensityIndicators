@@ -136,10 +136,10 @@ class IndustrialIndicators(LMDI):
                                                'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
                                                'Furniture & Related Products': None, 'Miscellaneous': None},
                                     'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
-                                                        'Mining': {'Petroleum and Natural Gas': None, 
+                                                         'Mining': {'Petroleum and Natural Gas': None, 
                                                                     'Other Mining': None, 
                                                                     'Petroleum drilling and Mining Services': None},
-                                                        'Construction': None}}
+                                                         'Construction': None}}
         self.ind_eia = GetEIAData('industry')
         self.conversion_factors = self.ind_eia.conversion_factors()
         self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
