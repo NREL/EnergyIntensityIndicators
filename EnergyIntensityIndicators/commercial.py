@@ -147,17 +147,17 @@ class CommercialIndicators(LMDI):
             [type]: [description]
         """        
         dod_old = pd.read_csv('./DODCompareOld.csv').set_index('Year')
-  
+
         # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
         # dod_old = dod_old.drop(columns='Soc/Misc')
         # dod_old['Total'] = dod_old.sum(axis=1)
-        dod_old['Commercial'] = dod_old[['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
-
-        dod_old_subset = dod_old.loc[list(range(1960, 1982)), ['Retail', 'Auto R', 'Office', 'Warehouse']]
+        cols_list = ['Retail', 'Auto R', 'Office', 'Warehouse']
+        dod_old['Commercial'] = dod_old[cols_list].sum(axis=1)
+        dod_old_subset = dod_old.loc[list(range(1960, 1982)), cols_list]
         dod_old_hotel = dod_old.loc[list(range(1980, 1990)), ['Commercial']]
         return dod_old, dod_old_subset, dod_old_hotel 
 
-    def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year):
+    def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years):
         """(1985, 1990) or (1960, 1970)
 
         Args:
@@ -168,17 +168,18 @@ class CommercialIndicators(LMDI):
         Returns:
             [type]: [description]
         """        
-        print('columns:', dodge_dataframe.columns)
-        print(dodge_dataframe)
         year_indices = self.years_to_str(start_year, stop_year)
-        print('look at this:', dodge_dataframe.loc[year_indices, ['Commercial']].values)
-        revision_factor_commercial = sum(dodge_dataframe.loc[year_indices, ['Commercial']].values)
+        revision_factor_commercial = dodge_dataframe.loc[year_indices, ['Commercial']].sum(axis=0).values
         categories = ['Retail', 'Auto R', 'Office', 'Warehouse']
-        revision_factors = []
         for category in categories: 
-            revision_factor_cat = sum(list(dodge_dataframe.loc[year_indices, [category]])) / revision_factor_commercial
-            revision_factors.append(revision_factor_cat)
-        return revision_factors
+            revision_factor_cat = dodge_dataframe.loc[year_indices, [category]].sum(axis=0).values / revision_factor_commercial
+            print('here dodge:', revision_factor_cat)
+            print('CHECKES:', dodge_dataframe.loc[adjust_years, ['Commercial, Excl Hotel']])
+            dodge_dataframe.loc[adjust_years, [category]] = dodge_dataframe.loc[adjust_years, ['Commercial, Excl Hotel']].multiply(revision_factor_cat)
+            print('check:', dodge_dataframe.loc[adjust_years, [category]])
+            print('there dodge:', dodge_dataframe)
+
+        return dodge_dataframe
 
     def west_inflation(self):
         """Jackson and Johnson Estimate of West Census Region Inflation Factor, West Region Shares Based on CBECS
@@ -254,44 +255,47 @@ class CommercialIndicators(LMDI):
         """Dodge Additions, adjusted for omission of West Census Region prior to 1956
         """       
         saus_2002, saus_merged = self.get_saus()
+        print(saus_2002, saus_merged)
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
         
-        cols = list(dod_old.columns) + ['Commercial, Excl Hotel', 'Commercial, Incl Hotel', 'Hotel']
-        dodge_revised = pd.DataFrame(index=self.years_to_str(1919, 2020), columns=cols)
+        dodge_revised = pd.read_csv('./Dodge_Data.csv').set_index('Year')
+        dodge_revised.index = dodge_revised.index.astype(str)
+
+        dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Commercial, Incl Hotel', 'Hotel'], axis=1).fillna(np.nan)
+
         years_1919_1989 = self.years_to_str(1919, 1990)
         years_1990_1997 = self.years_to_str(1990, 1997)
 
-        dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset 
-        print(dodge_revised)
-        dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation.values # hist_stat_adj column Q
+        dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset.values 
 
+        dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation.values # hist_stat_adj column Q
+        
 
         dodge_revised.loc[self.years_to_str(1960, 1989), ['Commercial, Excl Hotel']] =  dodge_revised.loc[self.years_to_str(1960, 1989), ['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
-        dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Excl Hotel']] = np.nan
-        print(dodge_revised)
 
-        dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']])
-        dodge_revised.loc[years_1990_1997, ['Commercial, Incl Hotel']] =  saus_2002.loc[years_1990_1997, ['Commercial']]
-        # dodge_revised.loc[list(range(1998, 2018)), ['Commercial, Incl Hotel']] =  # hard coded
 
-        print(dodge_revised)
+        hotel_80_89 = saus_merged.loc[list(range(1980, 1989 + 1)), ['Value']].subtract(dod_old_hotel.values) 
 
-        hotel_80_89 = saus_merged.subtract(dod_old_hotel) 
         dodge_revised.loc[self.years_to_str(1980, 1989), ['Hotel']] = hotel_80_89
-        print(hotel_80_89)
-        print(dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']])
 
-        hotel_80_89_ratio = sum(hotel_80_89) / sum(dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']])
+        hotel_80_89_ratio = hotel_80_89.sum(axis=0).values / dodge_revised.loc[self.years_to_str(1980, 1989), ['Commercial, Excl Hotel']].sum(axis=0).values
         dodge_revised.loc[self.years_to_str(1919, 1979), ['Hotel']] = dodge_revised.loc[self.years_to_str(1919, 1979), ['Commercial, Excl Hotel']].multiply(hotel_80_89_ratio)
-        revision_factors_60_69 = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969 + 1)
-        revision_factors_85_89 = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989 + 1)
-
-        dodge_revised.loc[self.years_to_str(1919, 1959), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']].multiply(revision_factors_60_69) 
-        dodge_revised.loc[self.years_to_str(1990, 2018), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial']].multiply(revision_factors_85_89) 
         print(dodge_revised)
 
-        dodge_revised.loc[self.years_to_str(1990, 2018), ['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']] = []
+        dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']].values)
+  
+        dodge_revised.loc[years_1990_1997, ['Commercial, Incl Hotel']] =  saus_2002.loc[years_1990_1997, ['Commercial']].values
+
+        dodge_revised.loc[self.years_to_str(1985, 1989), ['Commercial']] = saus_merged.loc[list(range(1985, 1989 + 1)), ['Value']].values
+        dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial']] = dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Excl Hotel']]
+
+        print(dodge_revised)
+
+        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969, adjust_years=self.years_to_str(1919, 1959))
+        dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989, adjust_years=self.years_to_str(1990, 2018))
+
+        print(dodge_revised)
         return dodge_revised
 
     def dodge_to_cbecs(self):
