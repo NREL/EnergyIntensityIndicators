@@ -5,18 +5,16 @@ from pull_eia_api import GetEIAData
 # from LMDI import LMDI
 
 class WeatherFactors: # LMDI
-    def __init__(self, region, energy_type, sector, directory):
+    def __init__(self, energy_type, sector, directory):
         self.directory = directory
         self.sector = sector
         self.eia_data = GetEIAData(self.sector)
-        self.region = region
         self.energy_type = energy_type  # 'electricity' or 'fuels' or 'delivered'
         self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 'east_north_central', 'west_north_central', 
                                    'south', 'south_atlantic', 'east_south_central', 'west_south_central', 'west', 'mountain', 'pacific']
         self.sub_regions_dict = {'northeast': ['New England', 'Middle Atlantic'], 'midwest': ['East North Central', 'West North Central'], 
                                  'south': ['South Atlantic', 'East South Central', 'West South Central'], 'west': ['Mountain', 'Pacific']}
-        
         """
         Table 5.2, RECS C&E 1993 (Household Energy Consumption and Expenditures 1993)
         Table 5.14, RECS C&E 1993, calculated from kWh converted to Btu
@@ -28,7 +26,7 @@ class WeatherFactors: # LMDI
         Table 5.20, RECS C&E 1993
         
         EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
-    
+
     def adjust_data(self):
         # adjustment_factor_electricity =  # Weights derived from 1995 CBECS
         # adjustment_factor_fuels = 
@@ -138,6 +136,14 @@ class WeatherFactors: # LMDI
         cdd_by_division = cdd_by_division.rename(columns=cdd_new_names_dict)
         return hdd_by_division, cdd_by_division
 
+    def get_actual_intensity_data(self):
+        """Calculate Energy Intensities (kBtu/sq. ft.) by region and fuel type (i.e. Fuels and Electricity) for use
+        in calculating weather factors
+        """        
+        regional_floorspace = 
+        total_fuels_to_indicators, elec_to_indicators = self.eia_data.get_seds()
+        print('total_fuels_to_indicators, elec_to_indicators:', total_fuels_to_indicators, elec_to_indicators)
+
     def weather_factors(self, region):
         """Estimate a simple regression model to fit the regional intensity to a linear function of time (included squared and cubed values of time) and degree days. 
         -electricity model: constant term, heating degree day (HDD), cooling degree day (CDD), time, time-squared, and time-cubed
@@ -162,12 +168,9 @@ class WeatherFactors: # LMDI
         fuels_weights = [regional_weights['fuels'][r_] for r_ in subregions_lower]
         
         hdd_by_division, cdd_by_division = self.heating_cooling_data()
-        print('hdd cols:', hdd_by_division.columns)
-        print('cdd cols:', cdd_by_division.columns)
 
         heating_degree_days = hdd_by_division[subregions]
-        print(heating_degree_days)
-        exit()
+
         heating_degree_days = heating_degree_days.reset_index('Year')
         heating_degree_days[region] = heating_degree_days[subregions].dot(hdd_activity_weights)
 
@@ -198,10 +201,12 @@ class WeatherFactors: # LMDI
         else:
             return None
 
-        actual_intensity = [] # from region_intensity (aggregate): just seds_census_rgn / regional_floorspace
+        actual_intensity = self.get_actual_intensity_data() # from region_intensity (aggregate): just seds_census_rgn / regional_floorspace
+        Y = actual_intensity
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
+        print(f'{self.energy_types} coefficient for region {region}:', coefficients)
         predicted_value_intensity_actualdd = reg.predict(X_actualdd)  # Predicted value of the intensity based on actual degree days
         predicted_value_intensity_ltaveragesdd = reg.predict(X_ltaveragesdd)  # Predicted value of the intensity based on the long-term averages of the degree days
         weather_factor = predicted_value_intensity_actualdd / predicted_value_intensity_ltaveragesdd 
@@ -226,7 +231,7 @@ class WeatherFactors: # LMDI
         """
         cbecs_1995_shares = self.cbecs_1995_shares()
         regional_weather_factors = []
-        for region in self.regions:
+        for region in self.sub_regions_dict.keys():
             weather_factors, weather_normalized_intensity = self.weather_factors(region)
             regional_weather_factors[region] = weather_factors
 

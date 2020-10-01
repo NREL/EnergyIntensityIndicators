@@ -11,12 +11,12 @@ Welcome to EnergyIntensityIndicators's documentation!
    :caption: Contents:
 
    EnergyIntensityIndicators/EnergyIntensityIndicators.LMDI
-   EnergyIntensityIndicators/EnergyIntensityIndicators.commercial
-   EnergyIntensityIndicators/EnergyIntensityIndicators.electricity
-   EnergyIntensityIndicators/EnergyIntensityIndicators.industry
-   EnergyIntensityIndicators/EnergyIntensityIndicators.residential
-   EnergyIntensityIndicators/EnergyIntensityIndicators.transportation
-   EnergyIntensityIndicators/Industry.industry
+   EnergyIntensityIndicators/Commercial/commercial
+   EnergyIntensityIndicators/Electricity/electricity
+   EnergyIntensityIndicators/Industry/industry
+   EnergyIntensityIndicators/Residential/residential
+   EnergyIntensityIndicators/Transportation/transportation
+  
 
 
 Indices and tables

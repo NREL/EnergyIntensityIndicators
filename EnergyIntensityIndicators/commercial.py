@@ -6,6 +6,7 @@ import math
 import statsmodels.api as sm
 from pull_eia_api import GetEIAData
 from scipy.optimize import curve_fit
+from sklearn.linear_model import LinearRegression
 from LMDI import LMDI
 import numpy as np
 
@@ -413,6 +414,9 @@ class CommercialIndicators(LMDI):
         for y in self.years_to_str(1839, current_year):  
             years_diff = current_year - 1870
             start_year = int(y) - years_diff
+            # first_index_year = int(dataframe.index[0])
+            # if start_year < first_index_year:
+            #     start_year = first_index_year
             year_index = self.years_to_str(start_year, int(y))
             remaining = dataframe.loc[self.years_to_str(1870, current_year), ['remaining']].values.flatten()
             adjusted_state_pop_scaled_b = dataframe.loc[year_index, ['adjusted_state_pop_scaled_b']].fillna(0).values.flatten()
@@ -491,21 +495,60 @@ class CommercialIndicators(LMDI):
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
 
+     def estimate_regional_floorspace(self,):
+        """assumed commercial floorspace in each region follows same trends as population or housing units"""
+        regions = ['Northeast', 'Midwest', 'South', 'West']
+
+        cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
+        cbecs_data.index = cbecs_data.index.astype(str)
+        cbecs_years = list(cbecs_data.index)
+
+        cbecs_data.loc['1979', regions] = cbecs_data.loc['1983', regions].subtract([826, 972, 2665, 1212])
+        cbecs_data.loc['1979', ['U.S.']] = cbecs_data.loc['1979', regions].sum(axis=1)
+
+        cbecs_data['U.S. (calc)'] = cbecs_data.sum(axis=1)
+        comm_regional_shares = cbecs_data.drop(['U.S.', 'U.S. (calc)']).divide(cbecs_data['U.S. (calc)'].values)
+        comm_regional_shares_ln = np.log(comm_regional_shares)
+
+        residential_housing_units = 
+        residential_housing_units['U.S.'] = residential_housing_units.sum(axis=1)
+        regional_shares_residential_housing_units = residential_housing_units.drop('U.S.').divide(residential_housing_units['U.S.'].values)
+        regional_shares_residential_housing_units_ln = np.log(regional_shares_residential_housing_units)
+
+        regional_shares_residential_housing_units_cbecs_years = regional_shares_residential_housing_units.loc[cbecs_years, :]
+        regional_shares_residential_housing_units_cbecs_years_ln = np.log(regional_shares_residential_housing_units_cbecs_years)
+        
+        predictions_df = pd.DataFrame(columns=comm_regional_shares.columns, index=residential_housing_units.index)
+        for region in comm_regional_shares.columns:
+            X = comm_regional_shares_ln[region]
+            y = regional_shares_residential_housing_units_cbecs_years_ln[region]
+            reg = LinearRegression().fit(X, y)
+            prediction = reg.predict(regional_shares_residential_housing_units_ln[region])
+            predictions_df[region] = prediction
+        
+        predictions_df['Predicted Sum'] = predictions_df.sum(axis=1)
+        normalized_shares = predictions_df.drop('Predicted Sum').divide(predictions_df['Predicted Sum'].values)
+        return normalized_shares
+
     def main(self, lmdi_model='multiplicative'):
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
         
         activity_data = self.activity()
-
+        print('Activity data collected without issue')
         energy_data = self.fuel_electricity_consumption()
-        energy_types = energy_data.keys()
-        lmdi = LMDI(categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003)
-        results = lmdi.call_lmdi(unit_conversion_factor=1, adjust_for_weather=False, lmdi_models=self.lmdi_model)
+        print('Energy data collected without issue')
+
+        # energy_types = energy_data.keys()
+        energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
+        lmdi = LMDI(sector='commercial', directory=self.directory, categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003)
+        results = lmdi.call_lmdi(unit_conversion_factor=1, weather_adjust=True, lmdi_models=self.lmdi_model)
         print(results)
 
 if __name__ == '__main__':
-    CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').main()
+    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020')
+    indicators.main()
 
 
 
@@ -538,12 +581,6 @@ if __name__ == '__main__':
 #         """[summary]
 #         """
 
-#  def estimate_regional_floorspace_share(self,):
-#     """assumed commercial floorspace in each region follows same trends as population or housing units"""
-
-#     def estimate_regional_floorspace(self):
-#         """[summary]
-#         """        
 
 #     def estimate_intensity_indexes_regional(self, parameter_list):
 #         """Data Sources: Fuel Consumption and electricity consumption from SEDS, Shares of regional floorspace from CBECs

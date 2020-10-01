@@ -26,37 +26,43 @@ class LMDI:
         self.index_base_year_secondary = base_year_secondary  # not used
         self.charts_starting_year = base_year
         self.charts_ending_year = charts_ending_year
-        self.energy_types = energy_types
+        self.energy_types = energy_types  # could use energy_data.keys but need 'elec' and 'fuels' to come before the others
         
     def get_elec(self):
         elec = self.energy_data['elec']
         elec['Total'] = elec.sum(axis=1)
         elec['Energy_Type'] = 'Electricity'
-        return delivered_electricity
+        print('Collected elec data')
+        return elec
 
     def get_fuels(self):
         fuels = self.energy_data['fuels']
         fuels['Total'] = fuels.sum(axis=1)
         fuels['Energy_Type'] = 'Fuels'
+        print('Collected fuels data')
         return fuels
 
     def get_deliv(self, elec, fuels):
         delivered = elec.add(fuels.values)
         delivered['Energy_Type'] = 'Delivered'
+        print('Calculated deliv data')
         return delivered
 
     def get_source(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors()
-        source_electricity = elec.multiply(conversion_factors.values) # Column A
-        total_source = source_electricity.add(fuels.values)     
+        source_electricity = elec[['adjusted_consumption_trillion_btu', 'Total']].multiply(conversion_factors.values) # Column A
+        total_source = source_electricity.add(fuels[['adjusted_consumption_trillion_btu', 'Total']].values)     
         total_source['Energy_Type'] = 'Source'
+        print('Calculated source data')
+        return total_source
     
     def get_source_adj(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
-
-        source_electricity_adj = elec.multiply(conversion_factors.values) # Column M
-        source_adj = source_electricity_adj.add(fuels)
+        source_electricity_adj = elec[['adjusted_consumption_trillion_btu', 'Total']].multiply(conversion_factors.values) # Column M
+        source_adj = source_electricity_adj.add(fuels[['adjusted_consumption_trillion_btu', 'Total']].values)
         source_adj['Energy_Type'] = 'Source_Adj'
+        print('Calculated source_adj data')
+        return source_adj
 
     @staticmethod
     def select_value(dataframe, base_row, base_column):
@@ -153,7 +159,7 @@ class LMDI:
 
         return log_mean_divisia_weights, log_mean_divisia_weights_normalized
 
-    def adjust_for_weather(self, data, energy_type, type, region):
+    def adjust_for_weather(self, data, energy_type):
         """purpose
            Parameters
            ----------
@@ -165,11 +171,9 @@ class LMDI:
             -------
             weather_adjusted_data: dataframe ? 
         """
-        weather = WeatherFactors(region, energy_type, sector=self.sector, directory=self.directory)
+        weather = WeatherFactors(energy_type, sector=self.sector, directory=self.directory)
         weather_factors = weather.national_method1_fixed_end_use_share_weights()
-        weather_adjusted_data = dict()
-        for energy_type in energy_types:
-            weather_adjusted_data[energy_type] = data / weather_factors[energy_type]
+        weather_adjusted_data = data / weather_factors[energy_type]
         return weather_adjusted_data
 
     def lmdi_multiplicative(self, activity_input_data, energy_input_data, unit_conversion_factor=1):
@@ -202,15 +206,19 @@ class LMDI:
     def collect_energy_data(self, weather_adjust):
         energy_data_by_type = dict()
 
-        funcs = {'elec': self.get_elec(), 
-                 'fuels': self.get_fuels(), 
-                 'deliv': self.get_deliv(energy_data_by_type['elec'], energy_data_by_type['fuels']), 
-                 'source': self.get_source(energy_data_by_type['elec']), 
-                 'source_adj': self.get_source_adj(energy_data_by_type['elec'])}
+        funcs = {'elec': self.get_elec, 
+                 'fuels': self.get_fuels, 
+                 'deliv': self.get_deliv, 
+                 'source': self.get_source, 
+                 'source_adj': self.get_source_adj}
         
         for e_type in self.energy_types:
-            e_type_df = funcs[e_type]
+            if e_type in ['deliv', 'source', 'source_adj']:
+                e_type_df = funcs[e_type](elec=energy_data_by_type['elec'], fuels=energy_data_by_type['fuels'])
+            else:
+                e_type_df = funcs[e_type]()
             energy_data_by_type[e_type] = e_type_df
+            print(energy_data_by_type)
 
         if weather_adjust: 
             for type, energy_dataframe in energy_data_by_type.items():

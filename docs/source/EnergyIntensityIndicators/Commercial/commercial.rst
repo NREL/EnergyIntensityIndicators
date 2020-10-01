@@ -9,4 +9,5 @@ Commercial Sector Data Collection
    
 .. toctree::
 
+   EnergyIntensityIndicators.commercial
    EnergyIntensityIndicators.Commercial.commercial

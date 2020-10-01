@@ -8,4 +8,5 @@ Transportation Sector Data Collection
    
 .. toctree::
 
+   EnergyIntensityIndicators.transportation
    EnergyIntensityIndicators.Transportation.transport

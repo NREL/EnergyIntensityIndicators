@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\irabidea\\Anaconda3\\envs\\EIIEnvironment\\python.exe"
+    "python.pythonPath": "C:\\Users\\irabidea\\Anaconda3\\envs\\EIIEnvironment\\python.exe",
+    "restructuredtext.confPath": "${workspaceFolder}\\docs\\source"
 }

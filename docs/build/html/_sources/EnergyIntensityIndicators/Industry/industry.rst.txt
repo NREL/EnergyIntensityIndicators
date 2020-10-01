@@ -9,6 +9,7 @@ Industrial Sector Data Collection
    
 .. toctree::
 
+   EnergyIntensityIndicators.industry
    EnergyIntensityIndicators.Industry.asm_price_fit
    EnergyIntensityIndicators.Industry.manufacturing
    EnergyIntensityIndicators.Industry.nonmanufacturing

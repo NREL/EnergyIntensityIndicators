@@ -250,7 +250,7 @@ class GetEIAData:
             conversion_factors_df['utility efficiency adjustment factor'] = 1
             conversion_factors_df['selected site-source conversion factor'] = base_year_source_site_conversion_factor
 
-        return conversion_factors_df['selected site-source conversion factor']
+        return conversion_factors_df[['selected site-source conversion factor']]
 
 
 

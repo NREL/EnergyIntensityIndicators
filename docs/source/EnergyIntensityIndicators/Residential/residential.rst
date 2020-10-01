@@ -9,3 +9,4 @@ Residential Sector Data Collection
 .. toctree::
 
    EnergyIntensityIndicators.Residential.census_bureau_data
+   EnergyIntensityIndicators.residential
