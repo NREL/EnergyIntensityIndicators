@@ -318,29 +318,29 @@ class GetCensusData:
 
         # = curve_fit(self.residuals, )
 
-        print('X0:', x0)
-        print('X: ', x)
-        print('flag: ', flag)
-        ssr_x0 = self.sum_squared_residuals(x0, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
-        ssr_x = self.sum_squared_residuals(x, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
-        print('ssr_x0:', ssr_x0)
-        print('ssr_x:', ssr_x)
-        print(ssr_x < ssr_x0)
+        # print('X0:', x0)
+        # print('X: ', x)
+        # print('flag: ', flag)
+        # ssr_x0 = self.sum_squared_residuals(x0, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
+        # ssr_x = self.sum_squared_residuals(x, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
+        # print('ssr_x0:', ssr_x0)
+        # print('ssr_x:', ssr_x)
+        # print(ssr_x < ssr_x0)
 
-        predicted_total_stock_pnnl = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
+        # predicted_total_stock_pnnl = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
 
         predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
         # residuals = self.residuals(x0, actual_stock=actual_stock , year_array=year_array, ca=ca , pub_total=pub_total , elasticity_of_retirements=elasticity_of_retirements)
-        plt.style.use('seaborn-darkgrid')
-        palette = plt.get_cmap('Set1')
-        plt.plot(year_array[0::2], predicted_total_stock[0::2], marker='', color=palette(1), linewidth=1, alpha=0.9, label='SciPy Prediction')
-        plt.plot(year_array[0::2], predicted_total_stock_pnnl[0::2], marker='', color=palette(2), linewidth=1, alpha=0.9, label='Solver Prediction')
-        plt.plot(year_array[0::2], actual_stock, marker='', color=palette(3), linewidth=1, alpha=0.9, label='Actual Stock')
-        plt.title('A Comparison of Optimization Software Results', fontsize=12, fontweight=0)
-        plt.xlabel('Year')
-        plt.ylabel('Housing Stock')
-        plt.legend(loc=2, ncol=2)
-        plt.show()
+        # plt.style.use('seaborn-darkgrid')
+        # palette = plt.get_cmap('Set1')
+        # plt.plot(year_array[0::2], predicted_total_stock[0::2], marker='', color=palette(1), linewidth=1, alpha=0.9, label='SciPy Prediction')
+        # plt.plot(year_array[0::2], predicted_total_stock_pnnl[0::2], marker='', color=palette(2), linewidth=1, alpha=0.9, label='Solver Prediction')
+        # plt.plot(year_array[0::2], actual_stock, marker='', color=palette(3), linewidth=1, alpha=0.9, label='Actual Stock')
+        # plt.title('A Comparison of Optimization Software Results', fontsize=12, fontweight=0)
+        # plt.xlabel('Year')
+        # plt.ylabel('Housing Stock')
+        # plt.legend(loc=2, ncol=2)
+        # plt.show()
 
         occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, 67951, 71499, 74434, 74026, 
                               76147, 77491, 79052, 80526, 80942, 83272, 85790]  # different_sources
@@ -363,24 +363,37 @@ class GetCensusData:
         
         occupied_predicted = np.multiply(occupation_rate, predicted_total_stock)
 
-        return occupied_predicted
+        return actual_stock, occupied_predicted
 
-    def get_housing_stock_mf(self):
+    def get_housing_stock_mf(self, all_stock_sf):
+        """Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)
+
+        Args:
+            all_stock_sf ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         factor = 0.96
         use_columns = "D:E"
-        pub_total = [99931-6094, 102852-6688, 105661-6908, 104592-6983, 106611-7072, 109457-7647, 112357-8301, 115253-8433, 119117-8876, 120777-8971,
+        pub_total_values = [99931-6094, 102852-6688, 105661-6908, 104592-6983, 106611-7072, 109457-7647, 112357-8301, 115253-8433, 119117-8876, 120777-8971,
                         124377-8630, 128203-8705, 130112-8769, 132419-9049, 132832-8603, 33046, 34067]
-        # all_stock_sf = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 4916+7227, 
-        # 77703+7046, 80406+7135, 82472+7053, 82974+7768, 83392+7581, 92988, 94867]
         adjustment_factors = [1, 1, 1, 1.06, 1, 1, 1, 1.03, 1.04, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        predicted_total_stock_sf, all_stock_sf = self.get_housing_stock_sf()
-
-        actual_stock = np.subtract(pub_total, all_stock_sf)
-        actual_stock = np.multiply(actual_stock, adjustment_factors)
         elasticity_of_retirements = 0.8
 
-        year_array = list(range(1985, 2019))
+
+        pub_total_years = list(range(1985, 1985 + 2 * len(pub_total_values), 2))       
+        actual_sf_years = list(range(1985, 1985 + 2 * len(all_stock_sf), 2))
+
+        actual_stock = np.subtract(pub_total_values, all_stock_sf)
+        actual_stock_df = pd.DataFrame.from_dict({year: all_stock_sf[i] for i, year in enumerate(actual_sf_years)}, orient='index', columns=['all_stock_sf']).fillna(0)
+        pub_total = pd.DataFrame(list(zip(pub_total_years, pub_total_values)), columns=['Year', 'pub_total']).set_index('Year')
+        df = actual_stock_df.merge(pub_total, left_index=True, right_index=True)
+
+        df['pub_total_mf'] = df['pub_total'].subtract(df['all_stock_sf'].values)
+        df['pub_total_mf'] = df['pub_total_mf'].multiply(adjustment_factors)
+
+        year_array = list(range(1985, 1985 + 2 * len(pub_total_values), 1)) 
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
@@ -390,8 +403,11 @@ class GetCensusData:
         new_comps_ann_df['New'] = new_comps_ann_df.sum(axis=1)
         new_comps_ann = new_comps_ann_df['New']
 
-        all_single_family = actual_stock
         occupied_single_family = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, ] # column J Total_stock_SF, append prortion from AHS tables, etc
+        occupied = [511+107+763+62, 487+192+701+104, 440+151+665+93, 444+259+692+66, 388+195+624+70, 482+197+624+77, 574+280+682+98, 481+269+670+79
+                    556+334+858+78, 675+252+882+82, 681+229+1026+92, 850+192+567+104, 820+198+1477+175, 803+252+1238+115] # 2670, for 2010
+        occupied_years = actual_sf_years = list(range(1985, 1985 + 2 * len(occupied), 2))
+        occupied_df = pd.DataFrame(list(zip(occupied_years, occupied)), columns=['Year', 'occupied'])
         households = [0] # National_Calibration'!E13
         year = [0]
 
@@ -402,8 +418,13 @@ class GetCensusData:
         print('flag: ', flag)
 
         predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
-
-        return predicted_total_stock
+        R = [88425-4754, 90888-5267, 93683-5438, 93147-5630, 94724-5655, 97693-6164, 99487-6544, 102803-6785, 106261-7219, 105842-6854, 108871-6940, 110692-6919, 111806-6839, 114907-7190, 115852-6917] # Last two values (not included here) are from AHS_2015_extract and AHS_2017_extract
+        R = R - occupied_single_family
+        Y = df['pub_total_mf'].subtract(R)
+        Z = Y.divide(df['pub_total_mf'].values)
+        predicted_unoccupied = predicted_total_stock - df['occupied'].values
+        occupied_predicted = (1 - Z) * predicted_total_stock 
+        return occupied_predicted
 
     def get_housing_stock_mh(self):
 
@@ -453,7 +474,7 @@ class GetCensusData:
             3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
             at the national level.
         """
-        pass
+        return number_occupied_units_national, average_size_national
 
     # def final_floorspace_estimates():
         
@@ -510,12 +531,21 @@ class GetCensusData:
         """
         pass    
 
+    def main(self):
+        data = GetCensusData()
+        actual_stock_sf, occupied_predicted_sf = data.get_housing_stock_sf()
+        print(occupied_predicted_sf)
+        predicted_total_stock_mf = data.get_housing_stock_mf(all_stock_sf=actual_stock_sf)
+        print(predicted_total_stock_mf)
+        # z = data.get_housing_stock_mh()
+        # print('sf results:', actual_stock_df, occupied_predicted)
+        # print('mf results:', y)
+        # print('mh results:', z)
 
-data = GetCensusData()
 
-x = data.get_housing_stock_sf()
-# y = data.get_housing_stock_mf()
-# z = data.get_housing_stock_mh()
-print('sf results:', x)
-# print('mf results:', y)
-# print('mh results:', z)
+if __name__ == '__main__':
+    GetCensusData().main()
+
+
+
+
