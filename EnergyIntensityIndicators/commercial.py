@@ -33,10 +33,11 @@ class CommercialIndicators(LMDI):
     2014 to 2018". 
     """    
 
-    def __init__(self, directory):
+    def __init__(self, directory, lmdi_model=['multiplicative']):
         self.sub_categories_list = {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
         self.directory = directory
+        self.lmdi_model = lmdi_model
         # self.cbecs = 
         # self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -333,7 +334,7 @@ class CommercialIndicators(LMDI):
         dodge_to_cbecs['Lodging'] = dodge_revised['Hotel']+ (1 - health_transfered_to_cbecs_health) * dodge_revised['Hospital']
         dodge_to_cbecs['Assembly'] = dodge_revised['Soc/Amuse'] +  misc_public_assembly * dodge_revised['Misc'] + education_assembly * dodge_revised['Education']
         dodge_to_cbecs['Other'] = dodge_revised['Public'] + (1 - misc_public_assembly) * dodge_revised['Misc'] + (1 - auto_repair_retail) * dodge_revised['Auto R'] + education_misc * dodge_revised['Education']
-        dodge_to_cbecs['Redefined_Totals'] = dodge_to_cbecs.sum(axis=1).values
+        dodge_to_cbecs['Redefined_Totals'] = dodge_to_cbecs.drop('Dodge_Totals', axis=1).sum(axis=1).values
         # dodge_to_cbecs = dodge_to_cbecs.drop()  # don't need totals?
         return dodge_to_cbecs
 
@@ -343,92 +344,112 @@ class CommercialIndicators(LMDI):
         Args:
             dataframe ([type]): [description]
             params (list): gamma, lifetime, 
+        
+        PNNL errors found: 
+            - Column S in spreadsheet has CO-StatePop2.xls are incorrectly aligned with years
+            - Column AL does not actually scale by 1.28 as suggested in the column header
+
         """    
         current_year = dt.datetime.now().year
-        dataframe['Year_Int'] = dataframe.index.astype(int)
-        dataframe['age'] = dataframe['Year_Int'].subtract(current_year).multiply(-1)
-        dataframe['remaining'] = ((dataframe['age'].divide(params[1]).add(1)).pow(params[0])).pow(-1)
-        dataframe['inflate_fac'] = dataframe['remaining'].pow(-1)
 
         link_factors = pd.read_excel(f'{self.directory}/CO-EST_statepop2.xls', sheet_name='Stock', usecols='D:E', header=1, skiprows=158).rename(columns={1789: 'Year'})
-        link_factors = link_factors.set_index('Year').rename(columns={' New': 'state_pop'})
-        state_pop = link_factors.loc[list(range(1838, 1919 + 1)), ]
+        state_pop = link_factors.set_index('Year').rename(columns={' New': 'state_pop'})
+        state_pop = state_pop[state_pop.index.notnull()]
+        state_pop.index = state_pop.index.astype(int)
+        state_pop.index = state_pop.index.astype(str)
 
         dataframe = dataframe.merge(state_pop, how='outer', left_index=True, right_index=True)
         dataframe = dataframe[dataframe.index.notnull()]
-
-        print(dataframe)
+        dataframe = dataframe.reindex(columns=dataframe.columns.tolist() + ['adjusted_state_pop', 'adjusted_state_pop_scaled_b', 'adjusted_state_pop_scaled_c', 
+                                                                            'scaled_additions_estimate_a', 'scaled_additions_estimate_b', 'scaled_additions_estimate_c', 
+                                                                            'removal', 'adjusted_removals', 'old_stk_retain', 'floorspace_bsf'])
+        dataframe['Year_Int'] = dataframe.index.astype(int)
+        dataframe['age'] = dataframe['Year_Int'].subtract(current_year).multiply(-1)
+        dataframe['remaining'] = ((dataframe['age'].divide(params[1])).pow(params[0]).add(1)).pow(-1)
+        dataframe['inflate_fac'] = dataframe['remaining'].pow(-1)
 
         link_factor = 0.1
         adjusted_state_pop_1 = 40
-
-        dataframe['adjusted_state_pop'] = dataframe.state_pop.multiply(link_factor)
-        print('adjusted_state_pop:', dataframe['adjusted_state_pop'])
 
         timing_wgts_current_yr = 0.4
         timing_wgts_lag_yr = 0.6
         benchmark_factor = 1
 
-        vpip_estimates = []
-        for year in dataframe.index:
+        dataframe.loc[str(1838), ['state_pop']] = 400
+        dataframe.loc[self.years_to_str(1838, 1919), ['adjusted_state_pop']] = dataframe.loc[self.years_to_str(1838, 1919), ['state_pop']].values * link_factor
+        dataframe.loc[self.years_to_str(1920, current_year), ['adjusted_state_pop']] = dataframe.loc[self.years_to_str(1920, current_year), ['Redefined_Totals']].values
+
+        for year in self.years_to_str(1838, current_year):
             adjusted_state_pop_value = dataframe.loc[year, ['adjusted_state_pop']].values
             if year == '1838': 
                 vpip_estimate = adjusted_state_pop_value
             elif year == '1920': 
                 vpip_estimate = adjusted_state_pop_value
-            elif year > '1838':
+            else:
                 adjusted_state_pop_year_before = dataframe.loc[str(int(year) - 1), ['adjusted_state_pop']].values
                 vpip_estimate = (timing_wgts_current_yr * adjusted_state_pop_value + timing_wgts_lag_yr * adjusted_state_pop_year_before) * benchmark_factor
             dataframe.loc[year, 'VPIP-Estimate'] = vpip_estimate
-        print(dataframe)
-        exit()
-        x_column_value = [_variable] * len(range(1990, 2021))
-        db_estimates = [1.2] * len(range(1990, 2021))
+        _variable = 1.2569  # This should be solved for
+        x_column_value = _variable 
+        db_estimates = 1.2
         db_estimates2 = [1.25 - 0.01*d for d in list(range(1990, 2021))]
 
-        post_1989_scaling_factor_key = db_estimates # Should choose this
+        post_1989_scaling_factor = db_estimates # Should choose this
+        variable_2 = 1.533  # This should be solved for
 
-        without_lags = adjusted_state_pop * post_1989_scaling_factor_key
+        without_lags = dataframe.loc[self.years_to_str(1990, current_year), ['adjusted_state_pop']].multiply(post_1989_scaling_factor)
 
-        scaled_additions_estimate_a = vpip_estimates * _variable_2
-        adjusted_state_pop_adjusted = adjusted_state_pop.multiply(1.15)
-        scaled_additions_estimate_b = []
-        scaled_additions_estimate_c = []
+        dataframe.loc[: str(1989), ['scaled_additions_estimate_a']] = dataframe.loc[: str(1989), ['VPIP-Estimate']].values * variable_2
+        dataframe.loc[self.years_to_str(1990, current_year), ['scaled_additions_estimate_a']] = dataframe.loc[self.years_to_str(1990, current_year), ['VPIP-Estimate']].values * post_1989_scaling_factor
+        dataframe.loc[:str(1989), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(1790, 1989), ['scaled_additions_estimate_a']].values
+        dataframe.loc[self.years_to_str(1990, 2001), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(1990, 2001), ['scaled_additions_estimate_a']].values * 1.15
+        dataframe.loc[self.years_to_str(2002, current_year), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(2002, current_year), ['scaled_additions_estimate_a']].values 
+        
+        dataframe.loc[str(1790), ['adjusted_state_pop_scaled_c']] = 1
+        dataframe.loc[self.years_to_str(1791, 1989), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(1791, 1989), ['scaled_additions_estimate_a']].values
+        dataframe.loc[self.years_to_str(1990, 2001), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(1990, 2001), ['scaled_additions_estimate_a']].values * 1.28
+        dataframe.loc[self.years_to_str(2002, current_year), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(2002, current_year), ['scaled_additions_estimate_a']].values
+        
+        for y in self.years_to_str(1839, current_year):  
+            years_diff = current_year - 1870
+            start_year = int(y) - years_diff
+            year_index = self.years_to_str(start_year, int(y))
+            remaining = dataframe.loc[self.years_to_str(1870, current_year), ['remaining']].values.flatten()
+            adjusted_state_pop_scaled_b = dataframe.loc[year_index, ['adjusted_state_pop_scaled_b']].fillna(0).values.flatten()
+            adjusted_state_pop_scaled_c = dataframe.loc[year_index, ['adjusted_state_pop_scaled_c']].fillna(0).values.flatten()
 
-        for index_, value in enumerate(adjusted_state_pop_adjusted):
-            calc_value_b = np.dot(adjusted_state_pop_adjusted[:index_], dataframe.loc[:index_, ['remaining']])
-            scaled_additions_estimate_b.append(calc_value_b)
-
-            calc_value_c = np.dot(scaled_additions_estimate_a[:index_], dataframe.loc[:index_, ['remaining']])
-            scaled_additions_estimate_c.append(calc_value_c)
+            b_value = np.dot(adjusted_state_pop_scaled_b, remaining)
+            c_value = np.dot(adjusted_state_pop_scaled_c, remaining)
+ 
+            dataframe.loc[y, ['scaled_additions_estimate_b']] = b_value
+            dataframe.loc[y, ['scaled_additions_estimate_c']] = c_value
 
         removal_chg = 1 # Not sure what this is about
         fractions = [0.3, 0.4, 0.4, 0.35, 0.35, 0.35, 0.35, 0.3, 0.3, 0.3]
         fraction_retained = [f * removal_chg for f in fractions]
         
-        removals = []
-        for i in range(len(scaled_additions_estimate_a)):
-            if i > 0: 
-                removals.append(scaled_additions_estimate_c[i] - scaled_additions_estimate_c[i - 1] - scaled_additions_estimate_a[i])
-        
-        adjusted_removals = fraction_retained * removals
+        for i in dataframe.index:
+            if i >= '1870': 
+                removal = dataframe.loc[i, ['scaled_additions_estimate_c']].values - dataframe.loc[str(int(i) - 1), ['scaled_additions_estimate_c']].values - dataframe.loc[i, ['scaled_additions_estimate_a']].values
+                dataframe.loc[i, ['removal']] = removal
 
-        adjust_removals = []          
-        for i in range(len(fraction_retained)):
-            if i == 0: 
-                adjustment = adjusted_removals[i]
+        dataframe.loc[self.years_to_str(2009, 2009 + len(fractions) - 1), ['adjusted_removals']] = dataframe.loc[self.years_to_str(2009, 2009 + len(fractions) -1 ), ['removal']].values.flatten() * fraction_retained
+
+        for y_ in list(range(2009, 2009 + len(fractions))):
+            if y_ == 2009: 
+                dataframe.loc[str(y_), ['old_stk_retain']] = dataframe.loc[str(y_), ['adjusted_removals']]
             else: 
-                adjustment = adjust_removals[i - 1] + adjusted_removals[i]
-            adjust_removals.append(adjustment)
-        
+                dataframe.loc[str(y_), ['old_stk_retain']] = dataframe.loc[str(y_ - 1), ['old_stk_retain']].values + dataframe.loc[str(y_), ['adjusted_removals']].values
 
-        return scaled_additions_estimate_c - adjust_removals
+        dataframe['adjusted_removals'] = dataframe['adjusted_removals'].fillna(0)
+        dataframe.loc[self.years_to_str(1960, current_year), ['floorspace_bsf']] = dataframe.loc[self.years_to_str(1960, current_year), ['scaled_additions_estimate_c']].values - dataframe.loc[self.years_to_str(1960, current_year), ['adjusted_removals']].values
+
+        return dataframe[['floorspace_bsf']].dropna()
         
     def solve_logistic(self, dataframe):
         """Solve NES logistic parameters
         """    
-
-        pnnl_coefficients = [3.92276415, 73.2238120168849]  # [gamma, lifetime]
+        pnnl_coefficients = [3.92276415015621, 73.2238120168849]  # [gamma, lifetime]
         # popt, pcov = curve_fit(self.nems_logistic, xdata=dataframe[], ydata=dataframe[] , p0=pnnl_coefficients)
         # return popt 
         return pnnl_coefficients
@@ -441,13 +462,13 @@ class CommercialIndicators(LMDI):
         historical_floorspace_late = self.nems_logistic(dodge_to_cbecs, coeffs)  # properly formatted?
 
         historical_floorspace_early = {1949: 27235.1487296062, 1950: 27788.6370796569, 1951: 28246.642791733, 1952: 28701.4989706012, 
-                                                    1953: 29253.2282427217, 1954: 29913.8330998026, 1955: 30679.7157232176, 1956: 31512.6191323126,
-                                                    1957: 32345.382764321, 1958: 33206.8483392728, 1959: 34088.6640247816}
-        historical_floorspace_early = pd.DataFrame(historical_floorspace_early, columns=['Year', 'value'])
-
+                                       1953: 29253.2282427217, 1954: 29913.8330998026, 1955: 30679.7157232176, 1956: 31512.6191323126,
+                                       1957: 32345.382764321, 1958: 33206.8483392728, 1959: 34088.6640247816}
+        historical_floorspace_early = pd.DataFrame.from_dict(historical_floorspace_early, columns=['floorspace_bsf'], orient='index')
+        historical_floorspace_early.index = historical_floorspace_early.index.astype(str)
+    
         historical_floorspace = pd.concat([historical_floorspace_early, historical_floorspace_late])
         historical_floorspace_billion_sq_feet = historical_floorspace.multiply(0.001)
-
         return historical_floorspace_billion_sq_feet
 
     def fuel_electricity_consumption(self):
@@ -464,6 +485,7 @@ class CommercialIndicators(LMDI):
         fuels_dataframe = total_primary_energy_consumption.copy()
         replacement_data = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_fuels']]  # >= 1970: National Calibration Column 0
         fuels_dataframe.loc['1970':, ['total_primary']] = replacement_data.values
+        fuels_dataframe = fuels_dataframe.rename(columns={'total_primary': 'adjusted_consumption_trillion_btu'})
         elec_dataframe =  self.adjusted_supplier_data() 
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
@@ -475,24 +497,16 @@ class CommercialIndicators(LMDI):
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
         
         activity_data = self.activity()
-        print('activity data:', activity_data)
 
-        # energy_data = self.fuel_electricity_consumption()
-        # print('elec data:', energy_data['elec'])
-        # print('elec data:', energy_data['fuels'])
-
-        # results = self.call_lmdi(unit_conversion_factor=, adjust_for_weather=False, lmdi_model=lmdi_model)
-
+        energy_data = self.fuel_electricity_consumption()
+        energy_types = energy_data.keys()
+        lmdi = LMDI(categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003)
+        results = lmdi.call_lmdi(unit_conversion_factor=1, adjust_for_weather=False, lmdi_models=self.lmdi_model)
+        print(results)
 
 if __name__ == '__main__':
-    # CommercialIndicators().main()
-    CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').activity()
-    # CommercialIndicators().main()
-    # print(y)
-    # x = CommercialIndicators().adjusted_supplier_data()
-    # print(x)
+    CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').main()
 
-# CommercialIndicators().collect_data()
 
 
 

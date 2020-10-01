@@ -234,6 +234,7 @@ class WeatherFactors: # LMDI
                 year_weather = weather_factors[weather_factors['Year'] == y]
                 elec_factor = year_weather.dot(regional_weather_factors_elec)
                 fuels_factor = year_weather.dot(regional_weather_factors_fuels)
+        return {'elec': elec_factor, 'fuels': fuels_factor}
         
     def national_method2_regression_models(self, moving_average_weights=True, implicit_national_factors=False):
         if self.sector == 'commercial':

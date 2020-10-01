@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 from sklearn import linear_model
 from weather_factors import WeatherFactors
+from pull_eia_api import GetEIAData
 
 class LMDI:
     """Base class for LMDI"""
-    def __init__(self, categories_list, energy_data, activity_data, energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
+    def __init__(self, sector, categories_list, energy_data, activity_data, energy_types, directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
@@ -16,6 +17,8 @@ class LMDI:
         categories_list: list
             Sector or subsector categories over which to calculate LMDI
         """
+        self.directory = directory
+        self.sector = sector
         self.energy_data = energy_data
         self.activity_data = activity_data 
         self.categories_list = categories_list
@@ -26,35 +29,32 @@ class LMDI:
         self.energy_types = energy_types
         
     def get_elec(self):
-        delivered_electricity = self.energy_data['elec']
-        delivered_electricity = delivered_electricity.set_index('year')
-        delivered_electricity['Total'] = delivered_electricity.sum(axis=1)
-        delivered_electricity['Energy_Type'] = 'Electricity'
+        elec = self.energy_data['elec']
+        elec['Total'] = elec.sum(axis=1)
+        elec['Energy_Type'] = 'Electricity'
         return delivered_electricity
 
     def get_fuels(self):
         fuels = self.energy_data['fuels']
-        fuels = fuels.set_index('year')
         fuels['Total'] = fuels.sum(axis=1)
         fuels['Energy_Type'] = 'Fuels'
         return fuels
 
-    def get_deliv(self, delivered_electricity, fuels):
-        delivered = delivered_electricity.add(fuels)
+    def get_deliv(self, elec, fuels):
+        delivered = elec.add(fuels.values)
         delivered['Energy_Type'] = 'Delivered'
         return delivered
 
-    def get_source(self, delivered_electricity):
+    def get_source(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors()
-
-        source_electricity = delivered_electricity.multiply(conversion_factors) # Column A
-        total_source = source_electricity.add(fuels)     
+        source_electricity = elec.multiply(conversion_factors.values) # Column A
+        total_source = source_electricity.add(fuels.values)     
         total_source['Energy_Type'] = 'Source'
     
-    def get_source_adj(self, delivered_electricity):
+    def get_source_adj(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
 
-        source_electricity_adj = delivered_electricity.multiply(conversion_factors) # Column M
+        source_electricity_adj = elec.multiply(conversion_factors.values) # Column M
         source_adj = source_electricity_adj.add(fuels)
         source_adj['Energy_Type'] = 'Source_Adj'
 
@@ -165,9 +165,11 @@ class LMDI:
             -------
             weather_adjusted_data: dataframe ? 
         """
-        weather = WeatherFactors(region, energy_type, type, sector=self.sector, directory=self.directory)
+        weather = WeatherFactors(region, energy_type, sector=self.sector, directory=self.directory)
         weather_factors = weather.national_method1_fixed_end_use_share_weights()
-        weather_adjusted_data = data / weather_factors
+        weather_adjusted_data = dict()
+        for energy_type in energy_types:
+            weather_adjusted_data[energy_type] = data / weather_factors[energy_type]
         return weather_adjusted_data
 
     def lmdi_multiplicative(self, activity_input_data, energy_input_data, unit_conversion_factor=1):
@@ -194,10 +196,10 @@ class LMDI:
 
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
-    def lmdi_additive(self, activity_input_data, energy_input_data):
+    def lmdi_additive(self, activity_input_data, energy_input_data, weather_adjust=True):
         pass
 
-    def collect_energy_data(self):
+    def collect_energy_data(self, weather_adjust):
         energy_data_by_type = dict()
 
         funcs = {'elec': self.get_elec(), 
@@ -210,28 +212,28 @@ class LMDI:
             e_type_df = funcs[e_type]
             energy_data_by_type[e_type] = e_type_df
 
-        if adjust_for_weather: 
+        if weather_adjust: 
             for type, energy_dataframe in energy_data_by_type.items():
-                weather_adj_energy = adjust_for_weather(energy_dataframe, type) 
+                weather_adj_energy = self.adjust_for_weather(energy_dataframe, type) 
                 energy_data_by_type[f'{type}_weather_adj'] = weather_adj_energy
                 
         return energy_data_by_type
 
-    def call_lmdi(self, unit_conversion_factor, adjust_for_weather=False, lmdi_models=['multiplicative']):
+    def call_lmdi(self, unit_conversion_factor, weather_adjust=False, lmdi_models=['multiplicative']):
         
-        energy_data_by_type = self.collect_energy_data()
+        energy_data_by_type = self.collect_energy_data(weather_adjust)
 
         multiplicative_results = dict()
         additive_results = dict()
 
-        if 'multiplicative'.isin(lmdi_models):
+        if lmdi_models.contains('multiplicative'):
             for type, energy_dataframe in energy_data_by_type.items():
                 results = self.lmdi_multiplicative(self.activity_data, energy_dataframe, unit_conversion_factor)
                 multiplicative_results[type] = results
-        elif 'additive'.isin(lmdi_models): 
-            for type, energy_dataframe in energy_data_by_type.items():
-                results = self.lmdi_additive(self.activity_data, energy_dataframe, unit_conversion_factor)
-                additive_results[type] = results
+        # elif lmdi_models.contains('additive'): 
+        #     for type, energy_dataframe in energy_data_by_type.items():
+        #         results = self.lmdi_additive(self.activity_data, energy_dataframe, unit_conversion_factor)
+        #         additive_results[type] = results
         
         return multiplicative_results, additive_results
 
