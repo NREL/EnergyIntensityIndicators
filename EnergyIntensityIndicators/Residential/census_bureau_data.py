@@ -6,6 +6,7 @@ import numpy as np
 import scipy
 from scipy.optimize import leastsq, least_squares, minimize
 import matplotlib.pyplot as plt
+from statistics import mean
 
 
 class GetCensusData:
@@ -64,7 +65,32 @@ class GetCensusData:
     @staticmethod
     def get_percent_remaining_surviving(factor, lifetime, gamma):
         return 1 / (1 + (factor / lifetime) ** gamma)   
-    
+
+    @staticmethod
+    def interpolate_with_avg(dataframe, columns, even=True):
+        """[summary]
+
+        Args:
+            dataframe (df): dataframe with year index 
+            columns (list): names of columns to interpolate with average
+            even (bool): whether the years to fill are even (or odd if False)
+
+        Returns:
+            [type]: [description]
+        """ 
+        if even:
+            years_to_fill = [year for year in dataframe.index if year % 2 == 0]
+        else:
+            years_to_fill = [year for year in dataframe.index if year % 2 != 0]
+        for c in columns:
+           for y in years_to_fill:
+                if y > min(dataframe.index) and y + 1 in dataframe.index:
+                    value_before = dataframe.loc[y - 1, [c]].values[0]
+                    value_after = dataframe.loc[y + 1, [c]].values[0]
+                    value = mean([value_before, value_after])
+                    dataframe.loc[y, [c]] = value
+        return dataframe
+                     
     @staticmethod
     def get_place_nsa_all():
         years = list(range(1994, 2013 + 1))
@@ -73,7 +99,7 @@ class GetCensusData:
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
     
     @staticmethod
-    def housing_stock_model(year_array, new_comps_ann, pub_total_0, elasticity_of_retirements, coeffs, full_data=False):
+    def housing_stock_model(year_array, new_comps_ann, pub_total_0, elasticity_of_retirements, coeffs, full_data=False, retirement=False):
         """[summary]
 
         Args:
@@ -89,7 +115,8 @@ class GetCensusData:
         for index_, year_ in enumerate(year_array):
             if index_ == 0: 
                 existing_stock = pub_total_0 + coeffs[0]
-                predicted_retirement = 0 
+                predicted_retirement = 0
+                predicted_retirement_series = np.array([predicted_retirement])
                 new_units = 0
                 existing_stock_series = np.array([existing_stock])
                 predicted_total_stock_series = np.array([existing_stock])
@@ -98,14 +125,17 @@ class GetCensusData:
                 adjusted_new_units = np.sign(new_units) * (np.abs(new_units)) ** elasticity_of_retirements
                 existing_stock = predicted_total_stock_series[index_ - 1]
                 predicted_retirement = (-1 * existing_stock) * adjusted_new_units * coeffs[1]
-            
                 predicted_total_stock = existing_stock + predicted_retirement + new_units
             
+                predicted_retirement_series = np.vstack([predicted_retirement_series, predicted_retirement])
                 existing_stock_series = np.vstack([existing_stock_series, existing_stock])
                 predicted_total_stock_series = np.vstack([predicted_total_stock_series, predicted_total_stock])
         
         predicted_total_stock_series = predicted_total_stock_series.flatten()
         predicted_total_stock_series_skip = predicted_total_stock_series[0::2]
+        
+        if retirement:
+            return predicted_retirement_series
 
         if full_data:
             return predicted_total_stock_series
@@ -113,7 +143,7 @@ class GetCensusData:
             return predicted_total_stock_series_skip
     
     @staticmethod
-    def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs):
+    def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs, x):
         """[summary]
 
         Args:
@@ -121,7 +151,7 @@ class GetCensusData:
             new_comps_ann ([type]): [description]
             coeffs ([type]): [description]
         """                
-        new_comps_ann_adj = new_comps_ann * x[2]
+        new_comps_ann_adj = new_comps_ann * x[2]  # here x is the coeffs from occupied units
         cnh_avg_size = [0] # SFTotalMedAvgSqFt column G
         column_bh = new_comps_ann.multiply(cnh_avg_size)
         select_index = 24
@@ -170,116 +200,121 @@ class GetCensusData:
 
         predicted_ave_size_series = predicted_ave_size_series.flatten()
         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
-
-        return predicted_ave_size_series_skip
-
-    @staticmethod
-    def model_average_housing_unit_size_mf(year_array, new_comps_ann, predicted_retirement, coeffs):
-        """[summary]
+        
+        df['predicted'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divde(df['BL'])
+        return df['predicted']
+    
+    def get_housing_size_mf(self, retirement_df, occupied_predicted_mf1):
+         """[summary]
 
         Args:
-            year_array ([type]): [description]
             new_comps_ann (series): [description]
-            predicted_retirement ([type]): [description]
-            coeffs ([type]): [description]
+            coeffs (list): [CM$5, $CM$6, $CM$7]
+            df (dataframe): Input data, df contains 'occupied_predicted_mf' and 'retirements' columns (from housing stock mf)
 
         Returns:
             [type]: [description]
         """        
-        new_comps_ann_adj = new_comps_ann * x[2]
-        new_comps_ann_multifamily = [0]
+        just_adjustment = 0.75
+        df = df.reindex(columns=df.columns + ['BJ', 'BM', 'CB', 'final'])
+        df['BE'] = comps_ann
 
-        cnh_avg_size = [0] # SFTotalMedAvgSqFt column I
-        column_bh = new_comps_ann.multiply(cnh_avg_size)
-        select_index = 24
-        for index_, year_ in enumerate(year_array):
-            if index_ == 0: 
-                bi = column_bh[index_]
-                column_bi = np.array([bi])
+        ahs_table = 
+        ahs_table = ahs_table.rename(columns={'1970-1979': '1975', '1980-1989': '1985', '1990-1999': '1995', '2000 & later': '2005'})
+        ahs_table = ahs_table.reindex(index=ahs_table + [2011])
+        ahs_table.loc[2011, :] = ahs_table.mean(axis=0)
 
-                post_1984_units = new_comps_ann[_index]
-                post_1984_units_series = np.array([post_1984_units])
+        actual_size =  # from ahs tables
 
-                pre_1985_stock = occupied_predicted[index_]
-                pre_85_stock_series = np.array([pre_1985_stock])
-
-                bl = pre_1985_stock
+        for i in df.index:
+            if i == min(df.index):
+                df.loc[i, ['BJ']] = df.loc[i, 'BE']
+            elif i == 1984:
+                df.loc[i, ['BJ']] = 0
             else:
-                bi =  column_bh[index_] + column_bi[index_ - 1]
-                column_bi = np.vstack([column_bi, bi])
+                df.loc[i, ['BJ']] = df.loc[i - 1, ['BJ']].add(df.loc[i, ['BE']].values)
 
-                post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
-                post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
+        df.loc[1985, ['BM']] = occupied_predicted_mf1
+        for year in range(1986, max(dataframe.index)):
+            df.loc[year, ['BM']] = df.loc[1985:year, ['retirements']]
 
-                pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
-                pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
+        df['BP'] = df['BJ'].divide(df['BJ'].add(df['BM'].values).values)
+        
+        decades = list(range(1985, 2005, 10))
+        adjustment_dict = dict()
+        for i, d in enumerate(decades):
+            df.loc[d, ['CB']] = ahs_table.loc[2011, [str(d)]]
+            decade_after = df.loc[decades[i + 1]
+            adjustment = (decade_after, ['CB']].values - df.loc[d, ['CB']].values) / 10
+            adjustment_dict[d] = adjustment
+            for y_ in range(d + 1, decade_after - 1):
+                df.loc[y_, ['CB']] = df.loc[y_ - 1, ['CB']] + adjustment
+        df.loc[2006, ['CB']] = df.loc[2005, ['CB']].values + adjustment_dict[1995]
+        df.loc[2007, ['CB']] = df.loc[2006, ['CB']].values + adjustment_dict[1995]
+        df['CB'] = df['CB'].ffill()
 
-                bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
+        x0 = [567.081097939713, -22.7744777937053, 2.44216497607253]
 
-            ave_size_post_84_units = bi / post_1984_units
-            
-            if index_ == select_index:
-                predicted_size_pre_1985_stock = coeffs[0]
-            else: 
-                predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+        x, flag = leastsq(self.residuals_avg_size_mf, x0, args=(actual_size, df['BE'].values, df), maxfev=1600)
+        results = self.average_housing_unit_size_mf(x, df)
 
-            total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
-            bp = post_1984_units / (post_1984_units + pre_1985_stock)
-            
-            total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+        return results
 
-            predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+    def residuals_avg_size_mf(self, coeffs, actual_size, input_data):
+        residuals = actual_size - self.average_housing_unit_size_mf(coeffs, input_data)
+        return residuals
 
-            if index_ == 0:
-                predicted_ave_size_series = np.array([predicted_ave_size])
-            else:
-                predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
-
-        predicted_ave_size_series = predicted_ave_size_series.flatten()
-        predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
-
-        return predicted_ave_size_series_skip
+    @staticmethod
+    def average_housing_unit_size_mf(coeffs, df):
+        year_1997_value = coeffs[0]
+        index_year = 1997
+        df['Predicted size of pre-1985 stock'] = year_1997_value + coeffs[1] * (df.index - index_year) * 0.75
+        df['CN'] = df['CB'] * coeffs[2]
+        df['Post-85 shr'] = df['BP'] 
+        df['Ave Size Predicted'] = (1 - df['Post-85 shr'].values).multiply(df['Predicted size of pre-1985 stock']).add(df['Post-85 shr'].multiply(df['CN'].values))
+        df.loc[1985:1999, ['final']] = df.loc[1985:1999, ['Predicted-II']]
+        df.loc[2000:, ['final']] = df.loc[2000:, ['Ave Size Predicted']]
+        return df['final'].values
+        
     
     @staticmethod
     def model_average_housing_unit_size_mh():
-        """Create average housing unit size dataframe for Manufactured housing
-
-        Returns:
-            [type]: [description]
+        """recs_data from  D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)
+           ratio_80_70 from D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
+           ratio_80_74 from D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
+           recs_data[2015] = 1191.2 from RECS_4_adj
         """        
-        pre_1980_ratios = {1970: 0.838421513, 1974: 0.944122109}  # from 'D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size'
-        recs_total =  {1980: 826.0869565, 1984: 843.1372549, 1987: 864.7058824, 1990: 942.3076923, 
-                                   1993: 989.0909091, 1997: 995.2380952, 2001: 1061.995005, 2005: 1062.008978, 2009: 1087}  # from 'D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)'
-        for y in [1970, 1974]:
-            recs_total[y] = recs_total[1980] * pre_1980_ratios[y]
-        
-        recs_total[2015] = 1191.2  # From 'RECS_4_adj'
+        recs_data = {1980: 826.087, 1984: 843.1373, 1987: 864.7059, 1990: 942.3077, 1993: 989.0909, 1997: 995.2381, 
+                     2001: 1061.995, 2005: 1062.009, 2009: 1087} 
+        ratio_80_70 = 0.838422
+        ratio_80_74 = 0.944122
+        recs_data[1970] = recs_data[1980] * ratio_80_70         
+        recs_data[1974] = recs_data[1980] * ratio_80_74
+        recs_data[2015] = 1191.2 
 
-        manh_size = dict()
-        increment_years = [1970, 1974, 1980, 1984, 1987, 1990, 1993, 1997, 2001, 2005, 2009, 2015]
-        
+        manh_data = dict()
+        increment_years = sorted(list(recs_data.keys()))
         for index, y_ in enumerate(increment_years):
             if index > 0:
                 year_before = increment_years[index - 1]
                 num_years = y_ - year_before
-                difference = recs_total[y_] - recs_total[year_before]
+                difference = recs_data[y_] - recs_data[year_before]
                 increment = difference / num_years
                 for delta in range(num_years):
-                    value = recs_total[year_before]  + delta * increment
+                    value = recs_data[year_before]  + delta * increment
                     year = year_before + delta
-                    manh_size[year] = value
-        
-        manh_size[2016] = 1196  # Assume smaller change - 5 sq. ft. per year,  rounded?
-        manh_size[2017] = manh_size[2016] + 5 # Assume smaller change - 5 sq. ft. per year 
-        
-        manh_size_df = pd.DataFrame(manh_size, columns=['year', 'manh_size']).set_index('year')
-        return manh_size
+                    manh_data[year] = value
+            manh_data[y_] = recs_data[y_]
+
+        manh_data[2016] = 1196  # Assume smaller change - 5 sq. ft. per year,  rounded?
+        manh_data[2017] = manh_data[2016] + 5 # Assume smaller change - 5 sq. ft. per year 
+        manh_size_df = pd.DataFrame.from_dict(manh_data, orient='index', columns=['manh_size'])
+
+        recs_based = recs_manhome.loc[1985:, :]
+        return recs_based
     
     def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
         residuals = actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
-        # residuals_sq = np.square(residuals)
-        # sum_residuals_sq = np.sum(residuals_sq)
-        # return sum_residuals_sq
         return residuals
 
     def sum_squared_residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
@@ -363,9 +398,9 @@ class GetCensusData:
         
         occupied_predicted = np.multiply(occupation_rate, predicted_total_stock)
 
-        return actual_stock, occupied_predicted
+        return actual_stock, occupied_published, occupied_predicted
 
-    def get_housing_stock_mf(self, all_stock_sf):
+    def get_housing_stock_mf(self, all_stock_sf, occupied_pub_sf):
         """Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)
 
         Args:
@@ -381,19 +416,20 @@ class GetCensusData:
         adjustment_factors = [1, 1, 1, 1.06, 1, 1, 1, 1.03, 1.04, 1, 1, 1, 1, 1, 1, 1, 1]
         elasticity_of_retirements = 0.8
 
-
         pub_total_years = list(range(1985, 1985 + 2 * len(pub_total_values), 2))       
         actual_sf_years = list(range(1985, 1985 + 2 * len(all_stock_sf), 2))
 
         actual_stock = np.subtract(pub_total_values, all_stock_sf)
         actual_stock_df = pd.DataFrame.from_dict({year: all_stock_sf[i] for i, year in enumerate(actual_sf_years)}, orient='index', columns=['all_stock_sf']).fillna(0)
         pub_total = pd.DataFrame(list(zip(pub_total_years, pub_total_values)), columns=['Year', 'pub_total']).set_index('Year')
-        df = actual_stock_df.merge(pub_total, left_index=True, right_index=True)
+        df = actual_stock_df.merge(pub_total, left_index=True, right_index=True, how='outer')
 
         df['pub_total_mf'] = df['pub_total'].subtract(df['all_stock_sf'].values)
         df['pub_total_mf'] = df['pub_total_mf'].multiply(adjustment_factors)
 
         year_array = list(range(1985, 1985 + 2 * len(pub_total_values), 1)) 
+        year_df = pd.DataFrame(year_array, columns=['Year']).set_index('Year')
+        df = df.merge(year_df, left_index=True, right_index=True, how='outer')
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
@@ -403,49 +439,103 @@ class GetCensusData:
         new_comps_ann_df['New'] = new_comps_ann_df.sum(axis=1)
         new_comps_ann = new_comps_ann_df['New']
 
-        occupied_single_family = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, ] # column J Total_stock_SF, append prortion from AHS tables, etc
-        occupied = [511+107+763+62, 487+192+701+104, 440+151+665+93, 444+259+692+66, 388+195+624+70, 482+197+624+77, 574+280+682+98, 481+269+670+79
+        occupied = [511+107+763+62, 487+192+701+104, 440+151+665+93, 444+259+692+66, 388+195+624+70, 482+197+624+77, 574+280+682+98, 481+269+670+79,
                     556+334+858+78, 675+252+882+82, 681+229+1026+92, 850+192+567+104, 820+198+1477+175, 803+252+1238+115] # 2670, for 2010
-        occupied_years = actual_sf_years = list(range(1985, 1985 + 2 * len(occupied), 2))
-        occupied_df = pd.DataFrame(list(zip(occupied_years, occupied)), columns=['Year', 'occupied'])
-        households = [0] # National_Calibration'!E13
-        year = [0]
+        occupied_years = list(range(1985, 1985 + 2 * len(occupied), 2))
+        even_years = [o + 1 for o in occupied_years]
 
+        occupied_df = pd.DataFrame(list(zip(occupied_years, occupied)), columns=['Year', 'occupied']).set_index('Year')
+        
+        occupied_pub_sf_years = list(range(1985, 1985 + 2 * len(occupied_pub_sf), 2)) 
+        occupied_pub_sf_df = pd.DataFrame(list(zip(occupied_pub_sf_years, occupied_pub_sf)), columns=['Year', 'occupied_single_family']).set_index('Year')
+
+        df = df.merge(occupied_df, left_index=True, right_index=True, how='outer')
+        df = df.merge(occupied_pub_sf_df, left_index=True, right_index=True, how='outer')
+        df['occupied_single_family'] = df['occupied_single_family'].fillna(0)
+        df['all_stock_sf'] = df['all_stock_sf'].fillna(0)
+  
         x0 = [-1171.75478590956, 0.0000292335584342192, 0.8]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        print('find coefficients:')
+        actual_stock_calc = df[df['pub_total_mf'].notnull()]['pub_total_mf'].values.flatten()
+        x, flag = leastsq(self.residuals, x0, args=(actual_stock_calc, year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
-        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
-        R = [88425-4754, 90888-5267, 93683-5438, 93147-5630, 94724-5655, 97693-6164, 99487-6544, 102803-6785, 106261-7219, 105842-6854, 108871-6940, 110692-6919, 111806-6839, 114907-7190, 115852-6917] # Last two values (not included here) are from AHS_2015_extract and AHS_2017_extract
-        R = R - occupied_single_family
-        Y = df['pub_total_mf'].subtract(R)
-        Z = Y.divide(df['pub_total_mf'].values)
-        predicted_unoccupied = predicted_total_stock - df['occupied'].values
-        occupied_predicted = (1 - Z) * predicted_total_stock 
-        return occupied_predicted
+        print('find predicted total stock:') 
+        predicted_total_stock = self.housing_stock_model(year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements, x, full_data=True)  
+        predicted_retirement = self.housing_stock_model(year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements, x, retirement=True)  
 
-    def get_housing_stock_mh(self):
+        df['predicted_retirement'] = predicted_retirement.flatten().values
+        R = [88425-4754, 90888-5267, 93683-5438, 93147-5630, 94724-5655, 97693-6164, 99487-6544, 102803-6785, 106261-7219, 105842-6854, 108871-6940, 110692-6919, 111806-6839, 114907-7190, 115852-6917, 28047, 28967] # Last two values (included here) are from AHS_2015_extract and AHS_2017_extract
+        R = np.array(R) - np.array(occupied_pub_sf[:-2] + [0, 0])
+        df_R = pd.DataFrame(list(zip(actual_sf_years, R)), columns=['Year', 'R']).set_index('Year')
+        df = df.merge(df_R, left_index=True, right_index=True, how='outer')
+        df['Y'] = df['pub_total_mf'].subtract(df['R'].values)
+        df['Z'] = df['Y'].divide(df['pub_total_mf'].values)
+
+        df = self.interpolate_with_avg(df, columns=['occupied', 'Z'])
+        df.loc[2007, 'Z'] = df.loc[2007, 'Z'] - 0.005
+        df['Z'] = df['Z'].ffill()
+        predicted_unoccupied = predicted_total_stock - df['occupied'].values
+        occupied_predicted = (1 - df['Z']) * predicted_total_stock 
+        return occupied_predicted, df[['predicted_retirement']]
+
+    def get_housing_stock_mh(self, all_stock_sf, occupied_pub_sf):
 
         # new_comps_ann =   pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/placensa_all.xls', sheet_name='histplac', skiprows= , usecols=)# Added (place_nsa_all)
         # NEED TO PROCESS 
         new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='place_nsa_all', skiprows=8, usecols="C", header=None).dropna()
         factor = 0.96
         elasticity_of_retirements = 0.5
-        
-        year_array = list(range(1985, 2019))
 
+        occupied_mh = [4754, 5267, 5438, 5630, 5655, 6164, 6544, 6785, 7219, 6854, 6940, 6919, 6839, 7190, 6917, 6901.7, 6724.4]
+        pub_total_mh = [6094, 6688, 6908, 6983, 7072, 7647, 8301, 8433, 8876, 8971, 8630, 8705, 8769, 9049, 8603, 8686.5, 8396.7]
+        L = [511+107+763+62, 487+192+701+104, 440+151+665+93, 444+259+692+66, 388+195+624+70, 482+197+624+77, 574+280+682+98, 
+             481+269+670+79, 556+334+858+78, 675+252+882+82, 681+229+1026+92, 850+192+567+104, 820+198+1477+175, 803+252+1238+115]
+
+        occupied_years = list(range(1985, 1985 + 2 * (len(occupied_mh)), 2))
+        pub_total_years = list(range(1985, 1985 + 2 * (len(pub_total_mh)), 2))
+        L_years = list(range(1985, 1985 + 2 * (len(L)), 2))
+        all_stock_sf_years = list(range(1985, 1985 + 2 * (len(all_stock_sf)), 2))
+        occupied_pub_sf_years = list(range(1985, 1985 + 2 * (len(occupied_pub_sf)), 2))
+
+        occupied_mh_df = pd.DataFrame(list(zip(occupied_years, occupied_mh)), columns=['Year', 'occupied_mf']).set_index('Year')
+        pub_total_mh_df = pd.DataFrame(list(zip(pub_total_years, pub_total_mh)), columns=['Year', 'pub_total_mh']).set_index('Year')
+        L_df = pd.DataFrame(list(zip(L_years, L)), columns=['Year', 'L']).set_index('Year')
+        all_stock_sf_df = pd.DataFrame(list(zip(all_stock_sf_years, all_stock_sf)), columns=['Year', 'all_stock_sf']).set_index('Year')
+        occupied_pub_sf_df = pd.DataFrame(list(zip(occupied_pub_sf_years, occupied_pub_sf)), columns=['Year', 'occupied_pub_sf']).set_index('Year')
+
+        df = occupied_mh_df.merge(pub_total_mh_df, left_index=True, right_index=True, how='outer')
+        df = df.merge(L_df, left_index=True, right_index=True, how='outer')
+        df = df.merge(all_stock_sf_df, left_index=True, right_index=True, how='outer')
+        df = df.merge(occupied_pub_sf_df, left_index=True, right_index=True, how='outer')
+
+        df['Y'] = df['pub_total_mh'].subtract(df['occupied_mf'])
+        df['Z'] = df['Y'].divide(df['pub_total_mh'])
+
+        year_array = list(range(1985, 1985 + 2 * len(pub_total_mh), 1)) 
+        year_df = pd.DataFrame(year_array, columns=['Year']).set_index('Year')
+        df = df.merge(year_df, left_index=True, right_index=True, how='outer')
+
+        df = self.interpolate_with_avg(df, columns=['Z', 'L'], even=True)
+        df['Z'] = df['Z'].ffill()
+        df['all_stock_sf'] = df['all_stock_sf'].fillna(0)
+        df['occupied_pub_sf'] = df['occupied_pub_sf'].fillna(0)
+
+        year_array = list(range(1985, 2019))
 
         x0 = [216.913442843698, 0.00109247463281509, 1.05]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
+        actual_stock_calc = df[df['pub_total_mh'].notnull()]['pub_total_mh'].values.flatten()
+
+        x, flag = leastsq(self.residuals, x0, args=(actual_stock_calc, year_array, ca, df['pub_total_mh'].values[0], elasticity_of_retirements), maxfev=1600)
         print('X: ', x)
         print('flag: ', flag)
 
-        predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
-
-        return predicted_total_stock
+        predicted_total_stock = self.housing_stock_model(year_array, ca, df['pub_total_mh'].values[0], elasticity_of_retirements, x, full_data=True)  
+        occupied_predicted = (1 - df['Z'].values) * predicted_total_stock
+        return occupied_predicted
 
     @staticmethod
     def get_housing_stock(housing_type):
@@ -533,14 +623,20 @@ class GetCensusData:
 
     def main(self):
         data = GetCensusData()
-        actual_stock_sf, occupied_predicted_sf = data.get_housing_stock_sf()
-        print(occupied_predicted_sf)
-        predicted_total_stock_mf = data.get_housing_stock_mf(all_stock_sf=actual_stock_sf)
-        print(predicted_total_stock_mf)
-        # z = data.get_housing_stock_mh()
-        # print('sf results:', actual_stock_df, occupied_predicted)
-        # print('mf results:', y)
-        # print('mh results:', z)
+        # actual_stock_sf, occupied_sf, occupied_predicted_sf = data.get_housing_stock_sf()
+        # # a = data.model_average_housing_unit_size_sf()
+
+        # z = data.get_housing_stock_mh(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
+        # c = data.model_average_housing_unit_size_mh()
+
+        occupied_predited_mf, predicted_retirements = data.get_housing_stock_mf(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
+        occupied_predicted_mf1 = occupied_predited_mf[0]
+
+        b = data.get_housing_size_mf(retirement_df=predicted_retirements, occupied_predicted_mf1=occupied_predicted_mf1)
+        print(b)
+
+
+
 
 
 if __name__ == '__main__':
@@ -549,3 +645,53 @@ if __name__ == '__main__':
 
 
 
+
+
+
+# for index_, year_ in enumerate(year_array):
+#             if index_ == 0: 
+#                 bi = column_bh[index_]
+#                 column_bi = np.array([bi])
+
+#                 post_1984_units = new_comps_ann[_index]
+#                 post_1984_units_series = np.array([post_1984_units])
+
+#                 pre_1985_stock = occupied_predicted[index_]
+#                 pre_85_stock_series = np.array([pre_1985_stock])
+
+#                 bl = pre_1985_stock
+#             else:
+#                 bi =  column_bh[index_] + column_bi[index_ - 1]
+#                 column_bi = np.vstack([column_bi, bi])
+
+#                 post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
+#                 post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
+
+#                 pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
+#                 pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
+
+#                 bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
+
+#             ave_size_post_84_units = bi / post_1984_units
+            
+#             if index_ == select_index:
+#                 predicted_size_pre_1985_stock = coeffs[0]
+#             else: 
+#                 predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+
+#             total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
+#             bp = post_1984_units / (post_1984_units + pre_1985_stock)
+            
+#             total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+
+#             predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+
+#             if index_ == 0:
+#                 predicted_ave_size_series = np.array([predicted_ave_size])
+#             else:
+#                 predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
+
+#         predicted_ave_size_series = predicted_ave_size_series.flatten()
+#         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
+
+#         return predicted_ave_size_series_skip
