@@ -15,7 +15,7 @@ import pandas as pd
 from sklearn import linear_model
 from pull_eia_api import GetEIAData
 from LMDI import CalculateLMDI
-from Residential.census_bureau_data import GetCensusData
+from Residential.residential_floorspace import GetCensusData
 
 class ResidentialIndicators(CalculateLMDI): 
 
