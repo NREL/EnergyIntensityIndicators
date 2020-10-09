@@ -1,17 +1,22 @@
 import pandas as pd
 import os
 import requests
+import zipfile
 from zipfile import ZipFile
 import numpy as np
 import scipy
 from scipy.optimize import leastsq, least_squares, minimize
 import matplotlib.pyplot as plt
 from statistics import mean
+import io
+from functools import reduce
+
 
 
 class GetCensusData:
     
-    def __init__(self): 
+    def __init__(self, end_year=2018):
+        self.end_year = end_year 
         pass
     
     @staticmethod
@@ -22,17 +27,30 @@ class GetCensusData:
         ? https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html 
         """    
         ahs_url_folder = 'http://www2.census.gov/programs-surveys/ahs/2017/AHS%202017%20National%20PUF%20v3.0%20CSV.zip?#' 
-        
-        if os.path.exists('./household.csv'):
+
+        if os.path.exists('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/household.csv'):
+            print('AHS data already ready')
             pass
         else: 
-            with ZipFile(ahs_url_folder, 'r') as zipOjb:
-                zipOjb.extact('household.csv')
-       
-        ahs_household_data = pd.read_csv('./household.csv')
+            r = requests.get(ahs_url_folder, stream=True)
+            print('AHS data get successful:', r.ok)
+            z = ZipFile(io.BytesIO(r.content))
+            z.extract('household.csv', path='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/')
+
+        ahs_household_data = pd.read_csv('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/household.csv')
         columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
         extract_ahs = ahs_household_data[columns]
-        extract_ahs= extract_ahs[extract_ahs['BLD'].isin(['04', '05', '06', '07', '08', '09'])]
+        extract_ahs = extract_ahs.replace(to_replace={"'": ""})
+        extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
+        extract_ahs['DIVISION'] = extract_ahs['DIVISION'].replace(to_replace="'", value='')
+        extract_ahs['UNITSIZE'] = extract_ahs['UNITSIZE'].replace(to_replace="'", value='')
+        extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
+
+        vals_list = ["'04'", "'05'", "'06'", "'07'", "'08'", "'09'"]
+        print(vals_list)
+        print(extract_ahs['BLD'].unique())
+
+        extract_ahs= extract_ahs[extract_ahs['BLD'].isin(vals_list)]
         housing_types = ['single_family', 'multifamily', 'manufactured_homes']
         housing_occupancy_types = [f'{h}_total' for h in housing_types] + [f'{h}_occupied' for h in housing_types]
         housing_type_number = dict(zip()) # match the numbers in ['04', '05', '06', '07', '08', '09'] to housing/occupancy type
@@ -53,15 +71,44 @@ class GetCensusData:
         # utilize the category data to estimate the average size change between 2015 and 2017 did not provide useful results. Processing of future AHS public use
         # files may exlcude any consideration of this variable. In the current tables, only the values for total units across all sizes were considered.
         pivot_census_division = pd.pivot_table(extract_ahs, values='WEIGHT' , index=['BLD', 'UNITSIZE'] , columns='DIVISION' , aggfunc='sum')  
-        pivot_census_division['census_region_1'] = pivot_census_division['1'] + pivot_census_division['2']   # alternative method: df['C'] = df.apply(lambda row: row['A'] + row['B'], axis=1)
-        pivot_census_division['census_region_2'] = pivot_census_division['3'] + pivot_census_division['4']
-        pivot_census_division['census_region_3'] = pivot_census_division['5'] + pivot_census_division['6'] + pivot_census_division['7']
-        pivot_census_division['census_region_4'] = pivot_census_division['8'] + pivot_census_division['8']
-        pivot_census_division['total'] = pivot_census_division['census_region_1'] + pivot_census_division['census_region_2'] + pivot_census_division['census_region_3'] + pivot_census_division['census_region_4']
-        pivot_census_division.loc['Grand Total', :]= pivot_census_division.sum(axis=0)
+        pivot_census_division['census_region_1'] = pivot_census_division["'1'"] + pivot_census_division["'2'"]   # alternative method: df['C'] = df.apply(lambda row: row['A'] + row['B'], axis=1)
+        pivot_census_division['census_region_2'] = pivot_census_division["'3'"] + pivot_census_division["'4'"]
+        pivot_census_division['census_region_3'] = pivot_census_division["'5'"] + pivot_census_division["'6'"] + pivot_census_division["'7'"]
+        pivot_census_division['census_region_4'] = pivot_census_division["'8'"] + pivot_census_division["'9'"]
+        pivot_census_division['total'] = pivot_census_division[['census_region_1', 'census_region_2', 'census_region_3', 'census_region_4']].sum(axis=1)
+        # pivot_census_division = pivot_census_division.reset_index('BLD')
+        # pivot_census_division = pivot_census_division.reindex(pivot_census_division.index + ['Grand Total'])
+        # pivot_census_division.loc['Grand Total'] = pivot_census_division.sum(axis=0)
 
-        return pivot_census_division          
-    
+        return pivot_census_division        
+
+    def get_ahs_tables(self):
+        #  historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
+        # #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
+        #  for year in list(historical_ahs['Years']):
+        #     print('AHS Year:', year)
+        #     df = historical_ahs[historical_ahs['Years'] == year]
+        #     regions = ['National', 'West', 'Northeast', 'South', 'Midwest']
+        #     for region in regions: 
+        #         print('AHS region:', region)
+        #         columns_ = [c for c in list(range(df.shape[1])) if df.iloc[1, [c]].values == region]
+        #         print('columns:', columns_)
+        #         # try: 
+        #         region_df = df[df.ix[:, columns_]] 
+        #         print(region_df)
+        #         # except Exception as e:
+        #         #     print('Error:', e)
+
+        #     #     try: 
+        #     #         regi
+        #     #         region_df = 
+        #     #         print(region_df)
+
+        #     #         # print(region_df)
+
+
+        pass
+
     @staticmethod
     def get_percent_remaining_surviving(factor, lifetime, gamma):
         return 1 / (1 + (factor / lifetime) ** gamma)   
@@ -141,71 +188,98 @@ class GetCensusData:
             return predicted_total_stock_series
         else:
             return predicted_total_stock_series_skip
+
+    def residuals_avg_size_sf(self, coeffs, actual_size, input_data):
+        residuals = actual_size - self.model_average_housing_unit_size_sf(coeffs, input_data).values
+        return residuals
     
     @staticmethod
-    def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs, x):
+    def model_average_housing_unit_size_sf(coeffs, df):
+        # year_array = np.array(df.index)
+        # for y in year_array:
+        #     if y == 1985: 
+
+        df.loc[1997, ['BN']] = coeffs[0]
+        df.loc[1985, ['BM']] = df.loc[1985, ['occupied_predicted']].values
+        df.loc[1985, ['BL']] = df.loc[1985, ['BM']].values
+        for y in df.index:
+            if y > 1985: 
+                df.loc[y, ['BM']] = df.loc[1985, ['BM']].add(sum(df.loc[1985 : y, ['occupied_predicted']].values))
+                df.loc[y, ['BL']] = ((df.loc[y, ['post_1984_units']].values + df.loc[y - 1, ['post_1984_units']].values) * 0.5 * coeffs[2]) + df.loc[y, ['BM']].values
+
+            df.loc[y, ['BN']] = df.loc[1997, ['BN']].add(coeffs[1]).multiply((y - 1997))
+
+        df['total_sqft_pre_1985'] = df['BM'].multiply(df['BN'].values)  # BO
+        df['total_sqft_post_1985'] = df['post_1984_units'].multiply(df['avg_size_post84_units']).multiply(coeffs[2]).multiply(1.15) # BQ
+        df['predicted_avg_size'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divide(df['BL'].values)
+        return df[['predicted_avg_size']]
+
+    def get_housing_size_sf(self, df): 
         """[summary]
 
         Args:
-            year_array ([type]): [description]
-            new_comps_ann ([type]): [description]
-            coeffs ([type]): [description]
-        """                
-        new_comps_ann_adj = new_comps_ann * x[2]  # here x is the coeffs from occupied units
-        cnh_avg_size = [0] # SFTotalMedAvgSqFt column G
-        column_bh = new_comps_ann.multiply(cnh_avg_size)
-        select_index = 24
-        for index_, year_ in enumerate(year_array):
-            if index_ == 0: 
-                bi = column_bh[index_]
-                column_bi = np.array([bi])
+            df (dataframe): Dataframe containing column 'occupied_predicted' (predicted number housing units)
 
-                post_1984_units = new_comps_ann[_index]
-                post_1984_units_series = np.array([post_1984_units])
+        Returns:
+            [type]: [description]
+        """        
+        # CSV for 3 average housing size columns
+        if self.end_year > max(df.index) or not os.path.exists(f'./resuts_{self.end_year}.csv'):
 
-                pre_1985_stock = occupied_predicted[index_]
-                pre_85_stock_series = np.array([pre_1985_stock])
-
-                bl = pre_1985_stock
-            else:
-                bi =  column_bh[index_] + column_bi[index_ - 1]
-                column_bi = np.vstack([column_bi, bi])
-
-                post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
-                post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
-
-                pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
-                pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
-
-                bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
-
-            ave_size_post_84_units = bi / post_1984_units
+            df = df.reindex(columns=list(df.columns) + ['BI', 'post_1984_units', 'BM', 'BN', 'BL'])
             
-            if index_ == select_index:
-                predicted_size_pre_1985_stock = coeffs[0]
-            else: 
-                predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+            x0 = [1901.39732722429, 7.49900783768688, 1] # Top to bottom, skipping SSRD
 
-            total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
-            bp = post_1984_units / (post_1984_units + pre_1985_stock)
+            new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', usecols='A, C').rename(columns={'New Privately Owned Housing Units Completed': 'Years', 'Unnamed: 2': 'new_comps_ann'}).set_index('Years') #  skiprows=26, index_col=0, 
+            new_comps_ann = new_comps_ann.loc[list(range(1968, self.end_year + 1)), :]
+            new_comps_ann = new_comps_ann.rename(columns={0: 'new_comps_ann'}) # Comps Ann column C
+            df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
+            print('current dir:', os.getcwd())
+
+            cnh_avg_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/SFTotalMedAvgSqFt.xlsx', sheet_name='data', index_col=0) #) #, usecols='G') , skipfooter=54, skiprows=7, header=8
+            cnh_avg_size = cnh_avg_size.loc[list(range(1973, self.end_year + 1)), ['Unnamed: 6']].reset_index().rename(columns={'Median and Average Square Feet of Floor Area in New Single-Family Houses Completed1': 'Years', 
+                                                                        'Unnamed: 6': 'cnh_avg_size'})
+            cnh_avg_size = cnh_avg_size.set_index('Years')                                                                                                           
+            df = df.merge(cnh_avg_size, left_index=True, right_index=True, how='left')
+
+            actual_avg_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_SF', usecols='AW, BD').rename(columns={'Unnamed: 48': 'Years', 'Size Calc1': 'actual_avg_size'}).set_index('Years')  # from AHS Tables pd.read(csv?)
+            df = df[df.index.notnull()]
+            df = df.merge(actual_avg_size, left_index=True, right_index=True, how='left')
+
+            df['BH'] = df['new_comps_ann'].multiply(df['cnh_avg_size'].values)
+            for year in df.index:
+                if year == min(df.index):
+                    df.loc[year, ['BI']] = df.loc[year, ['BH']].values
+                    df.loc[year, ['post_1984_units']] = df.loc[year, ['new_comps_ann']].values
+                elif year == 1984:
+                    df.loc[year, ['BI']] = 0
+                    df.loc[year, ['post_1984_units']] = 0
+                else: 
+                    df.loc[year, ['BI']] = df.loc[year - 1, ['BI']].add(df.loc[year, ['BH']].values)
+                    df.loc[year, ['post_1984_units']] =  df.loc[year - 1, ['post_1984_units']].add(df.loc[year, ['new_comps_ann']].values)  # BJ
             
-            total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+            df['avg_size_post84_units'] = df['BI'].divide(df['post_1984_units'])  # BK
+            
+            # saved_coeffs = pd.read_cs('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
+            #                                                 # each entry is list of saved coefficients
+            # if max(df.index) not in saved_coeffs['Years']:
+            # try:
+            #     x, flag = leastsq(self.residuals_avg_size_sf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
+            #     # save tp saved_coeffs
+            # except RuntimeWarning:
+            #     print('Warning, optimization timed out, using excel Solver historical coefficients') # should log
+            #     x = x0
+            # else:
+            # x = saved_coeffs.loc[max(df.index), ['sf']] # read coeffs from saved_coeffs
+            results = self.model_average_housing_unit_size_sf(x0, df)
 
-            predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+        else:
+            resuts = pd.read_csv(f'./resuts_{self.end_year}.csv')
+        return results
 
-            if index_ == 0:
-                predicted_ave_size_series = np.array([predicted_ave_size])
-            else:
-                predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
-
-        predicted_ave_size_series = predicted_ave_size_series.flatten()
-        predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
-        
-        df['predicted'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divde(df['BL'])
-        return df['predicted']
     
     def get_housing_size_mf(self, retirement_df, occupied_predicted_mf1):
-         """[summary]
+        """[summary]
 
         Args:
             new_comps_ann (series): [description]
@@ -215,68 +289,94 @@ class GetCensusData:
         Returns:
             [type]: [description]
         """        
-        just_adjustment = 0.75
-        df = df.reindex(columns=df.columns + ['BJ', 'BM', 'CB', 'final'])
-        df['BE'] = comps_ann
+    #     # just_adjustment = 0.75
+        df = retirement_df.reindex(columns=list(retirement_df.columns) + ['BJ', 'BM', 'CB', 'final', 'Predicted-II'])
+        
+        new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann_2015', skiprows=10, 
+                                      usecols='C, E', header=None).dropna().rename(columns={2: 'Years', 4: 'new_comps_ann'}).set_index('Years') # Comps Ann column C
 
-        ahs_table = 
-        ahs_table = ahs_table.rename(columns={'1970-1979': '1975', '1980-1989': '1985', '1990-1999': '1995', '2000 & later': '2005'})
-        ahs_table = ahs_table.reindex(index=ahs_table + [2011])
+        df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
+
+        ahs_table = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=32, 
+                                   usecols='BZ:CI', header=1)[:3] # skip_footer=40,  .rename(columns={'2': 'Years', '4': ''})  # from ahs tables
+
+        ahs_table = ahs_table.rename(columns={'Unnamed: 77': 'Years', '1970-1979': '1975', '1980-1989': '1985', '1990-1999': '1995', '2000 & later': '2005'})
+        ahs_table = ahs_table.set_index('Years')
+        ahs_table = ahs_table.reindex(list(ahs_table.index) + [2011])
         ahs_table.loc[2011, :] = ahs_table.mean(axis=0)
 
-        actual_size =  # from ahs tables
+        actual_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=15, 
+                                    usecols='AW, BC', header=None).rename(columns={48: 'Years', 54: 'actual_avg_size'}).set_index('Years')  # from ahs tables
+        actual_size = actual_size[actual_size.index.notnull()]
+
+        df = df.merge(actual_size, left_index=True, right_index=True, how='left')
 
         for i in df.index:
             if i == min(df.index):
-                df.loc[i, ['BJ']] = df.loc[i, 'BE']
+                df.loc[i, ['BJ']] = df.loc[i, 'new_comps_ann']
             elif i == 1984:
                 df.loc[i, ['BJ']] = 0
             else:
-                df.loc[i, ['BJ']] = df.loc[i - 1, ['BJ']].add(df.loc[i, ['BE']].values)
+                df.loc[i, ['BJ']] = df.loc[i - 1, ['BJ']].add(df.loc[i, ['new_comps_ann']].values)
 
         df.loc[1985, ['BM']] = occupied_predicted_mf1
-        for year in range(1986, max(dataframe.index)):
-            df.loc[year, ['BM']] = df.loc[1985:year, ['retirements']]
+        for year in range(1986, max(df.index)):
+            bm_value = occupied_predicted_mf1 + sum(df.loc[list(range(1985, year + 1)), ['predicted_retirement']].values)
+            df.loc[year, ['BM']] = bm_value.values
 
         df['BP'] = df['BJ'].divide(df['BJ'].add(df['BM'].values).values)
         
-        decades = list(range(1985, 2005, 10))
+        decades = list(range(1985, 2005 + 10, 10))
+
+        for d_ in decades: 
+            df.loc[d_, ['CB']] = ahs_table.loc[2011, [str(d_)]].values
         adjustment_dict = dict()
         for i, d in enumerate(decades):
-            df.loc[d, ['CB']] = ahs_table.loc[2011, [str(d)]]
-            decade_after = df.loc[decades[i + 1]
-            adjustment = (decade_after, ['CB']].values - df.loc[d, ['CB']].values) / 10
-            adjustment_dict[d] = adjustment
-            for y_ in range(d + 1, decade_after - 1):
-                df.loc[y_, ['CB']] = df.loc[y_ - 1, ['CB']] + adjustment
+            if d + 10 <= 2005:
+                decade_after = decades[i + 1]
+                decade_after_value = df.loc[decade_after, ['CB']]
+                decade_value = df.loc[d, ['CB']]
+                adjustment = (decade_after_value.subtract(decade_value.values)).divide(10).values[0]
+                adjustment_dict[d] = adjustment
+                for y_ in range(d + 1, decade_after):
+                    df.loc[y_, ['CB']] = df.loc[y_ - 1, ['CB']] + adjustment
+
         df.loc[2006, ['CB']] = df.loc[2005, ['CB']].values + adjustment_dict[1995]
         df.loc[2007, ['CB']] = df.loc[2006, ['CB']].values + adjustment_dict[1995]
         df['CB'] = df['CB'].ffill()
 
         x0 = [567.081097939713, -22.7744777937053, 2.44216497607253]
-
-        x, flag = leastsq(self.residuals_avg_size_mf, x0, args=(actual_size, df['BE'].values, df), maxfev=1600)
-        results = self.average_housing_unit_size_mf(x, df)
+        # x, flag = leastsq(self.residuals_avg_size_mf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
+        results = self.average_housing_unit_size_mf(x0, df)
 
         return results
 
     def residuals_avg_size_mf(self, coeffs, actual_size, input_data):
-        residuals = actual_size - self.average_housing_unit_size_mf(coeffs, input_data)
+        residuals = actual_size - self.average_housing_unit_size_mf(coeffs, input_data).values
         return residuals
 
-    @staticmethod
-    def average_housing_unit_size_mf(coeffs, df):
+    def average_housing_unit_size_mf(self, coeffs, df):
         year_1997_value = coeffs[0]
         index_year = 1997
+
         df['Predicted size of pre-1985 stock'] = year_1997_value + coeffs[1] * (df.index - index_year) * 0.75
         df['CN'] = df['CB'] * coeffs[2]
-        df['Post-85 shr'] = df['BP'] 
-        df['Ave Size Predicted'] = (1 - df['Post-85 shr'].values).multiply(df['Predicted size of pre-1985 stock']).add(df['Post-85 shr'].multiply(df['CN'].values))
-        df.loc[1985:1999, ['final']] = df.loc[1985:1999, ['Predicted-II']]
-        df.loc[2000:, ['final']] = df.loc[2000:, ['Ave Size Predicted']]
-        return df['final'].values
-        
-    
+        df['Post-85 shr'] = df['BP'].values 
+        df['Ave Size Predicted'] = (1 - df['Post-85 shr']).multiply(df['Predicted size of pre-1985 stock'].values).add(df['Post-85 shr'].multiply(df['CN'].values)).values
+        value_1999 = df.loc[1999, ['Ave Size Predicted']].values
+        for i in df.index: 
+            df.loc[i, ['Predicted-II']] = value_1999 + ((df.loc[i, ['Ave Size Predicted']].values - value_1999) * 0.75)
+
+        df.loc[2010, ['Ave Size Predicted']] = 1027
+        cq = mean(df.loc[list(range(2007, 2013 + 1)), ['actual_avg_size']].dropna().values.flatten().tolist())
+        for y_ in list(range(2011, self.end_year + 1)):
+            df.loc[y_, ['Ave Size Predicted']] = cq
+
+        df.loc[list(range(1985, 1999 + 1)), ['final']] = df.loc[list(range(1985, 1999 + 1)), ['Predicted-II']].values
+        df.loc[list(range(2000, max(df.index) + 1)), ['final']] = df.loc[list(range(2000, max(df.index) + 1)), ['Ave Size Predicted']].values
+
+        return df[['final']]
+
     @staticmethod
     def model_average_housing_unit_size_mh():
         """recs_data from  D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)
@@ -310,7 +410,7 @@ class GetCensusData:
         manh_data[2017] = manh_data[2016] + 5 # Assume smaller change - 5 sq. ft. per year 
         manh_size_df = pd.DataFrame.from_dict(manh_data, orient='index', columns=['manh_size'])
 
-        recs_based = recs_manhome.loc[1985:, :]
+        recs_based = manh_size_df.loc[1985:, :]
         return recs_based
     
     def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
@@ -397,8 +497,9 @@ class GetCensusData:
         occupation_rate = [1 - r for r in total_vacancy_rate_all]
         
         occupied_predicted = np.multiply(occupation_rate, predicted_total_stock)
+        occupied_predicted_df = pd.DataFrame(list(zip(year_array, occupied_predicted)), columns=['Year', 'occupied_predicted']).set_index('Year')
 
-        return actual_stock, occupied_published, occupied_predicted
+        return actual_stock, occupied_published, occupied_predicted, occupied_predicted_df
 
     def get_housing_stock_mf(self, all_stock_sf, occupied_pub_sf):
         """Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)
@@ -456,17 +557,13 @@ class GetCensusData:
   
         x0 = [-1171.75478590956, 0.0000292335584342192, 0.8]  # use Excel solver values as starting?
         ca = new_comps_ann.values
-        print('find coefficients:')
         actual_stock_calc = df[df['pub_total_mf'].notnull()]['pub_total_mf'].values.flatten()
         x, flag = leastsq(self.residuals, x0, args=(actual_stock_calc, year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements), maxfev=1600)
-        print('X: ', x)
-        print('flag: ', flag)
 
-        print('find predicted total stock:') 
         predicted_total_stock = self.housing_stock_model(year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements, x, full_data=True)  
         predicted_retirement = self.housing_stock_model(year_array, ca, df['pub_total_mf'].values[0], elasticity_of_retirements, x, retirement=True)  
 
-        df['predicted_retirement'] = predicted_retirement.flatten().values
+        df['predicted_retirement'] = predicted_retirement.flatten()
         R = [88425-4754, 90888-5267, 93683-5438, 93147-5630, 94724-5655, 97693-6164, 99487-6544, 102803-6785, 106261-7219, 105842-6854, 108871-6940, 110692-6919, 111806-6839, 114907-7190, 115852-6917, 28047, 28967] # Last two values (included here) are from AHS_2015_extract and AHS_2017_extract
         R = np.array(R) - np.array(occupied_pub_sf[:-2] + [0, 0])
         df_R = pd.DataFrame(list(zip(actual_sf_years, R)), columns=['Year', 'R']).set_index('Year')
@@ -478,8 +575,8 @@ class GetCensusData:
         df.loc[2007, 'Z'] = df.loc[2007, 'Z'] - 0.005
         df['Z'] = df['Z'].ffill()
         predicted_unoccupied = predicted_total_stock - df['occupied'].values
-        occupied_predicted = (1 - df['Z']) * predicted_total_stock 
-        return occupied_predicted, df[['predicted_retirement']]
+        df['occupied_predicted'] = (1 - df['Z']) * predicted_total_stock 
+        return df[['occupied_predicted']], df[['predicted_retirement']]
 
     def get_housing_stock_mh(self, all_stock_sf, occupied_pub_sf):
 
@@ -530,15 +627,13 @@ class GetCensusData:
         actual_stock_calc = df[df['pub_total_mh'].notnull()]['pub_total_mh'].values.flatten()
 
         x, flag = leastsq(self.residuals, x0, args=(actual_stock_calc, year_array, ca, df['pub_total_mh'].values[0], elasticity_of_retirements), maxfev=1600)
-        print('X: ', x)
-        print('flag: ', flag)
 
         predicted_total_stock = self.housing_stock_model(year_array, ca, df['pub_total_mh'].values[0], elasticity_of_retirements, x, full_data=True)  
         occupied_predicted = (1 - df['Z'].values) * predicted_total_stock
-        return occupied_predicted
+        occupied_predicted_df = pd.DataFrame(data={'Years': year_array, 'occupied_predicted_mh': occupied_predicted}).set_index('Years')
+        return occupied_predicted, occupied_predicted_df
 
-    @staticmethod
-    def get_housing_stock(housing_type):
+    def get_housing_stock(self):
         """Spreadsheet equivalent: Comps Ann, place_nsa_all
         Data Sources: 
             - Census Bureau Survey of  New Construction https://www.census.gov/construction/nrc/historical_data/index.html
@@ -564,45 +659,126 @@ class GetCensusData:
             3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
             at the national level.
         """
+        actual_stock_sf, occupied_sf, occupied_predicted_sf, occupied_predicted_df_sf = self.get_housing_stock_sf()
+        a = self.get_housing_size_sf(df=occupied_predicted_df_sf).rename(columns={'predicted_avg_size': 'avg_size_sqft_sf'})
+
+        occupied_predicted, occupied_predicted_df = self.get_housing_stock_mh(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
+        c = self.model_average_housing_unit_size_mh().rename(columns={'manh_size': 'avg_size_sqft_mh'})
+
+        occupied_predicted_mf, predicted_retirements = self.get_housing_stock_mf(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
+        occupied_predicted_mf1 = occupied_predicted_mf.loc[min(occupied_predicted_mf.index)]
+        occupied_predicted_mf = occupied_predicted_mf.rename(columns={'occupied_predicted': 'occupied_units_mf'})
+
+        b = self.get_housing_size_mf(retirement_df=predicted_retirements, occupied_predicted_mf1=occupied_predicted_mf1).rename(columns={'final': 'avg_size_sqft_mf'}) # NEED TO FILL IN AHS TABLES
+
+        occupied_predicted_df = occupied_predicted_df.rename(columns={'occupied_predicted_mh': 'occupied_units_mh'})
+        occupied_predicted_df_sf = occupied_predicted_df_sf.rename(columns={'occupied_predicted': 'occupied_units_sf'})
+
+        number_occupied_units_national = occupied_predicted_df_sf.merge(occupied_predicted_df, left_index=True, right_index=True, how='outer')
+        number_occupied_units_national = number_occupied_units_national.merge(occupied_predicted_mf, left_index=True, right_index=True, how='outer')
+
+        average_size_national = a.merge(c, left_index=True, right_index=True, how='outer')
+        average_size_national = average_size_national.merge(b, left_index=True, right_index=True, how='outer')
+        
         return number_occupied_units_national, average_size_national
 
-    # def final_floorspace_estimates():
+    def final_floorspace_estimates(self):
+        os.chdir('./Residential')
+
+        number_occupied_units_national, average_size_national = self.get_housing_stock()
+        number_occupied_units_national = number_occupied_units_national[['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
+        average_size_national  = average_size_national[['avg_size_sqft_sf', 'avg_size_sqft_mf', 'avg_size_sqft_mh']]
+
+        regions = {'National': None, 'Northeast': 'NE', 'Midwest': 'MW', 'South': 'S', 'West': 'W'}
+        final_results_total_floorspace_regions = dict()
+
+        early_data = pd.read_csv('./historical_number_occupied_units.csv').set_index('Years')  # Not sure where these numbers come from, they're hardcoded in the residential indicators file
+        number_occupied_units_national_early = early_data[early_data['Region']=='National'][['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
+        number_occupied_units_national_final = pd.concat([number_occupied_units_national_early, number_occupied_units_national], sort=True)
+        number_occupied_units_national_final = number_occupied_units_national_final[number_occupied_units_national_final.index.notnull()]
+
+        calculated_shares = pd.read_csv('./AHS_shares.csv').set_index('Year') # From AHS tables
+        ratios_to_national_average_size = pd.read_csv('./AHS_size_shares.csv').set_index('Year') # From AHS tables
+        ratios_to_national_average_size_mh = {'NE': 0.980, 'MW': 0.942, 'S': 1.022, 'W': 0.993}
+
+        housing_types = ['SF', 'MF', 'MH']
+
+        regional_units = {}
+        regional_initial_sq_ft = {}
+        avg_size_initial_regional = {}
+        regional_estimates_all = {}
+        final_results_total_floorspace_regions = {}
+
+        for region in regions.keys(): 
+            abbrev = regions[region]
+
+            if abbrev:
+
+                # Number of Units
+                print(region)
+                col_names = [f'{h_type}_{abbrev}' for h_type in housing_types]
+                region_shares = calculated_shares[col_names]
+            
+                regional_estimates_late = number_occupied_units_national.multiply(region_shares.values)
+                
+                early_data_region = early_data[early_data['Region']==region]
+                number_occupied_units_region_early = early_data_region[['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
+                regional_estimates = pd.concat([number_occupied_units_region_early, regional_estimates_late], sort=True)
+
+                regional_estimates = regional_estimates[regional_estimates.index.notnull()]
+                regional_units[region] = regional_estimates
+
+                regional_estimates['Total'] = regional_estimates.sum(axis=1)
+                regional_estimates_all[region] = regional_estimates
+
+                shares_by_type = regional_estimates.drop('Total', axis=1).divide(regional_estimates['Total'].values.reshape(len(regional_estimates), 1))
+
+                # Size of Units
+                col_names_2 = [f'{h_type}_{abbrev}' for h_type in ['SF', 'MF']]
+                region_size_shares = ratios_to_national_average_size[col_names_2]
+                region_size_shares[f'MH_{abbrev}'] = ratios_to_national_average_size_mh[abbrev]
+                avg_size_initial = region_size_shares.multiply(average_size_national.values)
+                avg_size_initial_regional[region] = avg_size_initial
+
+                avg_size_region_early = early_data_region[['avg_size_sqft_sf', 'avg_size_sqft_mf', 'avg_size_sqft_mh']]
+
+                total_sq_ft_initial = regional_estimates_late.multiply(avg_size_initial.values).multiply(0.000001)
+                regional_initial_sq_ft[region] = total_sq_ft_initial
         
-    #     number_occupied_units_national, average_size_national = get_housing_stock()
+        regional_units_ne = regional_units['Northeast']
+        regional_units_rest = [regional_units[r].values for r in ['Midwest', 'South', 'West']]
+        initial_sum_regions_us = regional_units_ne.add(sum(regional_units_rest))
+        number_occupied_units_national_final['Total'] = number_occupied_units_national_final.sum(axis=1)
+        national_shares_by_type = number_occupied_units_national_final.drop('Total', axis=1).divide(number_occupied_units_national_final['Total'].values.reshape(len(number_occupied_units_national_final), 1))
 
-    #     regions = ['National', 'Northeast', 'Midwest', 'South', 'West']
-    #     final_results_total_floorspace_regions = dict()
+        national_initial_sq_ft_ne = regional_initial_sq_ft['Northeast']
+        national_initial_sq_ft_rest = [regional_initial_sq_ft[r].values for r in ['Midwest', 'South', 'West']]
+        national_initial_sq_ft = national_initial_sq_ft_ne.add(sum(national_initial_sq_ft_rest))
 
-    #     for region in regions: 
-    #         calculated_shares_by_region = [0] # From AHS tables
-    #         ratios_to_national_average_size = [0] # From AHS tables
+        national_final_floorspace = number_occupied_units_national.multiply(average_size_national.values).multiply(0.000001)
 
-    #         regional_estimates = number_occupied_units_national.multiply(calculated_shares_by_region)
-    #         regional_estimates['Total'] = regional_estimates.sum(axis=1)
-    #         shares_by_type = regional_estimates[['Single Family', 'Multi-Family', 'Man. Homes']].divide(regional_estimates['Total'])
-            
-    #         # Calibration Procedure
-    #         sum_of_regions = 
-    #         scale_factor = 
-    #         final_check =
-    #         average_size_all_housing_units =
-    #         number_of_units = 
+        final_results_total_floorspace_regions['National'] = national_final_floorspace
+        scale_factor = national_final_floorspace.divide(national_initial_sq_ft.values)
 
-    #         total_square_feet =
-    #         average_size = 
-    #         ratios_national_average_size = 
+        avg_size_all_regions = {}
+        for key, value in avg_size_initial_regional.items():
+            avg_size_calibrated_late = value.multiply(scale_factor.values)
+            abbrev = regions[key]
+            avg_size_calibrated_late = avg_size_calibrated_late.rename(columns={f'SF_{abbrev}': 'avg_size_sqft_sf', f'MF_{abbrev}': 'avg_size_sqft_mf', f'MH_{abbrev}': 'avg_size_sqft_mh'})
 
-    #         average_size_after_calibration = 
+            early_data_region = early_data[early_data['Region']==key]
+            avg_size_region_early = early_data_region[['avg_size_sqft_sf', 'avg_size_sqft_mf', 'avg_size_sqft_mh']]
 
+            avg_size_calibrated = pd.concat([avg_size_region_early, avg_size_calibrated_late], sort=True)
+            avg_size_all_regions[key] = avg_size_calibrated
 
-    #         final_results_total_floorspace = number_occupied_units.multiply(average_size).multiply(0.000001)
-    #         final_results_total_floorspace['Total'] = final_results_total_floorspace.sum(axis=1)
+            final_results_total_floorspace = regional_estimates_all[key].drop('Total', axis=1).multiply(avg_size_calibrated.values).multiply(0.000001)
+            final_results_total_floorspace_regions[key] = final_results_total_floorspace
 
-    #         number_occupied_units['Total'] = number_occupied_units.sum(axis=1)
-            
-    #         final_results_total_floorspace_regions[region] = final_results_total_floorspace
-
-    #     return final_results_total_floorspace_regions
+        regional_estimates_all['National'] = number_occupied_units_national_final
+        avg_size_all_regions['National'] = average_size_national
+        return final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions
+        
 
     @staticmethod
     def weighted_floorspace():
@@ -623,20 +799,9 @@ class GetCensusData:
 
     def main(self):
         data = GetCensusData()
-        # actual_stock_sf, occupied_sf, occupied_predicted_sf = data.get_housing_stock_sf()
-        # # a = data.model_average_housing_unit_size_sf()
-
-        # z = data.get_housing_stock_mh(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
-        # c = data.model_average_housing_unit_size_mh()
-
-        occupied_predited_mf, predicted_retirements = data.get_housing_stock_mf(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
-        occupied_predicted_mf1 = occupied_predited_mf[0]
-
-        b = data.get_housing_size_mf(retirement_df=predicted_retirements, occupied_predicted_mf1=occupied_predicted_mf1)
-        print(b)
-
-
-
+        final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = data.final_floorspace_estimates()
+        # pivot_census_division = data.update_ahs_data()
+        # print(pivot_census_division)
 
 
 if __name__ == '__main__':
@@ -695,3 +860,68 @@ if __name__ == '__main__':
 #         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
 
 #         return predicted_ave_size_series_skip
+
+
+
+# ////////////////////////////////////////////////////////////////////////////
+#  @staticmethod
+#     def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs, x):
+#         """[summary]
+
+#         Args:
+#             year_array ([type]): [description]
+#             new_comps_ann ([type]): [description]
+#             coeffs ([type]): [description]
+#         """                
+#         new_comps_ann_adj = new_comps_ann * x[2]  # here x is the coeffs from occupied units
+#         cnh_avg_size = [0] # SFTotalMedAvgSqFt column G
+#         column_bh = new_comps_ann.multiply(cnh_avg_size)
+#         select_index = 24
+#         for index_, year_ in enumerate(year_array):
+#             if index_ == 0: 
+#                 bi = column_bh[index_]
+#                 column_bi = np.array([bi])
+
+#                 post_1984_units = new_comps_ann[_index]
+#                 post_1984_units_series = np.array([post_1984_units])
+
+#                 pre_1985_stock = occupied_predicted[index_]
+#                 pre_85_stock_series = np.array([pre_1985_stock])
+
+#                 bl = pre_1985_stock
+#             else:
+#                 bi =  column_bh[index_] + column_bi[index_ - 1]
+#                 column_bi = np.vstack([column_bi, bi])
+
+#                 post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
+#                 post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
+
+#                 pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
+#                 pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
+
+#                 bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
+
+#             ave_size_post_84_units = bi / post_1984_units
+            
+#             if index_ == select_index:
+#                 predicted_size_pre_1985_stock = coeffs[0]
+#             else: 
+#                 predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
+
+#             total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
+#             bp = post_1984_units / (post_1984_units + pre_1985_stock)
+            
+#             total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
+
+#             predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
+
+#             if index_ == 0:
+#                 predicted_ave_size_series = np.array([predicted_ave_size])
+#             else:
+#                 predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
+
+#         predicted_ave_size_series = predicted_ave_size_series.flatten()
+#         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
+        
+#         df['predicted'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divde(df['BL'])
+#         return df['predicted']
