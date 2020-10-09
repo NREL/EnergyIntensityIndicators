@@ -1,15 +1,23 @@
 from sklearn import linear_model
 import pandas as pd
 from pull_eia_api import GetEIAData
+from Residential.census_bureau_data import GetCensusData
+import numpy as np
+from functools import reduce
+from sklearn.linear_model import LinearRegression
+import math
 
-# from LMDI import LMDI
 
-class WeatherFactors: # LMDI
-    def __init__(self, energy_type, sector, directory):
+
+class WeatherFactors: 
+    def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, end_year=2018):
+        self.end_year = end_year
         self.directory = directory
         self.sector = sector
+        self.activity_data = activity_data
+        self.nominal_energy_intensity = nominal_energy_intensity
+        self.residential_floorspace = residential_floorspace
         self.eia_data = GetEIAData(self.sector)
-        self.energy_type = energy_type  # 'electricity' or 'fuels' or 'delivered'
         self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 'east_north_central', 'west_north_central', 
                                    'south', 'south_atlantic', 'east_south_central', 'west_south_central', 'west', 'mountain', 'pacific']
@@ -33,24 +41,25 @@ class WeatherFactors: # LMDI
         self.adjusted_hdd = weights * self.hdd_by_division
         self.adjusted_cdd = weights * self.cdd_by_division
 
-    # def collect_data(self):
-    #     """Create dataframe of electricity and fuel data
-    #     """
-    #     if self.sector == 'residential':
-    #         residential_electricity = pd.DataFrame(self.residential_data_electricity) 
-    #         residential_fuels = pd.DataFrame(self.residential_data_fuels)  
-    #         return residential_electricity, residential_fuels
-    #     elif self.sector == 'commercial':
-    #         commercial_electricity = pd.DataFrame(self.commercial_data_electricity)
-    #         commercial_fuels = pd.DataFrame(self.commercial_data_fuels)     
-    #         return commercial_electricity, commercial_fuels
-
     def process_prices(self, weather_factors_df):
         lmdi_prices = self.lmdi_prices
         # distributed_lag = 
         # time_cubed = 
         selected_variable = [1] * len(weather_factors_df)
         return selected_variable
+    
+    @staticmethod
+    def cbecs_1995_shares():
+        electricty_consumption_tbtu = {'Northeast': 436, 'Midwest': 558, 'South': 1027, 'West': 587}
+        energy_tbtu = [1035, 1497, 1684, 1106] 
+        energy_tbtu.append(sum(energy_tbtu))
+        electricty_consumption_tbtu['Total'] = sum(electricty_consumption_tbtu.values())
+        shares_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', columns=['electricity_consumption_tbtu'])
+        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', 'electricity_consumption_tbtu'])
+        shares_df['energy'] = energy_tbtu
+        shares_df['fuel_consumption'] = shares_df.energy.subtract(shares_df.electricity_consumption_tbtu)
+        shares_df['fuel_share'] = shares_df.fuel_consumption.divide(shares_df.loc['Total', 'fuel_consumption'])
+        return shares_df
 
     def regional_shares(self, dataframe, cols):
         """Calulate shares of regional totals by subregion
@@ -136,15 +145,90 @@ class WeatherFactors: # LMDI
         cdd_by_division = cdd_by_division.rename(columns=cdd_new_names_dict)
         return hdd_by_division, cdd_by_division
 
-    def get_actual_intensity_data(self):
+    def estimate_regional_shares(self):
+        """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
+        assumed commercial floorspace in each region follows same trends as population or housing units"""
+
+        regions = ['Northeast', 'Midwest', 'South', 'West']
+
+        cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
+        cbecs_data.index = cbecs_data.index.astype(str)
+        cbecs_years = list(cbecs_data.index)
+        cbecs_data = cbecs_data.rename(columns={'Midwest ': 'Midwest', ' South': 'South', ' West': 'West'})
+
+        cbecs_data.loc['1979', regions] = cbecs_data.loc['1983', regions].subtract([826, 972, 2665, 1212])
+        cbecs_data.loc['1979', ['U.S.']] = sum(cbecs_data.loc['1979', regions].values)
+
+        cbecs_data['U.S. (calc)'] = cbecs_data.sum(axis=1)
+
+        comm_regional_shares = cbecs_data.drop(['U.S.', 'U.S. (calc)'], axis=1).divide(cbecs_data['U.S. (calc)'].values.reshape(len(cbecs_data), 1))
+        comm_regional_shares_ln = np.log(comm_regional_shares)
+
+        residential_data = GetCensusData(end_year=self.end_year)  # change to pull from residential().activity()
+        final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
+        
+        regional_dfs = [regional_estimates_all[r][['Total']].rename(columns={'Total': r}) for r in regions]
+        residential_housing_units = reduce(lambda x, y: pd.merge(x, y, left_index=True, right_index=True, how='outer'), regional_dfs)
+        residential_housing_units['U.S.'] = residential_housing_units.sum(axis=1)
+        residential_housing_units.index = residential_housing_units.index.astype(str)
+        regional_shares_residential_housing_units = residential_housing_units.drop('U.S.', axis=1).divide(residential_housing_units['U.S.'].values.reshape(len(residential_housing_units), 1))
+        regional_shares_residential_housing_units_ln = np.log(regional_shares_residential_housing_units)
+
+        regional_shares_residential_housing_units_cbecs_years = regional_shares_residential_housing_units.loc[cbecs_years, :]
+        regional_shares_residential_housing_units_cbecs_years_ln = np.log(regional_shares_residential_housing_units_cbecs_years)
+        
+        predictions_df = pd.DataFrame(columns=comm_regional_shares.columns, index=residential_housing_units.index)
+        for region in comm_regional_shares.columns:
+            x_values = comm_regional_shares_ln[region].values
+            X = x_values.transpose()
+            y = regional_shares_residential_housing_units_cbecs_years_ln[region].values
+
+            # reg = LinearRegression().fit(X, y)
+            # prediction = reg.predict(regional_shares_residential_housing_units_ln[region])
+            # predictions_df[region] = prediction
+
+            p = np.polyfit(X, y, 1)
+            predictions_df[region] = np.exp(regional_shares_residential_housing_units_ln[region].multiply(p[0]).add(p[1]))
+
+        predictions_df['Predicted Sum'] = predictions_df.sum(axis=1)
+        normalized_shares = predictions_df.drop('Predicted Sum', axis=1).divide(predictions_df['Predicted Sum'].values.reshape(len(predictions_df), 1))
+        return normalized_shares
+    
+    def commercial_estimate_regional_floorspace(self):
+        regional_shares = self.estimate_regional_shares()
+        commercial_floorspace = self.activity_data 
+        regional_floorspace = regional_shares.multiply(commercial_floorspace.values)
+        return regional_floorspace
+
+    def commercial_regional_intensity_aggregate(self):
         """Calculate Energy Intensities (kBtu/sq. ft.) by region and fuel type (i.e. Fuels and Electricity) for use
         in calculating weather factors
+        Returns:
+            dictionary with keys: 'electricity' and 'fuels', values: dataframes of intensity data for the commercial sector
+            with Year index and Region columns
         """        
-        regional_floorspace = 
+        regional_floorspace = self.commercial_estimate_regional_floorspace()
         total_fuels_to_indicators, elec_to_indicators = self.eia_data.get_seds()
         print('total_fuels_to_indicators, elec_to_indicators:', total_fuels_to_indicators, elec_to_indicators)
 
-    def weather_factors(self, region):
+        fuels_regional = regional_floorspace.multiply(total_fuels_to_indicators.values)
+        elec_regional = regional_floorspace.multiply(elec_to_indicators.values)
+
+        return {'fuels': fuels_regional, 'electricity': elec_regional}
+    
+    def residential_regional_intensity_aggregate(self):
+        """This function does not need to exist if nominal_energy_intensity is properly formated, change formatting here if not
+        Returns:
+            dictionary with keys: 'electricity' and 'fuels', values: dataframes of intensity data for the residential sector
+            with Year index and Region columns
+            i.e. {'fuels': fuels_regional, 'electricity': elec_regional}
+        """        
+
+        nominal_energy_intensity = self.nominal_energy_intensity # nominal_energy_intensity should already be formated in this way 
+
+        return nominal_energy_intensity
+
+    def weather_factors(self, region, energy_type, actual_intensity):
         """Estimate a simple regression model to fit the regional intensity to a linear function of time (included squared and cubed values of time) and degree days. 
         -electricity model: constant term, heating degree day (HDD), cooling degree day (CDD), time, time-squared, and time-cubed
         -fuels model: contant term?, HDD, HDD*Time, Time, Time-squared and composite fuel price index (the composite fuel price index was developed as a weighted average of the national distillate
@@ -186,11 +270,11 @@ class WeatherFactors: # LMDI
         weather_factors_df['Time'] = weather_factors_df['Year'].subract(1969)
         weather_factors_df['Time^2'] = weather_factors_df['Time'].pow(2)
 
-        if self.energy_type == 'electricity': 
+        if energy_type == 'electricity': 
             weather_factors_df = weather_factors_df.merge(cooling_degree_days[['Year', region]], how='outer', on='Year').rename(columns={region: 'CDD'})
             weather_factors_df['Time^3'] = weather_factors_df['Time'].pow(3)
             X = weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']]
-        elif self.energy_type == 'fuels': 
+        elif energy_type == 'fuels': 
             weather_factors_df['HDD*Time'] = heating_degree_days[region].multiply(weather_factors_df['Time'])
             weather_factors_df['Price'] = self.process_prices(weather_factors_df)
             X = weather_factors_df[['HDD', 'HDD*Time', 'Time', 'Time^2', 'Price']]
@@ -201,44 +285,40 @@ class WeatherFactors: # LMDI
         else:
             return None
 
-        actual_intensity = self.get_actual_intensity_data() # from region_intensity (aggregate): just seds_census_rgn / regional_floorspace
         Y = actual_intensity
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
-        print(f'{self.energy_types} coefficient for region {region}:', coefficients)
+        print(f'{energy_type} coefficient for region {region}:', coefficients)
+        exit()
         predicted_value_intensity_actualdd = reg.predict(X_actualdd)  # Predicted value of the intensity based on actual degree days
         predicted_value_intensity_ltaveragesdd = reg.predict(X_ltaveragesdd)  # Predicted value of the intensity based on the long-term averages of the degree days
         weather_factor = predicted_value_intensity_actualdd / predicted_value_intensity_ltaveragesdd 
         weather_normalized_intensity = actual_intensity / weather_factor
         return weather_factor, weather_normalized_intensity
     
-    @staticmethod
-    def cbecs_1995_shares():
-        electricty_consumption_tbtu = {'Northeast': 436, 'Midwest': 558, 'South': 1027, 'West': 587}
-        energy_tbtu = [1035, 1497, 1684, 1106] 
-        energy_tbtu.append(sum(energy_tbtu))
-        electricty_consumption_tbtu['Total'] = sum(electricty_consumption_tbtu.values())
-        shares_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', columns=['electricity_consumption_tbtu'])
-        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', 'electricity_consumption_tbtu'])
-        shares_df['energy'] = energy_tbtu
-        shares_df['fuel_consumption'] = shares_df.energy.subtract(shares_df.electricity_consumption_tbtu)
-        shares_df['fuel_share'] = shares_df.fuel_consumption.divide(shares_df.loc['Total', 'fuel_consumption'])
-        return shares_df
-    
     def national_method1_fixed_end_use_share_weights(self):
         """Used fixed weights to develop from regional factors, weighted by regional energy share from 1995 CBECS
         """
-        cbecs_1995_shares = self.cbecs_1995_shares()
-        regional_weather_factors = []
-        for region in self.sub_regions_dict.keys():
-            weather_factors, weather_normalized_intensity = self.weather_factors(region)
-            regional_weather_factors[region] = weather_factors
+        if self.sector == 'commercial':
+            cbecs_1995_shares = self.cbecs_1995_shares()
+            regional_intensity_dict = self.commercial_regional_intensity_aggregate()
 
-            for y in weather_factors['Year']:
-                year_weather = weather_factors[weather_factors['Year'] == y]
-                elec_factor = year_weather.dot(regional_weather_factors_elec)
-                fuels_factor = year_weather.dot(regional_weather_factors_fuels)
+        elif self.sector == 'residential':
+            regional_intensity_dict = self.residential_regional_intensity_aggregate()
+        regional_weather_factors = []
+        
+        for energy_type in ['electricity', 'fuels']:
+            intensity_df = regional_intensity_dict[energy_type]
+            for region in self.sub_regions_dict.keys():
+                regional_intensity = intensity_df[region]
+                weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type, actual_intensity=regional_intensity)
+                regional_weather_factors[region] = weather_factors
+
+                for y in weather_factors['Year']:
+                    year_weather = weather_factors[weather_factors['Year'] == y]
+                    elec_factor = year_weather.dot(regional_weather_factors_elec)
+                    fuels_factor = year_weather.dot(regional_weather_factors_fuels)
         return {'elec': elec_factor, 'fuels': fuels_factor}
         
     def national_method2_regression_models(self, moving_average_weights=True, implicit_national_factors=False):
@@ -260,6 +340,35 @@ class WeatherFactors: # LMDI
         # if implicit_national_factors:
 
         return None
+    
+    def adjust_for_weather(self, data, energy_type):
+        """purpose
+            Parameters
+            ----------
+            data: dataframe
+                dataset to adjust by weather
+            weather_factors: array?
+                description
+            Returns
+            -------
+            weather_adjusted_data: dataframe ? 
+        """
+        weather = WeatherFactors(energy_type, sector=self.sector, directory=self.directory)
+        weather_factors = weather.national_method1_fixed_end_use_share_weights()
+        weather_adjusted_data = data / weather_factors[energy_type]
+        return weather_adjusted_data
+
+    def main():
+        if weather_adjust: 
+            for type, energy_dataframe in energy_data_by_type.items():
+                weather_adj_energy = self.adjust_for_weather(energy_dataframe, type) 
+                energy_data_by_type[f'{type}_weather_adj'] = weather_adj_energy
+        return
+
+# if __name__ == '__main__':
+#     weather = WeatherFactors(sector='commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', activity_data=)
+#     weather.national_method1_fixed_end_use_share_weights()
+
 
 
 """RESIDENTIAL NOTE: The methodology for the est_imation of “weather factors” is the same as the one set out at the beginning

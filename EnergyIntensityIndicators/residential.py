@@ -14,13 +14,13 @@ estimates of energy intensity indicators for this sector.
 import pandas as pd
 from sklearn import linear_model
 from pull_eia_api import GetEIAData
-from LMDI import LMDI
+from LMDI import CalculateLMDI
 from Residential.census_bureau_data import GetCensusData
 
-class ResidentialIndicators(LMDI): 
+class ResidentialIndicators(CalculateLMDI): 
 
     def __init__(self, directory, base_year=1985):
-        super().__init__(base_year)
+        # super().__init__(base_year)
         self.eia_res = GetEIAData('residential')
         self.sub_categories_list = {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
                                     'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
@@ -60,13 +60,22 @@ class ResidentialIndicators(LMDI):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """ 
         census_data = GetCensusData()
-        occupied_housing_units = census_data.final_floorspace_estimates('occupied_housing_units')
-        floorspace_square_feet = census_data.final_floorspace_estimates('floorspace_square_feet')
-        household_size_square_feet_per_hu = census_data.final_floorspace_estimates('household_size_square_feet_per_hu')
+        floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = census_data.final_floorspace_estimates()
+
+
+        residential_data = GetCensusData(end_year=self.end_year)
+        final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
+
 
         activity_input_data = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
                                'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
         return activity_input_data
+    
+    def collect_weather(self, nominal_energy_intesity):
+        weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intesity=nominal_energy_intesity)
+        weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        return weather_factors
+
 
     def main(self, lmdi_model='multiplicative'):
         region_results = dict()
@@ -75,8 +84,12 @@ class ResidentialIndicators(LMDI):
         for r in self.regions: 
             energy_data = self.fuel_electricity_consumption(region=r)
             activity_data = self.activity()
-            lmdi = LMDI(sector='residential', categories_list=self.sub_categories_list, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
-            results = self.call_lmdi(unit_conversion_factor=unit_conversion_factor, weather_adjust=True, lmdi_model=lmdi_model)
+            
+            lmdi = CalculateLMDI(sector='residential', categories_list=self.sub_categories_list, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+            nominal_energy_intesity = lmdi.method_to_return_nom_energy_intensity() # should come from LMDI class
+            weather_factors = self.collect_weather(nominal_energy_intesity=nominal_energy_intesity) # need to integrate this into the data passed to LMDI
+
+            results = self.call_lmdi(unit_conversion_factor=unit_conversion_factor, lmdi_model=lmdi_model)
             region_results[r] = results
         
         return region_results

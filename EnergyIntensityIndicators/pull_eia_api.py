@@ -4,9 +4,6 @@ import requests
 import pandas as pd
 import numpy as np
 from functools import reduce 
-# from eiapy import Category
-# from eiapy import Series
-# from eiapy import MultiSeries
 
 class GetEIAData:
     def __init__(self, sector):
@@ -138,7 +135,7 @@ class GetEIAData:
         The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
         """
         if self.sector == 'residential':
-            AER11_table2_1b_update = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02') #  self.eia_api(id_='711250')
+            AER11_table2_1b_update = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02', skiprows=10, header=0).drop(0, axis=0).set_index('Month') #  self.eia_api(id_='711250')
             AnnualData_MER_22_Dec2019 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.02') # self.eia_api(id_='711250')
             
               # .eia_api(id_=, id_type='category')
@@ -147,7 +144,7 @@ class GetEIAData:
 
             fuels_census_region, electricity_census_region = self.get_seds()  
             electricity_df = pd.DataFrame()
-            electricity_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Electricity Retail Sales']  # Column S
+            electricity_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Electricity Retail Sales to the Residential Sector']  # Column S Electricity Retail Sales
             electricity_df['MER, 12/19 (Trillion Btu)'] =  electricity_retail_sales_residential_sector # AnnualData_MER_22_Dec2019['Electricity Retail Sales to the Residential Sector'] # Column K
             electricity_df['SEDS (10/18) (Trillion Btu)'] = electricity_census_region['National']  # Column G
             electricity_df['Ratio MER/SEDS'] = electricity_df['MER, 12/19 (Trillion Btu)'].div(electricity_df['SEDS (10/18) (Trillion Btu)'])

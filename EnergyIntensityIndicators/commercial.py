@@ -2,12 +2,13 @@ import pandas as pd
 import datetime as dt
 from sklearn import linear_model
 from weather_factors import WeatherFactors
+from residential import ResidentialIndicators
 import math
 import statsmodels.api as sm
 from pull_eia_api import GetEIAData
 from scipy.optimize import curve_fit
 from sklearn.linear_model import LinearRegression
-from LMDI import LMDI
+from LMDI import CalculateLMDI
 import numpy as np
 
 """Overview and Assumptions: 
@@ -25,7 +26,7 @@ Data Sources: New construction is based on data from Dodge Data and Analytics, a
 Methodology: Perpetual inventory model, where estimates of new additions and removals are added to the previous year's estimate of stock
              to update the current year"""
 
-class CommercialIndicators(LMDI):
+class CommercialIndicators(CalculateLMDI):
     """
     Data Sources: 
     - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
@@ -34,11 +35,13 @@ class CommercialIndicators(LMDI):
     2014 to 2018". 
     """    
 
-    def __init__(self, directory, lmdi_model=['multiplicative']):
+    def __init__(self, directory, lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
+        self.end_year = end_year
         self.sub_categories_list = {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
         self.directory = directory
         self.lmdi_model = lmdi_model
+        self.base_year = base_year
         # self.cbecs = 
         # self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -115,10 +118,7 @@ class CommercialIndicators(LMDI):
 
         return adjusted_supplier_data[['adjusted_consumption_trillion_btu']]
 
-    def regional_intensity_aggregate(self):
-        """, """
-        pass
-    
+
     @staticmethod
     def get_saus():
         """Get Data from the Statistical Abstract of the United States (SAUS)
@@ -495,55 +495,33 @@ class CommercialIndicators(LMDI):
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
 
-     def estimate_regional_floorspace(self,):
-        """assumed commercial floorspace in each region follows same trends as population or housing units"""
-        regions = ['Northeast', 'Midwest', 'South', 'West']
+    def collect_weather(self, comm_activity):
+        res = ResidentialIndicators(directory=self.directory, base_year=self.base_year)
+        residential_activity_data = res.activity()
+        residential_floorspace = residential_activity_data['floorspace_square_feet']
+        weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
+        weather_factors = weather.national_method1_fixed_end_use_share_weights()
+        # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        return weather_factors
 
-        cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
-        cbecs_data.index = cbecs_data.index.astype(str)
-        cbecs_years = list(cbecs_data.index)
-
-        cbecs_data.loc['1979', regions] = cbecs_data.loc['1983', regions].subtract([826, 972, 2665, 1212])
-        cbecs_data.loc['1979', ['U.S.']] = cbecs_data.loc['1979', regions].sum(axis=1)
-
-        cbecs_data['U.S. (calc)'] = cbecs_data.sum(axis=1)
-        comm_regional_shares = cbecs_data.drop(['U.S.', 'U.S. (calc)']).divide(cbecs_data['U.S. (calc)'].values)
-        comm_regional_shares_ln = np.log(comm_regional_shares)
-
-        residential_housing_units = 
-        residential_housing_units['U.S.'] = residential_housing_units.sum(axis=1)
-        regional_shares_residential_housing_units = residential_housing_units.drop('U.S.').divide(residential_housing_units['U.S.'].values)
-        regional_shares_residential_housing_units_ln = np.log(regional_shares_residential_housing_units)
-
-        regional_shares_residential_housing_units_cbecs_years = regional_shares_residential_housing_units.loc[cbecs_years, :]
-        regional_shares_residential_housing_units_cbecs_years_ln = np.log(regional_shares_residential_housing_units_cbecs_years)
-        
-        predictions_df = pd.DataFrame(columns=comm_regional_shares.columns, index=residential_housing_units.index)
-        for region in comm_regional_shares.columns:
-            X = comm_regional_shares_ln[region]
-            y = regional_shares_residential_housing_units_cbecs_years_ln[region]
-            reg = LinearRegression().fit(X, y)
-            prediction = reg.predict(regional_shares_residential_housing_units_ln[region])
-            predictions_df[region] = prediction
-        
-        predictions_df['Predicted Sum'] = predictions_df.sum(axis=1)
-        normalized_shares = predictions_df.drop('Predicted Sum').divide(predictions_df['Predicted Sum'].values)
-        return normalized_shares
 
     def main(self, lmdi_model='multiplicative'):
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
-        
         activity_data = self.activity()
         print('Activity data collected without issue')
         energy_data = self.fuel_electricity_consumption()
         print('Energy data collected without issue')
 
+        weather_factors = self.collect_weather(comm_activity=activity_data) # need to integrate this into the data passed to LMDI
+        print('weather_factors', weather_factors)
+        exit()
+
         # energy_types = energy_data.keys()
         energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
-        lmdi = LMDI(sector='commercial', directory=self.directory, categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=1985, base_year_secondary=1996, charts_ending_year=2003)
-        results = lmdi.call_lmdi(unit_conversion_factor=1, weather_adjust=True, lmdi_models=self.lmdi_model)
+        lmdi = LMDI(sector='commercial', directory=self.directory, categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+        results = lmdi.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_model)
         print(results)
 
 if __name__ == '__main__':

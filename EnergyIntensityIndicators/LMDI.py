@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
-from weather_factors import WeatherFactors
 from pull_eia_api import GetEIAData
 
-class LMDI:
+class CalculateLMDI:
     """Base class for LMDI"""
     def __init__(self, sector, categories_list, energy_data, activity_data, energy_types, directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
@@ -159,22 +158,6 @@ class LMDI:
 
         return log_mean_divisia_weights, log_mean_divisia_weights_normalized
 
-    def adjust_for_weather(self, data, energy_type):
-        """purpose
-           Parameters
-           ----------
-           data: dataframe
-                dataset to adjust by weather
-            weather_factors: array?
-                description
-            Returns
-            -------
-            weather_adjusted_data: dataframe ? 
-        """
-        weather = WeatherFactors(energy_type, sector=self.sector, directory=self.directory)
-        weather_factors = weather.national_method1_fixed_end_use_share_weights()
-        weather_adjusted_data = data / weather_factors[energy_type]
-        return weather_adjusted_data
 
     def lmdi_multiplicative(self, activity_input_data, energy_input_data, unit_conversion_factor=1):
         energy_shares = self.calculate_shares(self.energy_data, self.categories)
@@ -200,10 +183,10 @@ class LMDI:
 
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
-    def lmdi_additive(self, activity_input_data, energy_input_data, weather_adjust=True):
+    def lmdi_additive(self, activity_input_data, energy_input_data):
         pass
 
-    def collect_energy_data(self, weather_adjust):
+    def collect_energy_data(self):
         energy_data_by_type = dict()
 
         funcs = {'elec': self.get_elec, 
@@ -219,17 +202,12 @@ class LMDI:
                 e_type_df = funcs[e_type]()
             energy_data_by_type[e_type] = e_type_df
             print(energy_data_by_type)
-
-        if weather_adjust: 
-            for type, energy_dataframe in energy_data_by_type.items():
-                weather_adj_energy = self.adjust_for_weather(energy_dataframe, type) 
-                energy_data_by_type[f'{type}_weather_adj'] = weather_adj_energy
-                
+    
         return energy_data_by_type
 
-    def call_lmdi(self, unit_conversion_factor, weather_adjust=False, lmdi_models=['multiplicative']):
+    def call_lmdi(self, unit_conversion_factor, lmdi_models=['multiplicative']):
         
-        energy_data_by_type = self.collect_energy_data(weather_adjust)
+        energy_data_by_type = self.collect_energy_data()
 
         multiplicative_results = dict()
         additive_results = dict()
