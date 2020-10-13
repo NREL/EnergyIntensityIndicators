@@ -1,7 +1,9 @@
 import pandas as pd
 from sklearn import linear_model
 import zipfile
-from outline import LMDI
+from LMDI import CalculateLMDI
+from pull_eia_api import GetEIAData
+
 
 
 # # Passenger cars, short wheelbase vehicles
@@ -135,9 +137,9 @@ from outline import LMDI
 
 
 
-class TransportationIndicators(LMDI):
+class TransportationIndicators(CalculateLMDI):
 
-    def __init__(self, tedb_date='04302020'):
+    def __init__(self, directory, lmdi_model='multiplicative', tedb_date='04302020', base_year=2018):
         self.transit_eia = GetEIAData('transportation')
         self.sub_categories_list = {'All_Passenger':
                                     {'Highway': 
@@ -169,542 +171,583 @@ class TransportationIndicators(LMDI):
         self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.tedb_date = tedb_date
+        self.lmdi_model = lmdi_model
+        self.base_year = base_year
+        self.energy_types = ['deliv']
+        self.directory = directory
 
-        self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
-                                                            'total_energy': 
-                                                                {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_18'},
-                                                            'vehicle_miles': 
-                                                                {'unit': 'miles', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': None},
-                                                            'passenger_miles': 
-                                                                {'unit': 'miles', 'source': 'TEDB', 'table_number': 'A_18'}},
-                                    'Light Trucks – LWB Vehicles': {'total_fuel': 
-                                                                            {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_02', 'header_starts': 7},
-                                                                        'total_energy': 
-                                                                            {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_05'},
-                                                                        'vehicle_miles': 
-                                                                            {'unit': 'miles', 'source': 'TEDB', 'table_number': '4_02'},
-                                                                        'passenger_miles':
-                                                                            {'unit': 'miles', 'source': 'TEDB', 'table_number': 'A_19'}},
-                                    'Motorcycles': {'total_fuel': 
-                                                            {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_02'},
-                                                        'total_energy': 
-                                                            {'unit': 'tbtu', 'source': None, 'table_number': None, 'Assumptions': 'Assume all motorcycle fuel is gasoline'},
-                                                        'vehicle_miles': 
-                                                            {'unit': 'miles', 'source': 'BTS', 'table_number': '1-35'},  #  with some interpolation prior to 1990'
-                                                        'passenger_miles':
-                                                            {'unit': 'miles', 'source': None, 'table_number': None, 'Assumptions': vehicle_miles * 1.1}},
-                                    'Urban Bus': {'total_fuel': 
-                                                        {'unit': 'gallons', 'source': 'APTA Public Transportation Fact Book'},
-                                                'total_energy': 
-                                                    {'unit': '', 'source': None, 'table_number': None, 'Assumption': 'Apply conversion factors (Btu/gallon)'},
-                                                'passenger_miles':
-                                                    {'unit': 'miles', 'source': 'APTA'}},
-                                    'Intercity Bus': {'total_fuel': 
-                                                        {'unit': 'gallons', 'source': 'Earlier data from TEDB-19 later from ABA'},
-                                                        'total_energy': 
-                                                        {'unit': 'tbtu', 'source': None, 'Assumptions': 'All fuel assumed to be diesel'},
-                                                        'passenger_miles':
-                                                        {'unit': 'miles', 'source': 'Multiple'}},
-                                    'School Bus': {'total_fuel': 
-                                                        {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_04'},
-                                                    'total_energy': 
-                                                        {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_04', 'Assumptions': 'Fuel assumed to be 90% diesel, 10% gasoline'},
-                                                    'passenger_miles':
-                                                        {'unit': 'miles', 'source': 'Multiple'}},
-                                    'Commuter Rail': {'total_fuel': 
-                                                        {'unit': 'kwh_gallons', 'source': 'APTA Public Transportation Fact Book'},
-                                                        'total_energy': 
-                                                        {'unit': 'tbtu', 'source': 'TEDB', 'Assumptions': 'Conversion to TBtu with electricity and diesel energy conversion factors (electricity conversion at 10,339 Btu/kWh from TEDB'},
-                                                        'passenger_miles':
-                                                        {'unit': 'miles', 'source': 'APTA', 'table_number': ' Table 3 of Appendix A'}},
-                                    'Transit Rail (Heavy and Light Rail)': {'total_fuel': 
-                                                                                {'unit': 'kwh_gallons', 'source': '(APTA, Fact Book)' , 'table_number': 'Tables 38 and 39 in Appendix A'},
-                                                                            'total_energy': 
-                                                                                {'unit': 'tbtu', 'source': None, 'table_number': None, 'Assumptions': 'Conversion to TBtu as for commuter rail'},
-                                                                            'passenger_miles':
-                                                                                {'unit': 'miles', 'source': 'APTA', 'table_number': 'source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
-                                    'Intercity Rail': {'total_fuel': 
-                                                            {'unit': 'kwh_gallons', 'source': '1994-2016" TEDB-37 Table A.16; prior data extrapolated from TEDB-30, Table 9.10'},
-                                                        'total_energy': 
-                                                            {'unit': 'tbtu', 'source': 'Conversion to TBtu as for commuter rail'},
-                                                        'passenger_miles':
-                                                            {'unit': 'miles', 'source': 'APTA source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
-                                    'Commercial Carriers': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_09'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'passenger_miles':
-                                                                {'unit': 'miles', 'source': '1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use'}},
-                                    'General Aviation': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'passenger_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
-                                    'Single-Unit Truck': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_09'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'},
-                                                            'ton_miles': {'unit': None, 'source': None}},
-                                    'Combination Truck': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
-                                    'Rail': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
-                                    'Air Carriers': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
-                                    'Waterborne': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
-                                    'Natural Gas Pipelines': {'total_fuel': 
-                                                                {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
-                                                            'total_energy':
-                                                                {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
-                                                            'vehicle_miles':
-                                                                {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},}
+        # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
+        #                                                     'total_energy': 
+        #                                                         {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_18'},
+        #                                                     'vehicle_miles': 
+        #                                                         {'unit': 'miles', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': None},
+        #                                                     'passenger_miles': 
+        #                                                         {'unit': 'miles', 'source': 'TEDB', 'table_number': 'A_18'}},
+        #                             'Light Trucks – LWB Vehicles': {'total_fuel': 
+        #                                                                     {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_02', 'header_starts': 7},
+        #                                                                 'total_energy': 
+        #                                                                     {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_05'},
+        #                                                                 'vehicle_miles': 
+        #                                                                     {'unit': 'miles', 'source': 'TEDB', 'table_number': '4_02'},
+        #                                                                 'passenger_miles':
+        #                                                                     {'unit': 'miles', 'source': 'TEDB', 'table_number': 'A_19'}},
+        #                             'Motorcycles': {'total_fuel': 
+        #                                                     {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_02'},
+        #                                                 'total_energy': 
+        #                                                     {'unit': 'tbtu', 'source': None, 'table_number': None, 'Assumptions': 'Assume all motorcycle fuel is gasoline'},
+        #                                                 'vehicle_miles': 
+        #                                                     {'unit': 'miles', 'source': 'BTS', 'table_number': '1-35'},  #  with some interpolation prior to 1990'
+        #                                                 'passenger_miles':
+        #                                                     {'unit': 'miles', 'source': None, 'table_number': None, 'Assumptions': vehicle_miles * 1.1}},
+        #                             'Urban Bus': {'total_fuel': 
+        #                                                 {'unit': 'gallons', 'source': 'APTA Public Transportation Fact Book'},
+        #                                         'total_energy': 
+        #                                             {'unit': '', 'source': None, 'table_number': None, 'Assumption': 'Apply conversion factors (Btu/gallon)'},
+        #                                         'passenger_miles':
+        #                                             {'unit': 'miles', 'source': 'APTA'}},
+        #                             'Intercity Bus': {'total_fuel': 
+        #                                                 {'unit': 'gallons', 'source': 'Earlier data from TEDB-19 later from ABA'},
+        #                                                 'total_energy': 
+        #                                                 {'unit': 'tbtu', 'source': None, 'Assumptions': 'All fuel assumed to be diesel'},
+        #                                                 'passenger_miles':
+        #                                                 {'unit': 'miles', 'source': 'Multiple'}},
+        #                             'School Bus': {'total_fuel': 
+        #                                                 {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_04'},
+        #                                             'total_energy': 
+        #                                                 {'unit': 'tbtu', 'source': 'TEDB', 'table_number': 'A_04', 'Assumptions': 'Fuel assumed to be 90% diesel, 10% gasoline'},
+        #                                             'passenger_miles':
+        #                                                 {'unit': 'miles', 'source': 'Multiple'}},
+        #                             'Commuter Rail': {'total_fuel': 
+        #                                                 {'unit': 'kwh_gallons', 'source': 'APTA Public Transportation Fact Book'},
+        #                                                 'total_energy': 
+        #                                                 {'unit': 'tbtu', 'source': 'TEDB', 'Assumptions': 'Conversion to TBtu with electricity and diesel energy conversion factors (electricity conversion at 10,339 Btu/kWh from TEDB'},
+        #                                                 'passenger_miles':
+        #                                                 {'unit': 'miles', 'source': 'APTA', 'table_number': ' Table 3 of Appendix A'}},
+        #                             'Transit Rail (Heavy and Light Rail)': {'total_fuel': 
+        #                                                                         {'unit': 'kwh_gallons', 'source': '(APTA, Fact Book)' , 'table_number': 'Tables 38 and 39 in Appendix A'},
+        #                                                                     'total_energy': 
+        #                                                                         {'unit': 'tbtu', 'source': None, 'table_number': None, 'Assumptions': 'Conversion to TBtu as for commuter rail'},
+        #                                                                     'passenger_miles':
+        #                                                                         {'unit': 'miles', 'source': 'APTA', 'table_number': 'source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
+        #                             'Intercity Rail': {'total_fuel': 
+        #                                                     {'unit': 'kwh_gallons', 'source': '1994-2016" TEDB-37 Table A.16; prior data extrapolated from TEDB-30, Table 9.10'},
+        #                                                 'total_energy': 
+        #                                                     {'unit': 'tbtu', 'source': 'Conversion to TBtu as for commuter rail'},
+        #                                                 'passenger_miles':
+        #                                                     {'unit': 'miles', 'source': 'APTA source as avober for fuel use. Passenger-miles in Table 3 of Appendix'}},
+        #                             'Commercial Carriers': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_09'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'passenger_miles':
+        #                                                         {'unit': 'miles', 'source': '1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use'}},
+        #                             'General Aviation': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'passenger_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+        #                             'Single-Unit Truck': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_09'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'},
+        #                                                     'ton_miles': {'unit': None, 'source': None}},
+        #                             'Combination Truck': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+        #                             'Rail': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+        #                             'Air Carriers': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+        #                             'Waterborne': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},
+        #                             'Natural Gas Pipelines': {'total_fuel': 
+        #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': 'A_10'}, 
+        #                                                     'total_energy':
+        #                                                         {'unit': 'tbtu', 'source': 'Conversion to Btu with factors for aviation fuel and jet fuel (120,2 and  135.0 kBtu/gallon, respectively.)'},
+        #                                                     'vehicle_miles':
+        #                                                         {'unit': 'miles', 'source': ' 1970-2001: Eno Transportation Foundation, Transportation in America 2001, 19th Edition, p.45 Passenger-miles after 2001 extrapolated by total energy use.'}},}
 
-    def import_tedb_data(self, table_number):
-        file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'
-        xls = pd.read_excel(file_url)  # , sheetname=None, header=11
-        return xls
+    # def import_tedb_data(self, table_number):
+    #     file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'
+    #     xls = pd.read_excel(file_url)  # , sheetname=None, header=11
+    #     return xls
     
-    def get_data_from_nested_dict(self, nested_dictionary, subcategory_data_sources):
-        for key, value in nested_dictionary.items():
-            if type(value) is dict:
-                get_data_from_nested_dict(value)
-            elif value is None:
-                data_sources = self.transportation_data[key]
-                subcategory_data_sources[key] = data_sources
-                return key, data_sources
+    # def get_data_from_nested_dict(self, nested_dictionary, subcategory_data_sources):
+    #     for key, value in nested_dictionary.items():
+    #         if type(value) is dict:
+    #             get_data_from_nested_dict(value)
+    #         elif value is None:
+    #             data_sources = self.transportation_data[key]
+    #             subcategory_data_sources[key] = data_sources
+    #             return key, data_sources
 
-    def load_data(self):
-        energy_mode_data = dict()
-        fuel_mode_data = dict()
-        vehcile_miles_mode_data = dict()
+    # def load_data(self):
+    #     energy_mode_data = dict()
+    #     fuel_mode_data = dict()
+    #     vehcile_miles_mode_data = dict()
 
-        for mode_name, mode_dict in self.transportation_data.items():  # could be more efficient with pandas?
-            for variable_name, variable_dict in mode_dict.items():
-                if variable_name == 'total_fuel':
-                    pass
-                elif variable_name == 'total_energy':
-                    pass
-                elif variable_name == 'vehicle_miles':
-                    pass
-                if variable_dict['source'] == 'TEDB':
-                    mode_source_df = import_tedb_data(variable_dict['table_number'])
+    #     for mode_name, mode_dict in self.transportation_data.items():  # could be more efficient with pandas?
+    #         for variable_name, variable_dict in mode_dict.items():
+    #             if variable_name == 'total_fuel':
+    #                 pass
+    #             elif variable_name == 'total_energy':
+    #                 pass
+    #             elif variable_name == 'vehicle_miles':
+    #                 pass
+    #             if variable_dict['source'] == 'TEDB':
+    #                 mode_source_df = import_tedb_data(variable_dict['table_number'])
 
-        get_data_from_nested_dict(self.sub_categories_list, subcategory_data_sources)
+    #     get_data_from_nested_dict(self.sub_categories_list, subcategory_data_sources)
 
-
-        pass
+    #     pass
     
 
-                
-    def fuel_heat_content(self, parameter_list):
-            """Assumed Btu content of the various types of petroleum products. This dataframe is not time variant (no need to update it with subsquent indicator updates)
-            Parameters
-            ----------
+    # def fuel_heat_content(self, parameter_list):
+    #         """Assumed Btu content of the various types of petroleum products. This dataframe is not time variant (no need to update it with subsquent indicator updates)
+    #         Parameters
+    #         ----------
             
-            Returns
-            -------
+    #         Returns
+    #         -------
             
-            """
+    #         """
 
-            pass
+    #         pass
 
-    def fuel_consump(self, parameter_list):
-        """Time series of fuel consumption for the major transportation subsectors. Data are generally in 
-        millions gallons or barrels of petroleum.
-           Parameters
-           ----------
+    # def fuel_consump(self, parameter_list):
+    #     """Time series of fuel consumption for the major transportation subsectors. Data are generally in 
+    #     millions gallons or barrels of petroleum.
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
+    #        Returns
+    #        -------
            
-        """
+    #     """
 
 
-        # swb_vehciles_all_fuel = [0] # 2007-2017 FHA Highway Statistics Table VM-1
-        # motorcycles_all_fuel_1949_1969 = [0] # Based upon data published in Table 4_11 of Bureau of Transportation Statistics (BTS), fuel consumption is based assumption of 50 miles per gallon
-        # motorcycles_all_fuel_1970_2017 = import_tedb_data(table_number='A_02')  # Alternative: 2017 data from Highway Statistics, Table VM-1.
-        # light_trucks_all_fuel = 
-        # lwb_vehicles_all_fuel = 
+    #     # swb_vehciles_all_fuel = [0] # 2007-2017 FHA Highway Statistics Table VM-1
+    #     # motorcycles_all_fuel_1949_1969 = [0] # Based upon data published in Table 4_11 of Bureau of Transportation Statistics (BTS), fuel consumption is based assumption of 50 miles per gallon
+    #     # motorcycles_all_fuel_1970_2017 = import_tedb_data(table_number='A_02')  # Alternative: 2017 data from Highway Statistics, Table VM-1.
+    #     # light_trucks_all_fuel = 
+    #     # lwb_vehicles_all_fuel = 
 
-        # bus_urban_diesel = 
-        # bus_urban_cng = 
-        # bus_urban_gasoline = 
-        # bus_urban_lng = 
-        # bus_urban_bio_diesel = 
-        # bus_urban_other = 
-        # bus_urban_lpg = 
-        # paratransit = 
-        # bus_school = 
-        # bus_school_million_bbl = 
-        # bus_intercity = [0] # Not used
-        # waterborne = 
-        # air = 
-        # rail_intercity_diesel_million_gallons = 
-        # rail_intercity_diesel_electricity_gwhrs = 
-        # rail_intercity_total_energy_tbtu =
-        # rail_intercity_total_energy_tbtu_old =
-        # rail_intercity_total_energy_tbtu_adjusted = 
+    #     # bus_urban_diesel = 
+    #     # bus_urban_cng = 
+    #     # bus_urban_gasoline = 
+    #     # bus_urban_lng = 
+    #     # bus_urban_bio_diesel = 
+    #     # bus_urban_other = 
+    #     # bus_urban_lpg = 
+    #     # paratransit = 
+    #     # bus_school = 
+    #     # bus_school_million_bbl = 
+    #     # bus_intercity = [0] # Not used
+    #     # waterborne = 
+    #     # air = 
+    #     # rail_intercity_diesel_million_gallons = 
+    #     # rail_intercity_diesel_electricity_gwhrs = 
+    #     # rail_intercity_total_energy_tbtu =
+    #     # rail_intercity_total_energy_tbtu_old =
+    #     # rail_intercity_total_energy_tbtu_adjusted = 
 
-        # rail_commuter_diesel = 
-        # rail_commuter_electricity_gwhrs = 
-        # rail_heavy_electricity_gwhrs = 
-        # rail_light_electricity_gwhrs = 
-        # class_I_freight_distillate_fuel_oil =
+    #     # rail_commuter_diesel = 
+    #     # rail_commuter_electricity_gwhrs = 
+    #     # rail_heavy_electricity_gwhrs = 
+    #     # rail_light_electricity_gwhrs = 
+    #     # class_I_freight_distillate_fuel_oil =
 
-        # pipeline_natural_gas_million_cu_ft = 
-        # pipeline_natutral_gas_electricity_million_kwh = 
+    #     # pipeline_natural_gas_million_cu_ft = 
+    #     # pipeline_natutral_gas_electricity_million_kwh = 
 
 
 
-        pass
+    #     pass
 
-    def adjust_truck_freight(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
+    # def adjust_truck_freight(self, parameter_list):
+    #     """purpose
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
-        DOES THIS WORK ? dataframes
-        """
-        gross_output = bls_data[] # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model, 
-                    # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
-        vehicle_miles_fhwa_tvm1 =  [0]
-        old_methodology_2007_extrapolated = gross_output.iloc[2007] / gross_output.iloc[2006] * vehicle_miles_fhwa_tvm1.iloc[2006, :]
-        old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated  
+    #        Returns
+    #        -------
+    #     DOES THIS WORK ? dataframes
+    #     """
+    #     gross_output = bls_data[] # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model, 
+    #                 # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
+    #     vehicle_miles_fhwa_tvm1 =  [0]
+    #     old_methodology_2007_extrapolated = gross_output.iloc[2007] / gross_output.iloc[2006] * vehicle_miles_fhwa_tvm1.iloc[2006, :]
+    #     old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated  
 
 
-        # **come back**
-        pass
+    #     # **come back**
+    #     pass
 
-    def passenger_based_energy_use(self):
-        """Calculate the fuel consumption in Btu for passenger transportation
-        """        
-        all_passenger_categories = self.sub_categories_list['All_Passenger']
-        for passenger_category in all_passenger_categories.keys():
-            for transportation_mode in passenger_category.keys():
-                if transportation_mode == 'Passenger Car – SWB Vehicles':
-                    # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
+    # def passenger_based_energy_use(self):
+    #     """Calculate the fuel consumption in Btu for passenger transportation
+    #     """        
+    #     all_passenger_categories = self.sub_categories_list['All_Passenger']
+    #     for passenger_category in all_passenger_categories.keys():
+    #         for transportation_mode in passenger_category.keys():
+    #             if transportation_mode == 'Passenger Car – SWB Vehicles':
+    #                 # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
 
-                elif transportation_mode == 'Light Trucks – LWB Vehicles':
-                    # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
-                else: 
-        urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
-        passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
-        pass
+    #             elif transportation_mode == 'Light Trucks – LWB Vehicles':
+    #                 # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
+    #             else: 
+    #     urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
+    #     passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
+    #     pass
     
-    def passenger_based_activity_data(self):
-         # Passenger cars and light trucks
-        fha_table_vm201a = pd.read_excel('https://www.fhwa.dot.gov/ohim/summary95/vm201a.xlw', sheetname='UnknownSheet4', header=11) # Passenger car and light truck VMT 1981-95
-        fha_table_vm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4) 
-        fha_table_vm1_1996  = pd.read_excel('https://www.fhwa.dot.gov/ohim/1996/vm1.xlw')
-        fha_table_vm1_1997 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs97/xls/vm1.xls', sheetname='1997 VM1', header=6)
-        fha_table_vm1_1998 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/1998/xls/vm1.xls', sheetname='Pub 98 VM1', header=6)
-        fha_table_vm1_1999 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs99/excel/vm1.xls', sheetname='1999 VM1', header=3)
-        fha_table_vm1_2000 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs00/xls/vm1.xls', sheetname='Sheet1', header=4)
-        fha_table_vm1_2001 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs01/xls/vm1.xls', sheetname='Sheet1', header=4)
-        vmt2002_2006_passenger_car_light_truck = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_01_35_013020.xlsx', header=1) # Note, this link has changed since usage in the spreadsheets
-        vmt2007_2008_passenger_car = import_tedb_data(table_number='4_01')
-        vmt2007_2008_light_truck = import_tedb_data(table_number='4_02')
+    # def passenger_based_activity_data(self):
+    #      # Passenger cars and light trucks
+    #     fha_table_vm201a = pd.read_excel('https://www.fhwa.dot.gov/ohim/summary95/vm201a.xlw', sheetname='UnknownSheet4', header=11) # Passenger car and light truck VMT 1981-95
+    #     fha_table_vm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4) 
+    #     fha_table_vm1_1996  = pd.read_excel('https://www.fhwa.dot.gov/ohim/1996/vm1.xlw')
+    #     fha_table_vm1_1997 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs97/xls/vm1.xls', sheetname='1997 VM1', header=6)
+    #     fha_table_vm1_1998 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/1998/xls/vm1.xls', sheetname='Pub 98 VM1', header=6)
+    #     fha_table_vm1_1999 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs99/excel/vm1.xls', sheetname='1999 VM1', header=3)
+    #     fha_table_vm1_2000 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs00/xls/vm1.xls', sheetname='Sheet1', header=4)
+    #     fha_table_vm1_2001 = pd.read_excel('https://www.fhwa.dot.gov/ohim/hs01/xls/vm1.xls', sheetname='Sheet1', header=4)
+    #     vmt2002_2006_passenger_car_light_truck = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_01_35_013020.xlsx', header=1) # Note, this link has changed since usage in the spreadsheets
+    #     vmt2007_2008_passenger_car = import_tedb_data(table_number='4_01')
+    #     vmt2007_2008_light_truck = import_tedb_data(table_number='4_02')
 
-        load_factors_1966_2011 = 
+    #     load_factors_1966_2011 = 
 
-        # Short Wheelbase and Long Wheelbase Vehicles 
-        2007-2017 FHA VM1
-        fha_table_vm1_2014 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2014/xls/vm1.xlsx', sheetname='final VM-1' , header=4)
+    #     # Short Wheelbase and Long Wheelbase Vehicles 
+    #     2007-2017 FHA VM1
+    #     fha_table_vm1_2014 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2014/xls/vm1.xlsx', sheetname='final VM-1' , header=4)
 
-        # Motorcycles
-        1970-2010 = vmt2002_2006_passenger_car_light_truck
-        fha_tables 
+    #     # Motorcycles
+    #     1970-2010 = vmt2002_2006_passenger_car_light_truck
+    #     fha_tables 
 
-        # Bus / Transit
-        # 1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
-        apta_table3 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheetname='3', header=2) # 1997-2017
+    #     # Bus / Transit
+    #     # 1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
+    #     apta_table3 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheetname='3', header=2) # 1997-2017
          
-        # # Bus / Intercity
-        # see revised_intercity_bus_estimates
+    #     # # Bus / Intercity
+    #     # see revised_intercity_bus_estimates
 
-        # # Bus / School 
-        # see revised_intercity_bus_estimates
+    #     # # Bus / School 
+    #     # see revised_intercity_bus_estimates
 
-        # Paratransit
-        paratransit_activity_1984_2017 = apta_table3
+    #     # Paratransit
+    #     paratransit_activity_1984_2017 = apta_table3
         
-        # Commercial Air Carrier
-        commercial_air_carrier_activity_1970_1974 = [0] # TEDB 13 Table 6.2 page 6-7
-        commercial_air_carrier_activity_1975_1984 = [0] # TEDB 19 Table 12.1 page 12-2 (is the 2 a typo?)
-        commercial_air_carrier_activity_1985_1999 = [0] # TEDB 21 Table 12.1 page 12-2 (is the 2 a typo?)
-        commercial_air_carrier_activity_2000_2018 = import_tedb_data(table_number='10_02')
-        domestic_passenger_miles_2011 = [0] # from Table 2.12 in 2013 TEDB
+    #     # Commercial Air Carrier
+    #     commercial_air_carrier_activity_1970_1974 = [0] # TEDB 13 Table 6.2 page 6-7
+    #     commercial_air_carrier_activity_1975_1984 = [0] # TEDB 19 Table 12.1 page 12-2 (is the 2 a typo?)
+    #     commercial_air_carrier_activity_1985_1999 = [0] # TEDB 21 Table 12.1 page 12-2 (is the 2 a typo?)
+    #     commercial_air_carrier_activity_2000_2018 = import_tedb_data(table_number='10_02')
+    #     domestic_passenger_miles_2011 = [0] # from Table 2.12 in 2013 TEDB
 
-        # Urban Rail (Commuter)
-        urban_rail_commuter_activity_1970_1976 = [0] # Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 6.13, p. 6-31.
-        urban_rail_commuter_activity_1977_2017 = apta_table3
-        # Urban Rail (Light, Heavy)
-        urban_rail_light_heavy_1970_1977 = import_tedb_data(table_number='10_10')
-        urban_rail_light_heavy_1977_2017 = apta_table3
+    #     # Urban Rail (Commuter)
+    #     urban_rail_commuter_activity_1970_1976 = [0] # Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 6.13, p. 6-31.
+    #     urban_rail_commuter_activity_1977_2017 = apta_table3
+    #     # Urban Rail (Light, Heavy)
+    #     urban_rail_light_heavy_1970_1977 = import_tedb_data(table_number='10_10')
+    #     urban_rail_light_heavy_1977_2017 = apta_table3
 
-        # Intercity Rail (Amtrak) Note: Amtrak data is compiled by fiscal year rather than calendar year
-        intercity_rail_1970 = None  # Amtrak not established until May 1971. Data for 1970 assumes same passenger activity as 1971, primarily included
-                                    # to fill out all transportation-related time series back to 1970
-        intercity_rail_1971_2016 = [0]
-        intercity_rail_2017 =  [0] # 'Bureau of Transportation Statistics, National Transportation Statistics, Table 1-40: U.S. Passenger-Miles
+    #     # Intercity Rail (Amtrak) Note: Amtrak data is compiled by fiscal year rather than calendar year
+    #     intercity_rail_1970 = None  # Amtrak not established until May 1971. Data for 1970 assumes same passenger activity as 1971, primarily included
+    #                                 # to fill out all transportation-related time series back to 1970
+    #     intercity_rail_1971_2016 = [0]
+    #     intercity_rail_2017 =  [0] # 'Bureau of Transportation Statistics, National Transportation Statistics, Table 1-40: U.S. Passenger-Miles
 
-        # General Aviation 
-        # !!!!
-        return passenger_based_activity_input_data
+    #     # General Aviation 
+    #     # !!!!
+    #     return passenger_based_activity_input_data
 
-    def passenger_based_activity(self):
-        """ Time series for the activity measures for passenger transportation
+    # def passenger_based_activity(self):
+    #     """ Time series for the activity measures for passenger transportation
          
 
-        # Highway
-        self.intercity_buses = 'Detailed  data_Intercity buses' # Column E
+    #     # Highway
+    #     self.intercity_buses = 'Detailed  data_Intercity buses' # Column E
 
-        1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
-           1977-2017 American Public Transportation Association. 2019 Public Transportation Fact Book. Appendix A, Table 3, Pt. A
-           Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years. 
-           https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
+    #     1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
+    #        1977-2017 American Public Transportation Association. 2019 Public Transportation Fact Book. Appendix A, Table 3, Pt. A
+    #        Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years. 
+    #        https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
 
-            Note: Series not continuous for transit bus between 2006 and 2007; estimation procedures changed for bus systems outside urban areas
-            Note: Series not continuous between 1983 and 1984.
+    #         Note: Series not continuous for transit bus between 2006 and 2007; estimation procedures changed for bus systems outside urban areas
+    #         Note: Series not continuous between 1983 and 1984.
 
-         Note: Transit Bus == Urban Bus 
-        This method is horribly structured. 
-        """        
+    #      Note: Transit Bus == Urban Bus 
+    #     This method is horribly structured. 
+    #     """        
 
 
-        all_passenger_categories = self.sub_categories_list['All_Passenger']
-        for passenger_category in all_passenger_categories.keys():
-            for transportation_mode in all_passenger_categories[passenger_category].keys():
-                if transportation_mode == 'Passenger Car – SWB Vehicles':
-                    # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
-                elif transportation_mode == 'Light Trucks – LWB Vehicles':
-                    # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
-                else: 
-        urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
-        passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
+    #     all_passenger_categories = self.sub_categories_list['All_Passenger']
+    #     for passenger_category in all_passenger_categories.keys():
+    #         for transportation_mode in all_passenger_categories[passenger_category].keys():
+    #             if transportation_mode == 'Passenger Car – SWB Vehicles':
+    #                 # Passenger Car and SWB Vehicles have separate data sources, later aggregated?
+    #             elif transportation_mode == 'Light Trucks – LWB Vehicles':
+    #                 # Light Trucks and LWB Vehicles have separate data sources, later aggregated?
+    #             else: 
+    #     urban_rail_categories = list(all_passenger_categories['Rail']['Urban Rail'].values()])
+    #     passenger_based_energy_use_df['Urban Rail (Hvy, Lt, Commuter)'] = passenger_based_energy_use_df[urban_rail_categories].sum(1)
         
-        pass
+    #     pass
 
-    def freight_based_energy_use(self):
-        """Calculate the fuel consumption in Btu for freight transportation
+    # def freight_based_energy_use(self):
+    #     """Calculate the fuel consumption in Btu for freight transportation
         
-        Need FuelConsump, Fuel Heat Content
-        """        
-        all_freight_categories = self.sub_categories_list['All_Freight']
-        for freight_category in all_freight_categories.keys():
-            for freight_mode in freight_category.keys():
+    #     Need FuelConsump, Fuel Heat Content
+    #     """        
+    #     all_freight_categories = self.sub_categories_list['All_Freight']
+    #     for freight_category in all_freight_categories.keys():
+    #         for freight_mode in freight_category.keys():
 
 
 
-        pass
+    #     pass
 
-    def freight_based_activity(self):
-        """Time series for the activity measures for passenger transportation
-        """        
-        all_freight_categories = self.sub_categories_list['All_Freight']
-        for freight_category in all_freight_categories.keys():
-            for freight_mode in freight_category.keys():
+    # def freight_based_activity(self):
+    #     """Time series for the activity measures for passenger transportation
+    #     """        
+    #     all_freight_categories = self.sub_categories_list['All_Freight']
+    #     for freight_category in all_freight_categories.keys():
+    #         for freight_mode in freight_category.keys():
 
-                if freight_category == 'Waterborne':
-                    domestic_vessel = [0]
-                    international_vessel_in_us_waters = [0]
-                    total_commerce_us_waters = domestic_vessel + international_vessel_in_us_waters
+    #             if freight_category == 'Waterborne':
+    #                 domestic_vessel = [0]
+    #                 international_vessel_in_us_waters = [0]
+    #                 total_commerce_us_waters = domestic_vessel + international_vessel_in_us_waters
                 
-                elif freight_category == 'Highway':
-                    highway_published = [0]
+    #             elif freight_category == 'Highway':
+    #                 highway_published = [0]
                     
-                    if freight_mode == 'Combination Truck':
-                        freight_based_energy_use_df['Old Series from 2001 Eno, Trans. In America'] = [0]
+    #                 if freight_mode == 'Combination Truck':
+    #                     freight_based_energy_use_df['Old Series from 2001 Eno, Trans. In America'] = [0]
 
-                        # 1950-1989: 
-                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0] # 1990 value for this column divided by 1990 value for 'Old Series from 2001 Eno, Trans. In America' * contemporary year from old series
-                        # 1990-2003
-                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0]
-                        # 2004-2017
-                        vehicle_miles_combination_trucks_adjusted = [0] # from adjust truck freight column K
+    #                     # 1950-1989: 
+    #                     freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0] # 1990 value for this column divided by 1990 value for 'Old Series from 2001 Eno, Trans. In America' * contemporary year from old series
+    #                     # 1990-2003
+    #                     freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0]
+    #                     # 2004-2017
+    #                     vehicle_miles_combination_trucks_adjusted = [0] # from adjust truck freight column K
 
-                        freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0] # contemporary value of vehicle_miles_combination_trucks_adjusted divided by 2003 value of vehicle_miles_combination_trucks_adjusted times  2003 value of this
+    #                     freight_based_energy_use_df['Combination Truck, adjusted extrapolated'] = [0] # contemporary value of vehicle_miles_combination_trucks_adjusted divided by 2003 value of vehicle_miles_combination_trucks_adjusted times  2003 value of this
                     
-                    elif freight_mode == 'Single-Unit Truck':
-                        # 1970-2006 
-                        freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] = [0] # Adjust_truck_Freight Column J
-                        # 2007-2017
-                        freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] = highway_published['Single-Unit Truck (million vehicle-miles)']
+    #                 elif freight_mode == 'Single-Unit Truck':
+    #                     # 1970-2006 
+    #                     freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] = [0] # Adjust_truck_Freight Column J
+    #                     # 2007-2017
+    #                     freight_based_energy_use_df['Single-Unit Truck (million vehicle-miles), adjusted'] = highway_published['Single-Unit Truck (million vehicle-miles)']
 
 
-                if freight_mode == 'Natural Gas Pipeline':
-                    natrual_gas_delivered_to_end_users = self.table65_AER2010 # Column AH, million cu. ft.
-                    natural_gas_delivered_lease_plant_pipeline_fuel = self.MER_Table43_Nov2019 # Column M - column D - column I
-                    natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
-                    natural_gas_consumption_million_tons = natrual_gas_delivered_to_end_users * natural_gas_delivered_lease_plant_pipeline_fuel[0]
-                    avg_length_natural_gas_shipment_miles = 620
-                    freight_based_energy_use_df[freight_mode] = natural_gas_consumption_million_tons * 620
+    #             if freight_mode == 'Natural Gas Pipeline':
+    #                 natrual_gas_delivered_to_end_users = self.table65_AER2010 # Column AH, million cu. ft.
+    #                 natural_gas_delivered_lease_plant_pipeline_fuel = self.MER_Table43_Nov2019 # Column M - column D - column I
+    #                 natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
+    #                 natural_gas_consumption_million_tons = natrual_gas_delivered_to_end_users * natural_gas_delivered_lease_plant_pipeline_fuel[0]
+    #                 avg_length_natural_gas_shipment_miles = 620
+    #                 freight_based_energy_use_df[freight_mode] = natural_gas_consumption_million_tons * 620
                 
                 
 
 
-        pass
+    #     pass
 
-    def water_freight_regression(self, ):
-        """purpose
-           Parameters
-           ----------
+    # def water_freight_regression(self, ):
+    #     """purpose
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
+    #        Returns
+    #        -------
            
-        """
-        intensity = 
-        X = math.log(intensity)
-        Y = years
-        reg = linear_model.LinearRegression()
-        reg.fit(X, Y)
-        coefficients = reg.coef_
-        predicted_value = reg.predict(X_test)  # Predicted value of the intensity based on actual degree days
+    #     """
+    #     intensity = 
+    #     X = math.log(intensity)
+    #     Y = years
+    #     reg = linear_model.LinearRegression()
+    #     reg.fit(X, Y)
+    #     coefficients = reg.coef_
+    #     predicted_value = reg.predict(X_test)  # Predicted value of the intensity based on actual degree days
 
-    def detailed_data_school_buses(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
+    # def detailed_data_school_buses(self, parameter_list):
+    #     """purpose
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
+    #        Returns
+    #        -------
            
-        """
+    #     """
 
 
-        pass
+    #     pass
 
-    def detailed_data_intercity_buses(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
+    # def detailed_data_intercity_buses(self, parameter_list):
+    #     """purpose
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
+    #        Returns
+    #        -------
            
-        """
-        passenger_miles = [0]
-        revised_passenger_miles = [0]
-        number_of_buses = [0]
-        number_of_buses_old = [0] # Not used
-        vehicle_miles_commercial = [0] # Not used
-        vehicle_miles_intercity = [0]
-        implied_load_factor = [0]
-        energy_use_tedb_19_32 = [0] # Not used
-        implied_mpg = [0] # Not used
-        blended_mpg_miles_per_gallon = [0] #
-        revised_energy_use = [0]
+    #     """
+    #     passenger_miles = [0]
+    #     revised_passenger_miles = [0]
+    #     number_of_buses = [0]
+    #     number_of_buses_old = [0] # Not used
+    #     vehicle_miles_commercial = [0] # Not used
+    #     vehicle_miles_intercity = [0]
+    #     implied_load_factor = [0]
+    #     energy_use_tedb_19_32 = [0] # Not used
+    #     implied_mpg = [0] # Not used
+    #     blended_mpg_miles_per_gallon = [0] #
+    #     revised_energy_use = [0]
 
-        number_of_motorcoaches = [0]
-        number_of_motorcoaches['Ratio'] = number_of_motorcoaches['US'] / number_of_motorcoaches['Total N.A.']
-        pass
+    #     number_of_motorcoaches = [0]
+    #     number_of_motorcoaches['Ratio'] = number_of_motorcoaches['US'] / number_of_motorcoaches['Total N.A.']
+    #     pass
 
-    def mpg_check(self, parameter_list):
-        """purpose
-           Parameters
-           ----------
+    # def mpg_check(self, parameter_list):
+    #     """purpose
+    #        Parameters
+    #        ----------
            
-           Returns
-           -------
+    #        Returns
+    #        -------
            
-        """
-        pass
+    #     """
+    #     pass
+    
+    @staticmethod
+    def collect_data():
+        """Method to collect freight and passenger energy and activity data. 
+        This method should be adjusted to call dataframe building methods rather than reading csvs, when those are ready
+
+        Returns:
+            [type]: [description]
+        """        
+        passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
+        print(passenger_based_energy_use.columns)
+        passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
+        print(passenger_based_activity.columns)
+        freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
+        print(freight_based_energy_use.columns)
+
+        freight_based_activity = pd.read_csv('./Transportation/freight_based_activity.csv').set_index('Year')
+        print(freight_based_activity.columns)
+
+        data_dict = {'energy': {'passenger': passenger_based_energy_use, 'freight': freight_based_energy_use}, 
+                     'activity': {'passenger': passenger_based_activity, 'freight': freight_based_activity}}
+        return data_dict
 
     def energy_consumption(self):
         """Gather Energy Data to use in LMDI Calculation TBtu
         """        
         pass
 
-    def activity():
+    def activity(self):
         """Gather Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
         """        
         pass
-    
-    def transportation_lmdi(self, _base_year=None):
+
+    def lmdi_input_data(self, data, select_categories, breakout):
+        for key, value in select_categories.items():
+            if type(value) is dict:
+                yield (key, value)
+                yield from self.lmdi_input_data(data=data, select_categories=value, breakout=breakout)
+            else:
+                print(f"{key} is in data['energy']['freight'].columns", key in data['energy']['freight'].columns)
+                print(f"{key} is in data['activity']['freight'].columns", key in data['activity']['freight'].columns)
+
+                energy_data = data['energy']['freight'][[key]]
+                energy_data[str(energy_data.columns)] = energy_data.sum(axis=1)
+                activity_data = data['activity']['freight'][[key]]
+                activity_data[str(energy_data.columns)] = activity_data.sum(axis=1)
+                data_dict = {'energy': energy_data, 'activity': activity_data}
+                select_categories[key] = data_dict
+                
+                if breakout:
+                    lmdi = CalculateLMDI(sector='transportation', categories_list=select_categories, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+                    results = lmdi.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_model)
+                
+                    yield results, select_categories
+                else:
+                    yield select_categories
+                # yield (key, value)
+
+        def recursive_items(self, dictionary):
+            for key, value in dictionary.items():
+                if type(value) is dict:
+                    yield from self.recursive_items(value)
+                elif not value:
+                    e_energy_data = self.energy_consumption(key)
+                    e_activity_data = self.activity(key)
+                    value = {'energy': e_energy_data, 'activity': e_activity_data}
+                    yield {key: value}
+                else:
+                    yield None
+
+
+    def transportation_lmdi(self, level_of_aggregation='all_transportation', breakout=False): # base_year=None, 
         """potentially refactor later
     
 
         Args:
             _base_year ([type], optional): [description]. Defaults to None.
         """        
-        if not base_year: 
-            _base_year = self.base_year
+        # if not base_year: 
+        #     _base_year = self.base_year
+        # else: 
+        #     _base_year = _base_year
+
+        if level_of_aggregation == 'all_transportation':
+            categories = self.sub_categories_list
+
+        elif level_of_aggregation == ['all_freight', 'Highway', 'Freight-Trucks']:
+            categories = self.sub_categories_list.get(level_of_aggregation)
+
         else: 
-            _base_year = _base_year
+            categories = self.sub_categories_list[level_of_aggregation]
+        
+        data = self.collect_data()
+        for key, value in self.lmdi_input_data(data=data, select_categories=categories, breakout=breakout):
+            print(key, value)
+        
+        exit()
 
         # Pipelines
-        pipeline_cats = sub_categories_list['All_Freight']['Pipeline'].keys()
-        pipelines_lmdi  = call_lmdi(pipeline_cats)
+        pipeline_cats = self.sub_categories_list['All_Freight']['Pipeline'].keys()
+        # lmdi = CalculateLMDI(sector='transportation', categories_list=pipeline_cats, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+        # pipelines_lmdi  = call_lmdi(pipeline_cats)
 
-        # Freight-Trucks
-        freight_truck_cats = sub_categories_list['All_Freight']['Highway']['Freight-Trucks'].keys()
-        freight_trucks_lmdi = call_lmdi(freight_truck_cats)
-
-        # Freight_Total
-        freight_total_cats = sub_categories_list['All_Freight'].keys()
-        freight_total_lmdi = call_lmdi(freight_total_cats)
-
-        # Urban_Rail
-        urban_rail_cats = sub_categories_list['All_Passenger']['Rail']['Urban Rail'].keys()
-        urban_rail_lmdi = call_lmdi(urban_rail_cats)
-
-        # Passenger Rail
-        passenger_rail_cats = sub_categories_list['All_Passenger']['Rail'].keys()
-        passenger_rail_lmdi = call_lmdi(passenger_rail_cats)
-
-        # Passenger Air
-        sub_categories_list['All_Passenger']['Air'].keys()
-
-        # Buses
-        sub_categories_list['All_Passenger']['Highway']['Buses'].keys()
-
-        # Trucks and LWB
-        sub_categories_list['All_Passenger']['Highway']['Light Trucks – LWB Vehicles'].keys()
-
-        # Cars and SWB Vehicles
-        sub_categories_list['All_Passenger']['Highway']['Passenger Car – SWB Vehicles'].keys()
-
-        # Personal Passenger Vehicles
-        sub_categories_list['All_Passenger']['Highway']['Passenger Cars and Trucks'].keys()
-
-        # Passenger-Highway
-        sub_categories_list['All_Passenger']['Highway'].keys()
-
-        # Passenger_Total
-        sub_categories_list['All_Passenger'].keys()
 
         # Personal vehicles - aggregate
         personal_vehicles_aggregate_cats = ['Passenger Car', 'Light Truck', 'Motorcycles']
-        personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
+        # lmdi = CalculateLMDI(sector='transportation', categories_list=personal_vehicles_aggregate_cats, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+        # personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
 
-        # Total_Transportation
-        sub_categories_list.keys()
-        pass
-        
+    def build_dataset(self):
+        self.sub_categories_list    
 
     def compare_aggregates(self, parameter_list):
         """purpose
@@ -721,12 +764,12 @@ class TransportationIndicators(LMDI):
         pct_difference = difference / total_fuel_tbtu_published_mer
         return pct_difference
 
-    def main():
+    def main(self):
         pass
 
 
 if __name__ == '__main__': 
-    TransportationIndicators().main()
+    TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').transportation_lmdi(level_of_aggregation='All_Freight', breakout=True)
 
 
 

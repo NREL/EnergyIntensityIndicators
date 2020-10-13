@@ -16,6 +16,8 @@ from sklearn import linear_model
 from pull_eia_api import GetEIAData
 from LMDI import CalculateLMDI
 from Residential.residential_floorspace import ResidentialFloorspace
+from weather_factors import WeatherFactors
+
 
 class ResidentialIndicators(CalculateLMDI): 
 

@@ -9,7 +9,6 @@ import math
 import os
 
 
-
 class WeatherFactors: 
     def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, end_year=2018):
         self.end_year = end_year
@@ -36,11 +35,60 @@ class WeatherFactors:
         
         EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
 
-    def adjust_data(self):
-        # adjustment_factor_electricity = [0] # Weights derived from 1995 CBECS
-        # adjustment_factor_fuels = 
-        self.adjusted_hdd = weights * self.hdd_by_division
-        self.adjusted_cdd = weights * self.cdd_by_division
+    @staticmethod
+    def adjust_data(subregions, hdd_by_division, cdd_by_division, cdd_activity_weights, hdd_activity_weights, cooling=True, use_weights_1961_90=True):
+        """Calculate weights for adjusted weather factors prediction
+
+        Args:
+            subregions ([type]): [description]
+            hdd_by_division ([type]): [description]
+            cdd_by_division ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
+        cdd_by_division = cdd_by_division.set_index('Year')
+        cdd_by_division.index = cdd_by_division.index.astype(int)
+        hdd_by_division = hdd_by_division.set_index('Year')
+        hdd_by_division.index = hdd_by_division.index.astype(int)
+
+        years_1961_90 = list(range(1961, 1990 + 1))
+        years_1981_2010 = list(range(1981, 1990 + 1))
+
+        averages_1961_90_cooling = cdd_by_division.loc[years_1961_90, :].mean(axis=0)
+        averages_1961_90_heating = hdd_by_division.loc[years_1961_90, :].mean(axis=0)
+
+        averages_1981_2010_cooling = cdd_by_division.loc[years_1981_2010, :].mean(axis=0)
+        averages_1981_2010_heating = hdd_by_division.loc[years_1981_2010, :].mean(axis=0)
+        
+        all_s_weights_heating = []
+        all_s_weights_cooling = []
+
+        for s in subregions:
+            if use_weights_1961_90:
+                subregion_weights_heating = averages_1961_90_heating.loc[s] * hdd_activity_weights[s]
+
+                if cooling:
+                    subregion_weights_cooling = averages_1961_90_cooling.loc[s] * cdd_activity_weights[s]
+
+            else:
+                subregion_weights_heating = averages_1981_2010_heating.loc[s] * hdd_activity_weights[s]
+
+                if cooling:
+                    subregion_weights_cooling = averages_1981_2010_cooling.loc[s] * cdd_activity_weights[s]
+
+            
+            all_s_weights_cooling.append(subregion_weights_cooling)
+            all_s_weights_heating.append(subregion_weights_heating)
+
+        weights_dict = dict()
+        if cooling:
+            weights_cooling = sum(all_s_weights_cooling)
+            weights_dict['cooling'] = weights_cooling
+
+        weights_heating = sum(all_s_weights_heating)
+        weights_dict['heating'] = weights_heating
+        return weights_dict
 
     def process_prices(self, weather_factors_df):
         lmdi_prices = self.lmdi_prices
@@ -60,6 +108,16 @@ class WeatherFactors:
         shares_df['energy'] = energy_tbtu
         shares_df['fuel_consumption'] = shares_df.energy.subtract(shares_df.electricity_consumption_tbtu)
         shares_df['fuel_share'] = shares_df.fuel_consumption.divide(shares_df.loc['Total', 'fuel_consumption'])
+        return shares_df
+
+    @staticmethod 
+    def recs_1993_shares():
+        """Need to fill this in
+
+        Returns:
+            [type]: [description]
+        """        
+        shares_df = None
         return shares_df
 
     def regional_shares(self, dataframe, cols):
@@ -131,25 +189,43 @@ class WeatherFactors:
         return weights_df
     
     def heating_cooling_data(self):
+        hdd_by_division_historical = pd.read_csv('./historical_hdd_census_division.csv').set_index('Year')
+        cdd_by_division_historical = pd.read_csv('./historical_cdd_census_division.csv').set_index('Year')
+
         hdd_by_division = self.eia_data.eia_api(id_='1566347', id_type='category')
+        hdd_to_drop = [c for c in list(hdd_by_division.columns) if 'Monthly' in c]
+        hdd_by_division = hdd_by_division.drop(hdd_to_drop, axis=1)
+        hdd_rename_dict = {c: c.replace(', Annual, Number', '') for c in list(hdd_by_division.columns)}
+        hdd_by_division = hdd_by_division.rename(columns=hdd_rename_dict)
+
+
+        hdd_by_division = pd.concat([hdd_by_division_historical, hdd_by_division], sort=True)
         
         cdd_by_division = self.eia_data.eia_api(id_='1566348', id_type='category')
+        cdd_to_drop = [c for c in list(cdd_by_division.columns) if 'Monthly' in c]
+        cdd_by_division = cdd_by_division.drop(cdd_to_drop, axis=1)
+        cdd_rename_dict = {c: c.replace(', Annual, Number', '') for c in list(cdd_by_division.columns)}
+
+        cdd_by_division = cdd_by_division.rename(columns=cdd_rename_dict)
+
+        cdd_by_division = pd.concat([cdd_by_division_historical, cdd_by_division], sort=True)
+
 
         title_case_regions = [s.replace('_', ' ').title() for s in self.regions_subregions]
-        hdd_names = [f'Heating Degree-Days, {r}, Annual, Number' for r in title_case_regions]
-        cdd_names = [f'Cooling Degree-Days, {r}, Annual, Number' for r in title_case_regions]
+        hdd_names = [f'Heating Degree-Days, {r}' for r in title_case_regions]
+        cdd_names = [f'Cooling Degree-Days, {r}' for r in title_case_regions]
 
         hdd_new_names_dict = {name: name_title for name, name_title in zip(hdd_names, title_case_regions)}
         cdd_new_names_dict = {name: name_title for name, name_title in zip(cdd_names, title_case_regions)}
 
         hdd_by_division = hdd_by_division.rename(columns=hdd_new_names_dict)
         cdd_by_division = cdd_by_division.rename(columns=cdd_new_names_dict)
+
         return hdd_by_division, cdd_by_division
 
     def estimate_regional_shares(self):
         """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
         assumed commercial floorspace in each region follows same trends as population or housing units"""
-        print('estimate_regional_shares directory: \n', os.getcwd())
         regions = ['Northeast', 'Midwest', 'South', 'West']
 
         cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
@@ -253,12 +329,16 @@ class WeatherFactors:
         TODO: Input data 
         """
         weights_df = self.gather_weights_data()
+        print('WEIGHTS DF: \n', weights_df)
         regional_weights = self.regional_shares(dataframe=weights_df, cols=['heating_activity', 'cooling_activity', 'fuels'])
+        print('REGIONAL WEIGHTS: \n', regional_weights)
 
         subregions = self.sub_regions_dict[region]
         subregions_lower = [s.lower().replace(' ', '_') for s in subregions]
         hdd_activity_weights = [regional_weights['heating_activity'][r_] for r_ in subregions_lower]
+        hdd_activity_weights_dict = {r : regional_weights['heating_activity'][r_] for r, r_ in zip(subregions, subregions_lower)}
         cdd_activity_weights = [regional_weights['cooling_activity'][r_] for r_ in subregions_lower]
+        cdd_activity_weights_dict = {r : regional_weights['cooling_activity'][r_] for r, r_ in zip(subregions, subregions_lower)}
         fuels_weights = [regional_weights['fuels'][r_] for r_ in subregions_lower]
         
         hdd_by_division, cdd_by_division = self.heating_cooling_data()
@@ -268,49 +348,39 @@ class WeatherFactors:
         heating_degree_days = heating_degree_days.reset_index('Year')
 
         heating_degree_days[region] = heating_degree_days[subregions].dot(hdd_activity_weights)
+        print('heating_degree_days: \n', heating_degree_days)
 
         fuels_heating_degree_days = heating_degree_days
         fuels_heating_degree_days[region] = fuels_heating_degree_days[subregions].dot(fuels_weights)
+        print('fuels_heating_degree_days: \n', fuels_heating_degree_days)
 
         weather_factors_df = heating_degree_days[['Year', region]].rename(columns={region: 'HDD'})
         weather_factors_df['Year'] = weather_factors_df['Year'].astype(int)
 
         weather_factors_df['Time'] = weather_factors_df['Year'].values - 1969
         weather_factors_df['Time^2'] = weather_factors_df[['Time']].pow(2).values
-        print('weather_factors: \n', weather_factors_df)
 
         if energy_type == 'electricity': 
             cooling_degree_days = cdd_by_division[subregions]
             cooling_degree_days[region] = cooling_degree_days[subregions].dot(cdd_activity_weights)
             cooling_degree_days = cooling_degree_days.reset_index('Year')
             cooling_degree_days['Year'] = cooling_degree_days['Year'].astype(int)
-            print('cooling_degree_days here: \n', cooling_degree_days)
 
             weather_factors_df_cooling = cooling_degree_days[['Year', region]].rename(columns={region: 'CDD'})
             weather_factors_df = weather_factors_df.merge(weather_factors_df_cooling, on='Year', how='outer')
-            print('weather_factors here: \n', weather_factors_df)
-
 
             weather_factors_df['Time^3'] = weather_factors_df[['Time']].pow(3).values
-            print('weather_factors now: \n', weather_factors_df)
             weather_factors_df = weather_factors_df.set_index('Year')
             weather_factors_df.index = weather_factors_df.index.astype(int)
             
-            X = weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']]
-            print('X: \n',  weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']])
-            print('X regular: \n', X)
-            print('elec X[X.isnull()]', X[X.isnull()])
-
-            x_subset = weather_factors_df[['Time', 'Time^2', 'Time^3']]
+            X_data = weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']]
 
         elif energy_type == 'fuels': 
             weather_factors_df['HDD*Time'] = heating_degree_days[region].multiply(weather_factors_df['Time'])
             weather_factors_df['Price'] = self.process_prices(weather_factors_df)
             weather_factors_df = weather_factors_df.set_index('Year')
             weather_factors_df.index = weather_factors_df.index.astype(int)
-            X = weather_factors_df[['HDD', 'HDD*Time', 'Time', 'Time^2', 'Price']]
-            print('fuels X[X.isnull()]', X[X.isnull()])
-            x_subset = weather_factors_df[['Time', 'Time^2', 'Price']]
+            X_data = weather_factors_df[['HDD', 'HDD*Time', 'Time', 'Time^2', 'Price']]
 
         # elif self.energy_type == 'delivered':
         #     weather_factor = (reported_electricity + fuels) / (weather_adjusted_electrity + weather_adjusted_fuels)
@@ -318,50 +388,86 @@ class WeatherFactors:
         else:
             return None
 
-        Y = actual_intensity[actual_intensity.notnull()] # Should fix this i.e. why is 2018 null?
-        Y.index = Y.index.astype(int)  
+        actual_intensity.index = actual_intensity.index.astype(int)  
+        data = X_data.merge(actual_intensity, left_index=True, right_index=True, how='inner').dropna()
+        X = data.drop(region.capitalize(), axis=1)
+        Y = data[[region.capitalize()]]
 
-        X = X.loc[Y.index, :]
-        print('Y[Y.isnull()]', Y[Y.isnull()])
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
+        coefficients = coefficients[0]
         print(f'{energy_type} coefficient for region {region}:', coefficients)
-        # exit()
+        intercept = reg.intercept_
+        print(f'{energy_type} intercept for region {region}:', intercept)
         predicted_value_intensity_actualdd = reg.predict(X)  # Predicted value of the intensity based on actual degree days
-        predicted_value_intensity_ltaveragesdd = reg.predict(x_subset)  # Predicted value of the intensity based on the long-term averages of the degree days
-        weather_factor = predicted_value_intensity_actualdd / predicted_value_intensity_ltaveragesdd 
-        weather_normalized_intensity = actual_intensity / weather_factor
-        return weather_factor, weather_normalized_intensity
+
+        if  energy_type == 'electricity': 
+            prediction2_weights = self.adjust_data(subregions=subregions, hdd_by_division=heating_degree_days, cdd_by_division=cooling_degree_days, 
+                                                   cdd_activity_weights=cdd_activity_weights_dict, hdd_activity_weights=hdd_activity_weights_dict,
+                                                   use_weights_1961_90=True)
+            predicted_value_intensity_ltaveragesdd = intercept + coefficients[0] * prediction2_weights['heating'] + coefficients[1] * prediction2_weights['cooling'] + \
+                                                    coefficients[2] * data['Time'] + coefficients[3] * data['Time^2'] + coefficients[4] * data['Time^3']  # Predicted value of the intensity based on the long-term averages of the degree days
+        
+        elif energy_type == 'fuels': 
+            prediction2_weights = self.adjust_data(subregions=subregions, hdd_by_division=heating_degree_days, 
+                                                   hdd_activity_weights=hdd_activity_weights_dict, cooling=False,
+                                                   use_weights_1961_90=True)
+            predicted_value_intensity_ltaveragesdd = intercept + coefficients[0] * prediction2_weights['heating'] + coefficients[1] * data['Time'] + \
+                                                     coefficients[2] * data['Time'] + coefficients[3] * data['Time^2'] + coefficients[4] * data['Price'] # Predicted value of the intensity based on the long-term averages of the degree days
+
+        print('predicted_value_intensity_actualdd: \n', predicted_value_intensity_actualdd)
+        print('predicted_value_intensity_ltaveragesdd: \n', predicted_value_intensity_ltaveragesdd)
+
+        weather_factor = predicted_value_intensity_actualdd.flatten() / predicted_value_intensity_ltaveragesdd.values.flatten()
+        print('weather factor here: \n', weather_factor)
+        print('actual_intensity here: \n', actual_intensity)
+
+        weather_normalized_intensity = actual_intensity.loc[data.index] / weather_factor
+        weather_factor_df = pd.DataFrame(data={'Year': data.index, f'{region}_weather_factor': weather_factor}).set_index('Year')
+        print('weather_factor_df', weather_factor_df)
+        return weather_factor_df, weather_normalized_intensity
     
     def national_method1_fixed_end_use_share_weights(self):
         """Used fixed weights to develop from regional factors, weighted by regional energy share from 1995 CBECS
         """
         if self.sector == 'commercial':
-            cbecs_1995_shares = self.cbecs_1995_shares()
+            shares = self.cbecs_1995_shares()
             regional_intensity_dict = self.commercial_regional_intensity_aggregate()
 
         elif self.sector == 'residential':
             regional_intensity_dict = self.residential_regional_intensity_aggregate()
+            shares = self.recs_1993_shares()
         
         fuel_type_weather_factors = dict()
         
         for energy_type in ['electricity', 'fuels']:
             intensity_df = regional_intensity_dict[energy_type]
+            intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + ['final_electricity_factor', 'final_fuels_factor'])
+            print('intensity_df: \n', intensity_df)
 
-            regional_weather_factors = dict()
+            regional_weather_factors = []
 
             for region in self.sub_regions_dict.keys():
                 region_cap = region.capitalize()
                 regional_intensity = intensity_df[region_cap]
                 weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type, actual_intensity=regional_intensity)
-                regional_weather_factors[region_cap] = weather_factors
+                regional_weather_factors.append(weather_factors)
 
-                for y in weather_factors['Year']:
-                    year_weather = weather_factors[weather_factors['Year'] == y]
-                    elec_factor = year_weather.dot(regional_weather_factors_elec)
-                    fuels_factor = year_weather.dot(regional_weather_factors_fuels)
-        return {'elec': elec_factor, 'fuels': fuels_factor}
+            weather_factors_all = pd.concat(regional_weather_factors, axis=1)
+            for y in weather_factors_all.index:
+                if energy_type == 'electricity':
+                    share_name = 'elec_share'
+                else:
+                    share_name = 'fuel_share'
+                year_weather = weather_factors_all.loc[y, :]
+                print('year_weather: \n', year_weather)
+                weights = shares[share_name]
+                print('weights: \n', weights)
+                year_factor = year_weather.dot(weights)
+                intensity_df.loc[y, f'final_{energy_type}_factor'] = year_factor
+
+        return intensity_df[['final_electricity_factor', 'final_fuels_factor']]
         
     def national_method2_regression_models(self, moving_average_weights=True, implicit_national_factors=False):
         if self.sector == 'commercial':
@@ -418,7 +524,8 @@ of this summary write-up with one addition/modification. The weather factors are
 regional level to generate the weather-normalized intensity indexes for each of the four census regions."""
 
 
-# comm = WeatherFactors('northeast', 'electricity', 'commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020')
+# comm = WeatherFactors('commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020')
+# x = comm.heating_cooling_data()
 # # x = comm.cbecs_1995_shares() \\ works
 # # x = comm.national_method1_fixed_end_use_share_weights()
 # # x = comm.national_method2_regression_models

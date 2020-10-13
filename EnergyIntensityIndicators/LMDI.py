@@ -195,6 +195,8 @@ class CalculateLMDI:
                  'source': self.get_source, 
                  'source_adj': self.get_source_adj}
         
+        if len(self.energy_types) == 1:
+            energy_data_by_type[self.energy_types[0]]
         for e_type in self.energy_types:
             if e_type in ['deliv', 'source', 'source_adj']:
                 e_type_df = funcs[e_type](elec=energy_data_by_type['elec'], fuels=energy_data_by_type['fuels'])

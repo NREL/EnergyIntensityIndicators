@@ -520,7 +520,7 @@ class CommercialIndicators(CalculateLMDI):
 
         # energy_types = energy_data.keys()
         energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
-        lmdi = LMDI(sector='commercial', directory=self.directory, categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
+        lmdi = CalculateLMDI(sector='commercial', directory=self.directory, categories_list={'Commercial_Total': None}, energy_data=energy_data, activity_data=activity_data, energy_types=energy_types, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
         results = lmdi.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_model)
         print(results)
 

@@ -741,7 +741,7 @@ class ResidentialFloorspace:
                 # Size of Units
                 col_names_2 = [f'{h_type}_{abbrev}' for h_type in ['SF', 'MF']]
                 region_size_shares = ratios_to_national_average_size[col_names_2]
-                region_size_shares[f'MH_{abbrev}'] = ratios_to_national_average_size_mh[abbrev]
+                region_size_shares.loc[:, f'MH_{abbrev}'] = ratios_to_national_average_size_mh[abbrev]
                 avg_size_initial = region_size_shares.multiply(average_size_national.values)
                 avg_size_initial_regional[region] = avg_size_initial
 
