@@ -15,11 +15,11 @@ import pandas as pd
 from sklearn import linear_model
 from pull_eia_api import GetEIAData
 from LMDI import CalculateLMDI
-from Residential.residential_floorspace import GetCensusData
+from Residential.residential_floorspace import ResidentialFloorspace
 
 class ResidentialIndicators(CalculateLMDI): 
 
-    def __init__(self, directory, base_year=1985):
+    def __init__(self, directory, base_year=1985, end_year=2018):
         # super().__init__(base_year)
         self.eia_res = GetEIAData('residential')
         self.sub_categories_list = {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
@@ -28,11 +28,12 @@ class ResidentialIndicators(CalculateLMDI):
                                     'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}}
         self.national_calibration = self.eia_res.national_calibration()
         self.seds_census_region = self.eia_res.get_seds() # energy_consumtpion_data_regional
-        self.ahs_Data = GetCensusData.update_ahs_data()
+        self.ahs_Data = ResidentialFloorspace.update_ahs_data()
         self.conversion_factors = self.eia_res.conversion_factors()
         self.regions = ['Northeast', 'South', 'West', 'Midwest', 'National']
         self.base_year = base_year
         self.directory = directory
+        self.end_year = end_year
 
 
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
@@ -59,11 +60,11 @@ class ResidentialIndicators(CalculateLMDI):
     def activity(self):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """ 
-        census_data = GetCensusData()
+        census_data = ResidentialFloorspace()
         floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = census_data.final_floorspace_estimates()
 
 
-        residential_data = GetCensusData(end_year=self.end_year)
+        residential_data = ResidentialFloorspace(end_year=self.end_year)
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
 
 
@@ -153,10 +154,10 @@ if __name__ == '__main__':
 
 #     def estimate_floorspace_occupied_housing_units_regional(self, ):
         
-#         estimated_survival_curve =  # Estimate from vintage data over the 1999 through 2009 AHS surveys
-#         new_housing =  # From Characteristics of New Housing reports from the Census Bureau
+#         estimated_survival_curve = [0] # Estimate from vintage data over the 1999 through 2009 AHS surveys
+#         new_housing = [0] # From Characteristics of New Housing reports from the Census Bureau
 #         stock_adjustment_model = 
-#         estimated_occupied_housing_units =  # from stock adjustment level
+#         estimated_occupied_housing_units = [0] # from stock adjustment level
 #         return estimated_occupied_housing_units
 
 #     def estimate_floorspace_housing_unit_size_national(self, housing_type='single_family'):
@@ -197,9 +198,9 @@ if __name__ == '__main__':
 #         else: 
 #             average_size_post_1985 = 
 #             stock_units_pre_1985 = 
-#             stock_units_post_1985 =  # including 1985
+#             stock_units_post_1985 = [0] # including 1985
 
-#         housing_stock = GetCensusData.get_housing_stock(housing_type)
+#         housing_stock = ResidentialFloorspace.get_housing_stock(housing_type)
 
         
 

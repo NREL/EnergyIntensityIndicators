@@ -13,8 +13,10 @@ from functools import reduce
 
 
 
-class GetCensusData:
-    
+class ResidentialFloorspace:
+    """Calculate regional and national estimates of residential
+    floorspace based upon model to interpolate/smooth AHS estimates
+    """    
     def __init__(self, end_year=2018):
         self.end_year = end_year 
         pass
@@ -234,7 +236,6 @@ class GetCensusData:
             new_comps_ann = new_comps_ann.loc[list(range(1968, self.end_year + 1)), :]
             new_comps_ann = new_comps_ann.rename(columns={0: 'new_comps_ann'}) # Comps Ann column C
             df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
-            print('current dir:', os.getcwd())
 
             cnh_avg_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/SFTotalMedAvgSqFt.xlsx', sheet_name='data', index_col=0) #) #, usecols='G') , skipfooter=54, skiprows=7, header=8
             cnh_avg_size = cnh_avg_size.loc[list(range(1973, self.end_year + 1)), ['Unnamed: 6']].reset_index().rename(columns={'Median and Average Square Feet of Floor Area in New Single-Family Houses Completed1': 'Years', 
@@ -683,7 +684,11 @@ class GetCensusData:
         return number_occupied_units_national, average_size_national
 
     def final_floorspace_estimates(self):
-        os.chdir('./Residential')
+        try: 
+            os.chdir('./Residential')
+            cwd_changed = True
+        except FileNotFoundError:
+            cwd_changed = False
 
         number_occupied_units_national, average_size_national = self.get_housing_stock()
         number_occupied_units_national = number_occupied_units_national[['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
@@ -777,6 +782,8 @@ class GetCensusData:
 
         regional_estimates_all['National'] = number_occupied_units_national_final
         avg_size_all_regions['National'] = average_size_national
+        if cwd_changed:
+            os.chdir('..')
         return final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions
         
 
@@ -798,14 +805,14 @@ class GetCensusData:
         pass    
 
     def main(self):
-        data = GetCensusData()
+        data = ResidentialFloorspace()
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = data.final_floorspace_estimates()
         # pivot_census_division = data.update_ahs_data()
         # print(pivot_census_division)
 
 
 if __name__ == '__main__':
-    GetCensusData().main()
+    ResidentialFloorspace().main()
 
 
 

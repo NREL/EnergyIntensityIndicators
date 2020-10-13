@@ -1,11 +1,12 @@
 from sklearn import linear_model
 import pandas as pd
 from pull_eia_api import GetEIAData
-from Residential.residential_floorspace import GetCensusData
+from Residential.residential_floorspace import ResidentialFloorspace
 import numpy as np
 from functools import reduce
 from sklearn.linear_model import LinearRegression
 import math
+import os
 
 
 
@@ -36,7 +37,7 @@ class WeatherFactors:
         EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
 
     def adjust_data(self):
-        # adjustment_factor_electricity =  # Weights derived from 1995 CBECS
+        # adjustment_factor_electricity = [0] # Weights derived from 1995 CBECS
         # adjustment_factor_fuels = 
         self.adjusted_hdd = weights * self.hdd_by_division
         self.adjusted_cdd = weights * self.cdd_by_division
@@ -148,7 +149,7 @@ class WeatherFactors:
     def estimate_regional_shares(self):
         """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
         assumed commercial floorspace in each region follows same trends as population or housing units"""
-
+        print('estimate_regional_shares directory: \n', os.getcwd())
         regions = ['Northeast', 'Midwest', 'South', 'West']
 
         cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
@@ -164,7 +165,7 @@ class WeatherFactors:
         comm_regional_shares = cbecs_data.drop(['U.S.', 'U.S. (calc)'], axis=1).divide(cbecs_data['U.S. (calc)'].values.reshape(len(cbecs_data), 1))
         comm_regional_shares_ln = np.log(comm_regional_shares)
 
-        residential_data = GetCensusData(end_year=self.end_year)  # change to pull from residential().activity()
+        residential_data = ResidentialFloorspace(end_year=self.end_year)  # change to pull from residential().activity()
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
         
         regional_dfs = [regional_estimates_all[r][['Total']].rename(columns={'Total': r}) for r in regions]
@@ -197,7 +198,11 @@ class WeatherFactors:
     def commercial_estimate_regional_floorspace(self):
         regional_shares = self.estimate_regional_shares()
         commercial_floorspace = self.activity_data 
-        regional_floorspace = regional_shares.multiply(commercial_floorspace.values)
+
+        regional_shares_index = regional_shares.index.astype(str)
+        commercial_floorspace_reshape = commercial_floorspace.loc[regional_shares_index, :]
+
+        regional_floorspace = regional_shares.multiply(commercial_floorspace_reshape.values)
         return regional_floorspace
 
     def commercial_regional_intensity_aggregate(self):
@@ -209,10 +214,15 @@ class WeatherFactors:
         """        
         regional_floorspace = self.commercial_estimate_regional_floorspace()
         total_fuels_to_indicators, elec_to_indicators = self.eia_data.get_seds()
+        
+        regional_floorspace_index = regional_floorspace.index
+        elec_to_indicators =  elec_to_indicators.loc[regional_floorspace_index, :]
+        total_fuels_to_indicators =  total_fuels_to_indicators.loc[regional_floorspace_index, :]
+
         print('total_fuels_to_indicators, elec_to_indicators:', total_fuels_to_indicators, elec_to_indicators)
 
-        fuels_regional = regional_floorspace.multiply(total_fuels_to_indicators.values)
-        elec_regional = regional_floorspace.multiply(elec_to_indicators.values)
+        fuels_regional = regional_floorspace.multiply(total_fuels_to_indicators.drop('National', axis=1).values)
+        elec_regional = regional_floorspace.multiply(elec_to_indicators.drop('National', axis=1).values)
 
         return {'fuels': fuels_regional, 'electricity': elec_regional}
     
@@ -256,28 +266,51 @@ class WeatherFactors:
         heating_degree_days = hdd_by_division[subregions]
 
         heating_degree_days = heating_degree_days.reset_index('Year')
-        heating_degree_days[region] = heating_degree_days[subregions].dot(hdd_activity_weights)
 
-        cooling_degree_days = cdd_by_division[subregions]
-        cooling_degree_days[region] = cooling_degree_days[subregions].dot(cdd_activity_weights)
+        heating_degree_days[region] = heating_degree_days[subregions].dot(hdd_activity_weights)
 
         fuels_heating_degree_days = heating_degree_days
         fuels_heating_degree_days[region] = fuels_heating_degree_days[subregions].dot(fuels_weights)
 
-        weather_factors_df = heating_degree_days[region].rename(columns={region: 'HDD'})
-        print('weather_factors:', weather_factors_df)
+        weather_factors_df = heating_degree_days[['Year', region]].rename(columns={region: 'HDD'})
+        weather_factors_df['Year'] = weather_factors_df['Year'].astype(int)
 
-        weather_factors_df['Time'] = weather_factors_df['Year'].subract(1969)
-        weather_factors_df['Time^2'] = weather_factors_df['Time'].pow(2)
+        weather_factors_df['Time'] = weather_factors_df['Year'].values - 1969
+        weather_factors_df['Time^2'] = weather_factors_df[['Time']].pow(2).values
+        print('weather_factors: \n', weather_factors_df)
 
         if energy_type == 'electricity': 
-            weather_factors_df = weather_factors_df.merge(cooling_degree_days[['Year', region]], how='outer', on='Year').rename(columns={region: 'CDD'})
-            weather_factors_df['Time^3'] = weather_factors_df['Time'].pow(3)
+            cooling_degree_days = cdd_by_division[subregions]
+            cooling_degree_days[region] = cooling_degree_days[subregions].dot(cdd_activity_weights)
+            cooling_degree_days = cooling_degree_days.reset_index('Year')
+            cooling_degree_days['Year'] = cooling_degree_days['Year'].astype(int)
+            print('cooling_degree_days here: \n', cooling_degree_days)
+
+            weather_factors_df_cooling = cooling_degree_days[['Year', region]].rename(columns={region: 'CDD'})
+            weather_factors_df = weather_factors_df.merge(weather_factors_df_cooling, on='Year', how='outer')
+            print('weather_factors here: \n', weather_factors_df)
+
+
+            weather_factors_df['Time^3'] = weather_factors_df[['Time']].pow(3).values
+            print('weather_factors now: \n', weather_factors_df)
+            weather_factors_df = weather_factors_df.set_index('Year')
+            weather_factors_df.index = weather_factors_df.index.astype(int)
+            
             X = weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']]
+            print('X: \n',  weather_factors_df[['HDD', 'CDD', 'Time', 'Time^2', 'Time^3']])
+            print('X regular: \n', X)
+            print('elec X[X.isnull()]', X[X.isnull()])
+
+            x_subset = weather_factors_df[['Time', 'Time^2', 'Time^3']]
+
         elif energy_type == 'fuels': 
             weather_factors_df['HDD*Time'] = heating_degree_days[region].multiply(weather_factors_df['Time'])
             weather_factors_df['Price'] = self.process_prices(weather_factors_df)
+            weather_factors_df = weather_factors_df.set_index('Year')
+            weather_factors_df.index = weather_factors_df.index.astype(int)
             X = weather_factors_df[['HDD', 'HDD*Time', 'Time', 'Time^2', 'Price']]
+            print('fuels X[X.isnull()]', X[X.isnull()])
+            x_subset = weather_factors_df[['Time', 'Time^2', 'Price']]
 
         # elif self.energy_type == 'delivered':
         #     weather_factor = (reported_electricity + fuels) / (weather_adjusted_electrity + weather_adjusted_fuels)
@@ -285,14 +318,18 @@ class WeatherFactors:
         else:
             return None
 
-        Y = actual_intensity
+        Y = actual_intensity[actual_intensity.notnull()] # Should fix this i.e. why is 2018 null?
+        Y.index = Y.index.astype(int)  
+
+        X = X.loc[Y.index, :]
+        print('Y[Y.isnull()]', Y[Y.isnull()])
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
         print(f'{energy_type} coefficient for region {region}:', coefficients)
-        exit()
-        predicted_value_intensity_actualdd = reg.predict(X_actualdd)  # Predicted value of the intensity based on actual degree days
-        predicted_value_intensity_ltaveragesdd = reg.predict(X_ltaveragesdd)  # Predicted value of the intensity based on the long-term averages of the degree days
+        # exit()
+        predicted_value_intensity_actualdd = reg.predict(X)  # Predicted value of the intensity based on actual degree days
+        predicted_value_intensity_ltaveragesdd = reg.predict(x_subset)  # Predicted value of the intensity based on the long-term averages of the degree days
         weather_factor = predicted_value_intensity_actualdd / predicted_value_intensity_ltaveragesdd 
         weather_normalized_intensity = actual_intensity / weather_factor
         return weather_factor, weather_normalized_intensity
@@ -306,14 +343,19 @@ class WeatherFactors:
 
         elif self.sector == 'residential':
             regional_intensity_dict = self.residential_regional_intensity_aggregate()
-        regional_weather_factors = []
+        
+        fuel_type_weather_factors = dict()
         
         for energy_type in ['electricity', 'fuels']:
             intensity_df = regional_intensity_dict[energy_type]
+
+            regional_weather_factors = dict()
+
             for region in self.sub_regions_dict.keys():
-                regional_intensity = intensity_df[region]
+                region_cap = region.capitalize()
+                regional_intensity = intensity_df[region_cap]
                 weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type, actual_intensity=regional_intensity)
-                regional_weather_factors[region] = weather_factors
+                regional_weather_factors[region_cap] = weather_factors
 
                 for y in weather_factors['Year']:
                     year_weather = weather_factors[weather_factors['Year'] == y]

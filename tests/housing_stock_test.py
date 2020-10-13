@@ -1,7 +1,7 @@
 import pytest
 import unittest
 import pandas as pd
-from census_bureau_data import GetCensusData
+from residential_floorspace import ResidentialFloorspace
 
 class TestClass:
     
@@ -16,7 +16,7 @@ class TestClass:
 
     pytest.mark.parametrize('housing_type', ['single_family', 'multifamily', 'manufatured_housing'])
     def test_housing_stock(self, housing_type):
-        data = GetCensusData()
+        data = ResidentialFloorspace()
         if housing_type == 'single_family':
             housing_stock = data.get_housing_stock_sf()
             sheetname_ = 'Total_stock_SF'
@@ -36,7 +36,7 @@ class TestClass:
 
     pytest.mark.parametrize('housing_type', ['single_family', 'multifamily', 'manufatured_housing'])
     def test_housing_size_model(self, housing_type):
-        data = GetCensusData()
+        data = ResidentialFloorspace()
         if housing_type == 'single_family':
             housing_stock = data. ()
             sheetname_ = 'Total_stock_SF'

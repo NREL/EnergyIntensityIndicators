@@ -1,5 +1,5 @@
-Census Bureau Data Module
-=========================
+Residential Floorspace Module
+=============================
 
-.. automodule:: EnergyIntensityIndicators.Residential.census_bureau_data
+.. automodule:: EnergyIntensityIndicators.Residential.residential_floorspace
    :members:

@@ -94,9 +94,9 @@ Processing data from collection to input for LMDI calculations
 * [] Activity data:
     - Occupied Housing Units
     - Floorspace (Final Floorspace Estimates)
-        - Total Stock SF: implemented in `GetCensusData.get_housing_stock` and `GetCensusData.final_floorspace_estimates`
-        - Total Stock MF: implemented in `GetCensusData.get_housing_stock` and `GetCensusData.final_floorspace_estimates`
-        - Total Stock MH: implemented in `GetCensusData.get_housing_stock` and `GetCensusData.final_floorspace_estimates`
+        - Total Stock SF: implemented in `ResidentialFloorspace.get_housing_stock` and `ResidentialFloorspace.final_floorspace_estimates`
+        - Total Stock MF: implemented in `ResidentialFloorspace.get_housing_stock` and `ResidentialFloorspace.final_floorspace_estimates`
+        - Total Stock MH: implemented in `ResidentialFloorspace.get_housing_stock` and `ResidentialFloorspace.final_floorspace_estimates`
         - Calculated Shares by Region (from AHS tables)
         - Ratios to National Average Size (from AHS tables)
 

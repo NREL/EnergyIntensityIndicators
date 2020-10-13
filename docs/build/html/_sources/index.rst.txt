@@ -16,6 +16,7 @@ Welcome to EnergyIntensityIndicators's documentation!
    EnergyIntensityIndicators/Industry/industry
    EnergyIntensityIndicators/Residential/residential
    EnergyIntensityIndicators/Transportation/transportation
+   EnergyIntensityIndicators/SupportingFiles/supporting_files
   
 
 

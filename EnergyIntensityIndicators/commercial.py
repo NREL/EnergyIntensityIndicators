@@ -43,7 +43,7 @@ class CommercialIndicators(CalculateLMDI):
         self.lmdi_model = lmdi_model
         self.base_year = base_year
         # self.cbecs = 
-        # self.residential_housing_units = # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
+        # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
         # self.mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.mer_data23_Jan_2017 = GetEIAData.eia_api(id_='711251')   # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
@@ -547,7 +547,7 @@ if __name__ == '__main__':
 #         def survival_function():
 #             """Non-linear regression model applied to the vintage data from the 1989 and 1999 CBECS
 #             """
-#             recessional_reductions_level_of_removals =  # 30 to 40% 
+#             recessional_reductions_level_of_removals = [0] # 30 to 40% 
 #             demolitions_before_2008 = 
 #             demolitions_after_2008 =             
 #             pass
@@ -601,7 +601,7 @@ if __name__ == '__main__':
 #         # regional_floorspace = dict()
 #         # regional_intensity_index = dict()
 #         # for region in regions: 
-#         #     regional_energy_consumption =  # consumption of electricity and fuels
+#         #     regional_energy_consumption = [0] # consumption of electricity and fuels
 #         #     predicted_share = reg.predict(annual_housing_unit_values)
 #         #     regional_shares_floorspace[region] = predicted_share
 #         #     region_floorspace =  predicted_share * total_national_floorspace

@@ -1,9 +1,9 @@
 
-ASMdata_date.xlsx
+# ASMdata_date.xlsx
 
-ind_hap3_date.xlsx
+# ind_hap3_date.xlsx
 
-2014_MECS = 'https://www.eia.gov/consumption/manufacturing/data/2014/'  # Table 4.2
+#2014_MECS = 'https://www.eia.gov/consumption/manufacturing/data/2014/'  # Table 4.2
 
 
 # Table 3.1 and 3.2 (MECS total fuel consumption)  Table 3.1 shows energy
@@ -14,7 +14,7 @@ ind_hap3_date.xlsx
 
 
 
-MER_Table24_Industrial_Energy_Consumption = 
+MER_Table24_Industrial_Energy_Consumption = [0]
 
 # For 2014, the values for total energy consumption and electricity consumption, both defined in terms of
 # trillion Btu, from Table 3.2 are transferred to spreadsheet ind_hap3. Worksheet MECS_Fuel in this
@@ -27,4 +27,4 @@ MER_Table24_Industrial_Energy_Consumption =
 
 
 # Energy prices
-MECS_Table72 = 
+MECS_Table72 = [0]

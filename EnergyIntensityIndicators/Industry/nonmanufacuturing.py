@@ -16,15 +16,15 @@ class NonManufacturing:
         pass
 
     def agriculture(self):
-        miranowski_data =  # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
-        nass_expenses_data =  # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
+        miranowski_data = [0] # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+        nass_expenses_data = [0] # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
 
-        nass_average_prices_data =  # 
-        MER_fuel_price_data =  # 
-        eia_table33 =  # Consumer Price estimates for Energy by Source, 1970-2009
-        eia_table34 =  # Consumer price estimates for energy by end-use sector, 1970-2009
-        eia_table523 = # All sellers sales prices for selected petroleum products, 1994-2010
-        eia_table524 =  # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
+        nass_average_prices_data = [0] # 
+        MER_fuel_price_data = [0] # 
+        eia_table33 = [0]  # Consumer Price estimates for Energy by Source, 1970-2009
+        eia_table34 = [0] # Consumer price estimates for energy by end-use sector, 1970-2009
+        eia_table523 = [0]  # All sellers sales prices for selected petroleum products, 1994-2010
+        eia_table524 = [0]  # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
         
         pass
 

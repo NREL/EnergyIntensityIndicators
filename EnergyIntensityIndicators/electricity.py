@@ -16,7 +16,7 @@ class ElectricityIndicators(LMDI):
                                                 'Renewable':
                                                     {'Wood': None, 'Waste': None, 'Geothermal': None, 'Solar': None, 'Wind': None}},
                                             'Combined Heat & Power': 
-                                                {'Fossil Fuels'
+                                                {'Fossil Fuels':
                                                     {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
                                                 'Renewable':
                                                     {'Wood': None, 'Waste': None}}}, 
@@ -34,10 +34,10 @@ class ElectricityIndicators(LMDI):
                                             {'Combined Heat & Power':
                                                 {'Fossil Fuels':
                                                     {'Coal', 'Petroleum', 'Natural Gas', 'Other Gasses'},
-                                                'Hydroelectric',
+                                                'Hydroelectric': None,
                                                 'Renewable':
                                                     {'Wood', 'Waste'},
-                                                'Other'}},, 
+                                                'Other'}}, 
                                         'Industrial Sector':
                                             {'Combined Heat & Power':
                                                 {'Fossil Fuels':
@@ -293,14 +293,14 @@ def industrial_sector_total():
     """Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
     """    
-    fossil_fuels_total_energy = # from industrial_sector_chp_fossil total 
+    fossil_fuels_total_energy = [0] # from industrial_sector_chp_fossil total 
     hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C11 column N
-    renewable_energy =  # from industrial_sector_chp_renew total 
+    renewable_energy = [0] # from industrial_sector_chp_renew total 
     other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=32, skip_footer=55).multiply(0.001) # Table 8.4C11 column AB
 
-    fossil_fuels_total_activity = # from industrial_sector_chp_fossil total 
+    fossil_fuels_total_activity = [0] # from industrial_sector_chp_fossil total 
     hydroelectric_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column P
-    renewable_activity =  # from industrial_sector_chp_renew total 
+    renewable_activity = [0] # from industrial_sector_chp_renew total 
     other_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column AD
 
 def comm_sector_chp_renew():
@@ -329,14 +329,14 @@ def comm_sector_total():
     """Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
     """    
-    fossil_fuels_total_energy = # from comm_sector_chp_fossil total 
+    fossil_fuels_total_energy = [0] # from comm_sector_chp_fossil total 
     hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C11 column N
-    renewable_energy =  # from comm_sector_chp_renew total 
+    renewable_energy = [0] # from comm_sector_chp_renew total 
     other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=8, skip_footer=31).multiply(0.001) # Table 8.4C11 column AB
 
-    fossil_fuels_total_activity = # from comm_sector_chp_fossil total 
+    fossil_fuels_total_activity = [0] # from comm_sector_chp_fossil total 
     hydroelectric_activity = self.eia_elec.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column P
-    renewable_activity =  # from comm_sector_chp_renew total 
+    renewable_activity = [0] # from comm_sector_chp_renew total 
     other_activity = pd.read_excel(self.Table82d_url, sheet_name='Annual Data', skiprows=9, header=10, index_col=0, usecols=).multiply(0.001) # Table 8.2d11 Column AD
 
 def elec_power_sector_chp_renew():
