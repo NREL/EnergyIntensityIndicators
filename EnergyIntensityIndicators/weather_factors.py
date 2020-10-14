@@ -36,7 +36,7 @@ class WeatherFactors:
         EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
 
     @staticmethod
-    def adjust_data(subregions, hdd_by_division, cdd_by_division, cdd_activity_weights, hdd_activity_weights, cooling=True, use_weights_1961_90=True):
+    def adjust_data(subregions, hdd_by_division, hdd_activity_weights, cooling=True, cdd_by_division=None, cdd_activity_weights=None, use_weights_1961_90=True):
         """Calculate weights for adjusted weather factors prediction
 
         Args:
@@ -47,18 +47,22 @@ class WeatherFactors:
         Returns:
             [type]: [description]
         """        
-        cdd_by_division = cdd_by_division.set_index('Year')
-        cdd_by_division.index = cdd_by_division.index.astype(int)
-        hdd_by_division = hdd_by_division.set_index('Year')
-        hdd_by_division.index = hdd_by_division.index.astype(int)
 
         years_1961_90 = list(range(1961, 1990 + 1))
         years_1981_2010 = list(range(1981, 1990 + 1))
 
-        averages_1961_90_cooling = cdd_by_division.loc[years_1961_90, :].mean(axis=0)
-        averages_1961_90_heating = hdd_by_division.loc[years_1961_90, :].mean(axis=0)
+        if cooling:
+            cdd_by_division = cdd_by_division.set_index('Year')
+            cdd_by_division.index = cdd_by_division.index.astype(int)
 
-        averages_1981_2010_cooling = cdd_by_division.loc[years_1981_2010, :].mean(axis=0)
+            averages_1961_90_cooling = cdd_by_division.loc[years_1961_90, :].mean(axis=0)
+            averages_1981_2010_cooling = cdd_by_division.loc[years_1981_2010, :].mean(axis=0)
+
+
+        hdd_by_division = hdd_by_division.set_index('Year')
+        hdd_by_division.index = hdd_by_division.index.astype(int)
+
+        averages_1961_90_heating = hdd_by_division.loc[years_1961_90, :].mean(axis=0)
         averages_1981_2010_heating = hdd_by_division.loc[years_1981_2010, :].mean(axis=0)
         
         all_s_weights_heating = []
@@ -70,15 +74,16 @@ class WeatherFactors:
 
                 if cooling:
                     subregion_weights_cooling = averages_1961_90_cooling.loc[s] * cdd_activity_weights[s]
+                    all_s_weights_cooling.append(subregion_weights_cooling)
 
             else:
                 subregion_weights_heating = averages_1981_2010_heating.loc[s] * hdd_activity_weights[s]
 
                 if cooling:
                     subregion_weights_cooling = averages_1981_2010_cooling.loc[s] * cdd_activity_weights[s]
+                    all_s_weights_cooling.append(subregion_weights_cooling)
 
             
-            all_s_weights_cooling.append(subregion_weights_cooling)
             all_s_weights_heating.append(subregion_weights_heating)
 
         weights_dict = dict()
@@ -462,9 +467,11 @@ class WeatherFactors:
                     share_name = 'fuel_share'
                 year_weather = weather_factors_all.loc[y, :]
                 print('year_weather: \n', year_weather)
-                weights = shares[share_name]
+                weights = shares[share_name].drop('Total')
                 print('weights: \n', weights)
-                year_factor = year_weather.dot(weights)
+                print('weights numpy: \n', weights.to_numpy())
+
+                year_factor = year_weather.dot(weights.to_numpy())
                 intensity_df.loc[y, f'final_{energy_type}_factor'] = year_factor
 
         return intensity_df[['final_electricity_factor', 'final_fuels_factor']]

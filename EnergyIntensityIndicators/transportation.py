@@ -3,6 +3,7 @@ from sklearn import linear_model
 import zipfile
 from LMDI import CalculateLMDI
 from pull_eia_api import GetEIAData
+from functools import reduce
 
 
 
@@ -138,9 +139,15 @@ from pull_eia_api import GetEIAData
 
 
 class TransportationIndicators(CalculateLMDI):
-
-    def __init__(self, directory, lmdi_model='multiplicative', tedb_date='04302020', base_year=2018):
+    """Class to calculate Energy Intensity indicators for the U.S. Transportation Sector
+    """    
+    def __init__(self, directory, level_of_aggregation, lmdi_model='multiplicative', tedb_date='04302020', base_year=1985, end_year=2018):
         self.transit_eia = GetEIAData('transportation')
+        self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.tedb_date = tedb_date
+        self.energy_types = ['deliv']
         self.sub_categories_list = {'All_Passenger':
                                     {'Highway': 
                                         {'Passenger Cars and Trucks': 
@@ -160,21 +167,14 @@ class TransportationIndicators(CalculateLMDI):
                                     'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
                                 'All_Freight': 
                                     {'Highway': 
-                                        {'Freight-Trucks': 
-                                            {'Single-Unit Truck': None, 'Combination Truck': None}}, 
+                                            {'Single-Unit Truck': None, 'Combination Truck': None}, 
                                     'Rail': None, 
                                     'Air': None, 
-                                    'Waterborne': None,
+                                    # 'Waterborne': None,
                                     'Pipeline': 
                                         {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
-        self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.tedb_date = tedb_date
-        self.lmdi_model = lmdi_model
-        self.base_year = base_year
-        self.energy_types = ['deliv']
-        self.directory = directory
+        super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
+                         energy_types=self.energy_types, directory=directory, base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
 
         # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
         #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
@@ -316,7 +316,7 @@ class TransportationIndicators(CalculateLMDI):
     #             if variable_dict['source'] == 'TEDB':
     #                 mode_source_df = import_tedb_data(variable_dict['table_number'])
 
-    #     get_data_from_nested_dict(self.sub_categories_list, subcategory_data_sources)
+    #     get_data_from_nested_dict(self.categories_dict, subcategory_data_sources)
 
     #     pass
     
@@ -405,7 +405,7 @@ class TransportationIndicators(CalculateLMDI):
     # def passenger_based_energy_use(self):
     #     """Calculate the fuel consumption in Btu for passenger transportation
     #     """        
-    #     all_passenger_categories = self.sub_categories_list['All_Passenger']
+    #     all_passenger_categories = self.categories_dict['All_Passenger']
     #     for passenger_category in all_passenger_categories.keys():
     #         for transportation_mode in passenger_category.keys():
     #             if transportation_mode == 'Passenger Car – SWB Vehicles':
@@ -499,7 +499,7 @@ class TransportationIndicators(CalculateLMDI):
     #     """        
 
 
-    #     all_passenger_categories = self.sub_categories_list['All_Passenger']
+    #     all_passenger_categories = self.categories_dict['All_Passenger']
     #     for passenger_category in all_passenger_categories.keys():
     #         for transportation_mode in all_passenger_categories[passenger_category].keys():
     #             if transportation_mode == 'Passenger Car – SWB Vehicles':
@@ -517,7 +517,7 @@ class TransportationIndicators(CalculateLMDI):
         
     #     Need FuelConsump, Fuel Heat Content
     #     """        
-    #     all_freight_categories = self.sub_categories_list['All_Freight']
+    #     all_freight_categories = self.categories_dict['All_Freight']
     #     for freight_category in all_freight_categories.keys():
     #         for freight_mode in freight_category.keys():
 
@@ -528,7 +528,7 @@ class TransportationIndicators(CalculateLMDI):
     # def freight_based_activity(self):
     #     """Time series for the activity measures for passenger transportation
     #     """        
-    #     all_freight_categories = self.sub_categories_list['All_Freight']
+    #     all_freight_categories = self.categories_dict['All_Freight']
     #     for freight_category in all_freight_categories.keys():
     #         for freight_mode in freight_category.keys():
 
@@ -647,17 +647,12 @@ class TransportationIndicators(CalculateLMDI):
             [type]: [description]
         """        
         passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
-        print(passenger_based_energy_use.columns)
         passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
-        print(passenger_based_activity.columns)
         freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
-        print(freight_based_energy_use.columns)
-
         freight_based_activity = pd.read_csv('./Transportation/freight_based_activity.csv').set_index('Year')
-        print(freight_based_activity.columns)
 
-        data_dict = {'energy': {'passenger': passenger_based_energy_use, 'freight': freight_based_energy_use}, 
-                     'activity': {'passenger': passenger_based_activity, 'freight': freight_based_activity}}
+        data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
+                     'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
         return data_dict
 
     def energy_consumption(self):
@@ -670,45 +665,12 @@ class TransportationIndicators(CalculateLMDI):
         """        
         pass
 
-    def lmdi_input_data(self, data, select_categories, breakout):
-        for key, value in select_categories.items():
-            if type(value) is dict:
-                yield (key, value)
-                yield from self.lmdi_input_data(data=data, select_categories=value, breakout=breakout)
-            else:
-                print(f"{key} is in data['energy']['freight'].columns", key in data['energy']['freight'].columns)
-                print(f"{key} is in data['activity']['freight'].columns", key in data['activity']['freight'].columns)
-
-                energy_data = data['energy']['freight'][[key]]
-                energy_data[str(energy_data.columns)] = energy_data.sum(axis=1)
-                activity_data = data['activity']['freight'][[key]]
-                activity_data[str(energy_data.columns)] = activity_data.sum(axis=1)
-                data_dict = {'energy': energy_data, 'activity': activity_data}
-                select_categories[key] = data_dict
-                
-                if breakout:
-                    lmdi = CalculateLMDI(sector='transportation', categories_list=select_categories, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
-                    results = lmdi.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_model)
-                
-                    yield results, select_categories
-                else:
-                    yield select_categories
-                # yield (key, value)
-
-        def recursive_items(self, dictionary):
-            for key, value in dictionary.items():
-                if type(value) is dict:
-                    yield from self.recursive_items(value)
-                elif not value:
-                    e_energy_data = self.energy_consumption(key)
-                    e_activity_data = self.activity(key)
-                    value = {'energy': e_energy_data, 'activity': e_activity_data}
-                    yield {key: value}
-                else:
-                    yield None
-
-
-    def transportation_lmdi(self, level_of_aggregation='all_transportation', breakout=False): # base_year=None, 
+    # @staticmethod
+    # def deep_get(dictionary, *keys):
+    #     return reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
+    
+    
+    def transportation_lmdi(self, breakout, calculate_lmdi): # base_year=None, 
         """potentially refactor later
     
 
@@ -720,34 +682,24 @@ class TransportationIndicators(CalculateLMDI):
         # else: 
         #     _base_year = _base_year
 
-        if level_of_aggregation == 'all_transportation':
-            categories = self.sub_categories_list
+        if self.level_of_aggregation == 'all_transportation':
+            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, calculate_lmdi=calculate_lmdi)
+            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, calculate_lmdi=calculate_lmdi)
+            all_transportation_activity = freight_activity[['All_Freight']].merge(passenger_activity[['All_Passenger']], \
+                                                                        left_index=True, right_index=True, how='outer')
+            all_transportation_energy = freight_energy[['All_Freight']].merge(passenger_energy[['All_Passenger']], \
+                                                                        left_index=True, right_index=True, how='outer')                                                            
 
-        elif level_of_aggregation == ['all_freight', 'Highway', 'Freight-Trucks']:
-            categories = self.sub_categories_list.get(level_of_aggregation)
+            results = self.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_models)
 
+        elif self.level_of_aggregation == 'personal_vehicles_aggregate':
+            # THIS CASE NEEDS A DIFFERENT FORMAT (NOT SAME NESTED DICTIONARY STRUCTURE), need to come back
+            categories == ['Passenger Car', 'Light Truck', 'Motorcycles']
+            results = None
         else: 
-            categories = self.sub_categories_list[level_of_aggregation]
+            results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi)
         
-        data = self.collect_data()
-        for key, value in self.lmdi_input_data(data=data, select_categories=categories, breakout=breakout):
-            print(key, value)
-        
-        exit()
-
-        # Pipelines
-        pipeline_cats = self.sub_categories_list['All_Freight']['Pipeline'].keys()
-        # lmdi = CalculateLMDI(sector='transportation', categories_list=pipeline_cats, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
-        # pipelines_lmdi  = call_lmdi(pipeline_cats)
-
-
-        # Personal vehicles - aggregate
-        personal_vehicles_aggregate_cats = ['Passenger Car', 'Light Truck', 'Motorcycles']
-        # lmdi = CalculateLMDI(sector='transportation', categories_list=personal_vehicles_aggregate_cats, energy_data=energy_data, activity_data=activity_data, energy_types=self.energy_types, directory=self.directory, base_year=self.base_year, base_year_secondary=1996, charts_ending_year=2003)
-        # personal_vehicles_aggregate_lmdi = call_lmdi(personal_vehicles_aggregate_cats)
-
-    def build_dataset(self):
-        self.sub_categories_list    
+        return results
 
     def compare_aggregates(self, parameter_list):
         """purpose
@@ -769,7 +721,9 @@ class TransportationIndicators(CalculateLMDI):
 
 
 if __name__ == '__main__': 
-    TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020').transportation_lmdi(level_of_aggregation='All_Freight', breakout=True)
+    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Freight')
+    indicators.transportation_lmdi(breakout=False, calculate_lmdi=False)
+
 
 
 
