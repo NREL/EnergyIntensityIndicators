@@ -75,7 +75,7 @@ class GetEIAData:
         """    
         consumption_all_btu = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # Commercial: '40210 , residential : '40209 
                                                                                           # 1960 through 2017 SEDS Data, MSN refers to fuel type
-        state_to_census_region = pd.read_csv('./state_to_census_region.csv')
+        state_to_census_region = pd.read_csv('./Data/state_to_census_region.csv')
         state_to_census_region = state_to_census_region.rename(columns={'USPC': 'State'})
         consumption_census_region = consumption_all_btu.merge(state_to_census_region, on='State', how='outer')
 

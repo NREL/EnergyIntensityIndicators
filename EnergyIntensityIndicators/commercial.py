@@ -123,7 +123,7 @@ class CommercialIndicators(CalculateLMDI):
     def get_saus():
         """Get Data from the Statistical Abstract of the United States (SAUS)
         """        
-        saus_2002 = pd.read_csv('./SAUS2002_table995.csv').set_index('Year')
+        saus_2002 = pd.read_csv('./Data/SAUS2002_table995.csv').set_index('Year')
         saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
                     1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
         saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
@@ -149,7 +149,7 @@ class CommercialIndicators(CalculateLMDI):
         Returns:
             [type]: [description]
         """        
-        dod_old = pd.read_csv('./DODCompareOld.csv').set_index('Year')
+        dod_old = pd.read_csv('./Data/DODCompareOld.csv').set_index('Year')
 
         # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
         # dod_old = dod_old.drop(columns='Soc/Misc')
@@ -226,7 +226,7 @@ class CommercialIndicators(CalculateLMDI):
 
         Data Source: Series N 90-100 Historical Statistics of the U.S., Colonial Times to 1970
         """
-        historical_dodge = pd.read_csv('./historical_dodge_data.csv').set_index('Year')        
+        historical_dodge = pd.read_csv('./Data/historical_dodge_data.csv').set_index('Year')        
         pub_inst_values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].values
         total_1925_6 = pd.DataFrame.sum(historical_dodge.loc[list(range(1925, 1927)),], axis=0).drop(index='Commercial  (million SF)')
         inst_pub_total_1925 = pd.DataFrame.sum(historical_dodge.loc[1925,].drop('Commercial  (million SF)'), axis=0)
@@ -261,7 +261,7 @@ class CommercialIndicators(CalculateLMDI):
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
         
-        dodge_revised = pd.read_csv('./Dodge_Data.csv').set_index('Year')
+        dodge_revised = pd.read_csv('./Data/Dodge_Data.csv').set_index('Year')
         dodge_revised.index = dodge_revised.index.astype(str)
 
         dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Hotel'], axis=1).fillna(np.nan)

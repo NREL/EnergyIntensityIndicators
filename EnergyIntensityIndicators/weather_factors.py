@@ -194,8 +194,8 @@ class WeatherFactors:
         return weights_df
     
     def heating_cooling_data(self):
-        hdd_by_division_historical = pd.read_csv('./historical_hdd_census_division.csv').set_index('Year')
-        cdd_by_division_historical = pd.read_csv('./historical_cdd_census_division.csv').set_index('Year')
+        hdd_by_division_historical = pd.read_csv('./Data/historical_hdd_census_division.csv').set_index('Year')
+        cdd_by_division_historical = pd.read_csv('./Data/historical_cdd_census_division.csv').set_index('Year')
 
         hdd_by_division = self.eia_data.eia_api(id_='1566347', id_type='category')
         hdd_to_drop = [c for c in list(hdd_by_division.columns) if 'Monthly' in c]
@@ -233,7 +233,7 @@ class WeatherFactors:
         assumed commercial floorspace in each region follows same trends as population or housing units"""
         regions = ['Northeast', 'Midwest', 'South', 'West']
 
-        cbecs_data = pd.read_csv('./cbecs_data_millionsf.csv').set_index('Year')
+        cbecs_data = pd.read_csv('./Data/cbecs_data_millionsf.csv').set_index('Year')
         cbecs_data.index = cbecs_data.index.astype(str)
         cbecs_years = list(cbecs_data.index)
         cbecs_data = cbecs_data.rename(columns={'Midwest ': 'Midwest', ' South': 'South', ' West': 'West'})

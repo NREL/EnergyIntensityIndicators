@@ -93,7 +93,7 @@ class GetIndustryData():
             http://www.census.gov/prod/www/abs/ec1997mining-ind.html
             http://www.census.gov/prod/1/manmin/92mmi/92minif.html
             """            
-            BLS_data = pd.read_csv('./BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
+            BLS_data = pd.read_csv('./Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
             BEA_mining_data = BEA_data[['Oil and Gas Extraction', 'Mining, except oil and gas', 'Support Activities for Mining']]
             NEA_data = [0] # NEA_Data
 
