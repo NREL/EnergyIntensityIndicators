@@ -6,7 +6,7 @@ from functools import reduce
 
 class CalculateLMDI:
     """Base class for LMDI"""
-    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, energy_data=None, activity_data=None, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
+    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
@@ -23,25 +23,21 @@ class CalculateLMDI:
         """
         self.directory = directory
         self.sector = sector
-        self.energy_data = energy_data
-        self.activity_data = activity_data 
         self.level_of_aggregation = level_of_aggregation
         self.categories_dict = categories_dict
-        self.index_base_year_primary = base_year
+        self.base_year = base_year
         self.index_base_year_secondary = base_year_secondary  # not used
         self.charts_starting_year = base_year
         self.charts_ending_year = charts_ending_year
         self.energy_types = energy_types  # could use energy_data.keys but need 'elec' and 'fuels' to come before the others
         self.lmdi_models = lmdi_models
 
-    def get_elec(self):
-        elec = self.energy_data['elec']
+    def get_elec(self, elec):
         elec['Energy_Type'] = 'Electricity'
         print('Collected elec data')
         return elec
 
-    def get_fuels(self):
-        fuels = self.energy_data['fuels']
+    def get_fuels(self, fuels):
         fuels['Energy_Type'] = 'Fuels'
         print('Collected fuels data')
         return fuels
@@ -68,45 +64,70 @@ class CalculateLMDI:
         print('Calculated source_adj data')
         return source_adj
     
-    def collect_energy_data(self):
-        energy_data_by_type = dict()
+    def collect_energy_data(self, e_type, energy_data):
 
         funcs = {'elec': self.get_elec, 
                  'fuels': self.get_fuels, 
                  'deliv': self.get_deliv, 
                  'source': self.get_source, 
                  'source_adj': self.get_source_adj}
-        
-        if len(self.energy_types) == 1:
-            energy_data_by_type[self.energy_types[0]]
-            return energy_data_by_type
 
-        for e_type in self.energy_types:
-            if e_type in ['deliv', 'source', 'source_adj']:
-                elec = energy_data_by_type['elec']
-                elec['Total'] = elec.sum(axis=1)
-                fuels = energy_data_by_type['fuels']
-                fuels['Total'] = fuels.sum(axis=1)
-                e_type_df = funcs[e_type](elec, fuels)
-            else:
-                e_type_df = funcs[e_type]()
-            energy_data_by_type[e_type] = e_type_df
-            print(energy_data_by_type)
+        if e_type in ['deliv', 'source', 'source_adj']:
+            elec = energy_data['elec']
+            elec['Total'] = elec.sum(axis=1)
+            fuels = energy_data['fuels']
+            fuels['Total'] = fuels.sum(axis=1)
+            e_type_df = funcs[e_type](elec, fuels)
+        elif e_type in ['elec', 'fuels']:
+            data = energy_data[e_type]
+            e_type_df = funcs[e_type](data)
+        else:
+            raise KeyError(f'{type} not in ["elec", "fuels", "deliv", "source", "source_adj"], user must define \
+                               provide {type} data')
     
-        return energy_data_by_type
+        return e_type_df
 
-    def collect_data(self):
-        # energy_data_by_type = self.collect_energy_data()
-        # activity_data = self.activity_data()
-        # data_dict = {'energy': energy_data_by_type, 'activity': activity_data}
-        passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
-        passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
-        freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
-        freight_based_activity = pd.read_csv('./Transportation/freight_based_activity.csv').set_index('Year')
+    def calculate_energy_data(self, data):
+        """Calculate energy data for energy types in self.energy_types for which data is not provided
 
-        data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
-                     'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
-        return data_dict
+        Returns:
+            [type]: [description]
+
+        Example data: 
+            passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
+            passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
+            freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
+            freight_based_activity = pd.read_csv('./Transportation/freight_based_activity.csv').set_index('Year')
+
+            data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
+                        'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
+        """         
+        data_dict_gen = dict()
+        for key in data:
+            energy_data = data[key]['energy']
+            activity_data = data[key]['activity']
+
+            provided_energy_data = {e: energy_data[e] for e in self.energy_types}
+
+            if provided_energy_data == energy_data:
+                energy_data_by_type = energy_data
+            elif 'elec' in energy_data and 'fuels' in energy_data:
+                energy_data_by_type = dict()
+                for type in self.energy_types:
+                    try: 
+                        e_type_df = self.collect_energy_data(type, energy_data)
+                        energy_data_by_type[type] = e_type_df
+                    except KeyError as err:
+                        print(err.args) 
+            else: 
+                raise ValueError('Warning: energy data dict not well defined')
+
+
+            data_dict = {'energy': energy_data_by_type, 'activity': activity_data}
+            data_dict_gen[key] = data_dict
+        
+
+        return data_dict_gen
 
     @staticmethod
     def deep_get(dictionary, keys, default=None):
@@ -144,12 +165,12 @@ class CalculateLMDI:
 
             energy_data[e] = e_data
 
-        data_dict = {'energy': energy_data, 'activity': activity_data}
+        data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
 
         results_dict[f'{level_name}'] = data_dict 
         yield results_dict
 
-    def get_nested_lmdi(self, level_of_aggregation, calculate_lmdi=False, breakout=False):
+    def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False):
         """
         docstring
         """
@@ -162,7 +183,7 @@ class CalculateLMDI:
         print('level_of_aggregation', level_of_aggregation)
         print('level1_name', level1_name)
         
-        data = self.collect_data()
+        data = self.calculate_energy_data(raw_data)
 
         if self.sector == 'transportation': 
             df_type_ = level_of_aggregation[0] 
@@ -173,8 +194,9 @@ class CalculateLMDI:
             if breakout:
                 energy_df = results_dict['energy']
                 activity_df = results_dict['activity']
+                level_total = results_dict['level_total']
 
-                category_lmdi = self.call_lmdi(energy_df, activity_df, lmdi_models=self.lmdi_model, unit_conversion_factor=1)  # what should happen with this?
+                category_lmdi = self.call_lmdi(energy_df, activity_df, level_total, lmdi_models=self.lmdi_models, unit_conversion_factor=1)  # what should happen with this?
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
@@ -190,12 +212,11 @@ class CalculateLMDI:
             total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
             
             if calculate_lmdi:
-                final_results = self.call_lmdi(total_energy_df, total_activty_df, lmdi_models=self.lmdi_models, unit_conversion_factor=1)
+                final_results = self.call_lmdi(total_energy_df, total_activty_df, level_total, lmdi_models=self.lmdi_models, unit_conversion_factor=1)
                 total_results_by_energy_type[e] = final_results
 
             else:
                 total_results_by_energy_type[e] = {'activity': total_activty_df, 'energy': total_energy_df}
-        print(total_results_by_energy_type)
         return total_results_by_energy_type
 
     @staticmethod
@@ -203,7 +224,7 @@ class CalculateLMDI:
         return dataframe.iloc[base_row, base_column].values()
         
     @staticmethod
-    def calculate_shares(dataset, categories_list):
+    def calculate_shares(dataset, total_label):
         """"sum row, calculate each type of energy as percentage of total
         Parameters
         ----------
@@ -215,8 +236,7 @@ class CalculateLMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        consumption_total = dataset[categories_list].sum(axis=1, skipna=True)
-        shares = dataset.divide(consumption_total)
+        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values)
         return shares
 
     @staticmethod
@@ -235,25 +255,24 @@ class CalculateLMDI:
 
         return log_ratio
 
-    def compute_index(self, log_mean_divisia_weights, log_changes_activity_shares, categories_list):
+    def compute_index(self, log_mean_divisia_weights, log_changes_activity_shares):
         """[summary]
 
         Args:
             log_mean_divisia_weights ([type]): [description]
             log_changes_activity_shares ([type]): [description]
-            categories_list ([type]): [description]
 
         Returns:
             [type]: [description]
         """                     
         index_chg = (log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1)
         index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
-        index_normalized = index / self.select_value(dataframe=index, base_row=self.index_base_year_primary, base_column=1) # 1985=1
+        index_normalized = index / self.select_value(dataframe=index, base_row=self.base_year, base_column=1) # 1985=1
 
         return index_chg, index, index_normalized 
 
     @staticmethod
-    def calculate_log_changes_activity_shares(dataset, categories_list):
+    def calculate_log_changes_activity_shares(dataset, total_label):
         """purpose
            Parameters
            ----------
@@ -265,19 +284,19 @@ class CalculateLMDI:
            log_changes: dataframe
                 description
         """
-        change = dataset[categories_list].diff()
-        log_ratio = np.log(dataset[categories_list] / dataset[categories_list].shift())
-        log_changes = change.divide(log_ratio)
+        change = dataset.drop(total_label, axis=1).diff()
+        log_ratio = np.log(dataset.drop(total_label, axis=1).divide(dataset.drop(total_label, axis=1).shift().values))
+        log_changes = change.divide(log_ratio.values)
         return log_changes
     
     @ staticmethod
-    def calculate_log_mean_weights(dataset, categories_list):
+    def calculate_log_mean_weights(dataset, total_label):
         """purpose
            Parameters
            ----------
            dataset: dataframe
                 Description
-            categories_list: list
+            total_label: list
                 Description
                 
            Returns
@@ -285,31 +304,37 @@ class CalculateLMDI:
 
         """
 
-        change = dataset[categories_list].diff()
-        log_ratio = np.log(dataset[categories_list] / dataset[categories_list].shift())
-        log_mean_divisia_weights = change.divide(log_ratio)
-        log_mean_divisia_weights_total = dataset[[categories_list]].sum(axis=1, skipna=True)
-        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total)
+        change = dataset.drop(total_label, axis=1).diff()
+        log_ratio = np.log(dataset.drop(total_label, axis=1).divide(dataset.drop(total_label, axis=1).shift().values))
+        log_mean_divisia_weights = change.divide(log_ratio.values)
+        log_mean_divisia_weights_total = dataset[[total_label]]
+        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total.values)
 
         return log_mean_divisia_weights, log_mean_divisia_weights_normalized
 
 
-    def lmdi_multiplicative(self, activity_input_data, energy_input_data, unit_conversion_factor=1):
-        energy_shares = self.calculate_shares(energy_input_data, self.categories)
-        log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = self.calculate_log_mean_weights(energy_shares, self.categories)
-        
-        nominal_energy_intensity = energy_input_data.divide(self.activity_input_data).multiply(unit_conversion_factor)
+    def lmdi_multiplicative(self, activity_input_data, energy_input_data, total_label, unit_conversion_factor=1, return_nominal_energy_intensity=False):
+        print('activity_input_data: \n ', activity_input_data.shape, activity_input_data)
+        print('energy_input_data: \n ', energy_input_data.shape, energy_input_data)
+
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values).multiply(unit_conversion_factor)
+        if return_nominal_energy_intensity:
+            return nominal_energy_intensity
         log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
 
-        activity_shares = self.calculate_shares(self.activity_data, self.categories)
-        log_changes_activity_shares = self.calculate_log_changes_activity_shares(activity_shares)
-
-        index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity, self.categories)
+        energy_shares = self.calculate_shares(energy_input_data, total_label)
+        log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = self.calculate_log_mean_weights(energy_shares, total_label)
         
-        index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares, self.categories)  
+
+        activity_shares = self.calculate_shares(activity_input_data, total_label)
+        log_changes_activity_shares = self.calculate_log_changes_activity_shares(activity_shares, total_label)
+
+        index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity)
+        
+        index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares)  
 
         # Final Indexes 
-        activity_index = self.activity_data['Total'].divide(self.activity_data.loc[self.base_year, 'Total'])
+        activity_index = activity_input_data['Total'].divide(activity_input_data.loc[self.base_year, 'Total'])
         index_of_aggregate_intensity = nominal_energy_intensity['Total'].divide(nominal_energy_intensity.loc[self.base_year, 'Total'])
         structure_fuel_mix = index_normalized_activity
         component_intensity_index = index_normalized_energy
@@ -318,18 +343,18 @@ class CalculateLMDI:
 
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
-    def lmdi_additive(self, activity_input_data, energy_input_data):
+    def lmdi_additive(self, activity_input_data, energy_input_data, total_label, unit_conversion_factor):
         return None
 
-    def call_lmdi(self, energy_data, activity_data, lmdi_models, unit_conversion_factor):
+    def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor):
         
         if 'multiplicative' in lmdi_models:
-            multiplicative_results = self.lmdi_multiplicative(activity_data, energy_data, unit_conversion_factor)
+            multiplicative_results = self.lmdi_multiplicative(activity_data, energy_data, total_label,  unit_conversion_factor)
         else: 
             multiplicative_results = None
 
         if 'additive' in lmdi_models: 
-            # additive_results = self.lmdi_additive(activity_data, energy_data, unit_conversion_factor)
+            # additive_results = self.lmdi_additive(activity_data, energy_data, total_label, unit_conversion_factor)
             additive_results = None
         else:
             additive_results = None

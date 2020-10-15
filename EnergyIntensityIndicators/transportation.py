@@ -638,14 +638,30 @@ class TransportationIndicators(CalculateLMDI):
     #     """
     #     pass
     
+    def energy_consumption(self):
+        """Gather Energy Data to use in LMDI Calculation TBtu
+        """        
+        pass
+
+    def activity(self):
+        """Gather 
+        """        
+        pass
+
     @staticmethod
     def collect_data():
         """Method to collect freight and passenger energy and activity data. 
         This method should be adjusted to call dataframe building methods rather than reading csvs, when those are ready
-
+        
+        Gather Energy Data to use in LMDI Calculation TBtu and Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
         Returns:
             [type]: [description]
         """        
+        # passenger_based_energy_use = self.energy_consumption('All_Passenger')
+        # passenger_based_activity = self.activity('All_Passenger')
+        # freight_based_energy_use = self.energy_consumption('All_Freight')
+        # freight_based_activity = self.activity('All_Freight')
+
         passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
         passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
         freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
@@ -653,24 +669,11 @@ class TransportationIndicators(CalculateLMDI):
 
         data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
                      'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
+
         return data_dict
 
-    def energy_consumption(self):
-        """Gather Energy Data to use in LMDI Calculation TBtu
-        """        
-        pass
 
-    def activity(self):
-        """Gather Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
-        """        
-        pass
-
-    # @staticmethod
-    # def deep_get(dictionary, *keys):
-    #     return reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
-    
-    
-    def transportation_lmdi(self, breakout, calculate_lmdi): # base_year=None, 
+    def main(self, breakout, calculate_lmdi): # base_year=None, 
         """potentially refactor later
     
 
@@ -681,10 +684,11 @@ class TransportationIndicators(CalculateLMDI):
         #     _base_year = self.base_year
         # else: 
         #     _base_year = _base_year
+        data_dict = self.collect_data()
 
         if self.level_of_aggregation == 'all_transportation':
-            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, calculate_lmdi=calculate_lmdi)
-            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, calculate_lmdi=calculate_lmdi)
+            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, calculate_lmdi=False, raw_data=data_dict)
+            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, calculate_lmdi=False, raw_data=data_dict)
             all_transportation_activity = freight_activity[['All_Freight']].merge(passenger_activity[['All_Passenger']], \
                                                                         left_index=True, right_index=True, how='outer')
             all_transportation_energy = freight_energy[['All_Freight']].merge(passenger_energy[['All_Passenger']], \
@@ -694,10 +698,10 @@ class TransportationIndicators(CalculateLMDI):
 
         elif self.level_of_aggregation == 'personal_vehicles_aggregate':
             # THIS CASE NEEDS A DIFFERENT FORMAT (NOT SAME NESTED DICTIONARY STRUCTURE), need to come back
-            categories == ['Passenger Car', 'Light Truck', 'Motorcycles']
+            categories = ['Passenger Car', 'Light Truck', 'Motorcycles']
             results = None
         else: 
-            results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi)
+            results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
         
         return results
 
@@ -716,13 +720,9 @@ class TransportationIndicators(CalculateLMDI):
         pct_difference = difference / total_fuel_tbtu_published_mer
         return pct_difference
 
-    def main(self):
-        pass
-
-
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Freight')
-    indicators.transportation_lmdi(breakout=False, calculate_lmdi=False)
+    indicators.main(breakout=False, calculate_lmdi=False)
 
 
 
