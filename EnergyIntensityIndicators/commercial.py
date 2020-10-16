@@ -498,7 +498,7 @@ class CommercialIndicators(CalculateLMDI):
 
     def collect_weather(self, comm_activity):
         res = ResidentialIndicators(directory=self.directory, base_year=self.base_year)
-        residential_activity_data = res.activity()
+        residential_activity_data = res.get_floorspace()
         residential_floorspace = residential_activity_data['floorspace_square_feet']
         weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
         weather_factors = weather.national_method1_fixed_end_use_share_weights(region, energy_type_)
@@ -521,7 +521,7 @@ class CommercialIndicators(CalculateLMDI):
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
         exit()
 
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
         print(results)
         return results
 

@@ -648,8 +648,7 @@ class TransportationIndicators(CalculateLMDI):
         """        
         pass
 
-    @staticmethod
-    def collect_data():
+    def collect_data(self):
         """Method to collect freight and passenger energy and activity data. 
         This method should be adjusted to call dataframe building methods rather than reading csvs, when those are ready
         

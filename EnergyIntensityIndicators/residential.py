@@ -43,38 +43,42 @@ class ResidentialIndicators(CalculateLMDI):
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
+    
+    def get_seds(self):
+        census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
+        total_fuels = self.seds_census_region[0].rename(columns=census_regions)
+        elec = self.seds_census_region[1].rename(columns=census_regions)
+        return total_fuels, elec
 
-    def fuel_electricity_consumption(self, region):
+    def fuel_electricity_consumption(self, total_fuels, elec, region):
         """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
         Data Source: EIA's State Energy Data System (SEDS)"""
-        census_regions = {'West': 4, 'South': 3, 'Midwest': 2, 'Northeast': 1}
-        total_fuels = self.seds_census_region[0]
-        elec = self.seds_census_region[1]
 
-        if region == 'National': 
-            fuels_dataframe = total_fuels.drop(region, axis=1)
-            elec_dataframe = elec.drop(region, axis=1)
-        else: 
-            fuels_dataframe = total_fuels[census_regions[region]]
-            elec_dataframe = elec[census_regions[region]]
+        fuels_dataframe = total_fuels[[region]]
+        elec_dataframe = elec[[region]]
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
-
-    def activity(self):
-        """Combine Energy datasets into one Energy Consumption Occupied Housing Units
-        """ 
-        census_data = ResidentialFloorspace()
-        floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = census_data.final_floorspace_estimates()
-
+    
+    def get_floorspace(self):
 
         residential_data = ResidentialFloorspace(end_year=self.end_year)
-        final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
+        floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = residential_data.final_floorspace_estimates()
+
+        final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
+                                    'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
+        return final_floorspace_results
 
 
-        activity_input_data = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
-                               'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
-        return activity_input_data
+    def activity(self, floorspace, region):
+        """Combine Energy datasets into one Energy Consumption Occupied Housing Units
+        """ 
+        region_activity = dict()
+        for variable, data in floorspace.items():
+            df = data[region]
+            region_activity[variable] = df
+
+        return region_activity
     
     def collect_weather(self, region,  energy_dict, nominal_energy_intensity, energy_type, energy_df):
         weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
@@ -82,31 +86,41 @@ class ResidentialIndicators(CalculateLMDI):
         return weather_factors
 
     def collect_data(self):
-        all_data = dict()
-        for r in self.regions: 
-            energy_data = self.fuel_electricity_consumption(region=r)
-            activity_data = self.activity()
-            weather_factors_by_e_type = dict()
-            for e, e_df in energy_data.items():
-                floorspace = activity_data['floorspace_square_feet'][r]
+        total_fuels, elec = self.get_seds()
+        floorspace = self.get_floorspace()
 
+        all_data = dict()
+        for r in self.sub_categories_list.keys(): 
+            energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
+            region_activity = self.activity(floorspace, r)
+
+            weather_factors_by_e_type = dict()
+
+            for e, e_df in energy_data.items():
+                e_df = e_df.rename_axis(columns=None)
+                floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
                 nominal_energy_intensity = self.lmdi_multiplicative(activity_input_data=total_floorspace, energy_input_data=e_df, unit_conversion_factor=1, return_nominal_energy_intensity=True) # shouldn't rely on multiplicative?
+                print('nominal_energy_intensity: \n', nominal_energy_intensity)
+                print('energy type: \n', e)
                 weather_factors = self.collect_weather(region=r, energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity, energy_type=e, energy_df=e_df) # need to integrate this into the data passed to LMDI
                 weather_factors_by_e_type[e] = weather_factors
-            region_data = {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors_by_e_type} # HOW DOES WEATHER FIT IN?
-            all_data[r] = region_data
+
+            region_data = {'energy': energy_data, 'activity': region_activity, 'weather_factors': weather_factors_by_e_type} # HOW DOES WEATHER FIT IN?
+        
+        all_data[r] = region_data
+
         return all_data
 
     def main(self, breakout, calculate_lmdi):
         unit_conversion_factor = 1
 
         data_dict = self.collect_data()
-        print(data_dict)
+        # print(data_dict)
         exit()
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
         
-        return region_results
+        return results
 
     # def residential_total_lmdi_utiladj(self, _base_year=None):
     # """purpose

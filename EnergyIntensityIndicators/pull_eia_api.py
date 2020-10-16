@@ -144,11 +144,11 @@ class GetEIAData:
             
               # .eia_api(id_=, id_type='category')
             electricity_retail_sales_residential_sector = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
-            print('MER: \n', electricity_retail_sales_residential_sector)
+            # print('MER: \n', electricity_retail_sales_residential_sector)
             total_primary_energy_consumed_residential_sector = self.eia_api(id_='TOTAL.TXRCBUS.A', id_type='series')
 
             fuels_census_region, electricity_census_region = self.get_seds()  
-            print('SEDS: \n', fuels_census_region, electricity_census_region)
+            # print('SEDS: \n', fuels_census_region, electricity_census_region)
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Electricity Retail Sales to the Residential Sector']  # Column S Electricity Retail Sales
             electricity_df['MER, 12/19 (Trillion Btu)'] =  electricity_retail_sales_residential_sector # AnnualData_MER_22_Dec2019['Electricity Retail Sales to the Residential Sector'] # Column K
