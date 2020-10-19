@@ -251,14 +251,36 @@ class CalculateLMDI:
             data = data[df_type_]
 
         results_dict = dict()
+        lmdi_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict, \
                                             level=1, level1_name=level1_name, breakout=breakout):
             if breakout:
-                level_total = results_dict['level_total']
-                energy_df = results_dict['energy']
-                activity_ = results_dict['activity']
-                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                               unit_conversion_factor=1, account_for_weather=account_for_weather)  # what should happen with this?
+                for key in results_dict.keys():
+                    level_total = results_dict[key]['level_total']
+                    print('level total: \n', level_total)
+
+                    energy = results_dict[key]['energy']
+                    activity_ = results_dict[key]['activity']
+
+                    if isinstance(energy, pd.DataFrame) and isinstance(activity_, pd.DataFrame):
+                        energy[level_total] = energy.sum(axis=1).values
+                        activity_[level_total] = activity_.sum(axis=1).values
+                        category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                       unit_conversion_factor=1, account_for_weather=account_for_weather)  # what should happen with this?
+                    elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
+                        for e_type, energy_df in energy.items():
+                            energy_df[level_total] = energy_df.sum(axis=1).values
+                            activity_[level_total] = activity_.sum(axis=1).values
+                            category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                           unit_conversion_factor=1, account_for_weather=account_for_weather)  # what should happen with this?
+                    elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
+                        pass # How to handle??
+                    elif isinstance(energy, dict) and isinstance(activity_, dict):
+                        for e_type, energy_df in energy.items():
+                            pass # How to handle??
+                    else:
+                        pass
+
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
@@ -279,14 +301,13 @@ class CalculateLMDI:
                 total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
                 
                 if calculate_lmdi:
-                    final_results = self.call_lmdi(total_energy_df, total_activty_df, level_total, \
+                    final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name, \
                                                    lmdi_models=self.lmdi_models, unit_conversion_factor=1, \
                                                    account_for_weather=account_for_weather)
                     total_results_by_energy_type[e] = final_results
 
                 else:
                     total_results_by_energy_type[e] = {'activity': total_activty_df, 'energy': total_energy_df}
-        print('total_results_by_energy_type: \n', total_results_by_energy_type)
         return total_results_by_energy_type
 
     @staticmethod
@@ -306,7 +327,7 @@ class CalculateLMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values)
+        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares
 
     @staticmethod
@@ -335,9 +356,9 @@ class CalculateLMDI:
         Returns:
             [type]: [description]
         """                     
-        index_chg = (log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1)
+        index_chg = np.exp((log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1))
         index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
-        index_normalized = index / self.select_value(dataframe=index, base_row=self.base_year, base_column=1) # 1985=1
+        index_normalized = index / index.loc[self.base_year] # 1985=1
 
         return index_chg, index, index_normalized 
 
@@ -354,9 +375,9 @@ class CalculateLMDI:
            log_changes: dataframe
                 description
         """
-        change = dataset.drop(total_label, axis=1).diff()
-        log_ratio = np.log(dataset.drop(total_label, axis=1).divide(dataset.drop(total_label, axis=1).shift().values))
-        log_changes = change.divide(log_ratio.values)
+        change = dataset.diff()
+        log_ratio = np.log(dataset.divide(dataset.shift().values))
+        log_changes = change.divide(log_ratio)
         return log_changes
     
     @ staticmethod
@@ -374,11 +395,11 @@ class CalculateLMDI:
 
         """
 
-        change = dataset.drop(total_label, axis=1).diff()
-        log_ratio = np.log(dataset.drop(total_label, axis=1).divide(dataset.drop(total_label, axis=1).shift().values))
-        log_mean_divisia_weights = change.divide(log_ratio.values)
-        log_mean_divisia_weights_total = dataset[[total_label]]
-        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total.values)
+        change = dataset.diff()
+        log_ratio = np.log(dataset.divide(dataset.shift().values))
+        log_mean_divisia_weights = change.divide(log_ratio)
+        log_mean_divisia_weights_total = log_mean_divisia_weights.sum(axis=1) #dataset[[total_label]]
+        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total.values.reshape(len(log_mean_divisia_weights_total), 1))
 
         return log_mean_divisia_weights, log_mean_divisia_weights_normalized
 
@@ -401,14 +422,12 @@ class CalculateLMDI:
         """
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
         print('activity_input_data: \n', activity_input_data)
-        print('activity_input_data T: \n', np.transpose(activity_input_data.values) == activity_input_data.values.reshape(len(activity_input_data), 1))
+        print('activity_input_data T: \n', np.transpose(activity_input_data.values) == activity_input_data.values.reshape(len(activity_input_data), activity_input_data.shape[1]))
 
-        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), 1)) #.multiply(unit_conversion_factor)
-        print('nominal_energy_intensity: \n', nominal_energy_intensity)
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_input_data.shape[1])) #.multiply(unit_conversion_factor)
         if return_nominal_energy_intensity:
             return nominal_energy_intensity
         log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
-
         energy_shares = self.calculate_shares(energy_input_data, total_label)
         log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = self.calculate_log_mean_weights(energy_shares, total_label)
         
@@ -421,8 +440,8 @@ class CalculateLMDI:
         index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares)  
 
         # Final Indexes 
-        activity_index = activity_input_data['Total'].divide(activity_input_data.loc[self.base_year, 'Total'])
-        index_of_aggregate_intensity = nominal_energy_intensity['Total'].divide(nominal_energy_intensity.loc[self.base_year, 'Total'])
+        activity_index = activity_input_data[total_label].divide(activity_input_data.loc[self.base_year, total_label])
+        index_of_aggregate_intensity = nominal_energy_intensity[total_label].divide(nominal_energy_intensity.loc[self.base_year, total_label])
         structure_fuel_mix = index_normalized_activity
         component_intensity_index = index_normalized_energy
         product = activity_index.multiply(structure_fuel_mix).multiply(component_intensity_index)
@@ -441,6 +460,7 @@ class CalculateLMDI:
             pass
         if 'multiplicative' in lmdi_models:
             multiplicative_results = self.lmdi_multiplicative(activity_data, energy_data, total_label,  unit_conversion_factor)
+            print('multiplicative_results: \n', multiplicative_results)
         else: 
             multiplicative_results = None
 

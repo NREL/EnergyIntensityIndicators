@@ -94,21 +94,27 @@ class ResidentialIndicators(CalculateLMDI):
             energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
             region_activity = self.activity(floorspace, r)
 
-            weather_factors_by_e_type = dict()
+            nominal_energy_intensity_by_e = dict()
 
             for e, e_df in energy_data.items():
                 e_df = e_df.rename_axis(columns=None)
                 floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
                 nominal_energy_intensity = self.lmdi_multiplicative(activity_input_data=total_floorspace, energy_input_data=e_df, unit_conversion_factor=1, return_nominal_energy_intensity=True) # shouldn't rely on multiplicative?
+                nominal_energy_intensity_by_e[e] = nominal_energy_intensity 
                 print('nominal_energy_intensity: \n', nominal_energy_intensity)
                 print('energy type: \n', e)
-                weather_factors = self.collect_weather(region=r, energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity, energy_type=e, energy_df=e_df) # need to integrate this into the data passed to LMDI
-                weather_factors_by_e_type[e] = weather_factors
+
 
             region_data = {'energy': energy_data, 'activity': region_activity, 'weather_factors': weather_factors_by_e_type} # HOW DOES WEATHER FIT IN?
         
-        all_data[r] = region_data
+            all_data[r] = region_data
+        
+        weather_factors_by_e_type = dict()
+        weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity, energy_type=e, energy_df=e_df) # need to integrate this into the data passed to LMDI
+        weather_factors_by_e_type[e] = weather_factors
+
+        
 
         return all_data
 

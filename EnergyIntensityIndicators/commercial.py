@@ -41,7 +41,7 @@ class CommercialIndicators(CalculateLMDI):
         self.eia_comm = GetEIAData('commercial')
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
         super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, \
-                         directory=directory, categories_list=self.sub_categories_list, energy_types=self.energy_types, \
+                         directory=directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, \
                          base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
         # self.cbecs = 
         # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
@@ -501,7 +501,8 @@ class CommercialIndicators(CalculateLMDI):
         residential_activity_data = res.get_floorspace()
         residential_floorspace = residential_activity_data['floorspace_square_feet']
         weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
-        weather_factors = weather.national_method1_fixed_end_use_share_weights(region, energy_type_)
+        seds = self.collect_data('SEDS_CensusRgn')
+        weather_factors = weather.get_weather(seds_data=seds)
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
 
