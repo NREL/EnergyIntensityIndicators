@@ -80,9 +80,9 @@ class ResidentialIndicators(CalculateLMDI):
 
         return region_activity
     
-    def collect_weather(self, region,  energy_dict, nominal_energy_intensity, energy_type, energy_df):
+    def collect_weather(self, energy_dict, nominal_energy_intensity, energy_type, energy_df):
         weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
-        weather_factors = weather.get_weather(region, energy_dict, energy_type, energy_df, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        weather_factors = weather.get_weather(energy_dict, energy_type, energy_df, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
 
     def collect_data(self):

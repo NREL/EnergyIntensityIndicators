@@ -454,7 +454,46 @@ class WeatherFactors:
         print('weather_factor_df', weather_factor_df)
         return weather_factor_df, weather_normalized_intensity
     
-    def national_method1_fixed_end_use_share_weights(self, region, energy_type_):
+    # def national_method1_fixed_end_use_share_weights(self, region, energy_type_):
+    #     """Used fixed weights to develop from regional factors, weighted by regional energy share from 1995 CBECS
+    #     """
+    #     if energy_type_ == 'elec':
+    #         energy_type = 'electricity'
+    #     else:
+    #         energy_type = energy_type_
+
+    #     if self.sector == 'commercial':
+    #         shares = self.cbecs_1995_shares()
+    #         regional_intensity_dict = self.commercial_regional_intensity_aggregate()
+    #         intensity_df = regional_intensity_dict[energy_type_]
+
+    #     elif self.sector == 'residential':
+    #         intensity_df = self.residential_regional_intensity_aggregate()
+    #         shares = self.recs_1993_shares()
+        
+    #     region_lower = region.lower()
+    #     region_cap = region.capitalize()
+
+    #     intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + [f'{region_cap}_weather_factor'])
+    #     regional_intensity = intensity_df[[region_cap]]
+
+    #     weather_factors, weather_normalized_intensity = self.weather_factors(region_lower, energy_type, actual_intensity=regional_intensity)
+        
+    #     share_name = f'{energy_type_}_share'
+
+    #     for y in weather_factors.index:
+    #         year_weather = weather_factors.loc[y, :]
+    #         print('year_weather: \n', year_weather)
+
+    #         weights = shares.loc[region_cap, share_name]
+    #         print('weights: \n', weights)
+
+    #         year_factor = year_weather * weights
+    #         intensity_df.loc[y, f'{region_cap}_weather_factor'] = year_factor
+
+    #     return intensity_df[[f'{region_cap}_weather_factor']]
+
+     def national_method1_fixed_end_use_share_weights(self):
         """Used fixed weights to develop from regional factors, weighted by regional energy share from 1995 CBECS
         """
         if energy_type_ == 'elec':
@@ -465,86 +504,58 @@ class WeatherFactors:
         if self.sector == 'commercial':
             shares = self.cbecs_1995_shares()
             regional_intensity_dict = self.commercial_regional_intensity_aggregate()
-            intensity_df = regional_intensity_dict[energy_type_]
-
         elif self.sector == 'residential':
-            intensity_df = self.residential_regional_intensity_aggregate()
+            regional_intensity_dict = self.residential_regional_intensity_aggregate()
             shares = self.recs_1993_shares()
         
-        region_lower = region.lower()
-        region_cap = region.capitalize()
-
-        intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + [f'{region_cap}_weather_factor'])
-        regional_intensity = intensity_df[[region_cap]]
-
-        weather_factors, weather_normalized_intensity = self.weather_factors(region_lower, energy_type, actual_intensity=regional_intensity)
+        fuel_type_weather_factors = dict()
         
-        share_name = f'{energy_type_}_share'
+        for energy_type in ['electricity', 'fuels']:
+            intensity_df = regional_intensity_dict[energy_type]
+            intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + ['final_electricity_factor', 'final_fuels_factor'])
+            print('intensity_df: \n', intensity_df)
+            regional_weather_factors = []
 
-        for y in weather_factors.index:
-            year_weather = weather_factors.loc[y, :]
-            print('year_weather: \n', year_weather)
+            for region in self.sub_regions_dict.keys():
+                region_cap = region.capitalize()
+                regional_intensity = intensity_df[region_cap]
+                weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type, actual_intensity=regional_intensity)
+                regional_weather_factors.append(weather_factors)
+            weather_factors_all = pd.concat(regional_weather_factors, axis=1)
 
-            weights = shares.loc[region_cap, share_name]
-            print('weights: \n', weights)
+            for y in weather_factors_all.index:
+                if energy_type == 'electricity':
+                    share_name = 'elec_share'
+                else:
+                    share_name = 'fuel_share'
+                year_weather = weather_factors_all.loc[y, :]
+                print('year_weather: \n', year_weather)
+                weights = shares[share_name].drop('Total')
+                print('weights: \n', weights)
+                print('weights numpy: \n', weights.to_numpy())
+                year_factor = year_weather.dot(weights.to_numpy())
+                if energy_type == 'electricity': 
+                    energy_type = 'elec'
+                intensity_df.loc[y, f'{energy_type}_weather_factor'] = year_factor
+        return intensity_df[['elec_weather_factor', 'fuels_weather_factor']]
 
-            year_factor = year_weather * weights
-            intensity_df.loc[y, f'{region_cap}_weather_factor'] = year_factor
 
-        return intensity_df[[f'{region_cap}_weather_factor']]
-
-        # def national_method1_fixed_end_use_share_weights(self, region, energy_type_):
-        # """Used fixed weights to develop from regional factors, weighted by regional energy share from 1995 CBECS
-        # """
-        # if self.sector == 'commercial':
-        #     shares = self.cbecs_1995_shares()
-        #     regional_intensity_dict = self.commercial_regional_intensity_aggregate()
-
-        # elif self.sector == 'residential':
-        #     regional_intensity_dict = self.residential_regional_intensity_aggregate()
-        #     shares = self.recs_1993_shares()
-        
-        # if energy_type_ == 'elec':
-        #     energy_type = 'electricity'
-        # else:
-        #     energy_type = energy_type_
-
-        # intensity_df = regional_intensity_dict[energy_type]
-        # intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + [f'final_{energy_type}_factor'])
-        # print('intensity_df: \n', intensity_df)
-
-        # region_cap = region.capitalize()
-        # regional_intensity = intensity_df[region_cap]
-        # weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type, actual_intensity=regional_intensity)
-        
-        # share_name = f'{energy_type_}_share'
-
-        # for y in weather_factors.index:
-        #     year_weather = weather_factors.loc[y, :]
-        #     print('year_weather: \n', year_weather)
-        #     weights = shares[share_name].drop('Total')
-        #     print('weights: \n', weights)
-        #     print('weights numpy: \n', weights.to_numpy())
-
-        #     year_factor = year_weather.dot(weights.to_numpy())
-        #     intensity_df.loc[y, f'final_{energy_type}_factor'] = year_factor
-
-        # return intensity_df[[f'final_{energy_type}_factor']]
-        
-    def national_method2_regression_models(self, seds_data, moving_average_weights=True, implicit_national_factors=False):
+    def national_method2_regression_models(self, seds_data, energy_type, moving_average_weights=True, implicit_national_factors=False):
         if self.sector == 'commercial':
-            seds_census_region_electricity = seds_data['elec']
-            seds_census_region_electricity['National'] = seds_census_region_electricity.sum(axis=1)
-            weather_adjusted_consumption_electricity = seds_census_region_electricity.multiply(weather_factors_electricity)
-            weather_adjusted_consumption_electricity['National'] = weather_adjusted_consumption_electricity.sum(axis=1)
-            implicit_national_weather_factor_elec = seds_census_region_electricity['National'].divide(weather_adjusted_consumption_electricity['National'])
-
-            seds_census_region_fuels = seds_data['fuels']
-            seds_census_region_fuels['National'] = seds_census_region_fuels.sum(axis=1)
-            weather_adjusted_consumption_fuels = seds_census_region_fuels.multiply(weather_factors_fuels)
-            weather_adjusted_consumption_fuels['National'] = weather_adjusted_consumption_fuels.sum(axis=1)
-            implicit_national_weather_factor_fuels = seds_census_region_fuels['National'].divide(weather_adjusted_consumption_fuels['National'])
-            return implicit_national_weather_factor_elec, implicit_national_weather_factor_fuels
+            if energy_type == 'elec':
+                seds_census_region_electricity = seds_data['elec']
+                seds_census_region_electricity['National'] = seds_census_region_electricity.sum(axis=1)
+                weather_adjusted_consumption_electricity = seds_census_region_electricity.multiply(weather_factors_electricity)
+                weather_adjusted_consumption_electricity['National'] = weather_adjusted_consumption_electricity.sum(axis=1)
+                implicit_national_weather_factor_elec = seds_census_region_electricity['National'].divide(weather_adjusted_consumption_electricity['National'])
+                return implicit_national_weather_factor_elec
+            elif energy_type == 'fuels'
+                seds_census_region_fuels = seds_data['fuels']
+                seds_census_region_fuels['National'] = seds_census_region_fuels.sum(axis=1)
+                weather_adjusted_consumption_fuels = seds_census_region_fuels.multiply(weather_factors_fuels)
+                weather_adjusted_consumption_fuels['National'] = weather_adjusted_consumption_fuels.sum(axis=1)
+                implicit_national_weather_factor_fuels = seds_census_region_fuels['National'].divide(weather_adjusted_consumption_fuels['National'])
+                return implicit_national_weather_factor_fuels
     
     def adjust_for_weather(self, region, data, energy_type):
         """purpose
@@ -562,7 +573,7 @@ class WeatherFactors:
         weather_adjusted_data = data / weather_factors[energy_type]
         return weather_adjusted_data
 
-    def get_weather(self, region, energy_dict=None, energy_type=None, energy_df=None, weather_adjust=False):
+    def get_weather(self, energy_dict=None, energy_type=None, energy_df=None, weather_adjust=False):
         if self.sector == 'residential':
             if weather_adjust: 
                 for type, energy_dataframe in energy_dict.items():
@@ -573,8 +584,16 @@ class WeatherFactors:
                 weather_factors = self.national_method1_fixed_end_use_share_weights(region, energy_type)
                 return weather_factors
         elif self.sector == 'commercial':
-            weather_factors = self.national_method2_regression_models( moving_average_weights=True, implicit_national_factors=False)
+            weather_factors_early = self.national_method1_fixed_end_use_share_weights(region, energy_type)
+            early_years = range(min(weather_factors_early.index), 1969 + 1)
+            weather_factors_early = weather_factors_early.loc[early_years, :]
 
+            weather_factors_late = self.national_method2_regression_models(energy_type=energy_type moving_average_weights=True, implicit_national_factors=False)
+            late_years = range(min(weather_factors_late.index), 1969 + 1)
+            weather_factors_late = weather_factors_late.loc[late_years, :]
+
+            weather_factors = pd.concat([weather_factors_early, weather_factors_late])
+            return weather_factors
 # if __name__ == '__main__':
 #     weather = WeatherFactors(sector='commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', activity_data=)
 #     weather.get_weather()
