@@ -91,7 +91,7 @@ Processing data from collection to input for LMDI calculations
 ### 4a. Residential
 * [x] Energy data:
     - from SEDS implemented with `pull_eia_api`
-* [] Activity data:
+* [X] Activity data:
     - Occupied Housing Units
     - Floorspace (Final Floorspace Estimates)
         - Total Stock SF: implemented in `ResidentialFloorspace.get_housing_stock` and `ResidentialFloorspace.final_floorspace_estimates`
@@ -102,11 +102,11 @@ Processing data from collection to input for LMDI calculations
 
 
 ### 4b. Commercial
-* [] Energy data: adjusted supplier data
+* [X] Energy data: adjusted supplier data
     - Uses data from AER11 Table 2.1, National Calibration, EIA via Survey EIA-861
     * [] Get EIA Survey 861 Data (Sectoral_reclassification5.xls  (10/25/2012))
         * [] create method for adjustment with if statement for year (e.g. if year > 2009, do this calculation)
-* [] Activity data: Floorspace estimates (don't want this array hard coded)
+* [X] Activity data: Floorspace estimates (don't want this array hard coded)
     - Historical Floorspace --> CO-StatePop2.xls
     - Regional Floorspace
     - Regional Shares

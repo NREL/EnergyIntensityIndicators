@@ -3,10 +3,15 @@ import numpy as np
 from sklearn import linear_model
 from pull_eia_api import GetEIAData
 from functools import reduce
+import os
+from datetime import date
+import matplotlib.pyplot as plt
+import seaborn
+import plotly.graph_objects as go
 
 class CalculateLMDI:
     """Base class for LMDI"""
-    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
+    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, output_directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
         """
         Parameters
         ----------
@@ -22,6 +27,7 @@ class CalculateLMDI:
 
         """
         self.directory = directory
+        self.output_directory = output_directory
         self.sector = sector
         self.level_of_aggregation = level_of_aggregation
         self.categories_dict = categories_dict
@@ -226,7 +232,7 @@ class CalculateLMDI:
         results_dict[f'{level_name}'] = data_dict 
         yield results_dict
 
-    def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False, account_for_weather=False):
+    def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False, save_breakout=False, account_for_weather=False):
         """
         docstring
 
@@ -266,13 +272,13 @@ class CalculateLMDI:
                         energy[level_total] = energy.sum(axis=1).values
                         activity_[level_total] = activity_.sum(axis=1).values
                         category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                       unit_conversion_factor=1, account_for_weather=account_for_weather)  # what should happen with this?
+                                                       unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=level_of_aggregation)  # what should happen with this?
                     elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
                         for e_type, energy_df in energy.items():
                             energy_df[level_total] = energy_df.sum(axis=1).values
                             activity_[level_total] = activity_.sum(axis=1).values
                             category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                           unit_conversion_factor=1, account_for_weather=account_for_weather)  # what should happen with this?
+                                                           unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=level_of_aggregation)  # what should happen with this?
                     elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
                         pass # How to handle??
                     elif isinstance(energy, dict) and isinstance(activity_, dict):
@@ -303,7 +309,7 @@ class CalculateLMDI:
                 if calculate_lmdi:
                     final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name, \
                                                    lmdi_models=self.lmdi_models, unit_conversion_factor=1, \
-                                                   account_for_weather=account_for_weather)
+                                                   account_for_weather=account_for_weather, save_results=True, loa=level_of_aggregation)
                     total_results_by_energy_type[e] = final_results
 
                 else:
@@ -381,7 +387,7 @@ class CalculateLMDI:
         return log_changes
     
     @ staticmethod
-    def calculate_log_mean_weights(dataset, total_label):
+    def calculate_log_mean_weights(dataset):
         """purpose
            Parameters
            ----------
@@ -392,13 +398,13 @@ class CalculateLMDI:
                 
            Returns
            -------
-
+        TODO: Verify that this is the desired logarithmic average 
         """
 
         change = dataset.diff()
         log_ratio = np.log(dataset.divide(dataset.shift().values))
         log_mean_divisia_weights = change.divide(log_ratio)
-        log_mean_divisia_weights_total = log_mean_divisia_weights.sum(axis=1) #dataset[[total_label]]
+        log_mean_divisia_weights_total = log_mean_divisia_weights.sum(axis=1) 
         log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total.values.reshape(len(log_mean_divisia_weights_total), 1))
 
         return log_mean_divisia_weights, log_mean_divisia_weights_normalized
@@ -442,23 +448,29 @@ class CalculateLMDI:
         index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares)  
 
         # Final Indexes 
-        activity_index = activity_input_data[total_label].divide(activity_input_data.loc[self.base_year, total_label])
-        index_of_aggregate_intensity = nominal_energy_intensity[total_label].divide(nominal_energy_intensity.loc[self.base_year, total_label])
-        structure_fuel_mix = index_normalized_activity
-        component_intensity_index = index_normalized_energy
-        product = activity_index.multiply(structure_fuel_mix).multiply(component_intensity_index)
-        actual_energy_use = activity_index.multiply(index_of_aggregate_intensity)
-
-        return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
+        activity_index = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
+        print(activity_index.columns)
+        final_indices_df = activity_index.copy().rename(columns={0: "activity_index"})
+        final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
+        final_indices_df['structure_fuel_mix'] = index_normalized_activity
+        final_indices_df['component_intensity_index'] = index_normalized_energy
+        final_indices_df['product'] = activity_index.multiply(final_indices_df['structure_fuel_mix']).multiply(['component_intensity_index'])
+        final_indices_df['actual_energy_use'] = activity_index.multiply(final_indices_df['index_of_aggregate_intensity'])
+        return final_indices_df
 
     def lmdi_additive(self, activity_input_data, energy_input_data, total_label, unit_conversion_factor):
-        # d_E_act = 
-        # d_E_str = 
-        # d_E_ins = 
+        L = calculate_log_mean_weights(dataset)
+        d_E_act = 
+        d_E_str = 
+        d_E_ins = 
+
+        result = d_E_act + d_E_str + d_E_ins 
 
         return None
 
-    def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather):
+    def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None):
+        results = dict()
+
         if account_for_weather: 
             pass
         if isinstance(activity_data, dict):
@@ -467,55 +479,103 @@ class CalculateLMDI:
         if 'multiplicative' in lmdi_models:
             multiplicative_results = self.lmdi_multiplicative(activity_data, energy_data, total_label,  unit_conversion_factor)
             print('multiplicative_results: \n', multiplicative_results)
-        else: 
-            multiplicative_results = None
-
+            results['multiplicative'] = multiplicative_results
+            
         if 'additive' in lmdi_models: 
             # additive_results = self.lmdi_additive(activity_data, energy_data, total_label, unit_conversion_factor)
             additive_results = None
-        else:
-            additive_results = None
+            results['additive'] = additive_results
 
-        return multiplicative_results, additive_results
 
-    def data_visualization(self,):
-            """Format data for proper visualization
-            
-            The following data types have been proposed (an ellipsis ... indicates an optional parameter):
+        if save_results:
+            fmt_loa = [l.replace(" ", "_") for l in loa]
+            path = f"{self.output_directory}/{'/'.join(fmt_loa)}"
+            if not os.path.exists():
+                os.mkdir(path)
+            for model, result in results.items():
+                f_name = '.'.join(fmt_loa) + model
+                formatted_data = self.data_visualization(result)
+                date = date.today().strftime("%m%d%y")
+                formatted_data.to_csv(f'{path}/{f_name}_{date}.csv')
 
-                @filter|Category1|...Category2|...|Label#units
+        return results
 
-                A list of options that can be grouped by 1 or more categories.
-                @weight|Category1|...Category2|...|Label#units
+    def data_visualization(self, data):
+        """Format data for proper visualization
+        
+        The following data types have been proposed (an ellipsis ... indicates an optional parameter):
 
-                A weighted value to use with a matching filter (must match filter label and categories).
-                @scenario|Label
+            @filter|Category1|...Category2|...|Label#units
 
-                A list of options that are completely separate from each other, i.e. they will not be seen on the same chart at the same time.
-                The options come from the unique values in the scenario column.
-                @timeseries|Label
+            A list of options that can be grouped by 1 or more categories.
+            @weight|Category1|...Category2|...|Label#units
 
-                A list of options that can be used to make a time series, e.g. a list of years.
-                @geography|Label
+            A weighted value to use with a matching filter (must match filter label and categories).
+            @scenario|Label
 
-                A list of geography names, e.g. states, counties, cities, that can be used in charts or a choropleth map.
-                @geoid
+            A list of options that are completely separate from each other, i.e. they will not be seen on the same chart at the same time.
+            The options come from the unique values in the scenario column.
+            @timeseries|Label
 
-                The column values are geography IDs that can be used in a choropleth map.
-                @latlong
+            A list of options that can be used to make a time series, e.g. a list of years.
+            @geography|Label
 
-                Latitude and longitude coordinates
-                        
+            A list of geography names, e.g. states, counties, cities, that can be used in charts or a choropleth map.
+            @geoid
 
-            Parameters
-            ----------
-            
-            Returns
-            csv
-            
-            """
-            # output formatted csv and/or figure (summary lineplot, etc like website) formatted table 
-            # (summary tables on website), default: do all
+            The column values are geography IDs that can be used in a choropleth map.
+            @latlong
+
+            Latitude and longitude coordinates
+                    
+
+        Parameters
+        ----------
+        
+        Returns
+        csv
+        
+        """
+        # output formatted csv and/or figure (summary lineplot, etc like website) formatted table 
+        # (summary tables on website), default: do all
+        label_ = 
+        data = data.reset_index()
+        data = data.rename(columns={'Year': f'@timeseries|{label_}'})
+        return formatted_data
+    
+    @staticmethod
+    def waterfall_chart():
+        x_labels = []
+        figure_labels = []
+        title = ""
+        measure = []  # for example: ["relative", "relative", "total", "relative", "relative", "total"]
+        fig = go.Figure(go.Waterfall(name="", orientation="v", measure=measure, x=x_labels, 
+                                     textposition="outside", text=figure_labels, y=values,
+                                     connector = {"line":{"color":"rgb(63, 63, 63)"}},))
+
+        fig.update_layout(title=title, showlegend = True)
+
+        fig.show()
+        fig.save(f"{path}/{title}.png")
+        
+    
+    @staticmethod
+    def lineplot(path, *lines_to_plot):
+        plt.style.use('seaborn-darkgrid')
+        palette = plt.get_cmap('Set1')
+        for i, l in enumerate(lines_to_plot):
+            plt.plot(x, y, marker='', color=palette(i), linewidth=1, alpha=0.9, label='')
+        
+        title = 
+        plt.title(title, fontsize=12, fontweight=0)
+        plt.xlabel('')
+        plt.ylabel('')
+        plt.legend(loc=2, ncol=2)
+        plt.show()
+        plt.save(f"{path}/{title}.png")
+
+
+
 
 
     
