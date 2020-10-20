@@ -42,6 +42,7 @@ class GetEIAData:
         eia_childseries = data['category']['childseries']
         eia_series_ids = [i['series_id'] for i in eia_childseries]
         eia_data = [self.get_series(api_key, s) for s in eia_series_ids]
+        print('eia_data: \n', eia_data)
         all_category = reduce(lambda x, y: pd.merge(x, y, on ='Year'), eia_data)
         return all_category
 

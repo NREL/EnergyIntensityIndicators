@@ -496,12 +496,19 @@ class CommercialIndicators(CalculateLMDI):
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
 
+    def get_seds(self):
+        seds = self.collect_data('SEDS_CensusRgn')
+        census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
+        total_fuels = seds[0].rename(columns=census_regions)
+        elec = seds[1].rename(columns=census_regions)
+        return {'elec': elec, 'fuels': total_fuels}
+
     def collect_weather(self, comm_activity):
+        seds = self.get_seds()
         res = ResidentialIndicators(directory=self.directory, base_year=self.base_year)
         residential_activity_data = res.get_floorspace()
         residential_floorspace = residential_activity_data['floorspace_square_feet']
         weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
-        seds = self.collect_data('SEDS_CensusRgn')
         weather_factors = weather.get_weather(seds_data=seds)
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
@@ -520,7 +527,6 @@ class CommercialIndicators(CalculateLMDI):
         print('weather_factors', weather_factors)
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
-        exit()
 
         results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
         print(results)

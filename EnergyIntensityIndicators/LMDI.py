@@ -422,9 +422,11 @@ class CalculateLMDI:
         """
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
         print('activity_input_data: \n', activity_input_data)
-        print('activity_input_data T: \n', np.transpose(activity_input_data.values) == activity_input_data.values.reshape(len(activity_input_data), activity_input_data.shape[1]))
-
-        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_input_data.shape[1])) #.multiply(unit_conversion_factor)
+        if isinstance(activity_input_data, pd.DataFrame):
+            activity_width = activity_input_data.shape[1]
+        elif isinstance(activity_input_data, pd.Series):
+            activity_width = 1
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_width)) #.multiply(unit_conversion_factor)
         if return_nominal_energy_intensity:
             return nominal_energy_intensity
         log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
@@ -450,6 +452,10 @@ class CalculateLMDI:
         return activity_index, index_of_aggregate_intensity, structure_fuel_mix, component_intensity_index, product, actual_energy_use
 
     def lmdi_additive(self, activity_input_data, energy_input_data, total_label, unit_conversion_factor):
+        # d_E_act = 
+        # d_E_str = 
+        # d_E_ins = 
+
         return None
 
     def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather):
@@ -508,7 +514,8 @@ class CalculateLMDI:
             csv
             
             """
-
+            # output formatted csv and/or figure (summary lineplot, etc like website) formatted table 
+            # (summary tables on website), default: do all
 
 
     

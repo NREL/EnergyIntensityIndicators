@@ -720,7 +720,7 @@ class TransportationIndicators(CalculateLMDI):
         return pct_difference
 
 if __name__ == '__main__': 
-    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Freight.Pipeline')
+    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Freight')
     indicators.main(breakout=True, calculate_lmdi=True)
 
 

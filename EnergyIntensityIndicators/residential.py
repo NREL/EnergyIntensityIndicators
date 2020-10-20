@@ -67,17 +67,21 @@ class ResidentialIndicators(CalculateLMDI):
 
         final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
                                     'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
+        print('final_floorspace_results: \n', final_floorspace_results)
         return final_floorspace_results
 
 
     def activity(self, floorspace, region):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """ 
+        print('RUNNING ACTIVITY METHOD')
         region_activity = dict()
+        print('Floorspace:\n', floorspace)
         for variable, data in floorspace.items():
+            print('data.keys()', data.keys())
             df = data[region]
             region_activity[variable] = df
-
+        
         return region_activity
     
     def collect_weather(self, energy_dict, nominal_energy_intensity, energy_type, energy_df):
@@ -91,8 +95,10 @@ class ResidentialIndicators(CalculateLMDI):
 
         all_data = dict()
         for r in self.sub_categories_list.keys(): 
-            energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
             region_activity = self.activity(floorspace, r)
+    
+
+            energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
 
             nominal_energy_intensity_by_e = dict()
 
@@ -106,15 +112,22 @@ class ResidentialIndicators(CalculateLMDI):
                 print('energy type: \n', e)
 
 
-            region_data = {'energy': energy_data, 'activity': region_activity, 'weather_factors': weather_factors_by_e_type} # HOW DOES WEATHER FIT IN?
+            region_data = {'energy': energy_data, 'activity': region_activity}
         
             all_data[r] = region_data
         
-        weather_factors_by_e_type = dict()
-        weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity, energy_type=e, energy_df=e_df) # need to integrate this into the data passed to LMDI
-        weather_factors_by_e_type[e] = weather_factors
-
+        print('all_data', all_data)
         
+        weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity_by_e) # need to integrate this into the data passed to LMDI
+    
+        # for region, r_dict_ in all_data.items():
+        #     weather_factors_by_e_type = dict()
+
+        #     for e_ in r_dict_['energy'].keys():
+        #         weather_factors_by_e_type[e] = weather_factors
+
+        #     r_dict_['weather_factors'] = weather_factors_by_e_type
+        #     all_data[region] = r_dict_
 
         return all_data
 

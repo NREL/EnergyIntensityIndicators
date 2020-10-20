@@ -7,7 +7,7 @@ from functools import reduce
 from sklearn.linear_model import LinearRegression
 import math
 import os
-
+from LMDI import CalculateLMDI
 
 class WeatherFactors: 
     def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, end_year=2018):
@@ -337,7 +337,7 @@ class WeatherFactors:
 
         return nominal_energy_intensity
 
-    def weather_factors(self, region, energy_type, actual_intensity):
+    def weather_factors(self, region, energy_type, actual_intensity, weights_df, regional_weights):
         """Estimate a simple regression model to fit the regional intensity to a linear function of time (included squared and cubed values of time) and degree days. 
         -electricity model: constant term, heating degree day (HDD), cooling degree day (CDD), time, time-squared, and time-cubed
         -fuels model: contant term?, HDD, HDD*Time, Time, Time-squared and composite fuel price index (the composite fuel price index was developed as a weighted average of the national distillate
@@ -351,11 +351,6 @@ class WeatherFactors:
 
         TODO: Input data 
         """
-        weights_df = self.gather_weights_data()
-        print('WEIGHTS DF: \n', weights_df)
-        regional_weights = self.regional_shares(dataframe=weights_df, cols=['heating_activity', 'cooling_activity', 'fuels'])
-        print('REGIONAL WEIGHTS: \n', regional_weights)
-
         subregions = self.sub_regions_dict[region]
         subregions_lower = [s.lower().replace(' ', '_') for s in subregions]
         hdd_activity_weights = [regional_weights['heating_activity'][r_] for r_ in subregions_lower]
@@ -443,12 +438,8 @@ class WeatherFactors:
         print('predicted_value_intensity_ltaveragesdd: \n', predicted_value_intensity_ltaveragesdd)
 
         weather_factor = predicted_value_intensity_actualdd.flatten() / predicted_value_intensity_ltaveragesdd.values.flatten()
-        print('weather factor here: \n', weather_factor)
-        print('actual_intensity here: \n', actual_intensity)
 
-        print()
-
-        weather_normalized_intensity = actual_intensity.loc[data.index, :] / weather_factor.reshape(len(weather_factor), 1)
+        weather_normalized_intensity = actual_intensity.loc[data.index] / weather_factor 
 
         weather_factor_df = pd.DataFrame(data={'Year': data.index, f'{region}_weather_factor': weather_factor}).set_index('Year')
         print('weather_factor_df', weather_factor_df)
@@ -509,52 +500,56 @@ class WeatherFactors:
         else:
             energy_type = energy_type_
         intensity_df = regional_intensity_dict[energy_type]
-        intensity_df = intensity_df.reindex(columns=list(intensity_df.columns) + [f'{energy_type_}_weather_factor'])
         print('intensity_df: \n', intensity_df)
         
         regional_weather_factors = []
+        weights_df = self.gather_weights_data()
+        print('WEIGHTS DF: \n', weights_df)
+        regional_weights = self.regional_shares(dataframe=weights_df, cols=['heating_activity', 'cooling_activity', 'fuels'])
+        print('REGIONAL WEIGHTS: \n', regional_weights)
 
         for region in self.sub_regions_dict.keys():
             region_cap = region.capitalize()
             regional_intensity = intensity_df[region_cap]
-            weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type_, actual_intensity=regional_intensity)
+            weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type_, actual_intensity=regional_intensity, weights_df=weights_df, regional_weights=regional_weights)
             regional_weather_factors.append(weather_factors)
         
         weather_factors_all = pd.concat(regional_weather_factors, axis=1)
+        weather_factors_all = weather_factors_all.reindex(columns=list(weather_factors_all.columns) + [f'{energy_type_}_weather_factor'])
         print('weather factors all:', weather_factors_all)
         for y in weather_factors_all.index:
-            if energy_type == 'electricity':
-                share_name = 'elec_share'
-            else:
-                share_name = 'fuel_share'
-            year_weather = weather_factors_all.loc[y, :]
+            if energy_type == 'electricity': 
+                energy_type = 'elec'
+
+            share_name = f'{energy_type}_share'
+
+            year_weather = weather_factors_all.drop(f'{energy_type_}_weather_factor', axis=1).loc[y, :]
             print('year_weather: \n', year_weather)
             weights = shares[share_name].drop('Total')
             print('weights: \n', weights)
             print('weights numpy: \n', weights.to_numpy())
             year_factor = year_weather.dot(weights.to_numpy())
-            if energy_type == 'electricity': 
-                energy_type = 'elec'
-            weather_factors_all.loc[y, f'{energy_type_}_weather_factor'] = year_factor
+            print('year, year factor:', y, year_factor)
+
+            weather_factors_all.loc[y, [f'{energy_type_}_weather_factor']] = year_factor
         return weather_factors_all
 
 
-    def national_method2_regression_models(self, seds_data, energy_type, moving_average_weights=True, implicit_national_factors=False):
-        if self.sector == 'commercial':
-            if energy_type == 'elec':
-                seds_census_region_electricity = seds_data['elec']
-                seds_census_region_electricity['National'] = seds_census_region_electricity.sum(axis=1)
-                weather_adjusted_consumption_electricity = seds_census_region_electricity.multiply(weather_factors_electricity)
-                weather_adjusted_consumption_electricity['National'] = weather_adjusted_consumption_electricity.sum(axis=1)
-                implicit_national_weather_factor_elec = seds_census_region_electricity['National'].divide(weather_adjusted_consumption_electricity['National'])
-                return implicit_national_weather_factor_elec
-            elif energy_type == 'fuels':
-                seds_census_region_fuels = seds_data['fuels']
-                seds_census_region_fuels['National'] = seds_census_region_fuels.sum(axis=1)
-                weather_adjusted_consumption_fuels = seds_census_region_fuels.multiply(weather_factors_fuels)
-                weather_adjusted_consumption_fuels['National'] = weather_adjusted_consumption_fuels.sum(axis=1)
-                implicit_national_weather_factor_fuels = seds_census_region_fuels['National'].divide(weather_adjusted_consumption_fuels['National'])
-                return implicit_national_weather_factor_fuels
+    def national_method2_regression_models(self, seds_data, weather_factors):
+        seds_data, weather_factors = CalculateLMDI.ensure_same_indices(seds_data, weather_factors)
+        
+        print(seds_data.info())
+        print(seds_data)
+        print(weather_factors.info())
+        print(weather_factors)
+
+        weather_adjusted_consumption = seds_data.drop('National', axis=1).multiply(weather_factors.values)
+        weather_adjusted_consumption['National'] = weather_adjusted_consumption.sum(axis=1)
+
+        implicit_national_weather_factor = seds_data[['National']].divide(weather_adjusted_consumption['National'].values.reshape(len(weather_adjusted_consumption), 1))
+        print('implicit_national_weather_factor: \n', implicit_national_weather_factor)
+        return implicit_national_weather_factor
+
     
     def adjust_for_weather(self, data, energy_type):
         """purpose
@@ -592,18 +587,26 @@ class WeatherFactors:
         elif self.sector == 'commercial':
             weather_factors = dict()
             for type in ['electricity', 'fuels']:
-                weather_factors_early = self.national_method1_fixed_end_use_share_weights(type)
-                early_years = range(min(weather_factors_early.index), 1969 + 1)
-                weather_factors_early = weather_factors_early.loc[early_years, :]
+                weather_factors_method1 = self.national_method1_fixed_end_use_share_weights(type)
+                                
+                print('weather_factors_method1: \n', weather_factors_method1)
+
+                early_years = range(min(weather_factors_method1.index), 1969 + 1)
                 
                 if type == 'electricity': 
                     type = 'elec'
 
-                weather_factors_late = self.national_method2_regression_models(seds_data=seds_data, energy_type=type, moving_average_weights=True, implicit_national_factors=False)
-                late_years = range(1970, max(weather_factors_early.index) + 1)
-                weather_factors_late = weather_factors_late.loc[late_years, :]
+                weather_factors_early = weather_factors_method1.loc[early_years, [f'{type}_weather_factor']]
+                print('weather_factors_early: \n', weather_factors_early)
+                weather = weather_factors_method1.drop(f'{type}_weather_factor', axis=1)
 
-                weather_factors_t = pd.concat([weather_factors_early, weather_factors_late])
+                type_seds = seds_data[type]
+                weather_factors_method2 = self.national_method2_regression_models(seds_data=type_seds, weather_factors=weather)
+                weather_factors_method2 = weather_factors_method2.rename(columns={'National': f'{type}_weather_factor'})
+                late_years = range(1970, max(weather_factors_method2.index) + 1)
+                weather_factors_late = weather_factors_method2.loc[late_years]
+
+                weather_factors_t = pd.concat([weather_factors_early, weather_factors_late], sort=True)
 
                 weather_factors[type] = weather_factors_t
             return weather_factors
