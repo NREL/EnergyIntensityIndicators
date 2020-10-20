@@ -28,3 +28,30 @@ MER_Table24_Industrial_Energy_Consumption = [0]
 
 # Energy prices
 MECS_Table72 = [0]
+
+def get_historical_mecs(self):
+            """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
+            """            
+            historical_mecs = pd.read_csv('./') 
+            return historical_mecs
+
+        def manufacturing_prices(self):
+            """Call ASM API method from Asm class in get_census_data.py
+            Specify three-digit NAICS Codes
+            """ 
+            fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual', 'LPG', 'Coke', 'Other']
+
+            asm_price_data = Mfg_prices().calc_calibrated_predicted_price(latest_year=self.end_year, fuel_type, naics)
+            return asm_price_data           
+
+
+
+
+    def manufacturing(self):
+        """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by 
+        estimates derived from the Annual Survey of Manufactures (ASM) and the Economic Census (EC) conducted every five years)
+        https://www.eia.gov/consumption/manufacturing/data/2014/
+        https://www.eia.gov/consumption/manufacturing/data/2014/#r4 
+        """    
+    
+    return manufacturing

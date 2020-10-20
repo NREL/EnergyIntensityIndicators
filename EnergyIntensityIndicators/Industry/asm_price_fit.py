@@ -8,7 +8,7 @@ from get_census_data import Econ_census
 
 
 class Mfg_prices:
-    # def __ini__(self):
+    # def __init__(self):
     #     """
     #     Class for importing and interpolating historical energy prices for
     #     the manufacturing sector.

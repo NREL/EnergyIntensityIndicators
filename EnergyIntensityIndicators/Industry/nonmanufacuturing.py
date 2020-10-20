@@ -1,3 +1,4 @@
+import pandas as pd 
 
 class NonManufacturing:
     """ Prior to 2012, total nonmanufacturing
@@ -70,3 +71,74 @@ class NonManufacturing:
 
     def construction(self):
         pass
+
+
+class NonManufacturing():
+
+    def __init__(self):
+        pass
+
+    def agriculture():
+            miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skip_footer= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+            nass_expenses_data = [0] # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
+
+            nass_average_prices_data = [0] # 
+            MER_fuel_price_data = [0]  # 
+            eia_table33 = [0] # Consumer Price estimates for Energy by Source, 1970-2009
+            eia_table34 = [0] # Consumer price estimates for energy by end-use sector, 1970-2009
+            eia_table523 = [0] # All sellers sales prices for selected petroleum products, 1994-2010
+            eia_table524 = [0] # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
+            
+            adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
+            gross_output = [0] # NonMan_output_data_010420.xlsx column S
+            value_added = [0] # NonMan_output_data_010420.xlsx column G
+            elec_prm = miranowski_data[0]
+            elec_site = elec_prm.divide(adjustment_factor)
+            fuels = miranowski_data[0].subtract(miranowski_data[0])
+            electricity_intensity = elec_site.divide(0.001)
+            fuels_intensity = fuels.divide(0.001)
+            input_for_indicators = pd.DataFrame([electricity_intesity, fuels_intensity, gross_output,
+                                                 value_added]).transpose().columns(['electricity_intesity', 
+                                                                                    'fuels_intensity', 
+                                                                                    'gross_output', 
+                                                                                    'value_added'])
+        
+    def mining(self):
+        """[summary]
+        https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html
+        https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk
+        http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table
+        https://www.census.gov/econ/census02/guide/INDRPT21.HTM
+        http://www.census.gov/prod/www/abs/ec1997mining-ind.html
+        http://www.census.gov/prod/1/manmin/92mmi/92minif.html
+        """            
+        BLS_data = pd.read_csv('./Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
+        BEA_mining_data = BEA_data[['Oil and Gas Extraction', 'Mining, except oil and gas', 'Support Activities for Mining']]
+        NEA_data = [0] # NEA_Data
+
+        crude_petroleum_natgas = BEA_mining_data['Oil and Gas Extraction'].multiply(0.001)
+        crude_petroleum_natgas['Elec'] = [0]
+
+        pass
+
+    def propane(self):
+        """http://www.eia.gov/totalenergy/data/annual/index.cfm
+        """
+        pass
+
+    def bureau_labor_statistics_industry_output(self):
+        """https://www.bls.gov/emp/data/industry-out-and-emp.htm
+        """ 
+        pass
+
+    def construction(self):
+        """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
+            https://www.census.gov/data/tables/2012/econ/census/construction.html
+            http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_23I1&prodType=table
+            http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2002_US_23I04A&prodType=table
+            http://www.census.gov/epcd/www/97EC23.HTM
+            http://www.census.gov/prod/www/abs/cciview.html
+        """ 
+        pass
+    
+    pass              
