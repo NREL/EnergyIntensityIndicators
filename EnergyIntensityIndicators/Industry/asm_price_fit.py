@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import requests
 from scipy.optimize import leastsq
+from bs4 import BeautifulSoup
+from get_census_data import Asm
+from get_census_data import Econ_census
 
 
 class Mfg_prices:
@@ -19,21 +22,116 @@ class Mfg_prices:
     #     self.mecs_historical_prices = pd.read_csv('mecs_historical_prices.csv')
 
     @staticmethod
-    def get_asm_prices(latest_year):
+    def import_mecs_historical(file_path):
+        """
+        Import and format csv of historical fuel prices from Manufacturing
+        Energy Consumption Survey (MECS). MECS was conducted every three
+        years from 1985 - 1994 and every four years since.
+
+        Parameters
+        ----------
+        file_path : str
+            File path of csv.
+
+        Returns
+        -------
+        mecs_prices : dataframe
+
+        """
+
+        mecs_prices = pd.read_csv(file_path)
+
+        mecs_prices = pd.melt(mecs_prices, id_vars=['NAICS', 'fuel'],
+                              var_name='year', value_name='mecs_price')
+
+        return mecs_prices
+
+    @staticmethod
+    def check_recent_mecs(latest_year, last_historical_year):
+        """
+        MECS has been conducted at four-year intervals since 1994. New data
+        will need to be manually downloaded, formatted, and added to the
+        historical price file, 'mfg_mecs_energy_prices.csv'.
+
+        Parameters
+        ----------
+        latest_year : int
+            Latest year of historical decomposition.
+
+        last_historical_year : int
+            Lastest year of price data available in
+            'mfg_mecs_energy_prices.csv'.
+
+        Returns
+        -------
+
+        """
+
+        if latest_year <= last_historical_year:
+
+            raise Exception("Historical MECS prices are latest available")
+
+            return
+
+        else:
+
+            check_url = 'https://www.eia.gov/consumption/manufacturing/' + \
+                        'data/{}/xls/table7_2.xlsx'.format(str(latest_year))
+
+            r = requests.get(check_url)
+
+            soup = BeautifulSoup(r.text, 'html.parser')
+
+            # Check if updated MECS are available by requesting Excel file.
+            # If no Excel file exists, requests will return the
+            # Consumption and Efficiency page. If the Excel file does exist,
+            # there will be an exception, which prompts the user to download
+            # and format the data.
+            try:
+                title = soup.title.name
+
+            except AttributeError:
+                print("Updated mecs data are now available.\n" +
+                      "Please download Table 7.2 and Table 7.6\nand update" +
+                      "'mfg_mecs_energy_prices.csv'")
+
+            else:
+                print("Updated MECS data are not yet available")
+
+            finally:
+                return
+
+    @staticmethod
+    def import_asm_historical(file_path):
+        """"
+        Prices in $/MMBtu
+        """
+
+
+    @staticmethod
+    def get_census_prices(latest_year, start_year=1983):
         """
         Get fuel prices from Census Bureau's Annual Survey of
-        Manufacturers.
+        Manufacturers and Economic Census (years ending in 2 and 7)
 
         Parameters
         ----------
         latest_year : int
             Most recent year of historical LMDI analysis.
 
+        start_year : int, default 1983
+            Beginning year of price data.
+
         Returns
         -------
         asm_prices : pandas.Series
             Pandas series of ASM price data from YYYY - latest_year
         """
+        year_range = range(start_year, latest_year + 1)
+
+        asm_prices = pd.DataFrame()
+
+
 
         return asm_prices
 
@@ -211,7 +309,7 @@ class Mfg_prices:
 
         fit_coeffs = Mfg_prices.calc_predicted_coeffs()
         predicted = Mfg_prices.calc_predicted_prices()
-    
+
 
 
         price_df['calibrated_prediction'] = \
