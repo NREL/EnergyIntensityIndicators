@@ -387,7 +387,7 @@ class CalculateLMDI:
         return log_changes
     
     @ staticmethod
-    def calculate_log_mean_weights(dataset):
+    def calculate_log_mean_weights(dataset, total_label):
         """purpose
            Parameters
            ----------
@@ -404,14 +404,26 @@ class CalculateLMDI:
         change = dataset.diff()
         log_ratio = np.log(dataset.divide(dataset.shift().values))
         log_mean_divisia_weights = change.divide(log_ratio)
-        log_mean_divisia_weights_total = log_mean_divisia_weights.sum(axis=1) 
-        log_mean_divisia_weights_normalized = log_mean_divisia_weights.divide(log_mean_divisia_weights_total.values.reshape(len(log_mean_divisia_weights_total), 1))
+        log_mean_divisia_weights[total_label] = log_mean_divisia_weights.sum(axis=1) 
+        return log_mean_divisia_weights
 
-        return log_mean_divisia_weights, log_mean_divisia_weights_normalized
+    def log_mean_divisia_weights_multiplicative(log_mean_divisia_weights, total_label):
+        """
+        """        
+        log_mean_divisia_weights_normalized = log_mean_divisia_weights.drop(total_label, axis=1).divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights_total), 1))
 
+        return log_mean_divisia_weights_normalized
+    
+    def log_mean_divisia_weights_additive(log_mean_divisia_weights, log_mean_change, total_label):
+        """
+        """        
+        numerator = log_mean_divisia_weights.drop(total_label, axis=1).multiply(log_mean_change)
+        log_mean_divisia_weights_normalized = numerator.divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights_total), 1))
 
-    def lmdi_multiplicative(self, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
-        """Calculate the Multiplicative LMDI
+        return log_mean_divisia_weights_normalized
+    
+    def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
+        """Calculate the LMDI
 
         TODO: 
             - Account for weather factors when 
@@ -428,45 +440,54 @@ class CalculateLMDI:
         """
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
         print('activity_input_data: \n', activity_input_data)
+
         if isinstance(activity_input_data, pd.DataFrame):
             activity_width = activity_input_data.shape[1]
         elif isinstance(activity_input_data, pd.Series):
             activity_width = 1
+
         nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_width)) #.multiply(unit_conversion_factor)
+
         if return_nominal_energy_intensity:
             return nominal_energy_intensity
+
         log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
         energy_shares = self.calculate_shares(energy_input_data, total_label)
-        log_mean_divisia_weights_energy, log_mean_divisia_weights_normalized_energy = self.calculate_log_mean_weights(energy_shares, total_label)
-        
+        log_mean_divisia_weights_energy = self.calculate_log_mean_weights(energy_shares, total_label)
 
         activity_shares = self.calculate_shares(activity_input_data, total_label)
         log_changes_activity_shares = self.calculate_log_changes_activity_shares(activity_shares, total_label)
 
-        index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_intensity)
+        if model == 'multiplicative':
+            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_multiplicative(log_mean_divisia_weights_energy, total_label)
         
-        index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized_energy, log_changes_activity_shares)  
+        elif model == 'additive':
+            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_additive(log_mean_divisia_weights_energy, total_label)
 
-        # Final Indexes 
-        activity_index = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
-        print(activity_index.columns)
-        final_indices_df = activity_index.copy().rename(columns={0: "activity_index"})
-        final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
-        final_indices_df['structure_fuel_mix'] = index_normalized_activity
-        final_indices_df['component_intensity_index'] = index_normalized_energy
-        final_indices_df['product'] = activity_index.multiply(final_indices_df['structure_fuel_mix']).multiply(['component_intensity_index'])
-        final_indices_df['actual_energy_use'] = activity_index.multiply(final_indices_df['index_of_aggregate_intensity'])
+        index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+        
+        index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized, log_changes_activity_shares)  
+        
+        index_chg_structure, index_structure, index_normalized_structure = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+        
+        final_indices_df = pd.DataFrame(index_normalized_energy, columns=['index_normalized_energy'])
+        final_indices_df['index_normalized_activity'] = index_normalized_activity
+        final_indices_df['index_normalized_structure'] = index_normalized_structure
+        
+        if model == 'multiplicative':
+            final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=1)  # np.exp(index) for each index
+            final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
+            
+            # Not sure if these next three would be the same for additive
+            final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
+            final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
+            final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
+
+        elif model == 'additive':
+            final_indices_df['energy_intensity'] = final_indices_df.sum(axis=1)  # sum of all indices
+
         return final_indices_df
 
-    def lmdi_additive(self, activity_input_data, energy_input_data, total_label, unit_conversion_factor):
-        L = calculate_log_mean_weights(dataset)
-        d_E_act = 
-        d_E_str = 
-        d_E_ins = 
-
-        result = d_E_act + d_E_str + d_E_ins 
-
-        return None
 
     def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None):
         results = dict()
@@ -477,15 +498,13 @@ class CalculateLMDI:
             ## HOW TO DO THIS??
             pass
         if 'multiplicative' in lmdi_models:
-            multiplicative_results = self.lmdi_multiplicative(activity_data, energy_data, total_label,  unit_conversion_factor)
+            multiplicative_results = self.lmdi('multiplicative', activity_data, energy_data, total_label,  unit_conversion_factor)
             print('multiplicative_results: \n', multiplicative_results)
             results['multiplicative'] = multiplicative_results
             
         if 'additive' in lmdi_models: 
-            # additive_results = self.lmdi_additive(activity_data, energy_data, total_label, unit_conversion_factor)
-            additive_results = None
+            additive_results = self.lmdi('additive', activity_data, energy_data, total_label,  unit_conversion_factor)
             results['additive'] = additive_results
-
 
         if save_results:
             fmt_loa = [l.replace(" ", "_") for l in loa]
@@ -540,7 +559,11 @@ class CalculateLMDI:
         # (summary tables on website), default: do all
         label_ = 
         data = data.reset_index()
-        data = data.rename(columns={'Year': f'@timeseries|{label_}'})
+        data = data.rename(columns={'Year': f'@timeseries|{label_}'}, '')
+        #scenario: additive/mult
+        #filter: level?
+
+
         return formatted_data
     
     @staticmethod
