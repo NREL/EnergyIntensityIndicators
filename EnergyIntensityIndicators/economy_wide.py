@@ -5,9 +5,9 @@ from electricity import ElectricityIndicators
 from transportation import TransportationIndicators
 from LMDI import CalculateLMDI
 
-class EconomyWide(CalculateLMDI, directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
+class EconomyWide(CalculateLMDI):
 
-    def __init__(self): 
+    def __init__(self, directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018): 
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj', 'source_adj2']
         self.res = ResidentialIndicators(directory=directory, level_of_aggregation=level_of_aggregation, lmdi_model=lmdi_model, base_year=base_year, end_year=end_year)
         self.comm = CommercialIndicators(directory=directory, level_of_aggregation=level_of_aggregation, lmdi_model=lmdi_model, base_year=base_year, end_year=end_year)
@@ -27,10 +27,10 @@ class EconomyWide(CalculateLMDI, directory, level_of_aggregation=None, lmdi_mode
 
     def collect_data(self):
         all_data = dict()
-        abbrevs = {'Residential': res, 'Commercial': comm, 'Industrial': ind, 'Transporation': trans, 'Elec Power': elec}
+        abbrevs = {'Residential': self.res, 'Commercial': self.comm, 'Industrial': self.ind, 'Transporation': self.trans, 'Elec Power': self.elec}
         for sector in self.sub_categories_list.keys():
             abbrev = abbrevs[sector]
-            formatted_data = self.abbrev.collect_data()
+            formatted_data = abbrev.collect_data()
             all_data[sector] = formatted_data
         return all_data
 
