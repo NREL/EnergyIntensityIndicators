@@ -2,10 +2,11 @@ import pandas as pd
 from sklearn import linear_model
 from LMDI import CalculateLMDI
 from pull_eia_api import GetEIAData
+from functools import reduce
 
 class ElectricityIndicators(CalculateLMDI):
 
-    def __init__(self, directory, level_of_aggregation, lmdi_model=['multiplicative'], base_year=1985):
+    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], base_year=1985):
         self.sub_categories_list = {'Elec Generation Total': 
                                         {'Elec Power Sector': 
                                             {'Electricity Only':
@@ -65,7 +66,7 @@ class ElectricityIndicators(CalculateLMDI):
         self.Table85c_url = 'https://www.eia.gov/totalenergy/data/annual/xls/stb0805c.xls'
         self.Table82c_url = 'https://www.eia.gov/totalenergy/data/annual/xls/stb0802c.xls'
         super().__init__(sector='electric', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                         energy_types=self.energy_types, directory=directory, base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
     @staticmethod
     def get_eia_aer():
         """Prior to 2012, the data for the indicators were taken directly from tables published (and downloaded in 
@@ -460,14 +461,15 @@ class ElectricityIndicators(CalculateLMDI):
         elec_generation_total['Commercial Sector'] = comm_sector_total
         elec_generation_total['Industrial Sector'] = industrial_sector_total
 
-        data_dict = {'Elec Generation Total': elec_generation_total, 'All CHP': all_chp}    
+        data_dict = {'Elec Generation Total': elec_generation_total, 'All CHP': all_chp}
+        return data_dict   
 
-    def main(self, breakout, calculate_lmdi): 
+    def main(self, breakout, save_breakout, calculate_lmdi): 
         data_dict = self.collect_data()
         print(data_dict)
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
 
 
 if __name__ == '__main__':
-    indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All CHP.Elec Power Sector')
-    indicators.main(breakout=False, calculate_lmdi=False)
+    indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='All CHP.Elec Power Sector')
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)

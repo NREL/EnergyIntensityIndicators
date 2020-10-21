@@ -8,10 +8,11 @@ from datetime import date
 import matplotlib.pyplot as plt
 import seaborn
 import plotly.graph_objects as go
+import plotly.express as px
 
 class CalculateLMDI:
     """Base class for LMDI"""
-    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, output_directory, base_year=1985, base_year_secondary=1996, charts_ending_year=2003):
+    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, output_directory, base_year=1985):
         """
         Parameters
         ----------
@@ -32,9 +33,6 @@ class CalculateLMDI:
         self.level_of_aggregation = level_of_aggregation
         self.categories_dict = categories_dict
         self.base_year = base_year
-        self.index_base_year_secondary = base_year_secondary  # not used
-        self.charts_starting_year = base_year
-        self.charts_ending_year = charts_ending_year
         self.energy_types = energy_types  # could use energy_data.keys but need 'elec' and 'fuels' to come before the others
         self.lmdi_models = lmdi_models
 
@@ -82,16 +80,22 @@ class CalculateLMDI:
 
     def get_source(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors()
-        source_electricity = elec[['adjusted_consumption_trillion_btu', 'Total']].multiply(conversion_factors.values) # Column A
-        total_source = source_electricity.add(fuels[['adjusted_consumption_trillion_btu', 'Total']].values)     
+        print('conversion_factors: \n', conversion_factors)
+        conversion_factors, elec = self.ensure_same_indices(conversion_factors, elec)
+        source_electricity = elec.drop('Energy_Type', axis=1).multiply(conversion_factors.values) # Column A
+        total_source = source_electricity.add(fuels.drop('Energy_Type', axis=1).values)     
         total_source['Energy_Type'] = 'Source'
         print('Calculated source data')
         return total_source
     
     def get_source_adj(self, elec, fuels):
         conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
-        source_electricity_adj = elec[['adjusted_consumption_trillion_btu', 'Total']].multiply(conversion_factors.values) # Column M
-        source_adj = source_electricity_adj.add(fuels[['adjusted_consumption_trillion_btu', 'Total']].values)
+        print('conversion_factors source adj: \n', conversion_factors)
+                
+        conversion_factors, elec = self.ensure_same_indices(conversion_factors, elec)
+
+        source_electricity_adj = elec.drop('Energy_Type', axis=1).multiply(conversion_factors.values) # Column M
+        source_adj = source_electricity_adj.add(fuels.drop('Energy_Type', axis=1).values)
         source_adj['Energy_Type'] = 'Source_Adj'
         print('Calculated source_adj data')
         return source_adj
@@ -139,9 +143,9 @@ class CalculateLMDI:
             energy_data = data[key]['energy']
             activity_data = data[key]['activity']
 
-            provided_energy_data = {e: energy_data[e] for e in self.energy_types}
+            provided_energy_data = list(energy_data.keys())
 
-            if provided_energy_data == energy_data:
+            if set(provided_energy_data) == set(self.energy_types):
                 energy_data_by_type = energy_data
             elif 'elec' in energy_data and 'fuels' in energy_data:
                 energy_data_by_type = dict()
@@ -167,6 +171,8 @@ class CalculateLMDI:
 
     def build_nest(self, data, select_categories, results_dict, breakout, level, level1_name, level_name=None):
         cat_columns = []
+        print('select_categories:', select_categories)
+        print('data: \n', data.keys())
         for key, value in select_categories.items():
             if type(value) is dict:
                 level +=  1
@@ -205,6 +211,7 @@ class CalculateLMDI:
                     if not level_name:
                         level_name = level1_name
                     else:
+                        a_d
                         a_data[level_name] = a_data.sum(axis=1).values
                         e_data[level_name] = e_data.sum(axis=1).values
 
@@ -240,7 +247,9 @@ class CalculateLMDI:
             - Build in weather capabilities
             - Allow for multiple activity dataframes (needed for the Residential sector)
         """
+        final_fmt_results = []
 
+        level_of_aggregation_ = level_of_aggregation
         categories = self.deep_get(self.categories_dict, level_of_aggregation)
         level_of_aggregation = level_of_aggregation.split(".")
         level1_name = level_of_aggregation[-1]
@@ -263,6 +272,10 @@ class CalculateLMDI:
             if breakout:
                 for key in results_dict.keys():
                     level_total = results_dict[key]['level_total']
+                    # loa_index = level_of_aggregation.index(level_total)
+                    # loa = level_of_aggregation[:loa_index + 1]
+                    loa = [level_of_aggregation_, level_total]
+                    loa = ".".join(loa)
                     print('level total: \n', level_total)
 
                     energy = results_dict[key]['energy']
@@ -272,13 +285,19 @@ class CalculateLMDI:
                         energy[level_total] = energy.sum(axis=1).values
                         activity_[level_total] = activity_.sum(axis=1).values
                         category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                       unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=level_of_aggregation)  # what should happen with this?
+                                                       unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa) 
+                        category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
+                        final_fmt_results.append(category_lmdi)
                     elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
                         for e_type, energy_df in energy.items():
                             energy_df[level_total] = energy_df.sum(axis=1).values
                             activity_[level_total] = activity_.sum(axis=1).values
                             category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                           unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=level_of_aggregation)  # what should happen with this?
+                                                           unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                            category_lmdi["@filter|Energy_Type"] = e_type
+ 
+                            final_fmt_results.append(category_lmdi)
+
                     elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
                         pass # How to handle??
                     elif isinstance(energy, dict) and isinstance(activity_, dict):
@@ -309,12 +328,19 @@ class CalculateLMDI:
                 if calculate_lmdi:
                     final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name, \
                                                    lmdi_models=self.lmdi_models, unit_conversion_factor=1, \
-                                                   account_for_weather=account_for_weather, save_results=True, loa=level_of_aggregation)
+                                                   account_for_weather=account_for_weather, save_results=True, loa=level_of_aggregation_, energy_type=e)
+                    final_results["@filter|Energy_Type"] = e
+
+                    final_fmt_results.append(final_results)
+
                     total_results_by_energy_type[e] = final_results
 
                 else:
                     total_results_by_energy_type[e] = {'activity': total_activty_df, 'energy': total_energy_df}
-        return total_results_by_energy_type
+        
+        final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
+        # save final_results to csv
+        return total_results_by_energy_type, final_results
 
     @staticmethod
     def select_value(dataframe, base_row, base_column):
@@ -362,7 +388,7 @@ class CalculateLMDI:
         Returns:
             [type]: [description]
         """                     
-        index_chg = np.exp((log_mean_divisia_weights.multiply(log_changes_activity_shares)).sum(axis=1))
+        index_chg = log_mean_divisia_weights.multiply(log_changes_activity_shares).sum(axis=1)
         index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
         index_normalized = index / index.loc[self.base_year] # 1985=1
 
@@ -406,19 +432,21 @@ class CalculateLMDI:
         log_mean_divisia_weights = change.divide(log_ratio)
         log_mean_divisia_weights[total_label] = log_mean_divisia_weights.sum(axis=1) 
         return log_mean_divisia_weights
-
+    
+    @ staticmethod
     def log_mean_divisia_weights_multiplicative(log_mean_divisia_weights, total_label):
         """
         """        
-        log_mean_divisia_weights_normalized = log_mean_divisia_weights.drop(total_label, axis=1).divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights_total), 1))
+        log_mean_divisia_weights_normalized = log_mean_divisia_weights.drop(total_label, axis=1).divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights), 1))
 
         return log_mean_divisia_weights_normalized
     
+    @ staticmethod
     def log_mean_divisia_weights_additive(log_mean_divisia_weights, log_mean_change, total_label):
         """
         """        
         numerator = log_mean_divisia_weights.drop(total_label, axis=1).multiply(log_mean_change)
-        log_mean_divisia_weights_normalized = numerator.divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights_total), 1))
+        log_mean_divisia_weights_normalized = numerator.divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights), 1))
 
         return log_mean_divisia_weights_normalized
     
@@ -462,7 +490,8 @@ class CalculateLMDI:
             log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_multiplicative(log_mean_divisia_weights_energy, total_label)
         
         elif model == 'additive':
-            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_additive(log_mean_divisia_weights_energy, total_label)
+            log_mean_change = self.calculate_log_mean_weights(energy_input_data, total_label)
+            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_additive(log_mean_divisia_weights_energy, log_mean_change, total_label)
 
         index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
         
@@ -478,18 +507,17 @@ class CalculateLMDI:
             final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=1)  # np.exp(index) for each index
             final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
             
-            # Not sure if these next three would be the same for additive
-            final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
-            final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
-            final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
-
         elif model == 'additive':
             final_indices_df['energy_intensity'] = final_indices_df.sum(axis=1)  # sum of all indices
 
+        # Not sure if these next three would be the same for additive
+        final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
+        final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
+        final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
         return final_indices_df
 
 
-    def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None):
+    def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None, energy_type=None):
         results = dict()
 
         if account_for_weather: 
@@ -508,18 +536,20 @@ class CalculateLMDI:
 
         if save_results:
             fmt_loa = [l.replace(" ", "_") for l in loa]
-            path = f"{self.output_directory}/{'/'.join(fmt_loa)}"
-            if not os.path.exists():
-                os.mkdir(path)
+            # path = f"{self.output_directory}/{'/'.join(fmt_loa)}"
+            # if not os.path.exists():
+            #     os.mkdir(path)
             for model, result in results.items():
-                f_name = '.'.join(fmt_loa) + model
-                formatted_data = self.data_visualization(result)
-                date = date.today().strftime("%m%d%y")
-                formatted_data.to_csv(f'{path}/{f_name}_{date}.csv')
+                self.lineplot(result, loa, model, energy_type, 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure') # path, 
+                # self.waterfall_chart(result, loa, 2000, max(result.index), 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure')
+                formatted_data = self.data_visualization(result, fmt_loa)
+                # f_name = '.'.join(fmt_loa) + model
+                # date_ = date.today().strftime("%m%d%y")
+                # formatted_data.to_csv(f'{path}/{f_name}_{date_}.csv')
 
-        return results
+        return formatted_data
 
-    def data_visualization(self, data):
+    def data_visualization(self, data, loa):
         """Format data for proper visualization
         
         The following data types have been proposed (an ellipsis ... indicates an optional parameter):
@@ -546,7 +576,19 @@ class CalculateLMDI:
             @latlong
 
             Latitude and longitude coordinates
-                    
+        
+        Example Data Schema:
+            +--------------+---------+------------------+----------------------------+-----------------------------+-----------------------------+-----------------------------+
+            | "@Geography" | "@Year" | "@filter|Sector" | "@filter|Measure|Activity" | "@filter|Measure|Structure" | "@filter|Measure|Intensity" | "@filter|Measure|Weight"    |
+            +==============+=========+==================+============================+=============================+=============================+=============================+
+            | National     | 2000    | A                | 0                          |             0               |                 0           |             0               |
+            +--------------+---------+------------------+----------------------------+-----------------------------+-----------------------------+-----------------------------+
+            | National     | 2000    | B                |              0             |                 0           |                 0           |          0                  |
+            +--------------+---------+------------------+----------------------------+-----------------------------+-----------------------------+-----------------------------+
+            | National     | 2010    | A                |         0.8123             |           .6931             |         -0.1823             |        86.56                |
+            +--------------+---------+------------------+----------------------------+-----------------------------+-----------------------------+-----------------------------+
+            | National     | 2010    | B                |     0.8123                 |         -0.287              |        -0.287               |        33.07                |
+            +--------------+---------+------------------+----------------------------+-----------------------------+-----------------------------+-----------------------------+
 
         Parameters
         ----------
@@ -557,45 +599,61 @@ class CalculateLMDI:
         """
         # output formatted csv and/or figure (summary lineplot, etc like website) formatted table 
         # (summary tables on website), default: do all
-        label_ = 
+        # scenario: additive/mult
+        # filter: level?
         data = data.reset_index()
-        data = data.rename(columns={'Year': f'@timeseries|{label_}'}, '')
-        #scenario: additive/mult
-        #filter: level?
+        data = data.rename(columns={'Year': '@timeseries|Year', 'activity_index': "@filter|Measure|Activity", 
+                                    'actual_energy_use': "@filter|Measure|EnergyUse", 'energy_intensity': "@filter|Measure|Intensity", 
+                                    'index_normalized_structure': "@filter|Measure|Structure"})
+        for i, l in enumerate(loa):
+            label = f"@filter|Subsector_Level_{i}"
+            data[label] = l
 
-
-        return formatted_data
+        return data
     
     @staticmethod
-    def waterfall_chart():
-        x_labels = []
+    def waterfall_chart(data, loa, year_one, year_two, *x_labels):
         figure_labels = []
-        title = ""
-        measure = []  # for example: ["relative", "relative", "total", "relative", "relative", "total"]
+        title = f"Waterfall {loa}"
+        values_1 = data.loc[year_one, x_labels]
+        print('values_1', values_1)
+        values_2 = data.loc[year_two, x_labels]
+        print('values_2', values_2)
+
+        values_ = values_2.subtract(values_1.values)
+        print('values_', values_)
+
+        values_ = values_.loc[year_two, x_labels]
+        print('values_', values_)
+
+        measure = ['relative'] * len(list(x_labels))  # for example: ["relative", "relative", "total", "relative", "relative", "total"]
         fig = go.Figure(go.Waterfall(name="", orientation="v", measure=measure, x=x_labels, 
-                                     textposition="outside", text=figure_labels, y=values,
+                                     textposition="outside", text=figure_labels, y=values_, 
+                                     color_discrete_sequence=px.colors.qualitative.Vivid,
                                      connector = {"line":{"color":"rgb(63, 63, 63)"}},))
 
         fig.update_layout(title=title, showlegend = True)
 
         fig.show()
-        fig.save(f"{path}/{title}.png")
+        # fig.save(f"{path}/{title}.png")
         
     
     @staticmethod
-    def lineplot(path, *lines_to_plot):
+    def lineplot(data, loa, model, energy_type, *lines_to_plot): #  path,
         plt.style.use('seaborn-darkgrid')
-        palette = plt.get_cmap('Set1')
+        palette = plt.get_cmap('Set2')
+
         for i, l in enumerate(lines_to_plot):
-            plt.plot(x, y, marker='', color=palette(i), linewidth=1, alpha=0.9, label='')
-        
-        title = 
+            label_ = l.replace("_", " ").capitalize()
+            plt.plot(data.index, data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
+        loa = loa.replace("_", " ")
+        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()}" # " ".join(loa)
         plt.title(title, fontsize=12, fontweight=0)
-        plt.xlabel('')
-        plt.ylabel('')
+        plt.xlabel('Year')
+        # plt.ylabel('')
         plt.legend(loc=2, ncol=2)
         plt.show()
-        plt.save(f"{path}/{title}.png")
+        # plt.save(f"{path}/{title}.png")
 
 
 

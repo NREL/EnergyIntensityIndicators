@@ -85,7 +85,7 @@ class ResidentialFloorspace:
         return pivot_census_division        
 
     def get_ahs_tables(self):
-        #  historical_ahs = pd.read_csv('../Data/AHS_Historical_Tables.csv')
+        #  historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
         # #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
         #  for year in list(historical_ahs['Years']):
         #     print('AHS Year:', year)
