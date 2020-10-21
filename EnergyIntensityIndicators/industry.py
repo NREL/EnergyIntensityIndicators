@@ -21,7 +21,7 @@ class IndustrialIndicators(CalculateLMDI):
         transferred to: https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector23.html. 
     """    
 
-    def __init__(self, directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
+    def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
         self.sub_categories_list = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
                                                'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
                                                'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
@@ -45,7 +45,7 @@ class IndustrialIndicators(CalculateLMDI):
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
 
         super().__init__(sector='industry', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                    energy_types=self.energy_types, directory=directory, base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
+                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
     def reconcile_physical_units(self, ):
         """Convert physical units to Btu. (Prior to 2005, the data on energy consumption fuels to produce electricity were supplied in physical units (e.g. mcf of natural gas, tons of coal, etc))
@@ -76,13 +76,13 @@ class IndustrialIndicators(CalculateLMDI):
         util_adj_categories = ['Fuels', 'Delivered Electricity', 'Source Electricity', 'Total Source']  # This case is quite different from the others
         return util_adj_categories
 
-    def main(self, breakout, calculate_lmdi):
+    def main(self, breakout, save_breakout, calculate_lmdi):
         unit_conversion_factor = 1
 
         data_dict = self.collect_data()
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=False)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=False)
         return results
 
 if __name__ == '__main__': 
-    indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='Manufacturing')
-    indicators.main(breakout=False, calculate_lmdi=False)  
+    indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Manufacturing')
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  

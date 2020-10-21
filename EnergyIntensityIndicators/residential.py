@@ -21,12 +21,12 @@ from weather_factors import WeatherFactors
 
 class ResidentialIndicators(CalculateLMDI): 
 
-    def __init__(self, directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
+    def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
         self.eia_res = GetEIAData('residential')
-        self.sub_categories_list = {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}, 
-                                    'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
-                                    'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
-                                    'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}}
+        self.sub_categories_list = {'National': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}, 
+                                                 'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
+                                                 'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
+                                                 'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}}}
         self.national_calibration = self.eia_res.national_calibration()
         self.seds_census_region = self.eia_res.get_seds() # energy_consumtpion_data_regional
         self.ahs_Data = ResidentialFloorspace.update_ahs_data()
@@ -37,7 +37,7 @@ class ResidentialIndicators(CalculateLMDI):
         self.end_year = end_year
         self.energy_types = ['elec', 'fuels', 'deliv', 'source']
         super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                    energy_types=self.energy_types, directory=directory, base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
+                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
 
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
@@ -67,37 +67,42 @@ class ResidentialIndicators(CalculateLMDI):
 
         final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
                                     'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
-        print('final_floorspace_results: \n', final_floorspace_results)
         return final_floorspace_results
 
 
-    def activity(self, floorspace, region):
+    def activity(self, floorspace):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
         """ 
-        print('RUNNING ACTIVITY METHOD')
-        region_activity = dict()
-        print('Floorspace:\n', floorspace)
-        for variable, data in floorspace.items():
-            print('data.keys()', data.keys())
-            df = data[region]
-            region_activity[variable] = df
-        
-        return region_activity
+        all_activity = dict()
+        for region in self.sub_categories_list['National'].keys():
+            region_activity = dict()
+            for variable, data in floorspace.items():
+                df = data[region]
+                if variable == 'household_size_square_feet_per_hu':
+                    df = df.rename(columns={'avg_size_sqft_mf': 'Multi-Family', 'avg_size_sqft_mh': 'Manufactured-Homes', 'avg_size_sqft_sf': 'Single-Family'})
+                else:
+                    df = df.rename(columns={'occupied_units_mf': 'Multi-Family', 'occupied_units_mh': 'Manufactured-Homes', 'occupied_units_sf': 'Single-Family'})
+                
+                print(variable, df.columns)
+                region_activity[variable] = df
+            all_activity[region] = region_activity
+
+        return all_activity
     
-    def collect_weather(self, energy_dict, nominal_energy_intensity, energy_type, energy_df):
+    def collect_weather(self, energy_dict, nominal_energy_intensity):
         weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
-        weather_factors = weather.get_weather(energy_dict, energy_type, energy_df, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        weather_factors = weather.get_weather(energy_dict, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
 
     def collect_data(self):
         total_fuels, elec = self.get_seds()
         floorspace = self.get_floorspace()
-
+        activity = self.activity(floorspace)
         all_data = dict()
-        for r in self.sub_categories_list.keys(): 
-            region_activity = self.activity(floorspace, r)
+        nominal_energy_intensity_by_r = dict()
+        for r in self.sub_categories_list['National'].keys(): 
+            region_activity = activity[r]
     
-
             energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
 
             nominal_energy_intensity_by_e = dict()
@@ -106,38 +111,32 @@ class ResidentialIndicators(CalculateLMDI):
                 e_df = e_df.rename_axis(columns=None)
                 floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
-                nominal_energy_intensity = self.lmdi_multiplicative(activity_input_data=total_floorspace, energy_input_data=e_df, unit_conversion_factor=1, return_nominal_energy_intensity=True) # shouldn't rely on multiplicative?
+                nominal_energy_intensity = self.lmdi(model=None, activity_input_data=total_floorspace, energy_input_data=e_df, unit_conversion_factor=1, return_nominal_energy_intensity=True) # shouldn't rely on multiplicative?
                 nominal_energy_intensity_by_e[e] = nominal_energy_intensity 
-                print('nominal_energy_intensity: \n', nominal_energy_intensity)
-                print('energy type: \n', e)
-
 
             region_data = {'energy': energy_data, 'activity': region_activity}
-        
+
+            nominal_energy_intensity_by_r[r] = nominal_energy_intensity_by_e
             all_data[r] = region_data
-        
-        print('all_data', all_data)
-        
-        weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity_by_e) # need to integrate this into the data passed to LMDI
-    
-        # for region, r_dict_ in all_data.items():
-        #     weather_factors_by_e_type = dict()
+                
+        weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity_by_r) # need to integrate this into the data passed to LMDI
+        for region, r_dict_ in all_data.items():
+            weather_factors_by_e_type = dict()
 
-        #     for e_ in r_dict_['energy'].keys():
-        #         weather_factors_by_e_type[e] = weather_factors
+            for e_ in r_dict_['energy'].keys():
+                weather_factors_by_e_type[e] = weather_factors
 
-        #     r_dict_['weather_factors'] = weather_factors_by_e_type
-        #     all_data[region] = r_dict_
+            r_dict_['weather_factors'] = weather_factors_by_e_type
+            all_data[region] = r_dict_
 
         return all_data
 
-    def main(self, breakout, calculate_lmdi):
+    def main(self, breakout, save_breakout, calculate_lmdi):
         unit_conversion_factor = 1
 
         data_dict = self.collect_data()
-        # print(data_dict)
-        exit()
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
+
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
         
         return results
 
@@ -156,7 +155,7 @@ class ResidentialIndicators(CalculateLMDI):
     #         _base_year = _base_year
         
 
-    #     for key in self.sub_categories_list.keys():
+    #     for key in self.sub_categories_list['National'].keys():
     #         energy_input_data = self.fuel_electricity_consumption(key)
     #         activity_input_data = self.activity(key)
 
@@ -175,8 +174,8 @@ class ResidentialIndicators(CalculateLMDI):
 
 
 if __name__ == '__main__':
-    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Residential')
-    indicators.main(breakout=False, calculate_lmdi=False)  
+    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='National')
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  
 
 
 

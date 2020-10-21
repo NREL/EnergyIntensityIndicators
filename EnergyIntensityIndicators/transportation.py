@@ -141,7 +141,7 @@ from functools import reduce
 class TransportationIndicators(CalculateLMDI):
     """Class to calculate Energy Intensity indicators for the U.S. Transportation Sector
     """    
-    def __init__(self, directory, level_of_aggregation, lmdi_model='multiplicative', tedb_date='04302020', base_year=1985, end_year=2018):
+    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model='multiplicative', tedb_date='04302020', base_year=1985, end_year=2018):
         self.transit_eia = GetEIAData('transportation')
         self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
@@ -174,7 +174,7 @@ class TransportationIndicators(CalculateLMDI):
                                     'Pipeline': 
                                         {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                         energy_types=self.energy_types, directory=directory, base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
         # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
         #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
@@ -672,7 +672,7 @@ class TransportationIndicators(CalculateLMDI):
         return data_dict
 
 
-    def main(self, breakout, calculate_lmdi): # base_year=None, 
+    def main(self, breakout, save_breakout, calculate_lmdi): # base_year=None, 
         """potentially refactor later
     
 
@@ -686,8 +686,8 @@ class TransportationIndicators(CalculateLMDI):
         data_dict = self.collect_data()
 
         if self.level_of_aggregation == 'all_transportation':
-            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, calculate_lmdi=False, raw_data=data_dict)
-            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, calculate_lmdi=False, raw_data=data_dict)
+            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, save_breakout=save_breakout, calculate_lmdi=False, raw_data=data_dict)
+            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, save_breakout=save_breakout, calculate_lmdi=False, raw_data=data_dict)
             all_transportation_activity = freight_activity[['All_Freight']].merge(passenger_activity[['All_Passenger']], \
                                                                         left_index=True, right_index=True, how='outer')
             all_transportation_energy = freight_energy[['All_Freight']].merge(passenger_energy[['All_Passenger']], \
@@ -700,8 +700,9 @@ class TransportationIndicators(CalculateLMDI):
             categories = ['Passenger Car', 'Light Truck', 'Motorcycles']
             results = None
         else: 
-            results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
         
+        print('RESULTS:\n', results)
         return results
 
     def compare_aggregates(self, parameter_list):
@@ -720,8 +721,10 @@ class TransportationIndicators(CalculateLMDI):
         return pct_difference
 
 if __name__ == '__main__': 
-    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='All_Freight')
-    indicators.main(breakout=True, calculate_lmdi=True)
+    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+                                          output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
+                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'])
+    indicators.main(breakout=True, save_breakout=True, calculate_lmdi=True)
 
 
 

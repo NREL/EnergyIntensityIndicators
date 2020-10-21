@@ -35,14 +35,14 @@ class CommercialIndicators(CalculateLMDI):
     2014 to 2018". 
     """    
 
-    def __init__(self, directory, level_of_aggregation, lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
+    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
         self.end_year = end_year
-        self.sub_categories_list = {'Commercial_Total': None} #, 'Total_Commercial_LMDI_UtilAdj': None}
+        self.sub_categories_list = {'Commercial': {'Commercial_Total': None}} #, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
         super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, \
-                         directory=directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, \
-                         base_year=base_year, base_year_secondary=1996, charts_ending_year=2003)
+                         directory=directory, output_directory=output_directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, \
+                         base_year=base_year)
         # self.cbecs = 
         # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -505,7 +505,7 @@ class CommercialIndicators(CalculateLMDI):
 
     def collect_weather(self, comm_activity):
         seds = self.get_seds()
-        res = ResidentialIndicators(directory=self.directory, base_year=self.base_year)
+        res = ResidentialIndicators(directory=self.directory, output_directory=self.output_directory, base_year=self.base_year)
         residential_activity_data = res.get_floorspace()
         residential_floorspace = residential_activity_data['floorspace_square_feet']
         weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
@@ -514,7 +514,7 @@ class CommercialIndicators(CalculateLMDI):
         return weather_factors
 
 
-    def main(self, breakout, calculate_lmdi):
+    def main(self, breakout, save_breakout, calculate_lmdi):
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
@@ -528,13 +528,13 @@ class CommercialIndicators(CalculateLMDI):
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
 
-        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
         print(results)
         return results
 
 if __name__ == '__main__':
-    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative'])
-    indicators.main(breakout=False, calculate_lmdi=False)
+    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative'])
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)
 
 
 
