@@ -67,9 +67,14 @@ class Mfg_prices:
 
         """
 
+        if latest_year not in range(2014, 2040, 4):
+            print('{} is not a MECS year.'.format(latest_year))
+
+            return
+
         if latest_year <= last_historical_year:
 
-            raise Exception("Historical MECS prices are latest available")
+            print("Historical MECS prices are latest available")
 
             return
 
@@ -92,8 +97,8 @@ class Mfg_prices:
 
             except AttributeError:
                 print("Updated mecs data are now available.\n" +
-                      "Please download Table 7.2 and Table 7.6\nand update" +
-                      "'mfg_mecs_energy_prices.csv'")
+                      "Please download Tables 3.1, 3.2, 7.2, and 7.6\nand update" +
+                      "relevant csv files")
 
             else:
                 print("Updated MECS data are not yet available")
@@ -101,67 +106,40 @@ class Mfg_prices:
             finally:
                 return
 
-    @staticmethod
-    def import_asm_historical(file_path):
-        """"
-        Prices in $/MMBtu
-        """
+    # @staticmethod
+    # def import_asm_historical(file_path):
+    #     """"
+    #     Prices in $/MMBtu
+    #     """
+    #
+    #
+    # @staticmethod
+    # def get_census_prices(latest_year, start_year=1983):
+    #     """
+    #     Get fuel prices from Census Bureau's Annual Survey of
+    #     Manufacturers and Economic Census (years ending in 2 and 7)
+    #
+    #     Parameters
+    #     ----------
+    #     latest_year : int
+    #         Most recent year of historical LMDI analysis.
+    #
+    #     start_year : int, default 1983
+    #         Beginning year of price data.
+    #
+    #     Returns
+    #     -------
+    #     asm_prices : pandas.Series
+    #         Pandas series of ASM price data from YYYY - latest_year
+    #     """
+    #     year_range = range(start_year, latest_year + 1)
+    #
+    #     asm_prices = pd.DataFrame()
+    #
+    #
+    #
+    #     return asm_prices
 
-
-    @staticmethod
-    def get_census_prices(latest_year, start_year=1983):
-        """
-        Get fuel prices from Census Bureau's Annual Survey of
-        Manufacturers and Economic Census (years ending in 2 and 7)
-
-        Parameters
-        ----------
-        latest_year : int
-            Most recent year of historical LMDI analysis.
-
-        start_year : int, default 1983
-            Beginning year of price data.
-
-        Returns
-        -------
-        asm_prices : pandas.Series
-            Pandas series of ASM price data from YYYY - latest_year
-        """
-        year_range = range(start_year, latest_year + 1)
-
-        asm_prices = pd.DataFrame()
-
-
-
-        return asm_prices
-
-    @staticmethod
-    def get_latest_mecs(latest_year):
-        """
-        Deterime status of most recent MECS price data. MECS data are released
-        on a quadrennial schedule, with 2014 as the last available year
-        (as of October 2020).
-
-        """
-        if (latest_year - 2014)/4 < 1:
-            latest_mecs_year = 2014
-        # Test if latest mecs is available.
-        r = requests.get('https://www.eia.gov/consumption/manufacturing/' +
-                         'data/{}/pdf/table7_2.pdf'.format(latest_mecs_year))
-        print(r.raise_for_status())
-
-        # alse need to get MECS price data from Table 7.6"""
-
-        return
-
-    @staticmethod
-    def build_price_df(asm_prices, mecs_prices):
-        """
-        Build a dataframe for ASM prices and MECS prices, including
-        a column for year
-        """
-
-        return price_df
 
     @staticmethod
     def price_func(asm_prices, *params):
@@ -309,8 +287,6 @@ class Mfg_prices:
 
         fit_coeffs = Mfg_prices.calc_predicted_coeffs()
         predicted = Mfg_prices.calc_predicted_prices()
-
-
 
         price_df['calibrated_prediction'] = \
             price_df.interp_resid + price_df.predicted
