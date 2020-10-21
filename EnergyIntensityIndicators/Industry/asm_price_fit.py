@@ -67,9 +67,14 @@ class Mfg_prices:
 
         """
 
+        if latest_year not in range(2014, 2040, 4):
+            print('{} is not a MECS year.'.format(latest_year))
+
+            return
+
         if latest_year <= last_historical_year:
 
-            raise Exception("Historical MECS prices are latest available")
+            print("Historical MECS prices are latest available")
 
             return
 
