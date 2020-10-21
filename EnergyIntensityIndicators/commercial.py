@@ -1,15 +1,17 @@
 import pandas as pd
 import datetime as dt
 from sklearn import linear_model
-from weather_factors import WeatherFactors
-from residential import ResidentialIndicators
+import numpy as np
 import math
 import statsmodels.api as sm
-from pull_eia_api import GetEIAData
 from scipy.optimize import curve_fit
 from sklearn.linear_model import LinearRegression
-from LMDI import CalculateLMDI
-import numpy as np
+
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.weather_factors import WeatherFactors
+from EnergyIntensityIndicators.residential import ResidentialIndicators
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+
 
 """Overview and Assumptions: 
 A. A national time series of floorspace for the commercial buildings in the US

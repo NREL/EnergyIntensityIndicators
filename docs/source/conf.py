@@ -20,7 +20,9 @@ import sphinx_rtd_theme
 # sys.path.insert(0, os.path.abspath('../calculations/EnergyIntensityIndicators'))
 
 pkg = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-pkg = os.path.dirname(pkg)
+print('pkg', pkg)
+pkg = os.path.dirname(pkg) #+ '\EnergyIntensityIndicators'
+print('pkg', pkg)
 sys.path.append(pkg)
 
 # -- Project information -----------------------------------------------------

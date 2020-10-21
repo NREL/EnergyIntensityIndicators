@@ -1,9 +1,9 @@
-from industry import IndustrialIndicators
-from residential import ResidentialIndicators
-from commercial import CommercialIndicators
-from electricity import ElectricityIndicators
-from transportation import TransportationIndicators
-from LMDI import CalculateLMDI
+from EnergyIntensityIndicators.industry import IndustrialIndicators
+from EnergyIntensityIndicators.residential import ResidentialIndicators
+from EnergyIntensityIndicators.commercial import CommercialIndicators
+from EnergyIntensityIndicators.electricity import ElectricityIndicators
+from EnergyIntensityIndicators.transportation import TransportationIndicators
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
 
 class EconomyWide(CalculateLMDI):
 

@@ -1,10 +1,10 @@
 import pandas as pd
 from sklearn import linear_model
 import zipfile
-from LMDI import CalculateLMDI
-from pull_eia_api import GetEIAData
 from functools import reduce
 
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 
 # # Passenger cars, short wheelbase vehicles
@@ -149,30 +149,30 @@ class TransportationIndicators(CalculateLMDI):
         self.tedb_date = tedb_date
         self.energy_types = ['deliv']
         self.sub_categories_list = {'All_Passenger':
-                                    {'Highway': 
-                                        {'Passenger Cars and Trucks': 
-                                            {'Passenger Car – SWB Vehicles': 
-                                                {'Passenger Car': None, 'SWB Vehicles': None},
-                                             'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks': None, 'LWB Vehicles': None},
-                                             'Motorcycles': None}, 
-                                        'Buses': 
-                                            {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
-                                        'Paratransit':
-                                            None}, 
-                                    'Rail': 
-                                        {'Urban Rail': 
-                                            {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
-                                        'Intercity Rail': None}, 
-                                    'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
-                                'All_Freight': 
-                                    {'Highway': 
-                                            {'Single-Unit Truck': None, 'Combination Truck': None}, 
-                                    'Rail': None, 
-                                    'Air': None, 
-                                    # 'Waterborne': None,
-                                    'Pipeline': 
-                                        {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
+                                        {'Highway': 
+                                            {'Passenger Cars and Trucks': 
+                                                {'Passenger Car – SWB Vehicles': 
+                                                    {'Passenger Car': None, 'SWB Vehicles': None},
+                                                'Light Trucks – LWB Vehicles': 
+                                                    {'Light Trucks': None, 'LWB Vehicles': None},
+                                                'Motorcycles': None}, 
+                                            'Buses': 
+                                                {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
+                                            'Paratransit':
+                                                None}, 
+                                        'Rail': 
+                                            {'Urban Rail': 
+                                                {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
+                                            'Intercity Rail': None}, 
+                                        'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
+                                    'All_Freight': 
+                                        {'Highway': 
+                                                {'Single-Unit Truck': None, 'Combination Truck': None}, 
+                                        'Rail': None, 
+                                        'Air': None, 
+                                        'Waterborne': None,
+                                        'Pipeline': 
+                                            {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
@@ -702,6 +702,7 @@ class TransportationIndicators(CalculateLMDI):
         else: 
             results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
         
+        results.to_csv(f"{self.output_directory}/transportation_results2.csv")
         print('RESULTS:\n', results)
         return results
 
@@ -723,10 +724,23 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'])
+                                          level_of_aggregation='All_Freight.Pipeline')
     indicators.main(breakout=True, save_breakout=True, calculate_lmdi=True)
 
 
 
+# # , lmdi_model=['multiplicative', 'additive']
+# energy_type1_df = 0
+# energy_type2_df = 0 
+# activity_data = 0
 
-
+# data_dict = {'sub_level_name1': 
+#                 {'energy': 
+#                     {'energy_type1': energy_type1_df, 'energy_type2': energy_type2_df},
+#                  'activity': 
+#                     activity_data},
+#             'sub_level_name2': 
+#                 {'energy': 
+#                     {'energy_type1': energy_type1_df, 'energy_type2': energy_type2_df},
+#                  'activity': 
+#                     activity_data}}

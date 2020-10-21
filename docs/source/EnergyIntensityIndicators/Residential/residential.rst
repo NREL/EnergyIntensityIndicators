@@ -1,12 +1,11 @@
 Residential Sector Data Collection
 ===================================
 
-.. automodule:: EnergyIntensityIndicators.Residential
+.. automodule:: EnergyIntensityIndicators.residential
    :members:
    :undoc-members:
    :show-inheritance:
    
 .. toctree::
 
-   EnergyIntensityIndicators.residential
    EnergyIntensityIndicators.Residential.residential_floorspace

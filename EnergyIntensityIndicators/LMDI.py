@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
-from pull_eia_api import GetEIAData
 from functools import reduce
 import os
 from datetime import date
@@ -9,6 +8,9 @@ import matplotlib.pyplot as plt
 import seaborn
 import plotly.graph_objects as go
 import plotly.express as px
+
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+
 
 class CalculateLMDI:
     """Base class for LMDI"""
@@ -274,8 +276,11 @@ class CalculateLMDI:
                     level_total = results_dict[key]['level_total']
                     # loa_index = level_of_aggregation.index(level_total)
                     # loa = level_of_aggregation[:loa_index + 1]
-                    loa = [level_of_aggregation_, level_total]
-                    loa = ".".join(loa)
+                    if level_of_aggregation[-1] == level_total:
+                        loa = [self.sector.capitalize()] + level_of_aggregation
+                    else:
+                        loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
+                    print('LOA:', loa)
                     print('level total: \n', level_total)
 
                     energy = results_dict[key]['energy']
@@ -299,7 +304,11 @@ class CalculateLMDI:
                             final_fmt_results.append(category_lmdi)
 
                     elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
-                        pass # How to handle??
+                        energy[level_total] = energy.sum(axis=1).values
+                        for a_type, a_df in activity_.items():
+                            a_df[level_total] = a_df.sum(axis=1).values
+                            activity_[a_type] = a_df
+
                     elif isinstance(energy, dict) and isinstance(activity_, dict):
                         for e_type, energy_df in energy.items():
                             pass # How to handle??
@@ -326,9 +335,11 @@ class CalculateLMDI:
                 total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
                 
                 if calculate_lmdi:
+                    print('loa/level_of_aggregation_:', level_of_aggregation_)
+                    loa = [self.sector.capitalize()] + level_of_aggregation
                     final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name, \
                                                    lmdi_models=self.lmdi_models, unit_conversion_factor=1, \
-                                                   account_for_weather=account_for_weather, save_results=True, loa=level_of_aggregation_, energy_type=e)
+                                                   account_for_weather=account_for_weather, save_results=True, loa=loa, energy_type=e)
                     final_results["@filter|Energy_Type"] = e
 
                     final_fmt_results.append(final_results)
@@ -541,8 +552,9 @@ class CalculateLMDI:
             #     os.mkdir(path)
             for model, result in results.items():
                 self.lineplot(result, loa, model, energy_type, 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure') # path, 
-                # self.waterfall_chart(result, loa, 2000, max(result.index), 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure')
+                self.waterfall_chart(result, loa, 2000, max(result.index), model, 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure')
                 formatted_data = self.data_visualization(result, fmt_loa)
+                formatted_data['@filter|Model'] = model.capitalize()
                 # f_name = '.'.join(fmt_loa) + model
                 # date_ = date.today().strftime("%m%d%y")
                 # formatted_data.to_csv(f'{path}/{f_name}_{date_}.csv')
@@ -605,32 +617,32 @@ class CalculateLMDI:
         data = data.rename(columns={'Year': '@timeseries|Year', 'activity_index': "@filter|Measure|Activity", 
                                     'actual_energy_use': "@filter|Measure|EnergyUse", 'energy_intensity': "@filter|Measure|Intensity", 
                                     'index_normalized_structure': "@filter|Measure|Structure"})
+        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|EnergyUse", "@filter|Measure|Intensity"]]
         for i, l in enumerate(loa):
-            label = f"@filter|Subsector_Level_{i}"
+            label = f"@filter|Subsector_Level_{i + 1}"
+            print('label, l:', label, l)
             data[label] = l
 
         return data
     
     @staticmethod
-    def waterfall_chart(data, loa, year_one, year_two, *x_labels):
+    def waterfall_chart(data, loa, year_one, year_two, model, *x_data):
         figure_labels = []
-        title = f"Waterfall {loa}"
-        values_1 = data.loc[year_one, x_labels]
-        print('values_1', values_1)
-        values_2 = data.loc[year_two, x_labels]
-        print('values_2', values_2)
+        loa = [l.replace("_", " ") for l in loa]
+        title = f"Change {year_one}-{year_two} {' '.join(loa)} {model.capitalize()}"
+        x_data = list(x_data)
 
-        values_ = values_2.subtract(values_1.values)
-        print('values_', values_)
+        x_labels = [x.replace("_", " ").capitalize() for x in x_data]
 
-        values_ = values_.loc[year_two, x_labels]
-        print('values_', values_)
+        values_1 = data.loc[year_one, x_data]
+        values_2 = data.loc[year_two, x_data]
+
+        values_ = values_2.subtract(values_1.ravel())
 
         measure = ['relative'] * len(list(x_labels))  # for example: ["relative", "relative", "total", "relative", "relative", "total"]
-        fig = go.Figure(go.Waterfall(name="", orientation="v", measure=measure, x=x_labels, 
-                                     textposition="outside", text=figure_labels, y=values_, 
-                                     color_discrete_sequence=px.colors.qualitative.Vivid,
-                                     connector = {"line":{"color":"rgb(63, 63, 63)"}},))
+        fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
+                                     textposition="outside", text=figure_labels, y=values_.ravel(), 
+                                     connector={"line":{"color":"rgb(63, 63, 63)"}})) #  color_discrete_sequence=px.colors.qualitative.Vivid,
 
         fig.update_layout(title=title, showlegend = True)
 
@@ -646,16 +658,22 @@ class CalculateLMDI:
         for i, l in enumerate(lines_to_plot):
             label_ = l.replace("_", " ").capitalize()
             plt.plot(data.index, data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
-        loa = loa.replace("_", " ")
-        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()}" # " ".join(loa)
+        
+        loa = [l_.replace("_", " ") for l_ in loa]
+        loa = " /".join(loa)
+        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()}" 
         plt.title(title, fontsize=12, fontweight=0)
         plt.xlabel('Year')
         # plt.ylabel('')
         plt.legend(loc=2, ncol=2)
         plt.show()
         # plt.save(f"{path}/{title}.png")
+    
+    def main():
+        print('main')
 
-
+if __name__ == '__main__':
+    pass
 
 
 

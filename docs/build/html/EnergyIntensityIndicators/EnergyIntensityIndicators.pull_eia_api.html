@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Pull EIA API &mdash; EnergyIntensityIndicators  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pull BEA API" href="EnergyIntensityIndicators.pull_bea_api.html" />
+    <link rel="prev" title="Supporting Files" href="supporting_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> EnergyIntensityIndicators
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commercial/commercial.html">Commercial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Industry/industry.html">Industrial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Residential/residential.html">Residential Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Transportation/transportation.html">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="supporting_files.html">Supporting Files</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Pull EIA API</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.pull_bea_api.html">Pull BEA API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.get_census_data.html">Get Census Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.weather_factors.html">Weather Factors</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EnergyIntensityIndicators</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="supporting_files.html">Supporting Files</a> &raquo;</li>
+        
+      <li>Pull EIA API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/EnergyIntensityIndicators/EnergyIntensityIndicators.pull_eia_api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-EnergyIntensityIndicators.pull_eia_api">
+<span id="pull-eia-api"></span><h1>Pull EIA API<a class="headerlink" href="#module-EnergyIntensityIndicators.pull_eia_api" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>EnergyIntensityIndicators.pull_eia_api.GetEIAData</p>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.pull_eia_api.</code><code class="sig-name descname">GetEIAData</code><span class="sig-paren">(</span><em class="sig-param">sector</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.conversion_factors">
+<code class="sig-name descname">conversion_factors</code><span class="sig-paren">(</span><em class="sig-param">include_utility_sector_efficiency_in_total_energy_intensity=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.conversion_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not sure if this is correct class method use</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[description]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.eia_api">
+<code class="sig-name descname">eia_api</code><span class="sig-paren">(</span><em class="sig-param">id_</em>, <em class="sig-param">id_type='category'</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.eia_api" title="Permalink to this definition">¶</a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>id_type</strong> (<em>str</em><em>, </em><em>optional</em>) – [description]. Defaults to ‘category’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_category">
+<code class="sig-name descname">get_category</code><span class="sig-paren">(</span><em class="sig-param">api_key</em>, <em class="sig-param">id_</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_category" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect categorical data from EIA API by merging data for all child series</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_seds">
+<code class="sig-name descname">get_seds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_seds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load and format energy consumption data
+Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
+‘./EnergyIntensityIndicators/use_all_btu.csv’</p>
+<blockquote>
+<div><p><a class="reference external" href="https://www.eia.gov/state/seds/seds-data-complete.php?sid=US">https://www.eia.gov/state/seds/seds-data-complete.php?sid=US</a></p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_series">
+<em class="property">static </em><code class="sig-name descname">get_series</code><span class="sig-paren">(</span><em class="sig-param">api_key</em>, <em class="sig-param">id_</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.get_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect series data from EIA API, format in dataframe with year as index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.national_calibration">
+<code class="sig-name descname">national_calibration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.national_calibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review</p>
+<p>TODO:
+The whole point of this is to reconcile the AER and MER data, so they shouldn’t be the same API endpoint</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="EnergyIntensityIndicators.pull_bea_api.html" class="btn btn-neutral float-right" title="Pull BEA API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="supporting_files.html" class="btn btn-neutral float-left" title="Supporting Files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, NREL
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

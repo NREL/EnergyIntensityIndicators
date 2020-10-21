@@ -84,13 +84,15 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">LMDI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">LMDI</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Industry/industry.html">Industrial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Residential/residential.html">Residential Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Transportation/transportation.html">Transportation Sector Data Collection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="SupportingFiles/supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supporting_files.html">Supporting Files</a></li>
 </ul>
 
             
@@ -156,8 +158,333 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="lmdi">
-<h1>LMDI<a class="headerlink" href="#lmdi" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-EnergyIntensityIndicators.LMDI">
+<span id="lmdi"></span><h1>LMDI<a class="headerlink" href="#module-EnergyIntensityIndicators.LMDI" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>EnergyIntensityIndicators.LMDI.CalculateLMDI</p>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.LMDI.</code><code class="sig-name descname">CalculateLMDI</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">level_of_aggregation</em>, <em class="sig-param">lmdi_models</em>, <em class="sig-param">categories_dict</em>, <em class="sig-param">energy_types</em>, <em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">base_year=1985</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for LMDI</p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.build_nest">
+<code class="sig-name descname">build_nest</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">select_categories</em>, <em class="sig-param">results_dict</em>, <em class="sig-param">breakout</em>, <em class="sig-param">level</em>, <em class="sig-param">level1_name</em>, <em class="sig-param">level_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.build_nest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_energy_data">
+<code class="sig-name descname">calculate_energy_data</code><span class="sig-paren">(</span><em class="sig-param">e_type</em>, <em class="sig-param">energy_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_energy_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_changes">
+<em class="property">static </em><code class="sig-name descname">calculate_log_changes</code><span class="sig-paren">(</span><em class="sig-param">dataset</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the log changes to intensity
+:param dataset:
+:type dataset: dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>log_ratio</strong></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_changes_activity_shares">
+<em class="property">static </em><code class="sig-name descname">calculate_log_changes_activity_shares</code><span class="sig-paren">(</span><em class="sig-param">dataset</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_changes_activity_shares" title="Permalink to this definition">¶</a></dt>
+<dd><p>purpose
+:param df_name:
+:type df_name: str
+:param df:
+:type df: dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>log_changes</strong> – description</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_mean_weights">
+<em class="property">static </em><code class="sig-name descname">calculate_log_mean_weights</code><span class="sig-paren">(</span><em class="sig-param">dataset</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_log_mean_weights" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>purpose</dt><dd><dl>
+<dt>dataset: dataframe</dt><dd><blockquote>
+<div><p>Description</p>
+</div></blockquote>
+<dl class="simple">
+<dt>total_label: list</dt><dd><p>Description</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>TODO: Verify that this is the desired logarithmic average</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_shares">
+<em class="property">static </em><code class="sig-name descname">calculate_shares</code><span class="sig-paren">(</span><em class="sig-param">dataset</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.calculate_shares" title="Permalink to this definition">¶</a></dt>
+<dd><p>“sum row, calculate each type of energy as percentage of total
+:param dataset: energy data
+:type dataset: dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>shares</strong> – contains shares of each energy category relative to total energy</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.call_lmdi">
+<code class="sig-name descname">call_lmdi</code><span class="sig-paren">(</span><em class="sig-param">energy_data</em>, <em class="sig-param">activity_data</em>, <em class="sig-param">total_label</em>, <em class="sig-param">lmdi_models</em>, <em class="sig-param">unit_conversion_factor</em>, <em class="sig-param">account_for_weather</em>, <em class="sig-param">save_results</em>, <em class="sig-param">loa=None</em>, <em class="sig-param">energy_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.call_lmdi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.collect_energy_data">
+<code class="sig-name descname">collect_energy_data</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.collect_energy_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate energy data for energy types in self.energy_types for which data is not provided</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[description]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[type]</p>
+</dd>
+</dl>
+<dl>
+<dt>Example data:</dt><dd><p>passenger_based_energy_use = pd.read_csv(‘./Transportation/passenger_based_energy_use.csv’).set_index(‘Year’)
+passenger_based_activity = pd.read_csv(‘./Transportation/passenger_based_activity.csv’).set_index(‘Year’)
+freight_based_energy_use = pd.read_csv(‘./Transportation/freight_based_energy_use.csv’).set_index(‘Year’)
+freight_based_activity = pd.read_csv(‘./Transportation/freight_based_activity.csv’).set_index(‘Year’)</p>
+<dl class="simple">
+<dt>data_dict = {‘All_Passenger’: {‘energy’: {‘deliv’: passenger_based_energy_use}, ‘activity’: passenger_based_activity},</dt><dd><p>‘All_Freight’: {‘energy’: {‘deliv’: freight_based_energy_use}, ‘activity’: freight_based_activity}}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.compute_index">
+<code class="sig-name descname">compute_index</code><span class="sig-paren">(</span><em class="sig-param">log_mean_divisia_weights</em>, <em class="sig-param">log_changes_activity_shares</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.compute_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>[summary]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>log_mean_divisia_weights</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>log_changes_activity_shares</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.data_visualization">
+<code class="sig-name descname">data_visualization</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loa</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.data_visualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format data for proper visualization</p>
+<p>The following data types have been proposed (an ellipsis … indicates an optional parameter):</p>
+<blockquote>
+<div><p>&#64;filter|Category1|…Category2|…|Label#units</p>
+<p>A list of options that can be grouped by 1 or more categories.
+&#64;weight|Category1|…Category2|…|Label#units</p>
+<p>A weighted value to use with a matching filter (must match filter label and categories).
+&#64;scenario|Label</p>
+<p>A list of options that are completely separate from each other, i.e. they will not be seen on the same chart at the same time.
+The options come from the unique values in the scenario column.
+&#64;timeseries|Label</p>
+<p>A list of options that can be used to make a time series, e.g. a list of years.
+&#64;geography|Label</p>
+<p>A list of geography names, e.g. states, counties, cities, that can be used in charts or a choropleth map.
+&#64;geoid</p>
+<p>The column values are geography IDs that can be used in a choropleth map.
+&#64;latlong</p>
+<p>Latitude and longitude coordinates</p>
+</div></blockquote>
+<dl>
+<dt>Example Data Schema:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 6%" />
+<col style="width: 12%" />
+<col style="width: 18%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>“&#64;Geography”</p></th>
+<th class="head"><p>“&#64;Year”</p></th>
+<th class="head"><p>“&#64;filter|Sector”</p></th>
+<th class="head"><p>“&#64;filter|Measure|Activity”</p></th>
+<th class="head"><p>“&#64;filter|Measure|Structure”</p></th>
+<th class="head"><p>“&#64;filter|Measure|Intensity”</p></th>
+<th class="head"><p>“&#64;filter|Measure|Weight”</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>National</p></td>
+<td><p>2000</p></td>
+<td><p>A</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>National</p></td>
+<td><p>2000</p></td>
+<td><p>B</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>National</p></td>
+<td><p>2010</p></td>
+<td><p>A</p></td>
+<td><p>0.8123</p></td>
+<td><p>.6931</p></td>
+<td><p>-0.1823</p></td>
+<td><p>86.56</p></td>
+</tr>
+<tr class="row-odd"><td><p>National</p></td>
+<td><p>2010</p></td>
+<td><p>B</p></td>
+<td><p>0.8123</p></td>
+<td><p>-0.287</p></td>
+<td><p>-0.287</p></td>
+<td><p>33.07</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>csv</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.deep_get">
+<em class="property">static </em><code class="sig-name descname">deep_get</code><span class="sig-paren">(</span><em class="sig-param">dictionary</em>, <em class="sig-param">keys</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.deep_get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.ensure_same_indices">
+<em class="property">static </em><code class="sig-name descname">ensure_same_indices</code><span class="sig-paren">(</span><em class="sig-param">df1</em>, <em class="sig-param">df2</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.ensure_same_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns two dataframes with the same indices
+purpose: enable dataframe operations such as multiply and divide between the two dfs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_deliv">
+<code class="sig-name descname">get_deliv</code><span class="sig-paren">(</span><em class="sig-param">elec</em>, <em class="sig-param">fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_deliv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_elec">
+<code class="sig-name descname">get_elec</code><span class="sig-paren">(</span><em class="sig-param">elec</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_elec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_fuels">
+<code class="sig-name descname">get_fuels</code><span class="sig-paren">(</span><em class="sig-param">fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_fuels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_nested_lmdi">
+<code class="sig-name descname">get_nested_lmdi</code><span class="sig-paren">(</span><em class="sig-param">level_of_aggregation</em>, <em class="sig-param">raw_data</em>, <em class="sig-param">calculate_lmdi=False</em>, <em class="sig-param">breakout=False</em>, <em class="sig-param">save_breakout=False</em>, <em class="sig-param">account_for_weather=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_nested_lmdi" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_source">
+<code class="sig-name descname">get_source</code><span class="sig-paren">(</span><em class="sig-param">elec</em>, <em class="sig-param">fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.get_source_adj">
+<code class="sig-name descname">get_source_adj</code><span class="sig-paren">(</span><em class="sig-param">elec</em>, <em class="sig-param">fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.get_source_adj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.lineplot">
+<em class="property">static </em><code class="sig-name descname">lineplot</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loa</em>, <em class="sig-param">model</em>, <em class="sig-param">energy_type</em>, <em class="sig-param">*lines_to_plot</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.lineplot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.lmdi">
+<code class="sig-name descname">lmdi</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">activity_input_data</em>, <em class="sig-param">energy_input_data</em>, <em class="sig-param">total_label=None</em>, <em class="sig-param">unit_conversion_factor=1</em>, <em class="sig-param">return_nominal_energy_intensity=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.lmdi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the LMDI</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>activity_input_data</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>energy_input_data</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>total_label</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
+<li><p><strong>unit_conversion_factor</strong> (<em>int</em><em>, </em><em>optional</em>) – [description]. Defaults to 1.</p></li>
+<li><p><strong>return_nominal_energy_intensity</strong> (<em>bool</em><em>, </em><em>optional</em>) – [description]. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[description]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[type]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.log_mean_divisia_weights_additive">
+<em class="property">static </em><code class="sig-name descname">log_mean_divisia_weights_additive</code><span class="sig-paren">(</span><em class="sig-param">log_mean_divisia_weights</em>, <em class="sig-param">log_mean_change</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.log_mean_divisia_weights_additive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.log_mean_divisia_weights_multiplicative">
+<em class="property">static </em><code class="sig-name descname">log_mean_divisia_weights_multiplicative</code><span class="sig-paren">(</span><em class="sig-param">log_mean_divisia_weights</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.log_mean_divisia_weights_multiplicative" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.select_value">
+<em class="property">static </em><code class="sig-name descname">select_value</code><span class="sig-paren">(</span><em class="sig-param">dataframe</em>, <em class="sig-param">base_row</em>, <em class="sig-param">base_column</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.select_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.waterfall_chart">
+<em class="property">static </em><code class="sig-name descname">waterfall_chart</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loa</em>, <em class="sig-param">year_one</em>, <em class="sig-param">year_two</em>, <em class="sig-param">model</em>, <em class="sig-param">*x_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.waterfall_chart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 

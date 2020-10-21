@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Manufacturing Module" href="EnergyIntensityIndicators.Industry.manufacturing.html" />
+    <link rel="prev" title="Industrial Sector Data Collection" href="industry.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -81,12 +83,19 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.commercial.html">Commercial Sector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.electricity.html">Electric Power Sector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.industry.html">Industrial Sector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.residential.html">Residential Sector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="industry.html">Industrial Sector Data Collection</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ASM Price Fit Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Industry.manufacturing.html">Manufacturing Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Industry.nonmanufacturing.html">NonManufacturing Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Residential/residential.html">Residential Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
 </ul>
 
             
@@ -133,6 +142,8 @@
     
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
+          <li><a href="industry.html">Industrial Sector Data Collection</a> &raquo;</li>
+        
       <li>ASM Price Fit Module</li>
     
     
@@ -154,6 +165,169 @@
             
   <div class="section" id="module-EnergyIntensityIndicators.Industry.asm_price_fit">
 <span id="asm-price-fit-module"></span><h1>ASM Price Fit Module<a class="headerlink" href="#module-EnergyIntensityIndicators.Industry.asm_price_fit" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.Industry.asm_price_fit.</code><code class="sig-name descname">Mfg_prices</code><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.build_price_df">
+<em class="property">static </em><code class="sig-name descname">build_price_df</code><span class="sig-paren">(</span><em class="sig-param">asm_prices</em>, <em class="sig-param">mecs_prices</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.build_price_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a dataframe for ASM prices and MECS prices, including
+a column for year</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_calibrated_predicted_price">
+<code class="sig-name descname">calc_calibrated_predicted_price</code><span class="sig-paren">(</span><em class="sig-param">latest_year</em>, <em class="sig-param">fuel_type</em>, <em class="sig-param">naics</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_calibrated_predicted_price" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the calibrated prediced prices, which is calculated as the</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_predicted_coeffs">
+<em class="property">static </em><code class="sig-name descname">calc_predicted_coeffs</code><span class="sig-paren">(</span><em class="sig-param">asm_prices</em>, <em class="sig-param">mecs_prices</em>, <em class="sig-param">start_params</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_predicted_coeffs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>asm_prices</strong> (<em>numpy.array</em>) – Array of ASM prices</p></li>
+<li><p><strong>mecs_prices</strong> (<em>numpy.array</em>) – Array of MECS prices, including nan values</p></li>
+<li><p><strong>start_params</strong> (<em>list</em>) – starting parameters for optimization</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>coeff</strong> – parameters of price prediction equation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>&#64;calmc successully ran this using data from the Gas-311 tab (
+copying cells C6:E42 to clipboard) in Ind_Gas_Prices_123019.xlsx.
+&gt;&gt;&gt;price_data = pd.read_clipboard()
+&gt;&gt;&gt;# Using read_clipboard introduces a column of nans
+&gt;&gt;&gt;price_data.dropna(axis=1, how=’all’, inplace=True)
+&gt;&gt;&gt;price_data.columns = [‘year’, ‘asm_prices’, ‘mecs_prices’]
+&gt;&gt;&gt;price_data.head()</p>
+<blockquote>
+<div><p>year  asm_prices  mecs_prices</p>
+</div></blockquote>
+<p>0  1983        4.05          NaN
+1  1984        4.10          NaN
+2  1985        3.83         4.21
+3  1986        3.14          NaN
+4  1987        2.85          NaN</p>
+<p>&gt;&gt;&gt;asm_prices = price_data.asm_prices.values
+&gt;&gt;&gt;mecs_prices = price_data.mecs_prices.dropna().values
+&gt;&gt;&gt;coeff = predict_prices(asm_prices, mecs_prices, [1, 1])
+&gt;&gt;&gt;coeff
+array([0.91430597, 0.1074011 ])</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_predicted_prices">
+<em class="property">static </em><code class="sig-name descname">calc_predicted_prices</code><span class="sig-paren">(</span><em class="sig-param">coeff</em>, <em class="sig-param">asm_prices</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.calc_predicted_prices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate predicted price with leastsq coeffs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.check_recent_mecs">
+<em class="property">static </em><code class="sig-name descname">check_recent_mecs</code><span class="sig-paren">(</span><em class="sig-param">latest_year</em>, <em class="sig-param">last_historical_year</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.check_recent_mecs" title="Permalink to this definition">¶</a></dt>
+<dd><p>MECS has been conducted at four-year intervals since 1994. New data
+will need to be manually downloaded, formatted, and added to the
+historical price file, ‘mfg_mecs_energy_prices.csv’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latest_year</strong> (<em>int</em>) – Latest year of historical decomposition.</p></li>
+<li><p><strong>last_historical_year</strong> (<em>int</em>) – Lastest year of price data available in
+‘mfg_mecs_energy_prices.csv’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.get_census_prices">
+<em class="property">static </em><code class="sig-name descname">get_census_prices</code><span class="sig-paren">(</span><em class="sig-param">latest_year</em>, <em class="sig-param">start_year=1983</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.get_census_prices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get fuel prices from Census Bureau’s Annual Survey of
+Manufacturers and Economic Census (years ending in 2 and 7)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latest_year</strong> (<em>int</em>) – Most recent year of historical LMDI analysis.</p></li>
+<li><p><strong>start_year</strong> (<em>int</em><em>, </em><em>default 1983</em>) – Beginning year of price data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>asm_prices</strong> – Pandas series of ASM price data from YYYY - latest_year</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.get_latest_mecs">
+<em class="property">static </em><code class="sig-name descname">get_latest_mecs</code><span class="sig-paren">(</span><em class="sig-param">latest_year</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.get_latest_mecs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deterime status of most recent MECS price data. MECS data are released
+on a quadrennial schedule, with 2014 as the last available year
+(as of October 2020).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.import_asm_historical">
+<em class="property">static </em><code class="sig-name descname">import_asm_historical</code><span class="sig-paren">(</span><em class="sig-param">file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.import_asm_historical" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+Prices in $/MMBtu</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.import_mecs_historical">
+<em class="property">static </em><code class="sig-name descname">import_mecs_historical</code><span class="sig-paren">(</span><em class="sig-param">file_path</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.import_mecs_historical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import and format csv of historical fuel prices from Manufacturing
+Energy Consumption Survey (MECS). MECS was conducted every three
+years from 1985 - 1994 and every four years since.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – File path of csv.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>mecs_prices</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.price_func">
+<em class="property">static </em><code class="sig-name descname">price_func</code><span class="sig-paren">(</span><em class="sig-param">asm_prices</em>, <em class="sig-param">*params</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.price_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates predicted fuel price in terms of current and lagged fuel
+prices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.resid_filler">
+<em class="property">static </em><code class="sig-name descname">resid_filler</code><span class="sig-paren">(</span><em class="sig-param">price_df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.resid_filler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply to a dataframe that includes year and residual.</p>
+<p>price_df.columns = [‘year’, ‘asm_price’, ‘MECS_price’, ‘predicted’,
+‘residual’]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>residual</strong> (<em>np.array</em>) – Array of residuals, including nan values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.residuals">
+<em class="property">static </em><code class="sig-name descname">residuals</code><span class="sig-paren">(</span><em class="sig-param">params</em>, <em class="sig-param">asm_prices</em>, <em class="sig-param">mecs_prices</em>, <em class="sig-param">price_func</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.asm_price_fit.Mfg_prices.residuals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -161,6 +335,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="EnergyIntensityIndicators.Industry.manufacturing.html" class="btn btn-neutral float-right" title="Manufacturing Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="industry.html" class="btn btn-neutral float-left" title="Industrial Sector Data Collection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 # from ElectricityIntensityIndicators.outline import LMDI
 # from ElectricityIntensityIndicators.residential.ahs import * 
-import pull_eia_api
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 print(os.getcwd())
 os.chdir('./EnergyIntensityIndicators')

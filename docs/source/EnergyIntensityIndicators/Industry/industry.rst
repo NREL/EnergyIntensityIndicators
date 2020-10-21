@@ -2,14 +2,12 @@
 Industrial Sector Data Collection
 ==================================
 
-.. automodule:: EnergyIntensityIndicators.Industry
+.. automodule:: EnergyIntensityIndicators.industry
    :members:
    :undoc-members:
    :show-inheritance:
    
 .. toctree::
-
-   EnergyIntensityIndicators.industry
    EnergyIntensityIndicators.Industry.asm_price_fit
    EnergyIntensityIndicators.Industry.manufacturing
    EnergyIntensityIndicators.Industry.nonmanufacturing

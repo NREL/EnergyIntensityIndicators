@@ -1,5 +1,7 @@
 import pandas as pd 
-from pull_eia_api import GetEIAData
+
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
 
 class MakeProjections:
 

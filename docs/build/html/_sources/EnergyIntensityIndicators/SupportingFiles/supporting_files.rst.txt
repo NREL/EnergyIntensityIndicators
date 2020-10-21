@@ -1,14 +1,14 @@
 Supporting Files
 =================
 
-.. automodule:: EnergyIntensityIndicators.SupportingFiles.supporting_files
+.. automodule:: EnergyIntensityIndicators
    :members:
    :undoc-members:
    :show-inheritance:
    
 .. toctree::
 
-   EnergyIntensityIndicators.SupportingFiles.pull_eia_api
-   EnergyIntensityIndicators.SupportingFiles.pull_bea_api
-   EnergyIntensityIndicators.SupportingFiles.get_census_data
-   EnergyIntensityIndicators.SupportingFiles.weather_factors
+   EnergyIntensityIndicators.pull_eia_api.GetEIAData
+   EnergyIntensityIndicators.pull_bea_api.BEA_api
+   EnergyIntensityIndicators.get_census_data.Census_api
+   EnergyIntensityIndicators.weather_factors.Weather

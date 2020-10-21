@@ -1,13 +1,15 @@
 from sklearn import linear_model
 import pandas as pd
-from pull_eia_api import GetEIAData
-from Residential.residential_floorspace import ResidentialFloorspace
 import numpy as np
 from functools import reduce
 from sklearn.linear_model import LinearRegression
 import math
 import os
-from LMDI import CalculateLMDI
+
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
+
 
 class WeatherFactors: 
     def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, end_year=2018):

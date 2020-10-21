@@ -1,8 +1,10 @@
 import pandas as pd
 from sklearn import linear_model
-from LMDI import CalculateLMDI
-from pull_eia_api import GetEIAData
 from functools import reduce
+
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+
 
 class ElectricityIndicators(CalculateLMDI):
 

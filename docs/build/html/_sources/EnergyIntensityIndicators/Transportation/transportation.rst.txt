@@ -1,12 +1,8 @@
 Transportation Sector Data Collection
-==================================
+======================================
 
-.. automodule:: EnergyIntensityIndicators.Transportation
+.. automodule:: EnergyIntensityIndicators.transportation
    :members:
    :undoc-members:
    :show-inheritance:
    
-.. toctree::
-
-   EnergyIntensityIndicators.transportation
-   EnergyIntensityIndicators.Transportation.transport

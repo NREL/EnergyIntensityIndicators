@@ -1,13 +1,15 @@
 import pandas as pd
 from sklearn import linear_model
-from pull_eia_api import GetEIAData
-from pull_bea_api import BEA_api
-from LMDI import CalculateLMDI
-from get_census_data import Asm
-from get_census_data import Econ_census
-from Industry.asm_price_fit import Mfg_prices
-from Industry.nonmanufacuturing import NonManufacturing
-from Industry.manufacturing import Manufacturing
+
+
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.pull_bea_api import BEA_api
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.get_census_data import Asm
+from EnergyIntensityIndicators.get_census_data import Econ_census
+from EnergyIntensityIndicators.Industry.asm_price_fit import Mfg_prices
+from EnergyIntensityIndicators.Industry.nonmanufacuturing import NonManufacturing
+from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
 
 
 class IndustrialIndicators(CalculateLMDI):

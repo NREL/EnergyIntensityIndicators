@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Transportation Sector" href="EnergyIntensityIndicators.transportation.html" />
+    <link rel="next" title="Supporting Files" href="../supporting_files.html" />
     <link rel="prev" title="Residential Floorspace" href="../Residential/EnergyIntensityIndicators.Residential.residential_floorspace.html" /> 
 </head>
 
@@ -89,12 +89,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Residential/residential.html">Residential Sector Data Collection</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Transportation Sector Data Collection</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.transportation.html">Transportation Sector</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Transportation.transport.html">Transport Module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../SupportingFiles/supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
 </ul>
 
             
@@ -160,14 +156,54 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="transportation-sector-data-collection">
-<h1>Transportation Sector Data Collection<a class="headerlink" href="#transportation-sector-data-collection" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-EnergyIntensityIndicators.Transportation"></span><div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.transportation.html">Transportation Sector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.Transportation.transport.html">Transport Module</a></li>
-</ul>
-</div>
+  <div class="section" id="module-EnergyIntensityIndicators.transportation">
+<span id="transportation-sector-data-collection"></span><h1>Transportation Sector Data Collection<a class="headerlink" href="#module-EnergyIntensityIndicators.transportation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.transportation.</code><code class="sig-name descname">TransportationIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">level_of_aggregation</em>, <em class="sig-param">lmdi_model='multiplicative'</em>, <em class="sig-param">tedb_date='04302020'</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../EnergyIntensityIndicators.LMDI.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
+<p>Class to calculate Energy Intensity indicators for the U.S. Transportation Sector</p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.activity">
+<code class="sig-name descname">activity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to collect freight and passenger energy and activity data.
+This method should be adjusted to call dataframe building methods rather than reading csvs, when those are ready</p>
+<p>Gather Energy Data to use in LMDI Calculation TBtu and Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
+:returns: [description]
+:rtype: [type]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.compare_aggregates">
+<code class="sig-name descname">compare_aggregates</code><span class="sig-paren">(</span><em class="sig-param">parameter_list</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.compare_aggregates" title="Permalink to this definition">¶</a></dt>
+<dd><p>purpose</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.energy_consumption">
+<code class="sig-name descname">energy_consumption</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.energy_consumption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather Energy Data to use in LMDI Calculation TBtu</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">save_breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>potentially refactor later</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>_base_year</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -178,7 +214,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="EnergyIntensityIndicators.transportation.html" class="btn btn-neutral float-right" title="Transportation Sector" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../supporting_files.html" class="btn btn-neutral float-right" title="Supporting Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../Residential/EnergyIntensityIndicators.Residential.residential_floorspace.html" class="btn btn-neutral float-left" title="Residential Floorspace" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

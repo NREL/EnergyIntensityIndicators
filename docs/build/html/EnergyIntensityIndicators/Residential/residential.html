@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Residential Sector" href="EnergyIntensityIndicators.residential.html" />
+    <link rel="next" title="Residential Floorspace" href="EnergyIntensityIndicators.Residential.residential_floorspace.html" />
     <link rel="prev" title="NonManufacturing Module" href="../Industry/EnergyIntensityIndicators.Industry.nonmanufacturing.html" /> 
 </head>
 
@@ -89,12 +89,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Residential Sector Data Collection</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.residential.html">Residential Sector</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Residential.residential_floorspace.html">Residential Floorspace</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../SupportingFiles/supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
 </ul>
 
             
@@ -160,12 +159,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-EnergyIntensityIndicators.Residential">
-<span id="residential-sector-data-collection"></span><h1>Residential Sector Data Collection<a class="headerlink" href="#module-EnergyIntensityIndicators.Residential" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-EnergyIntensityIndicators.residential">
+<span id="residential-sector-data-collection"></span><h1>Residential Sector Data Collection<a class="headerlink" href="#module-EnergyIntensityIndicators.residential" title="Permalink to this headline">¶</a></h1>
+<p>Overview and Assumptions:
+A. Data on the number and average size of occupied housing units from the biennial American
+Housing Survey were employed to generate many of the activity metrics for this sector.
+B. Three types of residential housing units are distinguished: single-family, multi-family, and
+manufactured homes.
+C. Regional data from EIA’s State Energy Data System (SEDS) are employed to develop regional
+intensity indicators.
+D. Regression models at the regional level are used to adjust for year-to-year changes in weather.
+E. Two separate data construction elements are required to generate the regional and national
+estimates of energy intensity indicators for this sector.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Regional time series of floor space for residential housing units in the U.S (census level).</p></li>
+<li><p>Weather adjustment for the four census regions.</p></li>
+</ol>
+</div></blockquote>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.residential.</code><code class="sig-name descname">ResidentialIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">level_of_aggregation=None</em>, <em class="sig-param">lmdi_model='multiplicative'</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../EnergyIntensityIndicators.LMDI.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.activity">
+<code class="sig-name descname">activity</code><span class="sig-paren">(</span><em class="sig-param">floorspace</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine Energy datasets into one Energy Consumption Occupied Housing Units</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.collect_weather">
+<code class="sig-name descname">collect_weather</code><span class="sig-paren">(</span><em class="sig-param">energy_dict</em>, <em class="sig-param">nominal_energy_intensity</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.collect_weather" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.fuel_electricity_consumption">
+<code class="sig-name descname">fuel_electricity_consumption</code><span class="sig-paren">(</span><em class="sig-param">total_fuels</em>, <em class="sig-param">elec</em>, <em class="sig-param">region</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.fuel_electricity_consumption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
+Data Source: EIA’s State Energy Data System (SEDS)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.get_floorspace">
+<code class="sig-name descname">get_floorspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.get_floorspace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.get_seds">
+<code class="sig-name descname">get_seds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.get_seds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">save_breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.residential.html">Residential Sector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.Residential.residential_floorspace.html">Residential Floorspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.Residential.residential_floorspace.html">Residential Floorspace</a><ul class="simple">
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -178,7 +238,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="EnergyIntensityIndicators.residential.html" class="btn btn-neutral float-right" title="Residential Sector" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="EnergyIntensityIndicators.Residential.residential_floorspace.html" class="btn btn-neutral float-right" title="Residential Floorspace" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../Industry/EnergyIntensityIndicators.Industry.nonmanufacturing.html" class="btn btn-neutral float-left" title="NonManufacturing Module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

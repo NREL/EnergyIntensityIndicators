@@ -1,7 +1,9 @@
 import pytest
 import unittest
 import pandas as pd
-from residential_floorspace import ResidentialFloorspace
+
+from EnergyIntensityIndicators.residential_floorspace import ResidentialFloorspace
+
 
 class TestClass:
     

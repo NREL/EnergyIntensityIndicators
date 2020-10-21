@@ -13,10 +13,11 @@ estimates of energy intensity indicators for this sector.
 """
 import pandas as pd
 from sklearn import linear_model
-from pull_eia_api import GetEIAData
-from LMDI import CalculateLMDI
-from Residential.residential_floorspace import ResidentialFloorspace
-from weather_factors import WeatherFactors
+
+from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
+from EnergyIntensityIndicators.weather_factors import WeatherFactors
 
 
 class ResidentialIndicators(CalculateLMDI): 

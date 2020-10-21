@@ -3,8 +3,8 @@ import numpy as np
 import requests
 from scipy.optimize import leastsq
 from bs4 import BeautifulSoup
-from get_census_data import Asm
-from get_census_data import Econ_census
+from EnergyIntensityIndicators.get_census_data import Asm
+from EnergyIntensityIndicators.get_census_data import Econ_census
 
 
 class Mfg_prices:

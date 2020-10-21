@@ -1,5 +1,6 @@
 import pandas as pd 
 import pytest
+
 from EnergyIntensityIndicators.commercial import CommercialIndicators
 
 class CommercialTests:
