@@ -370,12 +370,12 @@ class CalculateLMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
+        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].ravel())
         return shares
 
     @staticmethod
     def calculate_log_changes(dataset):
-        """Calculate the log changes to intensity
+        """Calculate the log changes
            Parameters
            ----------
            dataset: dataframe
@@ -389,78 +389,81 @@ class CalculateLMDI:
 
         return log_ratio
 
-    def compute_index(self, log_mean_divisia_weights, log_changes_activity_shares):
-        """[summary]
-
-        Args:
-            log_mean_divisia_weights ([type]): [description]
-            log_changes_activity_shares ([type]): [description]
-
-        Returns:
-            [type]: [description]
+    def compute_index(self, effect):
+        """
         """                     
-        index_chg = log_mean_divisia_weights.multiply(log_changes_activity_shares).sum(axis=1)
-        index = (index_chg * index_chg.shift()).ffill().fillna(1)  # first value should be set to 1? 
+        index = (effect * effect.shift()).ffill().fillna(1)  # first value should be set to 1? 
         index_normalized = index / index.loc[self.base_year] # 1985=1
 
-        return index_chg, index, index_normalized 
+        return index, index_normalized 
 
     @staticmethod
-    def calculate_log_changes_activity_shares(dataset, total_label):
-        """purpose
-           Parameters
-           ----------
-           df_name: str
+    def logarithmic_average(x, y):
+        """The logarithmic average of two positive numbers x and y
+        """        
+        if x > 0 and y > 0:
+            if x != y:
+                difference = x - y
+                log_difference = np.log(x) - np.log(y)
+                L = difference / log_difference
+            else:
+                L = x
+        else: 
+            L = np.nan
 
-           df: dataframe
-           Returns
-           -------
-           log_changes: dataframe
-                description
-        """
-        change = dataset.diff()
-        log_ratio = np.log(dataset.divide(dataset.shift().values))
-        log_changes = change.divide(log_ratio)
-        return log_changes
-    
-    @ staticmethod
-    def calculate_log_mean_weights(dataset, total_label):
-        """purpose
+        return L
+
+
+    def log_mean_weights_multiplicative(self, energy_data, energy_shares, total_label):
+        """Calculate log mean weights where T = t, 0 = t-1
            Parameters
            ----------
            dataset: dataframe
-                Description
+                Columns: 
             total_label: list
                 Description
                 
            Returns
            -------
-        TODO: Verify that this is the desired logarithmic average 
         """
 
-        change = dataset.diff()
-        log_ratio = np.log(dataset.divide(dataset.shift().values))
-        log_mean_divisia_weights = change.divide(log_ratio)
-        log_mean_divisia_weights[total_label] = log_mean_divisia_weights.sum(axis=1) 
-        return log_mean_divisia_weights
+        
+        # dataset_shift = dataset.shift(periods=1, axis='index', fill_value=0)]
+
+        log_mean_weights = pd.DataFrame(index=energy_data.index)
+
+        for col in energy_data.columns: 
+            energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
+            log_mean_weights[f'log_mean_weights_{col}'] = energy_shares[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
+        
+        sum_log_mean_shares = log_mean_weights.sum(axis=1)
+        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.ravel())
+        return log_mean_weights_normalized
     
-    @ staticmethod
-    def log_mean_divisia_weights_multiplicative(log_mean_divisia_weights, total_label):
-        """
+    def log_mean_weights_additive(self, energy_data, energy_shares, total_label):
+        """Calculate log mean weights for the additive model wher T=t, 0 = t - 1
+
+        Args:
+            energy_data ([type]): [description]
+            total_label ([type]): [description]
         """        
-        log_mean_divisia_weights_normalized = log_mean_divisia_weights.drop(total_label, axis=1).divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights), 1))
+        log_mean_shares_labels = [f"log_mean_shares_{col}" for col in energy_data.columns]
+        log_mean_weights = pd.DataFrame(index=energy_data.index)
 
-        return log_mean_divisia_weights_normalized
-    
-    @ staticmethod
-    def log_mean_divisia_weights_additive(log_mean_divisia_weights, log_mean_change, total_label):
-        """
-        """        
-        numerator = log_mean_divisia_weights.drop(total_label, axis=1).multiply(log_mean_change)
-        log_mean_divisia_weights_normalized = numerator.divide(log_mean_divisia_weights[total_label].values.reshape(len(log_mean_divisia_weights), 1))
+        for col in energy_data.columns: 
+            energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
+            log_mean_shares = energy_shares[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
+            energy_shares[f"log_mean_shares_{col}"] = log_mean_shares
 
-        return log_mean_divisia_weights_normalized
-    
+            energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
+            log_mean_values = energy_data[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
+
+            log_mean_weights[f'log_mean_weights_{col}'] = log_mean_shares * log_mean_values
+        
+        sum_log_mean_shares = energy_shares[log_mean_shares_labels].sum(axis=1)
+        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.ravel())
+        return log_mean_weights_normalized
+
     def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
         """Calculate the LMDI
 
@@ -478,7 +481,6 @@ class CalculateLMDI:
             [type]: [description]
         """
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
-        print('activity_input_data: \n', activity_input_data)
 
         if isinstance(activity_input_data, pd.DataFrame):
             activity_width = activity_input_data.shape[1]
@@ -490,42 +492,62 @@ class CalculateLMDI:
         if return_nominal_energy_intensity:
             return nominal_energy_intensity
 
-        log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
         energy_shares = self.calculate_shares(energy_input_data, total_label)
-        log_mean_divisia_weights_energy = self.calculate_log_mean_weights(energy_shares, total_label)
-
         activity_shares = self.calculate_shares(activity_input_data, total_label)
-        log_changes_activity_shares = self.calculate_log_changes_activity_shares(activity_shares, total_label)
+
 
         if model == 'multiplicative':
-            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_multiplicative(log_mean_divisia_weights_energy, total_label)
-        
+            log_mean_divisia_weights_normalized = self.log_mean_weights_multiplicative(energy_input_data, energy_shares, total_label)
+
         elif model == 'additive':
-            log_mean_change = self.calculate_log_mean_weights(energy_input_data, total_label)
-            log_mean_divisia_weights_normalized = self.log_mean_divisia_weights_additive(log_mean_divisia_weights_energy, log_mean_change, total_label)
+            log_mean_divisia_weights_normalized = self.log_mean_weights_additive(energy_input_data, energy_shares, total_label)
 
-        index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+        # E is the total energy consumption in industry, Q is the total industrial activitiy level
+        log_ratio_intensity = self.calculate_log_changes(energy_shares) # ln(IT_i/I0_i) --> I_i = E_i / E,  I_i is the energy intensity of sector i
+        log_ratio_activity = self.calculate_log_changes(activity_input_data[[total_label]])  # ln(QT/Q0)  --> Q = Q,  Q is the total insutrial activity level
+        log_ratio_structure = self.calculate_log_changes(activity_shares) # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
         
-        index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized, log_changes_activity_shares)  
-        
-        index_chg_structure, index_structure, index_normalized_structure = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
-        
-        final_indices_df = pd.DataFrame(index_normalized_energy, columns=['index_normalized_energy'])
-        final_indices_df['index_normalized_activity'] = index_normalized_activity
-        final_indices_df['index_normalized_structure'] = index_normalized_structure
-        
+        activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity)).sum(axis=1)
+        structure = (log_mean_divisia_weights_normalized.multiply(log_ratio_structure)).sum(axis=1)
+        intensity = (log_mean_divisia_weights_normalized.multiply(log_ratio_intensity)).sum(axis=1)
         if model == 'multiplicative':
-            final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=1)  # np.exp(index) for each index
-            final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
+            activity = activity.apply(np.exp, axis=0)
+            structure = structure.apply(np.exp, axis=0)
+            intensity = intensity.apply(np.exp, axis=0)
+            effect = activity * structure * intensity
+
+        elif model == 'addititve':
+            effect = activity + structure + intensity
+        
+        print(activity, structure, intensity, effect)
+        exit()
+        return activity, structure, intensity, effect
+
+
+
+        # if model == 'multiplicative':
+
+        # log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
+        # log_changes_activity_shares = self.calculate_log_changes(activity_shares, total_label)
+        #     index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+        
+        #     index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized, log_changes_activity_shares)  
+        
+        #     index_chg_structure, index_structure, index_normalized_structure = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+        
+        #     final_indices_df = pd.DataFrame(index_normalized_energy, columns=['index_normalized_energy'])
+        #     final_indices_df['index_normalized_activity'] = index_normalized_activity
+        #     final_indices_df['index_normalized_structure'] = index_normalized_structure
+        #     final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=0)  # np.exp(index) for each index
+        #     final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
+        #     final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
+        #     final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
+        #     final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
             
-        elif model == 'additive':
-            final_indices_df['energy_intensity'] = final_indices_df.sum(axis=1)  # sum of all indices
+        # elif model == 'additive':
+        #     final_indices_df['energy_intensity'] = final_indices_df.sum(axis=1)  # sum of all indices
 
-        # Not sure if these next three would be the same for additive
-        final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
-        final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
-        final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
-        return final_indices_df
+        # return final_indices_df
 
 
     def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None, energy_type=None):

@@ -31,7 +31,6 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 # total_energy = [0] # Apply conversion factors (Btu/gallon). Note: APTA reports GNG in diesel equivalent
 #                 # Biodiesel conversion factor from AER 2008, p. 373
 # passenger_miles = [0] # APTA
-
 # # Intercity Buses
 # total_fuel_gallons = [0] # American Bus Association (ABA) with earlier data in TEDB-19 and later from ABA. 
 #                         # Fuel use was estimated on basis of separate estimates of average MPG and vehicle miles.
@@ -661,10 +660,10 @@ class TransportationIndicators(CalculateLMDI):
         # freight_based_energy_use = self.energy_consumption('All_Freight')
         # freight_based_activity = self.activity('All_Freight')
 
-        passenger_based_energy_use = pd.read_csv('./Transportation/passenger_based_energy_use.csv').set_index('Year')
-        passenger_based_activity = pd.read_csv('./Transportation/passenger_based_activity.csv').set_index('Year')
-        freight_based_energy_use = pd.read_csv('./Transportation/freight_based_energy_use.csv').set_index('Year')
-        freight_based_activity = pd.read_csv('./Transportation/freight_based_activity.csv').set_index('Year')
+        passenger_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_energy_use.csv').set_index('Year')
+        passenger_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_activity.csv').set_index('Year')
+        freight_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_energy_use.csv').set_index('Year')
+        freight_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_activity.csv').set_index('Year')
 
         data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
                      'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
