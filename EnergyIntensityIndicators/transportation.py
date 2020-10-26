@@ -169,7 +169,7 @@ class TransportationIndicators(CalculateLMDI):
                                                 {'Single-Unit Truck': None, 'Combination Truck': None}, 
                                         'Rail': None, 
                                         'Air': None, 
-                                        'Waterborne': None,
+                                        # 'Waterborne': None,
                                         'Pipeline': 
                                             {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
@@ -668,6 +668,8 @@ class TransportationIndicators(CalculateLMDI):
         data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
                      'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
 
+        print(freight_based_energy_use)
+
         return data_dict
 
 
@@ -723,7 +725,7 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Freight.Pipeline')
+                                          level_of_aggregation='All_Freight')
     indicators.main(breakout=True, save_breakout=True, calculate_lmdi=True)
 
 

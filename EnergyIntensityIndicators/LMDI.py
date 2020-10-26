@@ -271,49 +271,50 @@ class CalculateLMDI:
         lmdi_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict, \
                                             level=1, level1_name=level1_name, breakout=breakout):
-            if breakout:
-                for key in results_dict.keys():
-                    level_total = results_dict[key]['level_total']
-                    # loa_index = level_of_aggregation.index(level_total)
-                    # loa = level_of_aggregation[:loa_index + 1]
-                    if level_of_aggregation[-1] == level_total:
-                        loa = [self.sector.capitalize()] + level_of_aggregation
-                    else:
-                        loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
-                    print('LOA:', loa)
-                    print('level total: \n', level_total)
+            if results_dict:
+                if breakout:
+                    for key in results_dict.keys():
+                        level_total = results_dict[key]['level_total']
+                        # loa_index = level_of_aggregation.index(level_total)
+                        # loa = level_of_aggregation[:loa_index + 1]
+                        if level_of_aggregation[-1] == level_total:
+                            loa = [self.sector.capitalize()] + level_of_aggregation
+                        else:
+                            loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
+                        print('LOA:', loa)
+                        print('level total: \n', level_total)
 
-                    energy = results_dict[key]['energy']
-                    activity_ = results_dict[key]['activity']
+                        energy = results_dict[key]['energy']
+                        activity_ = results_dict[key]['activity']
 
-                    if isinstance(energy, pd.DataFrame) and isinstance(activity_, pd.DataFrame):
-                        energy[level_total] = energy.sum(axis=1).values
-                        activity_[level_total] = activity_.sum(axis=1).values
-                        category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                       unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa) 
-                        category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
-                        final_fmt_results.append(category_lmdi)
-                    elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
-                        for e_type, energy_df in energy.items():
-                            energy_df[level_total] = energy_df.sum(axis=1).values
+                        if isinstance(energy, pd.DataFrame) and isinstance(activity_, pd.DataFrame):
+                            energy[level_total] = energy.sum(axis=1).values
                             activity_[level_total] = activity_.sum(axis=1).values
                             category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                           unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
-                            category_lmdi["@filter|Energy_Type"] = e_type
- 
+                                                        unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa) 
+                            category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
                             final_fmt_results.append(category_lmdi)
+                        elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
+                            for e_type, energy_df in energy.items():
+                                energy_df[level_total] = energy_df.sum(axis=1).values
+                                activity_[level_total] = activity_.sum(axis=1).values
+                                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                            unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                                category_lmdi["@filter|Energy_Type"] = e_type
+    
+                                final_fmt_results.append(category_lmdi)
 
-                    elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
-                        energy[level_total] = energy.sum(axis=1).values
-                        for a_type, a_df in activity_.items():
-                            a_df[level_total] = a_df.sum(axis=1).values
-                            activity_[a_type] = a_df
+                        elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
+                            energy[level_total] = energy.sum(axis=1).values
+                            for a_type, a_df in activity_.items():
+                                a_df[level_total] = a_df.sum(axis=1).values
+                                activity_[a_type] = a_df
 
-                    elif isinstance(energy, dict) and isinstance(activity_, dict):
-                        for e_type, energy_df in energy.items():
-                            pass # How to handle??
-                    else:
-                        pass
+                        elif isinstance(energy, dict) and isinstance(activity_, dict):
+                            for e_type, energy_df in energy.items():
+                                pass # How to handle??
+                        else:
+                            pass
 
 
         total_results_by_energy_type = dict()
@@ -370,7 +371,10 @@ class CalculateLMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].ravel())
+        print('dataset:\n ', dataset)
+        shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
+        print('shares:\n ', shares)
+
         return shares
 
     @staticmethod
@@ -385,14 +389,14 @@ class CalculateLMDI:
            log_ratio: dataframe
 
         """
-        log_ratio = np.log(dataset.divide(dataset.shift()))
+        log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
 
         return log_ratio
 
     def compute_index(self, effect):
         """
         """                     
-        index = (effect * effect.shift()).ffill().fillna(1)  # first value should be set to 1? 
+        index = (effect * effect.shift()).ffill() #.fillna(1)  # first value should be set to 1? 
         index_normalized = index / index.loc[self.base_year] # 1985=1
 
         return index, index_normalized 
@@ -429,15 +433,17 @@ class CalculateLMDI:
 
         
         # dataset_shift = dataset.shift(periods=1, axis='index', fill_value=0)]
-
         log_mean_weights = pd.DataFrame(index=energy_data.index)
 
-        for col in energy_data.columns: 
+        for col in energy_shares.columns: 
             energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            log_mean_weights[f'log_mean_weights_{col}'] = energy_shares[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
-        
+            log_mean_weights[f'log_mean_weights_{col}'] = energy_shares.apply(lambda row: self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) # apply generally not preferred for row-wise operations but?
+        print('energy_shares: \n', energy_shares)
+        print('log_mean_weights: \n', log_mean_weights)
+
         sum_log_mean_shares = log_mean_weights.sum(axis=1)
-        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.ravel())
+        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
+        print('log_mean_weights_normalized: \n', log_mean_weights_normalized)
         return log_mean_weights_normalized
     
     def log_mean_weights_additive(self, energy_data, energy_shares, total_label):
@@ -447,21 +453,23 @@ class CalculateLMDI:
             energy_data ([type]): [description]
             total_label ([type]): [description]
         """        
-        log_mean_shares_labels = [f"log_mean_shares_{col}" for col in energy_data.columns]
+        log_mean_shares_labels = [f"log_mean_shares_{col}" for col in energy_shares.columns]
         log_mean_weights = pd.DataFrame(index=energy_data.index)
 
-        for col in energy_data.columns: 
+        for col in energy_shares.columns: 
             energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            log_mean_shares = energy_shares[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
+            log_mean_shares = energy_shares[[col, f"{col}_shift"]].apply(lambda row: self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) # apply generally not preferred for row-wise operations but?
             energy_shares[f"log_mean_shares_{col}"] = log_mean_shares
 
             energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
-            log_mean_values = energy_data[[col, f"{col}_shift"]].apply(self.logarithmic_average, axis=1) # apply generally not preferred for row-wise operations but?
+            log_mean_values = energy_data[[col, f"{col}_shift"]].apply(lambda row: self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) # apply generally not preferred for row-wise operations but?
 
             log_mean_weights[f'log_mean_weights_{col}'] = log_mean_shares * log_mean_values
         
         sum_log_mean_shares = energy_shares[log_mean_shares_labels].sum(axis=1)
-        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.ravel())
+        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
+
+        log_mean_weights_normalized = log_mean_weights_normalized.drop([c for c in log_mean_weights_normalized.columns if not c.startswith('log_mean_weights_')], axis=1)
         return log_mean_weights_normalized
 
     def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
@@ -480,6 +488,7 @@ class CalculateLMDI:
         Returns:
             [type]: [description]
         """
+        print('energy_input_data:', energy_input_data)
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
 
         if isinstance(activity_input_data, pd.DataFrame):
@@ -493,61 +502,79 @@ class CalculateLMDI:
             return nominal_energy_intensity
 
         energy_shares = self.calculate_shares(energy_input_data, total_label)
+        print('fresh energy shares:\n', energy_shares)
         activity_shares = self.calculate_shares(activity_input_data, total_label)
 
 
         if model == 'multiplicative':
             log_mean_divisia_weights_normalized = self.log_mean_weights_multiplicative(energy_input_data, energy_shares, total_label)
-
         elif model == 'additive':
             log_mean_divisia_weights_normalized = self.log_mean_weights_additive(energy_input_data, energy_shares, total_label)
+            cols_to_drop1 = [col for col in energy_shares.columns if col.startswith('log_mean_shares_')]
+            energy_shares = energy_shares.drop(cols_to_drop1, axis=1)
 
+        cols_to_drop = [col for col in energy_shares.columns if col.endswith('_shift')]
+        energy_shares = energy_shares.drop(cols_to_drop, axis=1)
+
+
+        print('energy shares here: \n', energy_shares)
         # E is the total energy consumption in industry, Q is the total industrial activitiy level
         log_ratio_intensity = self.calculate_log_changes(energy_shares) # ln(IT_i/I0_i) --> I_i = E_i / E,  I_i is the energy intensity of sector i
+        print('log_ratio_intensity: \n', log_ratio_intensity)
         log_ratio_activity = self.calculate_log_changes(activity_input_data[[total_label]])  # ln(QT/Q0)  --> Q = Q,  Q is the total insutrial activity level
+        print('log_ratio_activity: \n', log_ratio_activity)
         log_ratio_structure = self.calculate_log_changes(activity_shares) # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
-        
-        activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity)).sum(axis=1)
-        structure = (log_mean_divisia_weights_normalized.multiply(log_ratio_structure)).sum(axis=1)
-        intensity = (log_mean_divisia_weights_normalized.multiply(log_ratio_intensity)).sum(axis=1)
+        print('log_ratio_structure: \n', log_ratio_structure)
+
+        activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity.values, axis='columns')).sum(axis=1)
+        print('activity: \n', activity)
+        structure = (log_mean_divisia_weights_normalized.multiply(log_ratio_structure.values, axis='columns')).sum(axis=1)
+        print('structure: \n', structure)
+
+        intensity = (log_mean_divisia_weights_normalized.multiply(log_ratio_intensity.values, axis='columns')).sum(axis=1)
+        print('intensity: \n', intensity)
+
         if model == 'multiplicative':
-            activity = activity.apply(np.exp, axis=0)
-            structure = structure.apply(np.exp, axis=0)
-            intensity = intensity.apply(np.exp, axis=0)
-            effect = activity * structure * intensity
+            activity = np.exp(activity)
+            structure = np.exp(structure)
+            intensity = np.exp(intensity)
 
-        elif model == 'addititve':
-            effect = activity + structure + intensity
+        results = pd.DataFrame.from_dict(data={'activity': activity, 'structure': structure, 
+                                        'intensity': intensity}, orient='columns')
+
+        if model == 'multiplicative':
+            results['effect'] = results.product(axis=1)
+
+        elif model == 'additive':
+            results['effect'] = results.sum(axis=1)
         
-        print(activity, structure, intensity, effect)
-        exit()
-        return activity, structure, intensity, effect
+        print('results: \n', results)
+        return results
 
-
-
-        # if model == 'multiplicative':
-
-        # log_changes_intensity = self.calculate_log_changes(nominal_energy_intensity)
-        # log_changes_activity_shares = self.calculate_log_changes(activity_shares, total_label)
-        #     index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+    # def aggregate_multiplicative(self, results_df):
+    #     index_chg_energy, index_energy, index_normalized_energy = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+    
+    #     index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized, log_changes_activity_shares)  
+    
+    #     index_chg_structure, index_structure, index_normalized_structure = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
+    
+    #     final_indices_df = pd.DataFrame(index_normalized_energy, columns=['index_normalized_energy'])
+    #     final_indices_df['index_normalized_activity'] = index_normalized_activity
+    #     final_indices_df['index_normalized_structure'] = index_normalized_structure
+    #     final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=0)  # np.exp(index) for each index
+    #     final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
+    #     final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
+    #     final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
+    #     final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
         
-        #     index_chg_activity, index_activity, index_normalized_activity = self.compute_index(log_mean_divisia_weights_normalized, log_changes_activity_shares)  
-        
-        #     index_chg_structure, index_structure, index_normalized_structure = self.compute_index(log_mean_divisia_weights_normalized, log_changes_intensity)
-        
-        #     final_indices_df = pd.DataFrame(index_normalized_energy, columns=['index_normalized_energy'])
-        #     final_indices_df['index_normalized_activity'] = index_normalized_activity
-        #     final_indices_df['index_normalized_structure'] = index_normalized_structure
-        #     final_indices_df = final_indices_df.apply(lambda col: np.exp(col), axis=0)  # np.exp(index) for each index
-        #     final_indices_df['energy_intensity'] = final_indices_df.product(axis=1) # product of all indices
-        #     final_indices_df['activity_index'] = activity_input_data[[total_label]].divide(activity_input_data.loc[self.base_year, total_label])
-        #     final_indices_df['index_of_aggregate_intensity'] = nominal_energy_intensity[[total_label]].divide(nominal_energy_intensity.loc[self.base_year, total_label])
-        #     final_indices_df['actual_energy_use'] = final_indices_df['activity_index'].multiply(final_indices_df['index_of_aggregate_intensity'])
-            
-        # elif model == 'additive':
-        #     final_indices_df['energy_intensity'] = final_indices_df.sum(axis=1)  # sum of all indices
+    #     return final_indices_df
 
-        # return final_indices_df
+    def aggregate_additive(self, results_df, energy_input_data, total_label):
+        df = results_df.loc[self.base_year + 1: , :]
+        df = df.sum(axis=0)
+        df['initial_energy'] = energy_input_data.loc[self.base_year, total_label]
+        df['final_energy'] = energy_input_data.loc[max(results_df.index), total_label]
+        return df
 
 
     def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor, account_for_weather, save_results, loa=None, energy_type=None):
@@ -573,8 +600,12 @@ class CalculateLMDI:
             # if not os.path.exists():
             #     os.mkdir(path)
             for model, result in results.items():
-                self.lineplot(result, loa, model, energy_type, 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure') # path, 
-                self.waterfall_chart(result, loa, 2000, max(result.index), model, 'activity_index', 'actual_energy_use', 'energy_intensity', 'index_normalized_structure')
+                if model == 'additive':
+                    df = self.aggregate_additive(result, energy_data, total_label)
+                    final_year = max(result.index)
+                    self.waterfall_chart(df, final_year, loa, model, 'activity', 'structure', 'intensity')
+                elif model == 'multiplicative':
+                    self.lineplot(result, loa, model, energy_type, 'activity', 'structure', 'intensity', 'effect') # path, 
                 formatted_data = self.data_visualization(result, fmt_loa)
                 formatted_data['@filter|Model'] = model.capitalize()
                 # f_name = '.'.join(fmt_loa) + model
@@ -636,10 +667,10 @@ class CalculateLMDI:
         # scenario: additive/mult
         # filter: level?
         data = data.reset_index()
-        data = data.rename(columns={'Year': '@timeseries|Year', 'activity_index': "@filter|Measure|Activity", 
-                                    'actual_energy_use': "@filter|Measure|EnergyUse", 'energy_intensity': "@filter|Measure|Intensity", 
-                                    'index_normalized_structure': "@filter|Measure|Structure"})
-        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|EnergyUse", "@filter|Measure|Intensity"]]
+        data = data.rename(columns={'Year': '@timeseries|Year', 'activity': "@filter|Measure|Activity", 
+                                    'effect': "@filter|Measure|Effect", 'intensity': "@filter|Measure|Intensity", 
+                                    'structure': "@filter|Measure|Structure"})
+        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|Effect", "@filter|Measure|Intensity"]]
         for i, l in enumerate(loa):
             label = f"@filter|Subsector_Level_{i + 1}"
             print('label, l:', label, l)
@@ -647,23 +678,19 @@ class CalculateLMDI:
 
         return data
     
-    @staticmethod
-    def waterfall_chart(data, loa, year_one, year_two, model, *x_data):
+    def waterfall_chart(self, data, final_year, loa, model, *x_data):
+        print('data: \n', data)
+        print('data.ravel() : \n', data.ravel())
         figure_labels = []
         loa = [l.replace("_", " ") for l in loa]
-        title = f"Change {year_one}-{year_two} {' '.join(loa)} {model.capitalize()}"
-        x_data = list(x_data)
-
+        title = f"Change {self.base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
+        x_data = ['initial_energy'] + list(x_data) + ['final_energy']
+        y_data = data.ravel()
         x_labels = [x.replace("_", " ").capitalize() for x in x_data]
 
-        values_1 = data.loc[year_one, x_data]
-        values_2 = data.loc[year_two, x_data]
-
-        values_ = values_2.subtract(values_1.ravel())
-
-        measure = ['relative'] * len(list(x_labels))  # for example: ["relative", "relative", "total", "relative", "relative", "total"]
+        measure =  ['relative'] * len(list(x_labels)) # for example: ["relative", "relative", "total", "relative", "relative", "total"]
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
-                                     textposition="outside", text=figure_labels, y=values_.ravel(), 
+                                     textposition="outside", text=figure_labels, y=y_data, 
                                      connector={"line":{"color":"rgb(63, 63, 63)"}})) #  color_discrete_sequence=px.colors.qualitative.Vivid,
 
         fig.update_layout(title=title, showlegend = True)
@@ -691,6 +718,7 @@ class CalculateLMDI:
         plt.show()
         # plt.save(f"{path}/{title}.png")
     
+    @staticmethod
     def main():
         print('main')
 

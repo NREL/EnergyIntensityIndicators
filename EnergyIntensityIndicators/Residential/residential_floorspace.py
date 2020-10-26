@@ -299,7 +299,7 @@ class ResidentialFloorspace:
         df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
 
         ahs_table = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=32, 
-                                   usecols='BZ:CI', header=1)[:3] # skip_footer=40,  .rename(columns={'2': 'Years', '4': ''})  # from ahs tables
+                                   usecols='BZ:CI', header=1)[:3] # skipfooter=40,  .rename(columns={'2': 'Years', '4': ''})  # from ahs tables
 
         ahs_table = ahs_table.rename(columns={'Unnamed: 77': 'Years', '1970-1979': '1975', '1980-1989': '1985', '1990-1999': '1995', '2000 & later': '2005'})
         ahs_table = ahs_table.set_index('Years')

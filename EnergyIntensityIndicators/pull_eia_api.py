@@ -31,6 +31,7 @@ class GetEIAData:
         
         eia_data['Year'] = eia_data['Year'].apply(lambda y: y.strftime('%Y'))
         eia_data = eia_data.set_index('Year').sort_index(ascending=True)
+        eia_data = eia_data.replace('NA', np.nan)
         return eia_data
     
     def get_category(self, api_key, id_):
@@ -59,10 +60,15 @@ class GetEIAData:
         if date_column_name == 'M':
             eia_df['Year'] = pd.to_datetime(eia_df['M'], format='%Y%m') # .dt.to_period('Y')
             eia_df = eia_df.drop('M', axis='columns')
+        elif date_column_name == 'Q':
+            eia_df['Year'] = eia_df['Q'].apply(lambda x: pd.to_datetime(x).year)
+            eia_df = eia_df.groupby(['Year']).sum().reset_index()
+            eia_df['Year'] = pd.to_datetime(eia_df['Year'], format='%Y')
         elif date_column_name == 'A' or date_column_name == 'Year':
             eia_df['Year'] = pd.to_datetime(eia_df['A'], format='%Y') #.dt.to_period('Y')
             eia_df = eia_df.drop('A', axis='columns')
         else:
+            print('eia_df no year \n', eia_df.columns)
             print('No year column')
             pass
         return eia_df
