@@ -1,6 +1,7 @@
 
 import pandas as pd
 import requests
+import os
 
 
 class BEA_api:
@@ -8,6 +9,7 @@ class BEA_api:
 
     def __init__(self):
         self.base_url = 'https://apps.bea.gov/api/data/'
+        apik  = os.getenv("BEA_API_Key")
         self.base_params = {'UserID': apik, 'method': 'GetData',  # apik is API key
                             'Industry': 'ALL', 'Frequency': 'A',
                             'Format': 'json'}
@@ -27,7 +29,7 @@ class BEA_api:
         params : dict
             Dictionary of DataSetName and tableID.
 
-        Returns
+        Returns                                                                                                                                     
         -------
         data : dataframe
             Dataframe of results. Will print API error, if applicable.
@@ -106,5 +108,13 @@ class BEA_api:
         else:
             return
 
-    def import_historical():
+    def import_historical(self):
         """Method for importing historical BEA data, saved as csv"""
+        historical_va_quant_index = pd.read_csv('./Data/Chain_Type_Qty_Indexes_Value_Added_by_Industry.csv') # 2012 = 100 
+        historical_va = pd.read_csv('./Data/Historical_VA.csv') 
+        historical_data = {'historical_va': historical_va, 'historical_va_quant_index': historical_va_quant_index}    
+        return historical_data
+
+if __name__ == '__main__':
+    BEA_api.get_data(years=list(range(1949, 2018)), table_name=go_nominal)
+

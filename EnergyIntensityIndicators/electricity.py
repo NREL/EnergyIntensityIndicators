@@ -260,13 +260,15 @@ class ElectricityIndicators(CalculateLMDI):
     # print(consumption_combustible_fuels_useful_thermal_output)
 
     def industrial_sector_chp_renew(self):
-        excel = win32.gencache.EnsureDispatch('Excel.Application') #, encoding='cp1252') # # Table 8.4C column P # TBtu
-        excel.Visible = True
-        wb = excel.Workbooks.Open(self.Table84c_url)
+        # excel = win32.gencache.EnsureDispatch('Excel.Application') #, encoding='cp1252') # # Table 8.4C column P # TBtu
+        # excel.Visible = True
+        # wb = excel.Workbooks.Open(self.Table84c_url)
+        wb = pd.read_excel(self.Table84c_url)
         print(wb)
-        wb.SaveAs('C:/Users/irabidea/Desktop/LMDI_Results/Table84c_2.xls'+"x", FileFormat = 51)    #FileFormat = 51 is for .xlsx extension
-        wb.Close()                               #FileFormat = 56 is for .xls extension
-        excel.Application.Quit()
+        exit()
+        # wb.SaveAs('C:/Users/irabidea/Desktop/LMDI_Results/Table84c_2.xls'+"x", FileFormat = 51)    #FileFormat = 51 is for .xlsx extension
+        # wb.Close()                               #FileFormat = 56 is for .xls extension
+        # excel.Application.Quit()
         wood_energy = pd.read_excel('C:/Users/irabidea/Desktop/Table84c.xls'+"x", index_col=0, usecols='P', skiprows=32, skipfooter=55).multiply(0.001)
         print(wood_energy)
         exit()
