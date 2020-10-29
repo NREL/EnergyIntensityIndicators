@@ -9,7 +9,7 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 
 class ElectricityIndicators(CalculateLMDI):
-
+    
     def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], base_year=1985):
         self.sub_categories_list = {'Elec Generation Total': 
                                         {'Elec Power Sector': 
@@ -65,10 +65,9 @@ class ElectricityIndicators(CalculateLMDI):
         # self.MER_T72b_1013_AnnualData = self.elec_power_eia.eia_api(id_='21')  #'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
         # self.MER_T72c_1013_AnnualData = self.elec_power_eia.eia_api(id_='2') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=2'
         self.energy_types = ['primary']
-        self.Table84c_url = r"https://www.eia.gov/totalenergy/data/annual/xls/stb0804c.xls" # elec_power_eia.eia_api(id_='456') 
-        self.Table82d_url = r"https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T07.02C"
-        self.Table85c_url = r'https://www.eia.gov/totalenergy/data/annual/xls/stb0805c.xls'
-        self.Table82c_url = r'https://www.eia.gov/totalenergy/data/annual/xls/stb0802c.xls'
+        self.Table84c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03C') # Consumption of combustible fuels for electricity generation: Commercial and industrial sectors (selected fuels) # elec_power_eia.eia_api(id_='456') 
+        self.Table85c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03B') # Consumption of combustible fuels for electricity generation: Electric power sector
+        self.Table82d = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.02C')
         super().__init__(sector='electric', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
     @staticmethod
@@ -260,19 +259,9 @@ class ElectricityIndicators(CalculateLMDI):
     # print(consumption_combustible_fuels_useful_thermal_output)
 
     def industrial_sector_chp_renew(self):
-        # excel = win32.gencache.EnsureDispatch('Excel.Application') #, encoding='cp1252') # # Table 8.4C column P # TBtu
-        # excel.Visible = True
-        # wb = excel.Workbooks.Open(self.Table84c_url)
-        wb = pd.read_excel(self.Table84c_url)
-        print(wb)
-        exit()
-        # wb.SaveAs('C:/Users/irabidea/Desktop/LMDI_Results/Table84c_2.xls'+"x", FileFormat = 51)    #FileFormat = 51 is for .xlsx extension
-        # wb.Close()                               #FileFormat = 56 is for .xls extension
-        # excel.Application.Quit()
-        wood_energy = pd.read_excel('C:/Users/irabidea/Desktop/Table84c.xls'+"x", index_col=0, usecols='P', skiprows=32, skipfooter=55).multiply(0.001)
-        print(wood_energy)
-        exit()
-        waste_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='R', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4C column R # TBtu
+
+        wood_energy = self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'].multiply(0.001)
+        waste_energy = self.Table84c[self.Table84c['Description'] == 'Waste Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column R # TBtu
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
@@ -281,10 +270,10 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def industrial_sector_chp_fossil(self):
-        coal_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='B', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4c column B # TBtu
-        petroleum_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='D', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4c column D # TBtu
-        natgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='F', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4c column F # TBtu
-        othgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='H', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4c column H # TBtu
+        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column B # TBtu
+        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column D # TBtu
+        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column F # TBtu
+        othgas_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column H # TBtu
 
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
@@ -301,8 +290,8 @@ class ElectricityIndicators(CalculateLMDI):
         """Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
         """    
-        hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4C11 column N
-        other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=32, skipfooter=55).multiply(0.001) # Table 8.4C11 column AB
+        hydroelectric_energy = None #.multiply(0.001) # Table 8.4C11 column N
+        other_energy = self.Table84c[self.Table84c['Description'] == 'Other Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C11 column AB
 
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d11 Column P
         other_activity = None #  self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column AD
@@ -313,8 +302,8 @@ class ElectricityIndicators(CalculateLMDI):
     def comm_sector_chp_renew(self):
         """As is, these are the same sources as ind sector, but should be different part of columns? 
         """    
-        wood_energy =  pd.read_excel(self.Table84c_url, index_col=0, usecols='P', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4C column P # TBtu
-        waste_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='R', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4C column R # TBtu
+        wood_energy =  self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column P # TBtu
+        waste_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column R # TBtu
 
         wood_activity = None # self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
@@ -323,10 +312,10 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def comm_sector_chp_fossil(self):
-        coal_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='B', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4c column B # TBtu
-        petroleum_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='D', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4c column D # TBtu
-        natgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='F', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4c column F # TBtu
-        othgas_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='H', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4c column H # TBtu
+        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column B # TBtu
+        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column D # TBtu
+        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column F # TBtu
+        othgas_energy = None #.multiply(0.001) # Table 8.4c column H # TBtu
 
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
@@ -344,19 +333,20 @@ class ElectricityIndicators(CalculateLMDI):
         """Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
         """    
-        hydroelectric_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='N', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4C11 column N
-        other_energy = pd.read_excel(self.Table84c_url, index_col=0, usecols='AB', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.4C11 column AB
+        hydroelectric_energy = None #.multiply(0.001) # Table 8.4C11 column N
+        other_energy = None # .multiply(0.001) # Table 8.4C11 column AB
 
         hydroelectric_activity = None # self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column P
-        other_activity = pd.read_excel(self.Table82d_url, sheet_name='Annual Data', skiprows=9, header=10, index_col=0, usecols='AD').multiply(0.001) # Table 8.2d11 Column AD
+        other_activity = None # self.Table82d contains 'Electricity Net Generation Total (including from sources not shown), Commercial Sector', 
+        #                                          could get "other" by subtracting other categories from ^ ?.multiply(0.001) # Table 8.2d11 Column AD
 
         data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
                      'Other': {'energy': {'primary': other_energy}, 'activity': other_activity}}
         return data_dict
 
     def elec_power_sector_chp_renew(self):
-        wood_energy =  pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.5C column R # TBtu
-        waste_energy = pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.5C column T # TBtu
+        wood_energy = self.Table85c[self.Table85c['Description'] == 'Wood Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5C column R # TBtu
+        waste_energy = self.Table85c[self.Table85c['Description'] == 'Waste Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5C column T # TBtu
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column T
@@ -384,7 +374,7 @@ class ElectricityIndicators(CalculateLMDI):
 
     def elec_power_sector_chp_total(self):
 
-        other_energy = pd.read_excel(self.Table85c_url, index_col=0, usecols='N', skiprows=8, skipfooter=31).multiply(0.001) # Table 8.5c column V
+        other_energy = self.Table85c[self.Table85c['Description'] == 'Other Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5c column V
         other_activty = None # self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2c columnAD
 
         data_dict = {'Other': {'energy': {'primary': other_energy}, 'activity': other_activty}}
