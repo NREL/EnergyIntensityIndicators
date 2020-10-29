@@ -111,35 +111,35 @@ class Manufacturing:
         """
         Call BEA API for gross ouput and value add by 3-digit NAICS.
         """
-        go_nominal = BEA_api.get_data(years=self.years, table_name='go_nominal')
-        va_nomial = BEA_api.get_data(years=self.years, table_name='va_nomial')
-        va_nominal_12 = va_nomial[2012]
-        
-        go_quant_index = BEA_api.get_data(years=self.years, table_name='go_quant_index')
-        va_quant_index = BEA_api.get_data(years=self.years, table_name='va_quant_index')
         historical_data = BEA_api.import_historical()
+
+        go_nominal = BEA_api.get_data(years=self.years, table_name='go_nominal')
+        go_quant_index = BEA_api.get_data(years=self.years, table_name='go_quant_index')
+        historical_go = historical_data['historical_go'] 
+        historical_go_qty_index = historical_data['historical_go_qty_index']
+    
+        va_nominal = BEA_api.get_data(years=self.years, table_name='va_nominal')
+        va_quant_index = BEA_api.get_data(years=self.years, table_name='va_quant_index')
         historical_va = historical_data['historical_va'] 
-        
-        # nonmanufacturing_index
-        value_added = historical_va.loc[['Agriculture, forestry, fishing, and hunting', 'Mining', 'Construction'], list(range(1969, 1997 + 1))]
-        value_added.loc[['Agriculture, forestry, fishing, and hunting', 'Mining', 'Construction'], 1998 : ] = va_nomial.loc[['  Agriculture, forestry, fishing, and hunting', '  Mining', '  Construction'], 1998 : ]
-        value_added.loc['Sum'] = value_added.sum(axis=0)
-        
-        quantity_index = historical_va.loc[['Agriculture, forestry, fishing, and hunting', 'Mining', 'Construction'], list(range(1969, 1997 + 1))]
-        quantity_index.loc[['Agriculture, forestry, fishing, and hunting', 'Mining', 'Construction'], 1998 : ] = va_nomial.loc[['  Agriculture, forestry, fishing, and hunting', '  Mining', '  Construction'], 1998 : ]
+        historical_va_qty_index = historical_data['historical_va_qty_index'] 
 
-        laspeyres_quantity
-        paasche_quantity = 
-        fisher_nonmanufacturing_relatives = 
-        industrial_quantity_index = 
-        quantity_index.loc[['Nonmanufacturing', 'Manufacturing'], :] = 
+        va_quant_index = va_quant_index.merge(historical_va_qty_index, left_index=True, right_index=True, how='outer')
+        go_quant_index = go_quant_index.merge(historical_go_qty_index, left_index=True, right_index=True, how='outer')
 
-
-        
+        va_nominal_12 = va_nominal[2012]
         transformed_va_quant_index = va_quant_index.multiply(va_nominal_12, index=1).multiply(.01)
+        transformed_va_quant_index = transformed_va_quant_index.transpose()
 
+        go_nominal_12 = va_nominal[2012]
+        transformed_go_quant_index = go_quant_index.multiply(go_nominal, index=1).multiply(.01)
+        transformed_go_quant_index = transformed_go_quant_index.transpose()
+        transformed_go_quant_index = transformed_go_quant_index.divide(transformed_go_quant_index.loc[self.base_year, :], axis=0)
+
+        go_over_va = transformed_go_quant_index.divide(transformed_va_quant_index)
+
+        
     @staticmethod
-    def interolate_mecs(mecs_fuel, ASMdata_010220_xlsx_data):
+    def interpolate_mecs(mecs_fuel, ASMdata_010220_xlsx_data):
         """
         Between-MECS-year interpolations are made in MECS_Annual_Fuel1
         and MECS_Annual_Fuel2 tabs in Ind_hap3 spreadsheet.
@@ -156,6 +156,59 @@ class Manufacturing:
         https://www.eia.gov/consumption/manufacturing/data/2014/
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4
         """
+
+        # ELEC
+        elec_nea = pd.read_csv('./Data/ELECNEA_historical.csv')
+        elechap3b = elec_nea.groupby('NAICS').sum()
+        nea_based_data =  # from elechap3b and ASM2
+        
+        mecs = # from [MECS_prices_101116b.xlsx]MECS_data_SIC
+        asm = # [Ind_hap3_101316.xlsx]ASM_Fuel_Cost_1985-88
+        mecs_asm_ratio = mecs.divide(asm)
+        mecs_based_expenditure = # from Expend_ratios_revised_1985-97 and Expend_ratios_revised
+        dollar_per_mmbtu =  # from quantity_shares_revised
+        jan_2020_estimate = mecs_based_expenditure.divide(dollar_per_mmbtu)
+        ratio_fuel_to_offsite = # from mixed sources
+        final_quantities_asm_85 = jan_2020_estimate.multiply(ratio_fuel_to_offsite)
+        asm_data = final_quantities_asm_85.loc[321:339, :] # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
+        asm.loc['311+312', :] = final_quantities_asm_85.loc[311:312, :].sum(axis=0)
+        asm.loc['313+314', :] = final_quantities_asm_85.loc[313:314, :].sum(axis=0)
+        asm.loc['315+316', :] = final_quantities_asm_85.loc[315:316, :].sum(axis=0)
+
+
+        link_ratio = asm[[1987]].divide(nea_based_data[1987])
+
+        nea_based_data_linked = nea_based_data.multiply(link_ratio, axis=1)
+
+        electricity_consumption = pd.concat([nea_based_data_linked, asm_data], axis=1)
+        electricity_consumption = electricity_consumption.transpose()
+
+        # FUELS
+        allfos = pd.read_csv('./Data/ALLFOS_historical.csv')
+        allfos = allfos.groupby('NAICS').sum()
+        allfos = allfos.loc[:, 1970:1988]
+        allfos_to_transfer = allfos.loc[321:339, :]
+        allfos_to_transfer.loc['311+312', :] = allfos.loc[311:312, :].sum(axis=0)
+        allfos_to_transfer.loc['313+314', :] = allfos.loc[313:314, :].sum(axis=0)
+        allfos_to_transfer.loc['315+316', :] = allfos.loc[315:316, :].sum(axis=0)
+
+        fuels_nea =  # fallhap3
+
+        mecs_published = 
+        table31_net_elec =  # different in years < 2010 and after
+        mecs_fuel = mecs_published.subtract(table31_net_elec)
+        mecs_fuel_to_transfer = mecs_fuel.loc[321:339, ['Net Elec', 'Total Fuel']]
+        mecs_fuel_to_transfer.loc['311+312', :] = mecs_fuel.loc[311:312, :].sum(axis=0)
+        mecs_fuel_to_transfer.loc['313+314', :] = mecs_fuel.loc[313:314, :].sum(axis=0)
+        mecs_fuel_to_transfer.loc['315+316', :] = mecs_fuel.loc[315:316, :].sum(axis=0)
+        mecs_interpolated_data = # USE STANDARD INTERPOLATION METHOD # from mecs_annual_fuel2
+        mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
+
+        link_ratio = mecs_interpolated_data[[1985]].divide(fuels_nea[1985])
+        nea_adjusted = fuels_nea.multiply(link_ratio)
+        combined_mecs_nea = pd.concat([nea_adjusted, mecs_interpolated_data], axis=1)
+
+
 
         return None
     

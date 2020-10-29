@@ -97,7 +97,7 @@ class NonManufacturing():
             fuels = miranowski_data[0].subtract(miranowski_data[0])
             electricity_intensity = elec_site.divide(0.001)
             fuels_intensity = fuels.divide(0.001)
-            input_for_indicators = pd.DataFrame([electricity_intesity, fuels_intensity, gross_output,
+            input_for_indicators = pd.DataFrame([electricity_intensity, fuels_intensity, gross_output,
                                                  value_added]).transpose().columns(['electricity_intesity', 
                                                                                     'fuels_intensity', 
                                                                                     'gross_output', 
