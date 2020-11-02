@@ -65,22 +65,33 @@ class CalculateLMDI:
         return df1_new, df2_new
 
     def get_elec(self, elec):
+        """Add 'Energy_Type' column to electricity dataframe
+        """        
         elec['Energy_Type'] = 'Electricity'
         print('Collected elec data')
         return elec
 
     def get_fuels(self, fuels):
+        """Add 'Energy_Type' column to fuels dataframe
+        """      
         fuels['Energy_Type'] = 'Fuels'
         print('Collected fuels data')
         return fuels
 
     def get_deliv(self, elec, fuels):
+        """Calculate delivered energy by adding electricity and fuels then add 'Energy_Type' 
+        column to the resulting delivered energy dataframe
+        """      
         delivered = elec.add(fuels.values)
         delivered['Energy_Type'] = 'Delivered'
         print('Calculated deliv data')
         return delivered
 
     def get_source(self, elec, fuels):
+        """Call conversion factors method from GetEIAData, calculate source energy from 
+        conversion_factors, electricity and fuels dataframe, then add 'Energy-Type' column 
+        to the resulting source energy dataframe
+        """        
         conversion_factors = GetEIAData(self.sector).conversion_factors()
         print('conversion_factors: \n', conversion_factors)
         conversion_factors, elec = self.ensure_same_indices(conversion_factors, elec)
@@ -91,6 +102,10 @@ class CalculateLMDI:
         return total_source
     
     def get_source_adj(self, elec, fuels):
+        """Call conversion factors method from GetEIAData, calculate source adjusted energy from 
+        conversion_factors, electricity and fuels dataframe, then add 'Energy-Type' column 
+        to the resulting source adjusted energy dataframe
+        """        
         conversion_factors = GetEIAData(self.sector).conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True)
         print('conversion_factors source adj: \n', conversion_factors)
                 
@@ -103,6 +118,9 @@ class CalculateLMDI:
         return source_adj
     
     def calculate_energy_data(self, e_type, energy_data):
+        """Calculate 'deliv', 'source', and 'source_adj' data from 
+        'fuels' and 'elec' dataframes contained in the energy_data dictionary. 
+        """
 
         funcs = {'elec': self.get_elec, 
                  'fuels': self.get_fuels, 
@@ -310,12 +328,24 @@ class CalculateLMDI:
                                 a_df[level_total] = a_df.sum(axis=1).values
                                 activity_[a_type] = a_df
 
-                        elif isinstance(energy, dict) and isinstance(activity_, dict):
-                            for e_type, energy_df in energy.items():
-                                pass # How to handle??
-                        else:
-                            pass
+                            category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                            unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                            category_lmdi["@filter|Energy_Type"] = e_type
+    
+                            final_fmt_results.append(category_lmdi)
 
+                        elif isinstance(energy, dict) and isinstance(activity_, dict):
+                            for a_type, a_df in activity_.items():
+                                a_df[level_total] = a_df.sum(axis=1).values
+                                activity_[a_type] = a_df
+
+                            for e_type, energy_df in energy.items():
+                                energy_df[level_total] = energy_df.sum(axis=1).values
+                                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                               unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                                category_lmdi["@filter|Energy_Type"] = e_type
+    
+                            final_fmt_results.append(category_lmdi)
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
@@ -495,8 +525,9 @@ class CalculateLMDI:
             activity_width = activity_input_data.shape[1]
         elif isinstance(activity_input_data, pd.Series):
             activity_width = 1
+        elif isinstance(activity_input_data, dict):
 
-        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_width)) #.multiply(unit_conversion_factor)
+
 
         if return_nominal_energy_intensity:
             return nominal_energy_intensity

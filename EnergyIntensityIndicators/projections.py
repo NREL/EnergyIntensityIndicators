@@ -9,51 +9,10 @@ class MakeProjections:
         pass
 
     def heating_cooling_degree_days():
-        # res_east_north_central_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_ENC_CDD.A'
-        # res_east_south_central_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_ESC_CDD.A'
-        # res_middle_atlantic_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_MATL_CDD.A'
-        # res_mountain_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_MTN_CDD.A'
-        # res_new_england_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_NENGL_CDD.A'
-        # res_pacific_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_PCF_CDD.A'
-        # res_south_atlantic_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_SATL_CDD.A'
-        # res_west_north_central_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_WNC_CDD.A'
-        # res_west_south_central_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_WSC_CDD.A'
-        # res_us_cdd = 'AEO.2020.AEO2019REF.KEI_CDD_RESD_NA_NA_NA_USA_CDD.A'
-
-        # res_east_north_central_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_ENC_HDD.A'
-        # res_east_south_central_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_ESC_HDD.A'
-        # res_middle_atlantic_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_MATL_HDD.A'
-        # res_mountain_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_MTN_HDD.A'
-        # res_new_england_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_NENGL_HDD.A'
-        # res_pacific_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_PCF_HDD.A'
-        # res_south_atlantic_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_SATL_HDD.A'
-        # res_west_north_central_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_WNC_HDD.A'
-        # res_west_south_central_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_WSC_HDD.A'
-        # res_us_hdd = 'AEO.2020.AEO2019REF.KEI_HDD_RESD_NA_NA_NA_USA_HDD.A'
-
-        # comm_east_north_central_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_ENC_CDD.A'
-        # comm_east_south_central_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_ESC_CDD.A'
-        # comm_middle_atlantic_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_MATL_CDD.A'
-        # comm_mountain_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_MTN_CDD.A'
-        # comm_new_england_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_NENGL_CDD.A'
-        # comm_pacific_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_PCF_CDD.A'
-        # comm_south_atlantic_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_SATL_CDD.A'
-        # comm_west_north_central_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_WNC_CDD.A'
-        # comm_west_south_central_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_WSC_CDD.A'
-        # comm_us_cdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_USA_CDD.A'
-
-        # comm_east_north_central_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_ENC_HDD.A'
-        # comm_east_south_central_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_ESC_HDD.A'
-        # comm_middle_atlantic_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_MATL_HDD.A'
-        # comm_mountain_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_MTN_HDD.A'
-        # comm_new_england_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_NENGL_HDD.A'
-        # comm_pacific_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_PCF_HDD.A'
-        # comm_south_atlantic_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_SATL_HDD.A'
-        # comm_west_north_central_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_WNC_HDD.A'
-        # comm_west_south_central_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_WSC_HDD.A'
-        # comm_us_hdd = 'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_USA_HDD.A'
-
         regions = ['ENC', 'ESC', 'MATL', 'MTN', 'NENGL', 'PCF', 'SATL', 'WNC', 'WSC', 'USA']
+        regions_abbrev_dict = {'ENC': 'east_north_central', 'ESC': 'east_south_central', 'MATL': 'middle_atlantic',
+                               'MTN': 'mountain', 'NENGL': 'new_england', 'PCF': 'pacific', 'SATL': 'south_atlantic',
+                               'WNC': 'west_north_central', 'WSC': 'west_south_central', 'USA': 'National'}
         type_days = ['HDD', 'CDD']
         for region in regions: 
             for t in type_days:
@@ -210,29 +169,42 @@ class MakeProjections:
         {energy_use: '', million_kwh: ''}
 
         electricity_categories = {'Elec Generation Total': 
-                                {'Elec Power Sector': 
-                                    {'Electricity Only':
-                                        {'Fossil Fuels': 
-                                            {'Coal':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_CL_NA_USA_BLNKWH.A'}, 'Petroleum':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_PET_NA_USA_BLNKWH.A'}, 'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A'}, 'Other Gasses':  {energy_use: '', million_kwh: ''}},
-                                         'Nuclear':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A'}, 
-                                         'Hydro Electric':  {energy_use: '', million_kwh: ''}, 
-                                         'Renewable':
-                                            {'Wood':  {energy_use: '', million_kwh: ''}, 'Waste':  {energy_use: '', million_kwh: ''}, 'Geothermal':  {energy_use: '', million_kwh: ''}, 'Solar':  {energy_use: '', million_kwh: ''}, 'Wind':  {energy_use: '', million_kwh: ''}}},
-                                     'Combined Heat & Power': 
-                                        {'Fossil Fuels'
-                                            {'Coal':  {energy_use: '', million_kwh: ''}, 'Petroleum':  {energy_use: '', million_kwh: ''}, 'Natural Gas':  {energy_use: '', million_kwh: ''}, 'Other Gasses':  {energy_use: '', million_kwh: ''}},
-                                         'Renewable':
-                                            {'Wood':  {energy_use: '', million_kwh: ''}, 'Waste':  {energy_use: '', million_kwh: ''}}}}, 
-                                'Commercial Sector':  {energy_use: '', million_kwh: ''}, 
-                                'Industrial Sector':  {energy_use: '', million_kwh: ''}},
-                              'All CHP':
-                                {'Elec Power Sector': 
-                                    {'Combined Heat & Power':
-                                        {'Fossil Fuels':
-                                            {'Coal':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_CL_NA_USA_BLNKWH.A'}, 'Petroleum':  {energy_use: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_PET_NA_USA_BLNKWH.A', million_kwh: ''}, 'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_NG_NA_USA_BLNKWH.A'}, 'Other Gasses':  {energy_use: '', million_kwh: ''}},
-                                        'Renewable':
-                                            {'Wood':  {energy_use: '', million_kwh: ''}, 'Waste':  {energy_use: '', million_kwh: ''}},
-                                        'Other':  {energy_use: '', million_kwh: ''}}}
+                                    {'Elec Power Sector': 
+                                        {'Electricity Only':
+                                            {'Fossil Fuels': 
+                                                {'Coal':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_CL_NA_USA_BLNKWH.A'}, 
+                                                'Petroleum':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_PET_NA_USA_BLNKWH.A'}, 
+                                                'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A'}, 
+                                                'Other Gasses':  {energy_use: '', million_kwh: ''}},
+                                            'Nuclear':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A'}, 
+                                            'Hydro Electric':  {energy_use: '', million_kwh: ''}, 
+                                            'Renewable':
+                                                {'Wood':  {energy_use: '', million_kwh: ''}, 'Waste':  {energy_use: '', million_kwh: ''}, 
+                                                'Geothermal':  {energy_use: '', million_kwh: ''}, 'Solar':  {energy_use: '', million_kwh: ''}, 
+                                                'Wind':  {energy_use: '', million_kwh: ''}}},
+                                        'Combined Heat & Power': 
+                                            {'Fossil Fuels'
+                                                {'Coal':  {energy_use: '', million_kwh: ''}, 
+                                                'Petroleum':  {energy_use: '', million_kwh: ''}, 
+                                                'Natural Gas':  {energy_use: '', million_kwh: ''}, 
+                                                'Other Gasses':  {energy_use: '', million_kwh: ''}},
+                                            'Renewable':
+                                                {'Wood':  {energy_use: '', million_kwh: ''}, 
+                                                'Waste':  {energy_use: '', million_kwh: ''}}}}, 
+                                    'Commercial Sector':  {energy_use: '', million_kwh: ''}, 
+                                    'Industrial Sector':  {energy_use: '', million_kwh: ''}},
+                                  'All CHP':
+                                    {'Elec Power Sector': 
+                                        {'Combined Heat & Power':
+                                            {'Fossil Fuels':
+                                                {'Coal':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_CL_NA_USA_BLNKWH.A'}, 
+                                                 'Petroleum':  {energy_use: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_PET_NA_USA_BLNKWH.A', million_kwh: ''}, 
+                                                 'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_CHP_NG_NA_USA_BLNKWH.A'}, 
+                                                 'Other Gasses':  {energy_use: '', million_kwh: ''}},
+                                             'Renewable':
+                                                {'Wood':  {energy_use: '', million_kwh: ''}, 
+                                                 'Waste':  {energy_use: '', million_kwh: ''}},
+                                             'Other':  {energy_use: '', million_kwh: ''}}}
 
         electricity_eia = GetEIAData('electricity')
         energy_use_electricity_electricity_us = electricity_eia.eia_api(id_='', id_type='series')
