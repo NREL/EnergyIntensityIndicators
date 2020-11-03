@@ -706,7 +706,8 @@ class CalculateLMDI:
         data = data.rename(columns={'Year': '@timeseries|Year', 'activity': "@filter|Measure|Activity", 
                                     'effect': "@filter|Measure|Effect", 'intensity': "@filter|Measure|Intensity", 
                                     'structure': "@filter|Measure|Structure"})
-        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|Effect", "@filter|Measure|Intensity"]]
+        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|Effect", \
+                     "@filter|Measure|Intensity"]]
         for i, l in enumerate(loa):
             label = f"@filter|Subsector_Level_{i + 1}"
             print('label, l:', label, l)
