@@ -14,7 +14,8 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 class CalculateLMDI:
     """Base class for LMDI"""
-    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, directory, output_directory, base_year=1985):
+    def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types, \
+                 directory, output_directory, base_year=1985):
         """
         Parameters
         ----------
@@ -293,7 +294,8 @@ class CalculateLMDI:
                 category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
                                                unit_conversion_factor=1, account_for_weather=account_for_weather, \
                                                save_results=save_breakout, loa=loa) 
-                category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
+                # Make sure this case only happens when there is one type
+                category_lmdi["@filter|Energy_Type"] = self.energy_types[0] 
                 final_results_list.append(category_lmdi)
 
             elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
@@ -522,12 +524,13 @@ class CalculateLMDI:
 
         nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), \
                                                                                                 activity_width)) 
-                                                                                                #.multiply(unit_conversion_factor)
+                                                                                    #.multiply(unit_conversion_factor)
         return nominal_energy_intensity
 
 
 
-    def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
+    def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1,\
+             return_nominal_energy_intensity=False):
         """Calculate the LMDI
 
         TODO: 
@@ -539,7 +542,8 @@ class CalculateLMDI:
             total_label (str): Name of the level of the level of aggregation representing the total of the current level. 
                                E.g. If categories are "Northeast", "South", etc, the total_label is "National"
             unit_conversion_factor (int, optional): [description]. Defaults to 1.
-            return_nominal_energy_intensity (bool, optional): If True, returns nominal energy intensity and does not calculate LMDI. Defaults to False.
+            return_nominal_energy_intensity (bool, optional): If True, returns nominal energy intensity and does 
+            not calculate LMDI. Defaults to False.
 
         Returns:
             [type]: [description]
@@ -549,16 +553,20 @@ class CalculateLMDI:
         energy_shares = self.calculate_shares(energy_input_data, total_label)
 
         if isinstance(activity_input_data, dict):
-            nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) for (activity, activity_df)\
+            nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) \
+                                                                                for (activity, activity_df)\
                                                                                 in activity_input_data.items()}
             if return_nominal_energy_intensity:
                 return nominal_energy_intensity
-            activity_shares = {activity: self.calculate_shares(activity_df, total_label) for (activity, activity_df) in activity_input_data.items()}
+            activity_shares = {activity: self.calculate_shares(activity_df, total_label) for \
+                                (activity, activity_df) in activity_input_data.items()}
             log_ratio_structure = []
             for activity, activity_shares in activity_shares.items():
                 # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
-                log_ratio_structure_activity = self.calculate_log_changes(activity_shares).rename(columns={col: f'{activity}_{col}' \
-                                                                                                 for col in activity_shares.columns}) 
+                log_ratio_structure_activity = self.calculate_log_changes(activity_shares).rename(columns={col: \
+                                                                                            f'{activity}_{col}' \
+                                                                                            for col in \
+                                                                                            activity_shares.columns}) 
                 log_ratio_structure.append(log_ratio_structure_activity)
             log_ratio_structure = pd.concat(log_ratio_structure, axis=0, ignore_index=True, join='outer')
 
@@ -724,11 +732,13 @@ class CalculateLMDI:
         x_data = ['initial_energy'] + list(x_data) + ['final_energy']
         y_data = data.ravel()
         x_labels = [x.replace("_", " ").capitalize() for x in x_data]
-
-        measure =  ['relative'] * len(list(x_labels)) # for example: ["relative", "relative", "total", "relative", "relative", "total"]
+        
+        # for example: ["relative", "relative", "total", "relative", "relative", "total"]
+        measure =  ['relative'] * len(list(x_labels)) 
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
                                      textposition="outside", text=figure_labels, y=y_data, 
-                                     connector={"line":{"color":"rgb(63, 63, 63)"}})) #  color_discrete_sequence=px.colors.qualitative.Vivid,
+                                     connector={"line":{"color":"rgb(63, 63, 63)"}}))
+                                      #  color_discrete_sequence=px.colors.qualitative.Vivid,
 
         fig.update_layout(title=title, showlegend = True)
 
