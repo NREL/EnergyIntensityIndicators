@@ -37,7 +37,8 @@ class MakeProjections:
         energy_use_commercial_electricity_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_ELC_NA_NA_QBTU.A', id_type='series')
         energy_use_commercial_total_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_TOT_NA_NA_QBTU.A', id_type='series')
         energy_use_commercial_delivered_energy_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_DELE_NA_NA_QBTU.A', id_type='series')
-
+        
+        commercial_total_floorspace = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A', id_type='series')
         activity_data =  
         energy_data = 
         
@@ -50,18 +51,20 @@ class MakeProjections:
                 - Value Added
             energy: Energy Consumption Trillion Btu
         """        
+
+        {'energy': {'elec': , 'deliv': }, 'activity': {'value_added': , 'gross_output': }} 
         # Industrial : Value of Shipments : Agriculture, Mining, and Construction, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NMFG_VOS_NA_USA_BLNY09DLR.A'
         # Industrial : Value of Shipments : Manufacturing, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_MANF_VOS_NA_USA_BLNY09DLR.A'
         # Industrial : Value of Shipments : Total, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NA_VOS_NA_USA_BLNY09DLR.A'
 
         industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
-                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
+                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': {'energy': {'elec': , 'deliv': }, 'activity': {'value_added': 'AEO.2020.AEO2019REF.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A', 'gross_output': }} , # vl
                                                'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
                                                'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
                                                'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
                                                'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
                                                'Furniture & Related Products': None, 'Miscellaneous': None},
-                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
+                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': {'Agriculture': {'energy': {'elec': 'AEO.2020.REF2020.CNSM_NA_IDAL_AGG_PRC_NA_NA_TRLBTU.A', 'deliv': }, 'activity': {'value_added': , 'gross_output': }} ,'Forestry': , 'Fishing': }, # here elec is purchased electricity, Note: try to find total elec
                                                   'Mining': {'Petroleum and Natural Gas': None, 
                                                              'Other Mining': None, 
                                                              'Petroleum drilling and Mining Services': None},
@@ -90,18 +93,25 @@ class MakeProjections:
         # Commercial Carriers? --> domestic air carriers: AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_DAC_NA_NA_TRLBTU.A
         #                          international air carriers: AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A
 
+        # Transportation Energy Use : Highway : Commercial Light Trucks, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_HWY_CML_NA_NA_TRLBTU.A
+        # Transportation Energy Use : Highway : Freight Trucks : Large, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_HWY_FGHT_LGT26KLBS_NA_TRLBTU.A
+        # Transportation Energy Use : Highway : Freight Trucks : Light Medium, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_HWY_FGHT_LITEMED_NA_TRLBTU.A
+        # Transportation Energy Use : Highway : Freight Trucks : Medium, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_HWY_FGHT_MD10T26KLB_NA_TRLBTU.A
+        # Transportation Energy Use : Highway : Freight Trucks, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_HWY_FGHT_NA_NA_TRLBTU.A
+
+        # Transportation Energy Use : Non-Highway : Rail : Freight, Reference, AEO2020: AEO.2020.REF2020.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A
         transportation_categories =  {'All_Passenger':
                                     {'Highway': 
                                         {'Passenger Cars and Trucks': 
                                             {'Passenger Car – SWB Vehicles': 
-                                                {'Passenger Car': {energy_use: '', activity_miles: ''}, 'SWB Vehicles': {energy_use: '', activity_miles: ''}},
+                                                {'Passenger Car': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_AUTO_NA_TRLBTU.A', activity_miles: ''}, 'SWB Vehicles': {energy_use: '', activity_miles: ''}}, # Transportation Energy Use : Highway : Light-Duty Vehicles : Automobiles, Reference, AEO2020
                                              'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks': {energy_use: '', activity_miles: ''}, 'LWB Vehicles': {energy_use: '', activity_miles: ''}},
-                                             'Motorcycles': {energy_use: '', activity_miles: ''}}, 
+                                                {'Light Trucks': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', activity_miles: ''}, 'LWB Vehicles': {energy_use: '', activity_miles: ''}}, # AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A
+                                             'Motorcycles': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_MCYCL_NA_TRLBTU.A', activity_miles: ''}}, 
                                         'Buses': 
-                                            {'Urban Bus': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_HWY_BUS_TNST_NA_TRLBTU.A', activity_miles: ''}, 
-                                            'Intercity Bus': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_HWY_BUS_ICYT_NA_TRLBTU.A', activity_miles: ''}, 
-                                            'School Bus': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_HWY_BUS_SCBU_NA_TRLBTU.A', activity_miles: ''}}, 
+                                            {'Urban Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_TNST_NA_TRLBTU.A', activity_miles: ''}, 
+                                            'Intercity Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_ICYT_NA_TRLBTU.A', activity_miles: ''}, 
+                                            'School Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_SCBU_NA_TRLBTU.A', activity_miles: ''}}, 
                                         'Paratransit':
                                             {energy_use: '', activity_miles: ''}}, 
                                     'Rail': 
@@ -110,16 +120,16 @@ class MakeProjections:
                                              'Heavy Rail': {energy_use: '', activity_miles: ''}, 
                                              'Light Rail': {energy_use: '', activity_miles: ''}}, 
                                         'Intercity Rail': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_PSG_ICYT_NA_TRLBTU.A', activity_miles: ''}}, 
-                                    'Air': {'Commercial Carriers': {energy_use: '', activity_miles: ''}, 'General Aviation': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_GAV_NA_NA_TRLBTU.A', activity_miles: ''}}}, 
+                                    'Air': {'Commercial Carriers': {'Domestic Air Carriers': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_DAC_NA_NA_TRLBTU.A', activity_miles: ''}, 'International Air Carriers': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A', activity_miles: ''}}, 'General Aviation': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_GAV_NA_NA_TRLBTU.A', activity_miles: ''}}}, 
                                 'All_Freight': 
                                     {'Highway': 
                                         {'Freight-Trucks': 
                                             {'Single-Unit Truck': {energy_use: '', activity_miles: ''}, 'Combination Truck': {energy_use: '', activity_miles: ''}}}, 
                                     'Rail': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', activity_miles: ''}, 
-                                    'Air': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', activity_miles: ''}, 
-                                    'Waterborne': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_WTR_FGT_NA_NA_TRLBTU.A', activity_miles: ''},
+                                    'Air': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', activity_miles: ''}, 
+                                    'Waterborne': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_WTR_DMT_NA_NA_TRLBTU.A', activity_miles: ''}, # This is only domestic-- is that correct?
                                     'Pipeline': 
-                                        {'Oil Pipeline': {energy_use: '', activity_miles: ''}, 'Natural Gas Pipeline': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_PIPL_NG_NA_NA_TRLBTU.A', activity_miles: ''}}}}, 
+                                        {'Oil Pipeline': {energy_use: '', activity_miles: ''}, 'Natural Gas Pipeline': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_PIPL_NG_NA_NA_TRLBTU.A', activity_miles: ''}}}}, 
 
         transportation_eia = GetEIAData('transportation')
         energy_use_transportation_electricity_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_ELC_NA_NA_QBTU.A', id_type='series')
@@ -150,6 +160,10 @@ class MakeProjections:
                                'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
                                'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None},
                                'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured Homes': None}}
+
+        self.sub_regions_dict = {'Northeast': {'New England': 'NENGL', 'Middle Atlantic': 'MATL'}, 'Midwest': {'East North Central': 'ENC', 'West North Central': 'WNC'}, 
+                                 'South': {'South Atlantic': 'SATL', 'East South Central': 'ESC', 'West South Central': 'WSC'}, 'West': {'Mountain': 'MTN', 'Pacific': 'PCF'}}
+
 
         residential_eia = GetEIAData('residential')
         energy_use_residential_electricity_us = residential_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_RESD_NA_ELC_NA_NA_QBTU.A', id_type='series')

@@ -259,13 +259,82 @@ class CalculateLMDI:
         results_dict[f'{level_name}'] = data_dict 
         yield results_dict
 
+    @staticmethod
+    def create_total_column(df, total_label):
+        df[total_label] = df.sum(axis=1).values
+        return df 
+
+    def calculate_breakout_lmdi(self, raw_results, final_results_list):
+        """If breakout=True, calculate LMDI for each lower aggregation level contained in raw_results.
+
+        Args:
+            raw_results (dictionary): Built "nest" of dictionaries containing input data for LMDI calculations
+            final_results_list (list): list to which calculate_breakout_lmdi appends LMDI results
+
+        Returns:
+            final_results_list [list]: list of LMDI results dataframes
+        """        
+        for key in raw_results.keys():
+            level_total = raw_results[key]['level_total']
+
+            if level_of_aggregation[-1] == level_total:
+                loa = [self.sector.capitalize()] + level_of_aggregation
+            else:
+                loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
+
+            energy = raw_results[key]['energy']
+            activity_ = raw_results[key]['activity']
+
+            if isinstance(energy, pd.DataFrame) and isinstance(activity_, pd.DataFrame):
+                energy = self.create_total_column(energy, level_total)
+                activity_ = self.create_total_column(activity_, level_total)
+                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                            unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa) 
+                category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
+                final_results_list.append(category_lmdi)
+
+            elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
+                for e_type, energy_df in energy.items():
+                    energy_df = self.create_total_column(energy_df, level_total)
+                    activity_ = self.create_total_column(activity_, level_total)
+
+                    category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                    category_lmdi["@filter|Energy_Type"] = e_type
+
+                    final_results_list.append(category_lmdi)
+
+            elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
+                energy[level_total] = energy.sum(axis=1).values
+
+                activity_ = {a_type: self.create_total_column(a_df, level_total) for (a_type, a_df) in activity_.items()}
+
+                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                category_lmdi["@filter|Energy_Type"] = e_type
+
+                final_results_list.append(category_lmdi)
+
+            elif isinstance(energy, dict) and isinstance(activity_, dict):
+                activity_ = {a_type: self.create_total_column(a_df, level_total) for (a_type, a_df) in activity_.items()}
+
+                for e_type, energy_df in energy.items():
+                    energy_df = self.create_total_column(energy_df, level_total)
+                    category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
+                                                    unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
+                    category_lmdi["@filter|Energy_Type"] = e_type
+
+                final_results_list.append(category_lmdi)
+
+        return final_results_list
+
+
     def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False, save_breakout=False, account_for_weather=False):
         """
         docstring
 
         TODO: 
             - Build in weather capabilities
-            - Allow for multiple activity dataframes (needed for the Residential sector)
         """
         final_fmt_results = []
 
@@ -274,11 +343,6 @@ class CalculateLMDI:
         level_of_aggregation = level_of_aggregation.split(".")
         level1_name = level_of_aggregation[-1]
 
-        print('categories', categories)
-        
-        print('level_of_aggregation', level_of_aggregation)
-        print('level1_name', level1_name)
-        
         data = self.collect_energy_data(raw_data)
 
         if self.sector == 'transportation': 
@@ -286,66 +350,12 @@ class CalculateLMDI:
             data = data[df_type_]
 
         results_dict = dict()
-        lmdi_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict, \
                                             level=1, level1_name=level1_name, breakout=breakout):
             if results_dict:
                 if breakout:
-                    for key in results_dict.keys():
-                        level_total = results_dict[key]['level_total']
-                        # loa_index = level_of_aggregation.index(level_total)
-                        # loa = level_of_aggregation[:loa_index + 1]
-                        if level_of_aggregation[-1] == level_total:
-                            loa = [self.sector.capitalize()] + level_of_aggregation
-                        else:
-                            loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
-                        print('LOA:', loa)
-                        print('level total: \n', level_total)
-
-                        energy = results_dict[key]['energy']
-                        activity_ = results_dict[key]['activity']
-
-                        if isinstance(energy, pd.DataFrame) and isinstance(activity_, pd.DataFrame):
-                            energy[level_total] = energy.sum(axis=1).values
-                            activity_[level_total] = activity_.sum(axis=1).values
-                            category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                        unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa) 
-                            category_lmdi["@filter|Energy_Type"] = self.energy_types[0] # Make sure this case only happens when there is one type
-                            final_fmt_results.append(category_lmdi)
-                        elif isinstance(energy, dict) and isinstance(activity_, pd.DataFrame):
-                            for e_type, energy_df in energy.items():
-                                energy_df[level_total] = energy_df.sum(axis=1).values
-                                activity_[level_total] = activity_.sum(axis=1).values
-                                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                            unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
-                                category_lmdi["@filter|Energy_Type"] = e_type
-    
-                                final_fmt_results.append(category_lmdi)
-
-                        elif isinstance(energy, pd.DataFrame) and isinstance(activity_, dict):
-                            energy[level_total] = energy.sum(axis=1).values
-                            for a_type, a_df in activity_.items():
-                                a_df[level_total] = a_df.sum(axis=1).values
-                                activity_[a_type] = a_df
-
-                            category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                            unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
-                            category_lmdi["@filter|Energy_Type"] = e_type
-    
-                            final_fmt_results.append(category_lmdi)
-
-                        elif isinstance(energy, dict) and isinstance(activity_, dict):
-                            for a_type, a_df in activity_.items():
-                                a_df[level_total] = a_df.sum(axis=1).values
-                                activity_[a_type] = a_df
-
-                            for e_type, energy_df in energy.items():
-                                energy_df[level_total] = energy_df.sum(axis=1).values
-                                category_lmdi = self.call_lmdi(energy_df, activity_, level_total, lmdi_models=self.lmdi_models, \
-                                                               unit_conversion_factor=1, account_for_weather=account_for_weather, save_results=save_breakout, loa=loa, energy_type=e_type) 
-                                category_lmdi["@filter|Energy_Type"] = e_type
-    
-                            final_fmt_results.append(category_lmdi)
+                    self.calculate_breakout_lmdi(results_dict, final_fmt_results)
+                    
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
@@ -353,7 +363,8 @@ class CalculateLMDI:
             total_energy_df = results_dict[level1_name]['energy'][e]
 
             if isinstance(total_activty_, dict):
-                # HOW TO DO THIS??
+                total_activty_ = {a_type: self.create_total_column(a_df, level_total) for (a_type, a_df) in total_activty_.items()}
+
                 pass
             elif isinstance(total_activty_, pd.DataFrame):
                 total_activty_df = total_activty_
@@ -362,11 +373,10 @@ class CalculateLMDI:
                         total_activty_df[key] = results_dict[key]['activity'][key].values
                         total_energy_df[key] = results_dict[key]['energy'][e][key].values
                 
-                total_activty_df[level1_name] = total_activty_df.sum(axis=1).values
-                total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
+                total_activty_df = self.create_total_column(total_activty_df, level1_name)
+                total_energy_df = self.create_total_column(total_activty_df, level1_name)
                 
                 if calculate_lmdi:
-                    print('loa/level_of_aggregation_:', level_of_aggregation_)
                     loa = [self.sector.capitalize()] + level_of_aggregation
                     final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name, \
                                                    lmdi_models=self.lmdi_models, unit_conversion_factor=1, \
@@ -379,9 +389,8 @@ class CalculateLMDI:
 
                 else:
                     total_results_by_energy_type[e] = {'activity': total_activty_df, 'energy': total_energy_df}
-        
-        final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
-        # save final_results to csv
+        if len(final_fmt_results) > 0: 
+            final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
         return total_results_by_energy_type, final_results
 
     @staticmethod
@@ -502,6 +511,18 @@ class CalculateLMDI:
         log_mean_weights_normalized = log_mean_weights_normalized.drop([c for c in log_mean_weights_normalized.columns if not c.startswith('log_mean_weights_')], axis=1)
         return log_mean_weights_normalized
 
+    @staticmethod
+    def nominal_energy_intensity(energy_input_data, activity_input_data):
+         if isinstance(activity_input_data, pd.DataFrame):
+            activity_width = activity_input_data.shape[1]
+        elif isinstance(activity_input_data, pd.Series):
+            activity_width = 1
+
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), activity_width)) #.multiply(unit_conversion_factor)
+        return nominal_energy_intensity
+
+
+
     def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1, return_nominal_energy_intensity=False):
         """Calculate the LMDI
 
@@ -520,20 +541,16 @@ class CalculateLMDI:
         """
         print('energy_input_data:', energy_input_data)
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
+        energy_shares = self.calculate_shares(energy_input_data, total_label)
 
-        if isinstance(activity_input_data, pd.DataFrame):
-            activity_width = activity_input_data.shape[1]
-        elif isinstance(activity_input_data, pd.Series):
-            activity_width = 1
-        elif isinstance(activity_input_data, dict):
-
-
-
+        if isinstance(activity_input_data, dict):
+            nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) for (activity, activity_df) in activity_input_data.items()}
+        else: 
+            nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data, activity_input_data)
+    
         if return_nominal_energy_intensity:
             return nominal_energy_intensity
 
-        energy_shares = self.calculate_shares(energy_input_data, total_label)
-        print('fresh energy shares:\n', energy_shares)
         activity_shares = self.calculate_shares(activity_input_data, total_label)
 
 
@@ -548,22 +565,15 @@ class CalculateLMDI:
         energy_shares = energy_shares.drop(cols_to_drop, axis=1)
 
 
-        print('energy shares here: \n', energy_shares)
         # E is the total energy consumption in industry, Q is the total industrial activitiy level
         log_ratio_intensity = self.calculate_log_changes(energy_shares) # ln(IT_i/I0_i) --> I_i = E_i / E,  I_i is the energy intensity of sector i
-        print('log_ratio_intensity: \n', log_ratio_intensity)
         log_ratio_activity = self.calculate_log_changes(activity_input_data[[total_label]])  # ln(QT/Q0)  --> Q = Q,  Q is the total insutrial activity level
-        print('log_ratio_activity: \n', log_ratio_activity)
         log_ratio_structure = self.calculate_log_changes(activity_shares) # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
-        print('log_ratio_structure: \n', log_ratio_structure)
 
         activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity.values, axis='columns')).sum(axis=1)
-        print('activity: \n', activity)
         structure = (log_mean_divisia_weights_normalized.multiply(log_ratio_structure.values, axis='columns')).sum(axis=1)
-        print('structure: \n', structure)
 
         intensity = (log_mean_divisia_weights_normalized.multiply(log_ratio_intensity.values, axis='columns')).sum(axis=1)
-        print('intensity: \n', intensity)
 
         if model == 'multiplicative':
             activity = np.exp(activity)
