@@ -221,7 +221,7 @@ class GetEIAData:
         national_calibration = electricity_df.merge(fuels_df, left_index=True, right_index=True, how='outer', suffixes=['_elec','_fuels'])
         return national_calibration
 
-    def conversion_factors(self, include_utility_sector_efficiency_in_total_energy_intensity=False):
+    def conversion_factors(self, include_utility_sector_efficiency=False):
         """Not sure if this is correct class method use
 
         Returns:
@@ -250,7 +250,7 @@ class GetEIAData:
         conversion_factors_df['source-site conversion factor'] = conversion_factors_df['Losses/Sales'].add(1)
         base_year_source_site_conversion_factor = conversion_factors_df.loc['1985', ['source-site conversion factor']].values[0]
         conversion_factors_df['conversion factor index'] = conversion_factors_df['source-site conversion factor'].div(base_year_source_site_conversion_factor)
-        if include_utility_sector_efficiency_in_total_energy_intensity:
+        if include_utility_sector_efficiency:
             conversion_factors_df['utility efficiency adjustment factor'] = conversion_factors_df['conversion factor index']
             conversion_factors_df['selected site-source conversion factor'] = conversion_factors_df['source-site conversion factor']
         else: 

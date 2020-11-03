@@ -6,13 +6,13 @@ from sklearn.linear_model import LinearRegression
 import math
 import os
 
-from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
 
 
 class WeatherFactors: 
-    def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, end_year=2018):
+    def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, \
+                 end_year=2018):
         self.end_year = end_year
         self.directory = directory
         self.sector = sector
@@ -20,34 +20,21 @@ class WeatherFactors:
         self.nominal_energy_intensity = nominal_energy_intensity
         self.residential_floorspace = residential_floorspace
         self.eia_data = GetEIAData(self.sector)
-        self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
-        self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 'east_north_central', 'west_north_central', 
-                                   'south', 'south_atlantic', 'east_south_central', 'west_south_central', 'west', 'mountain', 'pacific']
-        self.sub_regions_dict = {'northeast': ['New England', 'Middle Atlantic'], 'midwest': ['East North Central', 'West North Central'], 
-                                 'south': ['South Atlantic', 'East South Central', 'West South Central'], 'west': ['Mountain', 'Pacific']}
-        """
-        Table 5.2, RECS C&E 1993 (Household Energy Consumption and Expenditures 1993)
-        Table 5.14, RECS C&E 1993, calculated from kWh converted to Btu
-        Table 5.20, RECS C&E 1993
-        Table 5.2, RECS C&E 1993; Major energy sources, column 1.
-        Table 5.2, RECS C&E 1993; Major energy sources, column 3.
-        Table 5.11, RECS C&E 1993
-        Table 5.14, RECS C&E 1993 
-        Table 5.20, RECS C&E 1993
-        
-        EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices'!EY123"""
-
+        self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', 
+                                         sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
+        self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 
+                                   'east_north_central', 'west_north_central', 'south', 
+                                   'south_atlantic', 'east_south_central', 'west_south_central',
+                                   'west', 'mountain', 'pacific']
+        self.sub_regions_dict = {'northeast': ['New England', 'Middle Atlantic'], 
+                                 'midwest': ['East North Central', 'West North Central'], 
+                                 'south': ['South Atlantic', 'East South Central', 'West South Central'],
+                                 'west': ['Mountain', 'Pacific']}
+      
     @staticmethod
-    def adjust_data(subregions, hdd_by_division, hdd_activity_weights, cooling=True, cdd_by_division=None, cdd_activity_weights=None, use_weights_1961_90=True):
+    def adjust_data(subregions, hdd_by_division, hdd_activity_weights, cooling=True, cdd_by_division=None, \
+                    cdd_activity_weights=None, use_weights_1961_90=True):
         """Calculate weights for adjusted weather factors prediction
-
-        Args:
-            subregions ([type]): [description]
-            hdd_by_division ([type]): [description]
-            cdd_by_division ([type]): [description]
-
-        Returns:
-            [type]: [description]
         """        
 
         years_1961_90 = list(range(1961, 1990 + 1))
@@ -98,6 +85,9 @@ class WeatherFactors:
         return weights_dict
 
     def process_prices(self, weather_factors_df):
+        """TODO: Are distributed lag and time cubed ever the desired variable? 
+        Does this method need to exist?
+        """        
         lmdi_prices = self.lmdi_prices
         # distributed_lag = 
         # time_cubed = 
@@ -106,9 +96,12 @@ class WeatherFactors:
     
     @staticmethod
     def cbecs_1995_shares():
+        """Calculate fuels and elec shares for the commercial sector from CBECS 1995 data
+        """        
         electricty_consumption_tbtu = {'Northeast': 436, 'Midwest': 558, 'South': 1027, 'West': 587}
         electricty_consumption_tbtu['Total'] = sum(electricty_consumption_tbtu.values())
-        electricity_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', columns=['electricity_consumption_tbtu'])
+        electricity_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', \
+                                                columns=['electricity_consumption_tbtu'])
 
         energy_tbtu = {'Northeast': 1035, 'Midwest': 1497, 'South': 1684, 'West': 1106}
         energy_tbtu['Total'] = sum(energy_tbtu.values())
@@ -117,21 +110,20 @@ class WeatherFactors:
         shares_df = energy_df.merge(electricity_df, left_index=True, right_index=True, how='outer')
 
 
-        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', 'electricity_consumption_tbtu'])
+        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', \
+                                                                                'electricity_consumption_tbtu'])
         shares_df['fuel_consumption'] = shares_df.energy.subtract(shares_df.electricity_consumption_tbtu)
         shares_df['fuels_share'] = shares_df.fuel_consumption.divide(shares_df.loc['Total', 'fuel_consumption'])
         return shares_df
 
     @staticmethod 
     def recs_1993_shares():
-        """Need to fill this in
-
-        Returns:
-            [type]: [description]
+        """Calculate fuels and elec shares for the residential sector from RECS 1993 data
         """        
         electricty_consumption_tbtu = {'Northeast': 470, 'Midwest': 740, 'South': 1510, 'West': 560}
         electricty_consumption_tbtu['Total'] = sum(electricty_consumption_tbtu.values())
-        electricity_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', columns=['electricity_consumption_tbtu'])
+        electricity_df = pd.DataFrame.from_dict(electricty_consumption_tbtu, orient='index', \
+                                                columns=['electricity_consumption_tbtu'])
 
         energy_tbtu = {'Northeast': 2380, 'Midwest': 3130, 'South': 2950, 'West': 1550}
         energy_tbtu['Total'] = sum(energy_tbtu.values())
@@ -140,19 +132,14 @@ class WeatherFactors:
         shares_df = energy_df.merge(electricity_df, left_index=True, right_index=True, how='outer')
 
 
-        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', 'electricity_consumption_tbtu'])
+        shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', \
+                                                                         'electricity_consumption_tbtu'])
         shares_df['fuel_consumption'] = shares_df.energy.subtract(shares_df.electricity_consumption_tbtu)
         shares_df['fuels_share'] = shares_df.fuel_consumption.divide(shares_df.loc['Total', 'fuel_consumption'])
         return shares_df
 
     def regional_shares(self, dataframe, cols):
         """Calulate shares of regional totals by subregion
-
-        Args:
-            dataframe ([type]): [description]
-
-        Returns:
-            [type]: [description]
         """        
         dataframe = dataframe.set_index('regions_subregions')
         weights_data = dict()
@@ -172,14 +159,18 @@ class WeatherFactors:
         """Calculate weights to aggregate subregions into four regions
         """        
         if self.sector == 'residential':
-            electricity_data = {'total_elec_tbtu': {'northeast': 470, 'midwest': 740, 'south': 1510,
-                                    'west': 560}, 'heating_tbtu': {'northeast': 12 * 3.412, 'midwest': 22 * 3.412, 'south': 61 * 3.412,
-                                    'west': 25 * 3.412}, 'cooling_tbtu': {'northeast': 40, 'midwest': 80, 'south': 310,
-                                    'west': 30}}
-            fuels_data = {'all_energy_tbtu': {'northeast': 2380, 'midwest': 3130, 'south': 2950,
-                                    'west': 1550}, 'electricity_tbtu': {'northeast': 470, 'midwest': 740, 'south': 1510,
-                                    'west': 560}, 'heating_all_energy_tbtu': {'northeast': 1490, 'midwest': 1920, 'south': 1210,
-                                    'west': 700}}
+            electricity_data = {'total_elec_tbtu': {'northeast': 470, 'midwest': 740, 
+                                                    'south': 1510, 'west': 560}, 
+                                'heating_tbtu': {'northeast': 12 * 3.412, 'midwest': 22 * 3.412, 
+                                                 'south': 61 * 3.412, 'west': 25 * 3.412}, 
+                                'cooling_tbtu': {'northeast': 40, 'midwest': 80, 
+                                                 'south': 310, 'west': 30}}
+            fuels_data = {'all_energy_tbtu': {'northeast': 2380, 'midwest': 3130, 
+                                              'south': 2950, 'west': 1550}, 
+                          'electricity_tbtu': {'northeast': 470, 'midwest': 740, 
+                                               'south': 1510, 'west': 560}, 
+                          'heating_all_energy_tbtu': {'northeast': 1490, 'midwest': 1920, 
+                                                      'south': 1210, 'west': 700}}
             # Residential Heating Households Millions
             heating_activity = [4.1, 1, 3.1, 5.8, 3.5, 2.4, 18.8, 10.7, 3.4, 4.8, 8.3, 2, 6.3]
             # Residential Cooling Households Millions
@@ -188,13 +179,17 @@ class WeatherFactors:
             electricity = [1.9, 0.5, 1.4, 2.9, 1.6, 1.3, 14.6, 8.7, 2.5, 3.4, 5.6, 1.4, 4.2]
 
         elif self.sector == 'commercial':
-            electricity_data = {'total_elec_tbtu': {'northeast': 436, 'midwest': 558, 'south': 1027,
-                                    'west': 587}, 'heating_tbtu': {'northeast': 18, 'midwest': 23, 'south': 43,
-                                    'west': 28}, 'cooling_tbtu': {'northeast': 44, 'midwest': 60, 'south': 172,
-                                    'west': 64}}
-            fuels_data = {'all_energy_tbtu': {'northeast': 1035, 'midwest': 1497, 'south': 1684,
-                                    'west': 1106}, 'electricity_tbtu': {'northeast': 436, 'midwest': 558, 'south': 1027,
-                                    'west': 587}, 'heating_all_energy_tbtu': {'northeast': 385, 'midwest': 668, 'south': 376,
+            electricity_data = {'total_elec_tbtu': {'northeast': 436, 'midwest': 558, 
+                                                    'south': 1027, 'west': 587}, 
+                                 'heating_tbtu': {'northeast': 18, 'midwest': 23, 
+                                                  'south': 43, 'west': 28}, 
+                                 'cooling_tbtu': {'northeast': 44, 'midwest': 60, 
+                                                  'south': 172, 'west': 64}}
+            fuels_data = {'all_energy_tbtu': {'northeast': 1035, 'midwest': 1497, 
+                                              'south': 1684, 'west': 1106}, 
+                          'electricity_tbtu': {'northeast': 436, 'midwest': 558, 
+                                               'south': 1027, 'west': 587}, 
+                          'heating_all_energy_tbtu': {'northeast': 385, 'midwest': 668, 'south': 376,
                                     'west': 275}}
             # Commercial Heating Floorspace Million SF
             heating_activity = [657, 137, 520, 779, 345, 434, 3189, 1648, 1140, 401, 1219, 469, 750]
@@ -284,10 +279,6 @@ class WeatherFactors:
             x_values = comm_regional_shares_ln[region].values
             X = x_values.transpose()
             y = regional_shares_residential_housing_units_cbecs_years_ln[region].values
-
-            # reg = LinearRegression().fit(X, y)
-            # prediction = reg.predict(regional_shares_residential_housing_units_ln[region])
-            # predictions_df[region] = prediction
 
             p = np.polyfit(X, y, 1)
             predictions_df[region] = np.exp(regional_shares_residential_housing_units_ln[region].multiply(p[0]).add(p[1]))
@@ -405,7 +396,6 @@ class WeatherFactors:
         #     return weather_factor
         else:
             raise KeyError(f'Missing valid energy type. Type given: {energy_type}')
-            exit()
 
         actual_intensity.index = actual_intensity.index.astype(int)  
         data = X_data.merge(actual_intensity, left_index=True, right_index=True, how='inner').dropna()
@@ -503,16 +493,15 @@ class WeatherFactors:
 
     
     def adjust_for_weather(self, data, energy_type):
-        """purpose
+        """Adjust data by weather factors
             Parameters
             ----------
             data: dataframe
                 dataset to adjust by weather
             weather_factors: array?
-                description
             Returns
             -------
-            weather_adjusted_data: dataframe ? 
+            weather_adjusted_data: dataframe ?
         """
         weather_factors = self.national_method1_fixed_end_use_share_weights(energy_type)
         weather_adjusted_data = data / weather_factors[energy_type]
@@ -560,14 +549,8 @@ class WeatherFactors:
                 weather_factors[type] = weather_factors_t
             return weather_factors
 
-# if __name__ == '__main__':
-#     weather = WeatherFactors(sector='commercial', directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', activity_data=)
-#     weather.get_weather()
+if __name__ == '__main__':
+    pass
 
-
-
-"""RESIDENTIAL NOTE: The methodology for the est_imation of “weather factors” is the same as the one set out at the beginning
-of this summary write-up with one addition/modification. The weather factors are applied at the
-regional level to generate the weather-normalized intensity indexes for each of the four census regions."""
 
 
