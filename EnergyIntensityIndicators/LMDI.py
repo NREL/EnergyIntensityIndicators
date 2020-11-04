@@ -267,7 +267,7 @@ class CalculateLMDI:
         df[total_label] = df.sum(axis=1).values
         return df 
 
-    def calculate_breakout_lmdi(self, raw_results, final_results_list):
+    def calculate_breakout_lmdi(self, raw_results, final_results_list, level_of_aggregation, account_for_weather, save_breakout):
         """If breakout=True, calculate LMDI for each lower aggregation level contained in raw_results.
 
         Args:
@@ -276,6 +276,9 @@ class CalculateLMDI:
 
         Returns:
             final_results_list [list]: list of LMDI results dataframes
+        
+        TODO: Lower level Total structure (product of each structure index for multiplicative) and component 
+        intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
         """        
         for key in raw_results.keys():
             level_total = raw_results[key]['level_total']
@@ -363,7 +366,8 @@ class CalculateLMDI:
                                             level=1, level1_name=level1_name, breakout=breakout):
             if results_dict:
                 if breakout:
-                    self.calculate_breakout_lmdi(results_dict, final_fmt_results)
+                    self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, \
+                                                 account_for_weather, save_breakout)
                     
 
         total_results_by_energy_type = dict()
@@ -421,10 +425,7 @@ class CalculateLMDI:
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-        print('dataset:\n ', dataset)
         shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
-        print('shares:\n ', shares)
-
         return shares
 
     @staticmethod
@@ -470,6 +471,10 @@ class CalculateLMDI:
 
     def log_mean_weights_multiplicative(self, energy_data, energy_shares, total_label):
         """Calculate log mean weights where T = t, 0 = t-1
+
+        Multiplicative model uses the LMDI-II model because 'the weights...sum[] to unity, a 
+        desirable property in index construction.' (Ang, B.W., 2015. LMDI decomposition approach: A guide for 
+                                        implementation. Energy Policy 86, 233-238.).
         """
 
         log_mean_weights = pd.DataFrame(index=energy_data.index)
@@ -485,20 +490,22 @@ class CalculateLMDI:
         log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
         return log_mean_weights_normalized
     
-    def log_mean_weights_additive(self, energy_data, energy_shares, total_label):
+    def log_mean_weights_additive(self, energy_data, energy_shares, total_label, lmdi_type='LMDI-I'):
         """Calculate log mean weights for the additive model where T=t, 0 = t - 1
+
+        Args:
+            energy_data (dataframe): energy consumption data
+            energy_shares (dataframe): Shares of total energy for each category in level of aggregation
+            total_label (str): Name of aggregation of categories in level of aggregation
+            lmdi_type (str, optional): 'LMDI-I' or 'LMDI-II'. Defaults to 'LMDI-I' because it is 'consistent in aggregation and perfect 
+                                        in decomposition at the subcategory level' (Ang, B.W., 2015. LMDI decomposition approach: A guide for 
+                                        implementation. Energy Policy 86, 233-238.).
         """        
+
         log_mean_shares_labels = [f"log_mean_shares_{col}" for col in energy_shares.columns]
         log_mean_weights = pd.DataFrame(index=energy_data.index)
 
         for col in energy_shares.columns: 
-            energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-             # apply generally not preferred for row-wise operations but?
-            log_mean_shares = energy_shares[[col, f"{col}_shift"]].apply(lambda row: 
-                                                                   self.logarithmic_average(row[col], \
-                                                                        row[f"{col}_shift"]), axis=1)
-            energy_shares[f"log_mean_shares_{col}"] = log_mean_shares
-
             energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
 
             # apply generally not preferred for row-wise operations but?
@@ -506,18 +513,28 @@ class CalculateLMDI:
                                                                 self.logarithmic_average(row[col],
                                                                  row[f"{col}_shift"]), axis=1) 
 
+            energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
+             # apply generally not preferred for row-wise operations but?
+            log_mean_shares = energy_shares[[col, f"{col}_shift"]].apply(lambda row: 
+                                                                   self.logarithmic_average(row[col], \
+                                                                        row[f"{col}_shift"]), axis=1)
+            energy_shares[f"log_mean_shares_{col}"] = log_mean_shares
+
             log_mean_weights[f'log_mean_weights_{col}'] = log_mean_shares * log_mean_values
         
-        sum_log_mean_shares = energy_shares[log_mean_shares_labels].sum(axis=1)
-        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
+        if lmdi_type == 'LMDI-I':
+            return log_mean_values
+        elif lmdi_type == 'LMDI-II':
+            sum_log_mean_shares = energy_shares[log_mean_shares_labels].sum(axis=1)
+            log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
 
-        log_mean_weights_normalized = log_mean_weights_normalized.drop([c for c in log_mean_weights_normalized.columns \  
-                                                                        if not c.startswith('log_mean_weights_')], axis=1)
-        return log_mean_weights_normalized
+            log_mean_weights_normalized = log_mean_weights_normalized.drop([c for c in log_mean_weights_normalized.columns \
+                                                                            if not c.startswith('log_mean_weights_')], axis=1)
+            return log_mean_weights_normalized
 
     @staticmethod
     def nominal_energy_intensity(energy_input_data, activity_input_data):
-         if isinstance(activity_input_data, pd.DataFrame):
+        if isinstance(activity_input_data, pd.DataFrame):
             activity_width = activity_input_data.shape[1]
         elif isinstance(activity_input_data, pd.Series):
             activity_width = 1
@@ -529,7 +546,7 @@ class CalculateLMDI:
 
 
 
-    def lmdi(self, model, activity_input_data, energy_input_data, total_label=None, unit_conversion_factor=1,\
+    def lmdi(self, model, activity_input_data, energy_input_data, lmdi_type=None, total_label=None, unit_conversion_factor=1,\
              return_nominal_energy_intensity=False):
         """Calculate the LMDI
 
@@ -589,7 +606,7 @@ class CalculateLMDI:
                                                                                        energy_shares, total_label)
         elif model == 'additive':
             log_mean_divisia_weights_normalized = self.log_mean_weights_additive(energy_input_data, \
-                                                                                 energy_shares, total_label)
+                                                                                 energy_shares, total_label, lmdi_type=lmdi_type)
             cols_to_drop1 = [col for col in energy_shares.columns if col.startswith('log_mean_shares_')]
             energy_shares = energy_shares.drop(cols_to_drop1, axis=1)
 
@@ -628,7 +645,7 @@ class CalculateLMDI:
         return df
 
     def call_lmdi(self, energy_data, activity_data, total_label, lmdi_models, unit_conversion_factor,\
-                  account_for_weather, save_results, loa=None, energy_type=None):
+                  account_for_weather, save_results, lmdi_type=None, loa=None, energy_type=None):
         results = dict()
 
         if account_for_weather: 
@@ -640,7 +657,7 @@ class CalculateLMDI:
             results['multiplicative'] = multiplicative_results
             
         if 'additive' in lmdi_models: 
-            additive_results = self.lmdi('additive', activity_data, energy_data, total_label,  \
+            additive_results = self.lmdi('additive', activity_data, energy_data, lmdi_type, total_label,  \
                                          unit_conversion_factor)
             results['additive'] = additive_results
 

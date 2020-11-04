@@ -88,7 +88,7 @@ class MakeProjections:
                 - Ton-miles [T-M] (Freight)
             energy: Energy Consumption Trillion Btu
         """        
-        {energy_use: '', activity_miles: ''}
+        {energy_use: '', 'activity': ''}
 
         # Commercial Carriers? --> domestic air carriers: AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_DAC_NA_NA_TRLBTU.A
         #                          international air carriers: AEO.2020.AEO2019REF.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A
@@ -104,32 +104,32 @@ class MakeProjections:
                                     {'Highway': 
                                         {'Passenger Cars and Trucks': 
                                             {'Passenger Car – SWB Vehicles': 
-                                                {'Passenger Car': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_AUTO_NA_TRLBTU.A', activity_miles: ''}, 'SWB Vehicles': {energy_use: '', activity_miles: ''}}, # Transportation Energy Use : Highway : Light-Duty Vehicles : Automobiles, Reference, AEO2020
+                                                {'Passenger Car': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_AUTO_NA_TRLBTU.A', 'activity': ''}, 'SWB Vehicles': {'energy_use': '', 'activity': ''}}, # Transportation Energy Use : Highway : Light-Duty Vehicles : Automobiles, Reference, AEO2020
                                              'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', activity_miles: ''}, 'LWB Vehicles': {energy_use: '', activity_miles: ''}}, # AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A
-                                             'Motorcycles': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_MCYCL_NA_TRLBTU.A', activity_miles: ''}}, 
+                                                {'Light Trucks': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', 'activity': ''}, 'LWB Vehicles': {'energy_use': '', 'activity': ''}}, # AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A
+                                             'Motorcycles': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_MCYCL_NA_TRLBTU.A', 'activity': ''}}, 
                                         'Buses': 
-                                            {'Urban Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_TNST_NA_TRLBTU.A', activity_miles: ''}, 
-                                            'Intercity Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_ICYT_NA_TRLBTU.A', activity_miles: ''}, 
-                                            'School Bus': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_SCBU_NA_TRLBTU.A', activity_miles: ''}}, 
+                                            {'Urban Bus': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_TNST_NA_TRLBTU.A', 'activity': ''}, 
+                                            'Intercity Bus': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_ICYT_NA_TRLBTU.A', 'activity': ''}, 
+                                            'School Bus': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_SCBU_NA_TRLBTU.A', 'activity': ''}}, 
                                         'Paratransit':
-                                            {energy_use: '', activity_miles: ''}}, 
+                                            {'energy_use': '', 'activity': ''}}, 
                                     'Rail': 
                                         {'Urban Rail': 
-                                            {'Commuter Rail': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_PSG_CMTR_NA_TRLBTU.A', activity_miles: ''},
-                                             'Heavy Rail': {energy_use: '', activity_miles: ''}, 
-                                             'Light Rail': {energy_use: '', activity_miles: ''}}, 
-                                        'Intercity Rail': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_PSG_ICYT_NA_TRLBTU.A', activity_miles: ''}}, 
-                                    'Air': {'Commercial Carriers': {'Domestic Air Carriers': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_DAC_NA_NA_TRLBTU.A', activity_miles: ''}, 'International Air Carriers': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A', activity_miles: ''}}, 'General Aviation': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_GAV_NA_NA_TRLBTU.A', activity_miles: ''}}}, 
+                                            {'Commuter Rail': {'energy_use': 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_PSG_CMTR_NA_TRLBTU.A', 'activity': ''},
+                                             'Heavy Rail': {'energy_use': '', 'activity': ''}, 
+                                             'Light Rail': {'energy_use': '', 'activity': ''}}, 
+                                        'Intercity Rail': {'energy_use': 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_PSG_ICYT_NA_TRLBTU.A', 'activity': ''}}, 
+                                    'Air': {'Commercial Carriers': {'Domestic Air Carriers': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_DAC_NA_NA_TRLBTU.A', 'activity': ''}, 'International Air Carriers': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A', 'activity': ''}}, 'General Aviation': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_GAV_NA_NA_TRLBTU.A', 'activity': ''}}}, 
                                 'All_Freight': 
                                     {'Highway': 
                                         {'Freight-Trucks': 
-                                            {'Single-Unit Truck': {energy_use: '', activity_miles: ''}, 'Combination Truck': {energy_use: '', activity_miles: ''}}}, 
-                                    'Rail': {energy_use: 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', activity_miles: ''}, 
-                                    'Air': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', activity_miles: ''}, 
-                                    'Waterborne': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_WTR_DMT_NA_NA_TRLBTU.A', activity_miles: ''}, # This is only domestic-- is that correct?
+                                            {'Single-Unit Truck': {'energy_use': '', 'activity': ''}, 'Combination Truck': {'energy_use': '', 'activity': ''}}}, 
+                                    'Rail': {'energy_use': 'AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', 'activity': ''}, 
+                                    'Air': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', 'activity': ''}, 
+                                    'Waterborne': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_WTR_DMT_NA_NA_TRLBTU.A', 'activity': ''}, # This is only domestic-- is that correct?
                                     'Pipeline': 
-                                        {'Oil Pipeline': {energy_use: '', activity_miles: ''}, 'Natural Gas Pipeline': {energy_use: 'AEO.2020.REF2020.CNSM_NA_TRN_PIPL_NG_NA_NA_TRLBTU.A', activity_miles: ''}}}}, 
+                                        {'Oil Pipeline': {'energy_use': '', 'activity': ''}, 'Natural Gas Pipeline': {'energy_use': 'AEO.2020.REF2020.CNSM_NA_TRN_PIPL_NG_NA_NA_TRLBTU.A', 'activity': ''}}}}, 
 
         transportation_eia = GetEIAData('transportation')
         energy_use_transportation_electricity_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_ELC_NA_NA_QBTU.A', id_type='series')
@@ -149,7 +149,7 @@ class MakeProjections:
             energy: Energy Consumption Trillion Btu
         """        
         {energy_use: '', occupied_housing_units: '', floorspace: ''}
-
+        {'energy': {'elec': 'AEO.2020.REF2020.CNSM_ENU_RESD_NA_ELC_NA_NEENGL_QBTU.A', 'deliv': 'AEO.2020.REF2020.CNSM_ENU_RESD_NA_DELE_NA_NEENGL_QBTU.A'}, 'activity': {'occupied_housing_units': , 'floorspace': }}  
         # Residential : Key Indicators : Average House Square Footage, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_HHD_RESD_NA_NA_NA_USA_SQFT.A'
         # Residential : Key Indicators : Households : Mobile Homes, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_HHD_RESD_MBH_NA_NA_USA_MILL.A'
         # Residential : Key Indicators : Households : Multifamily, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.KEI_HHD_RESD_MFR_NA_NA_USA_MILL.A'
