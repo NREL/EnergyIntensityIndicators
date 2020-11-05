@@ -39,10 +39,12 @@ class MakeProjections:
         energy_use_commercial_delivered_energy_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_DELE_NA_NA_QBTU.A', id_type='series')
         
         commercial_total_floorspace = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A', id_type='series')
-        activity_data =  
-        energy_data = 
+
+        data_dict = {'Commercial_Total': {'energy': {'elec': energy_use_commercial_electricity_us, 'deliv': energy_use_commercial_delivered_energy_us}, 
+                                          'activity': commercial_total_floorspace}, 
+                     'Total_Commercial_LMDI_UtilAdj': None}
         
-        pass
+        return data_dict
     
     def industrial_projections(self):
         """activity: 
@@ -57,18 +59,59 @@ class MakeProjections:
         # Industrial : Value of Shipments : Manufacturing, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_MANF_VOS_NA_USA_BLNY09DLR.A'
         # Industrial : Value of Shipments : Total, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NA_VOS_NA_USA_BLNY09DLR.A'
 
-        industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
-                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': {'energy': {'elec': , 'deliv': }, 'activity': {'value_added': 'AEO.2020.AEO2019REF.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A', 'gross_output': }} , # vl
-                                               'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
-                                               'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
-                                               'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
-                                               'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
-                                               'Furniture & Related Products': None, 'Miscellaneous': None},
-                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': {'Agriculture': {'energy': {'elec': 'AEO.2020.REF2020.CNSM_NA_IDAL_AGG_PRC_NA_NA_TRLBTU.A', 'deliv': }, 'activity': {'value_added': , 'gross_output': }} ,'Forestry': , 'Fishing': }, # here elec is purchased electricity, Note: try to find total elec
+        industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': {'Food Industry': {'energy': {'elec': , 'deliv': }, 
+                                                                                                    'activity': {'value_added': , 
+                                                                                                                 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_FDP_NA_NA_NA_BLNY09DLR.A'}} }, 
+                                                                                  'Textile Mills and Products': {'energy': {'elec': {'purchased_electricity': , ''}, 'deliv': }, 
+                                                                                                                 'activity': {'value_added': '', 'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_TMP_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Apparel & Leather': {'energy': {'elec': , 'deliv': }, 
+                                                                                                        'activity': {'value_added': '', 'gross_output': }}, , 
+                                                                                  'Wood Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                    'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_SHP_IDAL_WDP_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Paper': {'energy': {'elec': , 'deliv': }, 
+                                                                                            'activity': {'value_added': 'AEO.2020.AEO2019REF.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A', 
+                                                                                                         'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A'}} , # vl
+                                                                                  'Printing & Allied Support': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                'activity': {'value_added': '', 'gross_output': }}, # shipments printing: AEO.2020.REF2020.ECI_VOS_MANF_PRN_NA_NA_NA_BLNY09DLR.A
+                                                                                  'Petroleum & Coal Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                'activity': {'value_added': '', 'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_PCL_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Chemicals': {'energy': {'elec': , 'deliv': }, 
+                                                                                                'activity': {'value_added': '', 
+                                                                                                             'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_BCH_NA_NA_NA_BLNY09DLR.A'}}, # This is for bulk chemicals?
+                                                                                  'Plastics & Rubber Products': {'Plastics': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                              'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_SHP_IDAL_PLI_NA_NA_NA_BLNY09DLR.A'}}, 
+                                                                                                                 'Rubber Products': None}, , # Shipments of plastics and rubber products: 'AEO.2020.REF2020.ECI_VOS_MANF_PRP_NA_NA_NA_BLNY09DLR.A
+                                                                                  'Nonmetallic Mineral Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                   'activity': {'value_added': '', 'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_SCGOM_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Primary Metals': {'iron_and_steel': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                        'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_ISM_NA_NA_NA_BLNY09DLR.A'}},
+                                                                                                     'alumninum': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                   'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_AAP_NA_NA_NA_BLNY09DLR.A'}}}, ,
+                                                                                  'Fabricated Metal Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_FABM_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Machinery': {'energy': {'elec': , 'deliv': }, 
+                                                                                                           'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_MCHI_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Computer & Electronic Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                     'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_CMPEL_NA_NA_NA_BLNY09DLR.A'}}, # This is just computers
+                                                                                  'Electrical Equip. & Appliances': {'Electrical Equipment': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                                              'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_EEI_NA_NA_NA_BLNY09DLR.A'}}, 
+                                                                                                                     'Appliances': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                                    'activity': {'value_added': '', 'gross_output': }}},, 
+                                                                                  'Transportation Equipment': {'energy': {'elec': , 'deliv': }, 
+                                                                                                               'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_TEQ_NA_NA_NA_BLNY09DLR.A'}}, ,
+                                                                                  'Furniture & Related Products': {'energy': {'elec': , 'deliv': }, 
+                                                                                                                   'activity': {'value_added': '', 'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_FRP_NA_NA_NA_BLNY09DLR.A'}}, , 
+                                                                                  'Miscellaneous': {'energy': {'elec': , 'deliv': }, 
+                                                                                                    'activity': {'value_added': '', 'gross_output': }}, },
+                             'Nonmanufacturing': {'Agriculture, Forestry & Fishing': {'Agriculture': {'energy': {'elec': {'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_AGG_PRC_NA_NA_TRLBTU.A'}, 'deliv': }, 
+                                                                                                      'activity': {'value_added': , 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_AGG_NA_NA_NA_BLNY09DLR.A'}},
+                                                                                      'Forestry': None, 
+                                                                                      'Fishing': None}, # here elec is purchased electricity, Note: try to find total elec
                                                   'Mining': {'Petroleum and Natural Gas': None, 
                                                              'Other Mining': None, 
-                                                             'Petroleum drilling and Mining Services': None},
-                                                  'Construction': None}}
+                                                             'Petroleum drilling and Mining Services': None}, # Mining Value Added: 'AEO.2020.REF2020.ECI_VOS_IDAL_MING_NA_NA_NA_BLNY09DLR.A'
+                                                  'Construction': {'energy': {'elec': , 'deliv': }, 
+                                                                              'activity': {'value_added': '', 'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_CNS_NA_NA_NA_BLNY09DLR.A'}}}}
 
         industrial_eia = GetEIAData('industrial')
         energy_use_industrial_electricity_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_ELC_NA_NA_QBTU.A', id_type='series')
@@ -80,6 +123,7 @@ class MakeProjections:
         activity_data = 
         energy_data = 
         
+
         pass
 
     def transportation_projections(self):
@@ -191,11 +235,14 @@ class MakeProjections:
                                                 'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A'}, 
                                                 'Other Gasses':  {energy_use: '', million_kwh: ''}},
                                             'Nuclear':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A'}, 
-                                            'Hydro Electric':  {energy_use: '', million_kwh: ''}, 
+                                            'Hydro Electric':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_HYD_CNV_NA_BLNKWH.A'}, 
                                             'Renewable':
-                                                {'Wood':  {energy_use: '', million_kwh: ''}, 'Waste':  {energy_use: '', million_kwh: ''}, 
-                                                'Geothermal':  {energy_use: '', million_kwh: ''}, 'Solar':  {energy_use: '', million_kwh: ''}, 
-                                                'Wind':  {energy_use: '', million_kwh: ''}}},
+                                                {'Wood':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WBM_NA_NA_BLNKWH.A'}, # This is wood and other biomass
+                                                'Waste':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_BGM_NA_NA_BLNKWH.A'}, # This is Biogenic Municipal Waste
+                                                'Geothermal':  {energy_use: '', billion_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_GEOTHM_NA_NA_BLNKWH.A'}, 
+                                                'Solar':  {'Solar Photovoltaic': {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_PHTVL_NA_BLNKWH.A'}, 
+                                                           'Solar Thermal': {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_THERM_NA_BLNKWH.A'}}, 
+                                                'Wind':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WND_NA_NA_BLNKWH.A'}}},
                                         'Combined Heat & Power': 
                                             {'Fossil Fuels'
                                                 {'Coal':  {energy_use: '', million_kwh: ''}, 
