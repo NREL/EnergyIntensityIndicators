@@ -116,5 +116,6 @@ class BEA_api:
         return historical_data
 
 if __name__ == '__main__':
-    BEA_api.get_data(years=list(range(1949, 2018)), table_name=go_nominal)
+    data = BEA_api().get_data(years=list(range(1949, 2018)), table_name='go_nominal')
+    print(data)
 
