@@ -36,7 +36,11 @@ class Manufacturing:
     # Energy prices
     MECS_Table72 = [0]
 
+    @staticmethod
+    def standard_interpolation()
+
     def get_historical_mecs(self):
+        
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
         """
         historical_mecs = pd.read_csv('./')
@@ -84,6 +88,13 @@ class Manufacturing:
 
         # import a CSV file of historical MECS fuel use from Table 3.2
         # Will need to aggregate NAICS 311+312, 313+314, and 315+316
+        allfos = pd.read_csv('./Data/ALLFOS_historical.csv')
+        allfos = allfos.groupby('NAICS').sum()
+        allfos = allfos.loc[:, 1970:1988]
+        allfos_to_transfer = allfos.loc[321:339, :]
+        allfos_to_transfer.loc['311+312', :] = allfos.loc[311:312, :].sum(axis=0)
+        allfos_to_transfer.loc['313+314', :] = allfos.loc[313:314, :].sum(axis=0)
+        allfos_to_transfer.loc['315+316', :] = allfos.loc[315:316, :].sum(axis=0)
         return mecs_fuel
 
     def import_mecs_electricity(self):
@@ -96,7 +107,18 @@ class Manufacturing:
 
         # import a CSV file of historical MECS electricity use from Table 3.2
         # Will need to aggregate NAICS 311+312, 313+314, and 315+316
+        mecs_published = 
+        table31_net_elec =  # different in years < 2010 and after
+        mecs_fuel = mecs_published.subtract(table31_net_elec)
+        mecs_fuel_to_transfer = mecs_fuel.loc[321:339, ['Net Elec', 'Total Fuel']]
+        mecs_fuel_to_transfer.loc['311+312', :] = mecs_fuel.loc[311:312, :].sum(axis=0)
+        mecs_fuel_to_transfer.loc['313+314', :] = mecs_fuel.loc[313:314, :].sum(axis=0)
+        mecs_fuel_to_transfer.loc['315+316', :] = mecs_fuel.loc[315:316, :].sum(axis=0)
+        mecs_interpolated_data = # USE STANDARD INTERPOLATION METHOD # from mecs_annual_fuel2
+        mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
         return mecs_elect
+    
+
 
     # Data used in ASMdata_010220.xlsx[3DNAICS]
     def call_census_data(self):
@@ -111,31 +133,9 @@ class Manufacturing:
         """
         Call BEA API for gross ouput and value add by 3-digit NAICS.
         """
-        historical_data = BEA_api.import_historical()
+        va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
+        # HERE: select columns 
 
-        go_nominal = BEA_api.get_data(years=self.years, table_name='go_nominal')
-        go_quant_index = BEA_api.get_data(years=self.years, table_name='go_quant_index')
-        historical_go = historical_data['historical_go'] 
-        historical_go_qty_index = historical_data['historical_go_qty_index']
-    
-        va_nominal = BEA_api.get_data(years=self.years, table_name='va_nominal')
-        va_quant_index = BEA_api.get_data(years=self.years, table_name='va_quant_index')
-        historical_va = historical_data['historical_va'] 
-        historical_va_qty_index = historical_data['historical_va_qty_index'] 
-
-        va_quant_index = va_quant_index.merge(historical_va_qty_index, left_index=True, right_index=True, how='outer')
-        go_quant_index = go_quant_index.merge(historical_go_qty_index, left_index=True, right_index=True, how='outer')
-
-        va_nominal_12 = va_nominal[2012]
-        transformed_va_quant_index = va_quant_index.multiply(va_nominal_12, index=1).multiply(.01)
-        transformed_va_quant_index = transformed_va_quant_index.transpose()
-
-        go_nominal_12 = va_nominal[2012]
-        transformed_go_quant_index = go_quant_index.multiply(go_nominal, index=1).multiply(.01)
-        transformed_go_quant_index = transformed_go_quant_index.transpose()
-        transformed_go_quant_index = transformed_go_quant_index.divide(transformed_go_quant_index.loc[self.base_year, :], axis=0)
-
-        go_over_va = transformed_go_quant_index.divide(transformed_va_quant_index)
 
         
     @staticmethod
@@ -160,7 +160,15 @@ class Manufacturing:
         # ELEC
         elec_nea = pd.read_csv('./Data/ELECNEA_historical.csv')
         elechap3b = elec_nea.groupby('NAICS').sum()
-        nea_based_data =  # from elechap3b and ASM2
+        elechap3b = elechap3b[list(range(1985, 1987 + 1))]
+        asm2 = .set_index('NAICS') # from the ASM (Ind_hap3_122219/ASM2)
+        nea_based_data = elechap3b.merge(asm2, left_index=True, right_index=True, how='outer') # from elechap3b and ASM2
+
+        nea_based_data.loc[['321', '332', '333', '334', '335', '336', '337', '339'], list(range(1970, 1976 + 1))] = 
+        nea_based_data.loc[['321', '333'], 1977 :] = 
+        nea_based_data.loc[['331', '337'], 1977 :] = 
+
+
         
         mecs = # from [MECS_prices_101116b.xlsx]MECS_data_SIC
         asm = # [Ind_hap3_101316.xlsx]ASM_Fuel_Cost_1985-88
@@ -183,26 +191,11 @@ class Manufacturing:
         electricity_consumption = pd.concat([nea_based_data_linked, asm_data], axis=1)
         electricity_consumption = electricity_consumption.transpose()
 
-        # FUELS
-        allfos = pd.read_csv('./Data/ALLFOS_historical.csv')
-        allfos = allfos.groupby('NAICS').sum()
-        allfos = allfos.loc[:, 1970:1988]
-        allfos_to_transfer = allfos.loc[321:339, :]
-        allfos_to_transfer.loc['311+312', :] = allfos.loc[311:312, :].sum(axis=0)
-        allfos_to_transfer.loc['313+314', :] = allfos.loc[313:314, :].sum(axis=0)
-        allfos_to_transfer.loc['315+316', :] = allfos.loc[315:316, :].sum(axis=0)
+        
 
         fuels_nea =  # fallhap3
 
-        mecs_published = 
-        table31_net_elec =  # different in years < 2010 and after
-        mecs_fuel = mecs_published.subtract(table31_net_elec)
-        mecs_fuel_to_transfer = mecs_fuel.loc[321:339, ['Net Elec', 'Total Fuel']]
-        mecs_fuel_to_transfer.loc['311+312', :] = mecs_fuel.loc[311:312, :].sum(axis=0)
-        mecs_fuel_to_transfer.loc['313+314', :] = mecs_fuel.loc[313:314, :].sum(axis=0)
-        mecs_fuel_to_transfer.loc['315+316', :] = mecs_fuel.loc[315:316, :].sum(axis=0)
-        mecs_interpolated_data = # USE STANDARD INTERPOLATION METHOD # from mecs_annual_fuel2
-        mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
+
 
         link_ratio = mecs_interpolated_data[[1985]].divide(fuels_nea[1985])
         nea_adjusted = fuels_nea.multiply(link_ratio)

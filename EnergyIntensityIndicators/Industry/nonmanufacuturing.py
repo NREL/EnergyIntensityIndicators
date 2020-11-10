@@ -84,8 +84,8 @@ class NonManufacturing:
         GrossOutput_1967-2018PNNL_213119.xlsx/ ChainQtyIndexes (EA301:EJ349) and 
         ValueAdded_1969-2018_PNNL_010120.xlsx/ ChainQtyIndexes (EA301:EJ349) respectively 
         """       
-        self.BEA_va_quant_index
-        self.BEA_go_quant_index
+        va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
+        # HERE: select columns 
 
         return value_added, gross_output
 
