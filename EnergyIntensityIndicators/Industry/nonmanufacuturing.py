@@ -40,45 +40,6 @@ class NonManufacturing:
         
         pass
 
-    def mining(self):
-        """The energy consumption estimates for mining depend entirely on the various editions of the periodic
-        census (ending in years with ‘2” and “7” since 1967). Up through 1987, the information for mining was
-        collected under the title “Census of Mineral Industries.” From 1992 forward, the same information is
-        part of the mining segment of the Economic Census (which now is the broad term for all the census
-        surveys in the census years).
-        Table A.10 shows the website data sources for the mining sector. For the most recent census in 2007,
-        the data were selected from a flexible download procedure that allows the user to select key data
-        elements for each specific NAICS sector. The specific data items were 1) “quantity of electricity
-        purchased” and 2) fuels consumed by type: a) quantity, and b) delivered cost. For the previous years,
-        the data were derived from downloaded industry series reports (or selected pages). In these reports,
-        the cost and quantity of electricity is found in Table 3 (Detailed Statistics by Industry) and Table 7
-        (Selected Supplies, Minerals Received for Preparation, Purchased Machinery, and Fuels Consumed by
-        Type)
-
-            Since 1997, the mining industries have been classified under three major 3-digit NAICS sectors: 211, Oil
-        and Gas Extraction; 212, Mining (except oil and gas); 213 Support Activities for Mining. Unfortunately,
-        there are no aggregations of energy data from the more detailed industries to this level. Thus, an
-        estimation of electricity and fuel consumption must begin with the more detailed mining sectors,
-        essentially 6-digit NAICS since 1997 and 4-digit SIC in earlier years. At the NAICS level, there are 29
-        specific industries as shown in Table A.11 (the word “mining” has been omitted from most of the official
-        NAICS titles in the table). 
-
-        With regard to “Other fuels”, the assumption was that the dominant fuel was propane. The cost
-        estimates were converted to quantities by the use of the price of propane published by EIA.1
-        For
-        undistributed fuels, the assumption was that the average price of the unreported fuels was the same as
-        the reported fuels. Operationally, this assumption was implemented as follows. The cost and quantity
-        of reported fuels was estimated. Then the ratio of the total cost of all fuels with respect to the cost of
-        reported fuels was calculated. This ratio (> 1.0) was then used as multiplicative adjustment factor
-        applied to the quantity of all reported fuels. 
-        """        
-        mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
-        mining_2012 = 'https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk'
-        mining_2007 = 'http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table'
-        mining_2002 = 'https://www.census.gov/econ/census02/guide/INDRPT21.HTM'  # extract Table 3 and Table 7
-        mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
-        mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
-    
     def indicators_nonman_2018_bea(self):
         """Reformat value added and gross output chain quantity indexes from 
         GrossOutput_1967-2018PNNL_213119.xlsx/ ChainQtyIndexes (EA301:EJ349) and 
@@ -90,6 +51,13 @@ class NonManufacturing:
         return value_added, gross_output
 
     def construction(self):
+        """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
+        https://www.census.gov/data/tables/2012/econ/census/construction.html
+        http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_23I1&prodType=table
+        http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2002_US_23I04A&prodType=table
+        http://www.census.gov/epcd/www/97EC23.HTM
+        http://www.census.gov/prod/www/abs/cciview.html
+        """ 
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data / M, Y
         value_added = value_added['Construction']
         gross_output = gross_output['Construction']
@@ -148,13 +116,13 @@ class NonManufacturing:
         return to_transfer
 
     def mining(self):
-        """[summary]
-        https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html
-        https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk
-        http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table
-        https://www.census.gov/econ/census02/guide/INDRPT21.HTM
-        http://www.census.gov/prod/www/abs/ec1997mining-ind.html
-        http://www.census.gov/prod/1/manmin/92mmi/92minif.html
+        """
+        mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
+        mining_2012 = 'https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk'
+        mining_2007 = 'http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table'
+        mining_2002 = 'https://www.census.gov/econ/census02/guide/INDRPT21.HTM'  # extract Table 3 and Table 7
+        mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
+        mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
         """            
         # Mining energy_031020.xlsx/Compute_intensities (FF-FN, FQ-FS)
 
@@ -184,16 +152,6 @@ class NonManufacturing:
 
     def bureau_labor_statistics_industry_output(self):
         """https://www.bls.gov/emp/data/industry-out-and-emp.htm
-        """ 
-        pass
-
-    def construction(self):
-        """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
-            https://www.census.gov/data/tables/2012/econ/census/construction.html
-            http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_23I1&prodType=table
-            http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2002_US_23I04A&prodType=table
-            http://www.census.gov/epcd/www/97EC23.HTM
-            http://www.census.gov/prod/www/abs/cciview.html
         """ 
         pass
     

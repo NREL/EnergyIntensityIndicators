@@ -116,6 +116,22 @@ class BEA_api:
         historical_data = {'historical_va': historical_va, 'historical_va_quant_index': historical_va_quant_index}    
         return historical_data
 
+    @staticmethod
+    def adjust_transportation(data, downloaded_go):
+
+        gross_output = downloaded_go[['Motor Vehicles', 'Other Transportation Equipment']].multiply(1000)
+        quantity_index = data.loc[['Motor Vehicles', 'Other Transportation Equipment']]
+        laspeyres_quantity = 
+        pasche_quantity = 
+
+        raw_index = 
+        cu208 =  
+        line223 = 
+        line224 = 
+        line225 = raw_index / raw_index.iloc[2012] * 100
+        transportation_line = line225.multiply(cu208 * 0.01)
+        return transportation_line
+
     def chain_qty_indexes(self):
         """Merge historical and api data, manipulate as in ChainQtyIndexes
         """
@@ -131,10 +147,13 @@ class BEA_api:
 
 
         transformed_go_quant_index = go_quant_index.multiply(go_nominal_12, index=1).multiply(0.01)
+        transformed_go_quant_index.loc['          Transportation equipment', :] = 
+
         transformed_go_quant_index = transformed_go_quant_index.transpose()
 
         # transformed_go_quant_index is further manipulated but I'm not sure exactly how it works
         transformed_go_quant_index = transformed_go_quant_index.divide(transformed_go_quant_index.loc[self.base_year, :], axis=0)
+
 
     
         va_nominal = self.get_data(table_name='va_nominal')

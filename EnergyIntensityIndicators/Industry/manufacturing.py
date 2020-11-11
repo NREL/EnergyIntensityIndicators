@@ -1,6 +1,9 @@
 import pandas as pd
 
 from EnergyIntensityIndicators.Industry import BEA_api
+from EnergyIntensityIndicators.get_census_data import Econ_census
+from EnergyIntensityIndicators.get_census_data import Asm
+from EnergyIntensityIndicators.utilites.standard_interpolation import standard_interpolation
 
 class Manufacturing:
     """Class to collect and process manufacturing data for the industrial sector
@@ -36,8 +39,6 @@ class Manufacturing:
     # Energy prices
     MECS_Table72 = [0]
 
-    @staticmethod
-    def standard_interpolation()
 
     def get_historical_mecs(self):
         
@@ -51,8 +52,14 @@ class Manufacturing:
         Specify three-digit NAICS Codes
         """
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual', 'LPG', 'Coke', 'Other']
+        naics = 
 
-        asm_price_data = Mfg_prices().calc_calibrated_predicted_price(latest_year=self.end_year, fuel_type, naics)
+        asm_price_data = []
+        for f in fuel_types: 
+            predicted_fuel_price = Mfg_prices().calc_calibrated_predicted_price(latest_year=self.end_year, f, naics)
+            asm_price_data.append(predicted_fuel_price)
+
+        asm_price_data = pd.concat(asm_price_data)
         return asm_price_data
 
     @staticmethod
@@ -61,6 +68,9 @@ class Manufacturing:
         For a given MECS year, take 3-digit NAICS by fuel (TBtu),
         calculate sum, then calcuate quantity shares
         """
+        # MECS_data[Quantity Shares_1998 forward] : 
+        cols = ['Residual', 'Distillate', 'Nat. Gas', 'LPG', 'Coal', 'Coke', 'Other']
+        quantity_shares = mecs42_df[cols].divide(mecs42_df['  Calc. Total'])
 
         return quantity_shares
 
@@ -73,6 +83,7 @@ class Manufacturing:
 
 
         """
+        composite_prices = quantity_shares.multiply(interp_prices, axis=1).sum(axis=1)
 
         return composite_prices
 
@@ -118,8 +129,6 @@ class Manufacturing:
         mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
         return mecs_elect
     
-
-
     # Data used in ASMdata_010220.xlsx[3DNAICS]
     def call_census_data(self):
         """
@@ -135,9 +144,8 @@ class Manufacturing:
         """
         va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
         # HERE: select columns 
+        return va_quant_index, go_quant_index
 
-
-        
     @staticmethod
     def interpolate_mecs(mecs_fuel, ASMdata_010220_xlsx_data):
         """
@@ -147,8 +155,17 @@ class Manufacturing:
         ASMdata_010220.xlsx[3DNAICS], which ultimately tie back to MECS fuel data
         from Table 4.2 and Table 3.2
         """
+        standard_interpolation(dataframe=, name_to_interp= , axis=)
 
+        # in ASMdata_010220.xlsx[Final_quantities_w_ASM_85] 
+        mecs_data_sic = 
+        ratio_fuel_offsite_pre98 = standard_interpolation(dataframe=mecs_data_sic, name_to_interp= , axis=)
 
+        data_98 = 
+        mecs_tables_31_32 = 
+        mecs_table42 = 
+        
+        ratio_fuel_offsite = 
 
     def manufacturing(self):
         """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by
@@ -177,13 +194,15 @@ class Manufacturing:
         dollar_per_mmbtu =  # from quantity_shares_revised
         jan_2020_estimate = mecs_based_expenditure.divide(dollar_per_mmbtu)
         ratio_fuel_to_offsite = # from mixed sources
+
+
         final_quantities_asm_85 = jan_2020_estimate.multiply(ratio_fuel_to_offsite)
         asm_data = final_quantities_asm_85.loc[321:339, :] # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
         asm.loc['311+312', :] = final_quantities_asm_85.loc[311:312, :].sum(axis=0)
         asm.loc['313+314', :] = final_quantities_asm_85.loc[313:314, :].sum(axis=0)
         asm.loc['315+316', :] = final_quantities_asm_85.loc[315:316, :].sum(axis=0)
 
-
+        # Ind_hap3_122219.xlsx[ASM_Annual_Elec_1970on]
         link_ratio = asm[[1987]].divide(nea_based_data[1987])
 
         nea_based_data_linked = nea_based_data.multiply(link_ratio, axis=1)
@@ -196,14 +215,15 @@ class Manufacturing:
         fuels_nea =  # fallhap3
 
 
-
+        # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
         link_ratio = mecs_interpolated_data[[1985]].divide(fuels_nea[1985])
         nea_adjusted = fuels_nea.multiply(link_ratio)
-        combined_mecs_nea = pd.concat([nea_adjusted, mecs_interpolated_data], axis=1)
+        fuels_consumption = pd.concat([nea_adjusted, mecs_interpolated_data], axis=1)
+        fuels_consumption = fuels_consumption.transpose()
 
+        
 
-
-        return None
+        return electricity_consumption, fuels_consumption # Transfered to industrial_indicators_060220.xlsx[Manufacturing_Energy_Data]
     
     def main(self):
         return None

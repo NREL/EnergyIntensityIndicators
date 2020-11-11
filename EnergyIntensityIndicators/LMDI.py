@@ -234,7 +234,6 @@ class CalculateLMDI:
                     if not level_name:
                         level_name = level1_name
                     else:
-                        a_d
                         a_data[level_name] = a_data.sum(axis=1).values
                         e_data[level_name] = e_data.sum(axis=1).values
 
@@ -545,7 +544,7 @@ class CalculateLMDI:
 
 
 
-    def lmdi(self, model, activity_input_data, energy_input_data, weather_data, lmdi_type=None, total_label=None, unit_conversion_factor=1,\
+    def lmdi(self, model, activity_input_data, energy_input_data, weather_data, lmdi_type=None, total_label=None, unit_conversion_factor=1,
              return_nominal_energy_intensity=False):
         """Calculate the LMDI
 
@@ -564,13 +563,12 @@ class CalculateLMDI:
         Returns:
             [type]: [description]
         """
-        print('energy_input_data:', energy_input_data)
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
         energy_shares = self.calculate_shares(energy_input_data, total_label)
 
         if isinstance(activity_input_data, dict):
-            nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) \
-                                                                                for (activity, activity_df)\
+            nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) 
+                                                                                for (activity, activity_df)
                                                                                 in activity_input_data.items()}
             if return_nominal_energy_intensity:
                 return nominal_energy_intensity
@@ -579,9 +577,9 @@ class CalculateLMDI:
             log_ratio_structure = []
             for activity, activity_shares in activity_shares.items():
                 # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
-                log_ratio_structure_activity = self.calculate_log_changes(activity_shares).rename(columns={col: \
-                                                                                            f'{activity}_{col}' \
-                                                                                            for col in \
+                log_ratio_structure_activity = self.calculate_log_changes(activity_shares).rename(columns={col: 
+                                                                                            f'{activity}_{col}' 
+                                                                                            for col in 
                                                                                             activity_shares.columns}) 
                 log_ratio_structure.append(log_ratio_structure_activity)
             log_ratio_structure = pd.concat(log_ratio_structure, axis=0, ignore_index=True, join='outer')
@@ -633,7 +631,7 @@ class CalculateLMDI:
                     pass
                 elif model == 'additive': 
                     pass
-                
+
                 structure['structure_weather'] = structure_weather
 
         if model == 'multiplicative':
