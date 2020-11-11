@@ -439,8 +439,8 @@ class CalculateLMDI:
 
         """
         log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
-
-        return log_ratio
+        log_ratio_df = pd.DataFrame(data=log_ratio, index=dataset.index, columns=dataset.columns)
+        return log_ratio_df
 
     def compute_index(self, effect):
         """
