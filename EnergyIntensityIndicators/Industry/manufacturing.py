@@ -108,6 +108,50 @@ class Manufacturing:
         allfos_to_transfer.loc['315+316', :] = allfos.loc[315:316, :].sum(axis=0)
         return mecs_fuel
 
+    @staticmethod
+    def adjust_323(printing):
+        """Adjustments where there are 4-digit series consistent over 1977 to 1987
+        """        
+
+        data_2711 = ['2711', 2484.2, 2412.5, np.nan, np.nan, np.nan, np.nan, np.nan, 
+                     2591.7, np.nan, np.nan, 2485.1, 2556.6, 2598.6, 2435.7, 
+                     2837.7, 2895.5, 3076.9, 3357.1]
+        data_2721 = ['2721', 405.8, 381.5, np.nan, np.nan, np.nan, np.nan, np.nan, 
+                     298.8, np.nan, np.nan, 283.2, 346, 467.4, 565.6, 394, 
+                     441.7, 425, 471.2]
+        data_2731 = ['2731', 676.1, 968.2, np.nan, np.nan, np.nan, np.nan, np.nan,
+                     267.6, np.nan, np.nan, 257.3, 246.4, 236.9, 238.2, 
+                     314.7, 299.1, 310.9, 321.4]
+        printing_data = [data_2711, 
+                         data_2721,
+                         data_2731]
+        col_names = ['printing_type'] + list(range(1970, 1987 + 1))
+        missing_years = [1972, 1973, 1974, 1975, 1976]
+        printing_df = pd.DataFrame(printing_data, columns=col_names).set_index('printing_type')
+        printing_df.loc['total', :] = printing_df.sum(axis=0)
+        printing_df.loc['tbtu', :] = printing_df.loc['total', :].multiply(3.412 * 0.001)
+        printing_df.loc['share', :] = printing_df.loc['tbtu', :].divide(printing)
+        printing_df.loc['share', missing_years] = [0.4, 0.38, 0.36, 0.34, 0.32]
+        printing_df.loc['share', 1978] = (0.33 * printing_df.loc['share', 1977] 
+                                          + 0.67 * printing_df.loc['share', 1980]) * printing[1978]
+        printing_df.loc['share', 1979] = (0.67 * printing_df.loc['share', 1977] 
+                                          + 0.33 * printing_df.loc['share', 1980]) * printing[1979]
+
+        printing_df.loc['adj_323', :] = printing_df.loc['share', :]
+        printing_df.loc['adj_323', missing_years] = printing_df.loc['share', missing_years].multiply(printing[missing_years])
+        return printing_df.loc['adj_323', :]
+    
+    @staticmethod
+    def adjust_elecnea():
+        """TODO: Finish
+        """        
+        adj_321_337 = [416.4, np.nan, np.nan, 391.6, 335.7, 341.3, 
+                       390.6, 483.6, 458.9, 474.8, 641.7] # 146
+        adj_321_337 = pd.DataFrame 
+
+         # 142
+
+        
     def import_mecs_electricity(self):
         """
         ### NOT SURE IF ASM or MECS ELECTRICITY DATA ARE USED ###
@@ -115,6 +159,35 @@ class Manufacturing:
         In the future,these values will need to be manually downloaded from
         Table 3.2 and added to csv.
         """
+        
+        # ELEC
+        elec_nea = pd.read_csv('./Data/ELECNEA_historical.csv')
+        elechap3b = elec_nea.groupby('NAICS').sum()
+        elechap3b = elechap3b[list(range(1985, 1987 + 1))]
+        elechap3b.loc['323', :] = self.adjust_323(elechap3b.loc['323', :])
+
+        man_intensity_study = pd.read_csv('./Industry/Data/data_from_manufacturing_intensity_study.csv')
+        man_intensity_study = man_intensity_study.groupby('Indicators').sum().reset_index()
+        NAICS_codes = ['311+312', '313+314', '315+316', '321', '322', '323', '324', '325', '326', '327', 
+                       '331', '332', '333', '334', '335', '336', '337', '339']
+        naics_to_indicators = dict((i, n) for i, n in enumerate(NAICS_codes))
+        man_intensity_study['NAICS'] = man_intensity_study['Indicators'].apply(lambda x: naics_to_indicators.get(x))
+        man_intensity_study = man_intensity_study.set_index('NAICS') # from the ASM (Ind_hap3_122219/ASM2)
+        asm2 = man_intensity_study.multiply(3.412 * 0.001)
+        asm2 = asm2[[1985, 1986, 1987]]
+        sic37 = [34537, 35831, 38291]
+        asm2.loc[336, [1985, 1986, 1987]] = [s * 3.412 * 0.001 for s in sic37] # For 336 use use total for SIC 37
+
+
+        merged_data = elechap3b.merge(asm2, left_index=True, right_index=True, how='outer') # from elechap3b and ASM2
+
+        nea_based_data.loc['323', :] = 
+        nea_based_data.loc[['321', '332', '333', '334', '335', '336', '337', '339'], list(range(1970, 1976 + 1))] = 
+        nea_based_data.loc[['321', '333'], 1977 :] = 
+        nea_based_data.loc[['331', '337'], 1977 :] = 
+        factors = nea_based_data[[1977]].divide(merged_data[1977])
+        nea_based_data[1970:1976] = merged_data[1970:1976].multiply(factors)
+
 
         # import a CSV file of historical MECS electricity use from Table 3.2
         # Will need to aggregate NAICS 311+312, 313+314, and 315+316
@@ -164,7 +237,7 @@ class Manufacturing:
         data_98 = 
         mecs_tables_31_32 = 
         mecs_table42 = 
-        
+
         ratio_fuel_offsite = 
 
     def manufacturing(self):
@@ -174,19 +247,6 @@ class Manufacturing:
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4
         """
 
-        # ELEC
-        elec_nea = pd.read_csv('./Data/ELECNEA_historical.csv')
-        elechap3b = elec_nea.groupby('NAICS').sum()
-        elechap3b = elechap3b[list(range(1985, 1987 + 1))]
-        asm2 = .set_index('NAICS') # from the ASM (Ind_hap3_122219/ASM2)
-        nea_based_data = elechap3b.merge(asm2, left_index=True, right_index=True, how='outer') # from elechap3b and ASM2
-
-        nea_based_data.loc[['321', '332', '333', '334', '335', '336', '337', '339'], list(range(1970, 1976 + 1))] = 
-        nea_based_data.loc[['321', '333'], 1977 :] = 
-        nea_based_data.loc[['331', '337'], 1977 :] = 
-
-
-        
         mecs = # from [MECS_prices_101116b.xlsx]MECS_data_SIC
         asm = # [Ind_hap3_101316.xlsx]ASM_Fuel_Cost_1985-88
         mecs_asm_ratio = mecs.divide(asm)
