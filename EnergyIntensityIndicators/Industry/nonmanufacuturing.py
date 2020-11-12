@@ -1,6 +1,8 @@
 import pandas as pd 
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
+from EnergyIntensityIndicators.utilites.standard_interpolation import standard_interpolation
+
 
 class NonManufacturing:
     """ Prior to 2012, total nonmanufacturing
@@ -49,6 +51,12 @@ class NonManufacturing:
         # HERE: select columns 
 
         return value_added, gross_output
+    
+    def construction_raw_data(self):
+        """Equivalent to Construction_energy_011920.xlsx['Construction']
+        """        
+        economic_census = 
+        return construction_elec, construction_fuels
 
     def construction(self):
         """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
@@ -61,28 +69,27 @@ class NonManufacturing:
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data / M, Y
         value_added = value_added['Construction']
         gross_output = gross_output['Construction']
+        electricity, fuels = self.construction_raw_data()
 
-        elec_intensity = 
-        fuels_intensity = 
-        electricity = elec_intensity.multiply(gross_output).multiply(0.0001)
-        fuels = fuels_intensity.multiply(gross_output).multiply(0.0001)
+        elec_intensity = electricity.divide(gross_output * 0.0001)
+        elec_intensity = elec_intensity(fuels_intensity).fillna(method='bfill')
+
+        fuels_intensity = fuels.divide(gross_output * 0.0001)
+        fuels_intensity.iloc[1982] = np.nan
+        fuels_intensity.iloc[2002] = np.nan
+        fuels_intensity = standard_interpolation(fuels_intensity).fillna(method='bfill')
+
+        final_electricity = elec_intensity.multiply(gross_output * 0.0001)
+        final_fuels = fuels_intensity.multiply(gross_output * 0.0001)
         data_dict = {'energy': 
-                        {'elec': electricity, 'fuels': fuels}, 
+                        {'elec': final_electricity, 'fuels': final_fuels}, 
                      'activity': 
                         {'gross_output': gross_output, 'value_added': value_added}}
-        pass
+        return data_dict
 
     @staticmethod
     def agriculture():
             miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skipfooter= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
-            nass_expenses_data = [] # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
-
-            nass_average_prices_data = [] # 
-            MER_fuel_price_data = []  # 
-            eia_table33 = [] # Consumer Price estimates for Energy by Source, 1970-2009
-            eia_table34 = [] # Consumer price estimates for energy by end-use sector, 1970-2009
-            eia_table523 = [] # All sellers sales prices for selected petroleum products, 1994-2010
-            eia_table524 = [] # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
             
             adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
             value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data_010420.xlsx column G, S (value added and gross output chain qty indexes for farms)
@@ -93,16 +100,16 @@ class NonManufacturing:
             elec_site = elec_prm.divide(adjustment_factor)
             fuels = miranowski_data[['Direct Ag Enery Use']].subtract(elec_prm)
 
-            elec_intensity = 
-            fuels_intensity = 
+            elec_intensity = elec_site.divide(gross_output * 0.001)
+            fuels_intensity = fuels.divide(gross_output * 0.001)
 
-            electricity_final = elec_intensity.multiply(gross_output).multiply(0.001)
-            fuels_final = fuels_intensity.multiply(gross_output).multiply(0.001)
-            input_for_indicators = pd.DataFrame([electricity_final, fuels_final, gross_output,
-                                                 value_added]).transpose().columns(['electricity', 
-                                                                                    'fuels', 
-                                                                                    'gross_output', 
-                                                                                    'value_added'])
+            electricity_final = elec_intensity.multiply(gross_output * 0.001).ffill()
+            fuels_final = fuels_intensity.multiply(gross_output * 0.001)
+
+            data_dict = {'energy': {'elec': electricity_final, 
+                                    'fuels': fuels_final}, 
+                         'activity': {'gross_output': gross_output}, 
+                                      'value_added': value_added}
     @staticmethod
     def aggregate_mining_data(mining_df):
         mining_df = mining_df.transpose()
