@@ -122,6 +122,59 @@ class NonManufacturing:
                                                                                                              'Support Activities'}) 
         return to_transfer
 
+    def crude_petroleum_natgas(bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        factor = 0.0001
+        gross_output = bea_bls_output[['Oil & Gas']]
+        elec = nea_elec[['Crude Pet']] 
+        fuels = nea_fuels[['Crude Pet']]
+    
+    def coal_mining(bea_bls_output, nea_elec, nea_fuels, sector_estimates): 
+        factor = 0.001
+
+        col = ['Coal Mining']
+        gross_output = bea_bls_output[col]
+        elec = nea_elec[col] 
+        fuels = nea_fuels[col] 
+    
+    def metal_mining(bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        factor = 0.01
+        gross_output = bea_bls_output[['Metal Ore Mining']]
+        elec = nea_elec[['Metal Mining']] 
+        fuels = nea_fuels[['Metal Mining']] 
+
+    def nonmetallic_mineral_mining(bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        factor = 0.01
+        col = ['Nonmetallic Mineral Mining']
+        gross_output = bea_bls_output[col]
+        elec = nea_elec[col] 
+        fuels = nea_fuels[col] 
+
+    def other_mining(bea_bls_output, nea_elec, nea_fuels, sector_estimates): 
+        factor = 0.01
+        col = []
+        gross_output = bea_bls_output['Other Mining']
+        elec = nea_elec[col] # sum of 'Nonmetallic Mineral Mining' , 'Coal Mining' , 'Metal Mining'
+        fuels = nea_fuels[col] 
+    
+    def mining_data_1987_2017():
+
+        return {'elec': , 'fuels': }
+    
+    def mining_sector_estimates(data_1987_2017):
+        elec = data_1987_2017['elec']
+        fuels = data_1987_2017['fuels']
+
+        sector_estimates_elec = elec.transpose().multiply(0.000001 * 3412)
+        sector_estimates_fuels = fuels.transpose()
+        return sector_estimates_elec, sector_estimates_fuels
+
+    def drilling_and_mining_support(bea_bls_output, nea_elec, nea_fuels):
+        factor = 0.001
+        col = ['Support Activities']
+        gross_output = bea_bls_output[col]
+        elec = nea_elec[col] 
+        fuels = nea_fuels[col] 
+
     def mining(self):
         """
         mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
@@ -140,8 +193,11 @@ class NonManufacturing:
         NEA_data_fuels = self.aggregate_mining_data(self.ALLFOS_historical) 
 
         mining_types = [crude_petroleum_natgas, other_mining, drilling_and_mining_support]
+        
+
         data_dict = dict()
         for m_type in mining_types = 
+            gross_output = BLS_output_data['Oil & Gas']
             output =  gross_output.multiply(10000)
             elec_intensity = 
             fuels_intensity = 
