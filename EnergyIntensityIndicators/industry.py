@@ -55,7 +55,7 @@ class IndustrialIndicators(CalculateLMDI):
         pass
 
     def manufacturing(self):
-        categories = self.sub_categories_list['Manufacturing']
+        # categories = self.sub_categories_list['Manufacturing']
         manufacturing_data = Manufacturing().get_data()
         return manufacturing_data
     
@@ -64,7 +64,7 @@ class IndustrialIndicators(CalculateLMDI):
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
-        categories = self.sub_categories_list['Nonmanufacturing']
+        # categories = self.sub_categories_list['Nonmanufacturing']
         non_manufacturing_data = NonManufacturing().get_data()
         return non_manufacturing_data
         

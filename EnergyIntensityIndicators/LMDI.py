@@ -610,6 +610,22 @@ class CalculateLMDI:
         cols_to_drop = [col for col in energy_shares.columns if col.endswith('_shift')]
         energy_shares = energy_shares.drop(cols_to_drop, axis=1)
 
+        ASI = self.calc_ASI()
+
+        results = pd.DataFrame.from_dict(data=, orient='columns')
+
+        if model == 'multiplicative':
+            results['effect'] = results.product(axis=1)
+
+        elif model == 'additive':
+            results['effect'] = results.sum(axis=1)
+        
+        print('results: \n', results)
+        return results
+
+    def calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, ):
+        """Calculate activity, structure, and intensity 
+        """        
         activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity, axis='columns')).sum(axis=1)
 
         intensity = (log_mean_divisia_weights_normalized.multiply(log_ratio_intensity, axis='columns')).sum(axis=1)
@@ -639,17 +655,9 @@ class CalculateLMDI:
             structure = np.exp(structure)
             intensity = np.exp(intensity)
 
-        results = pd.DataFrame.from_dict(data={'activity': activity, 'structure': structure, 
-                                               'intensity': intensity}, orient='columns')
-
-        if model == 'multiplicative':
-            results['effect'] = results.product(axis=1)
-
-        elif model == 'additive':
-            results['effect'] = results.sum(axis=1)
-        
-        print('results: \n', results)
-        return results
+        ASI = {'activity': activity, 'structure': structure, 
+               'intensity': intensity}
+        return ASI
 
     def aggregate_additive(self, results_df, energy_input_data, total_label):
         df = results_df.loc[self.base_year + 1: , :]

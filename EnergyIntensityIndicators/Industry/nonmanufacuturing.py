@@ -2,6 +2,7 @@ import pandas as pd
 from functools import reduce
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
+from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.utilites.standard_interpolation import standard_interpolation
 
 
@@ -211,7 +212,38 @@ class NonManufacturing:
         data_dict = self.build_mining_output(factor, gross_output, elec, fuels, sector_estimates)
         return data_dict
     
+    @staticmethod
+    def mining_fuels_adjust(ec_df):
+        """[summary]
+
+        Args:
+            ec_df (dataframe): Economic Census data 
+                               for NAICS code 21 (mining) 
+                               at the 6-digit level
+
+        Returns:
+            ratio dataframe: ratio of total cost to the sum of reported 
+        """        
+        fuel_types = ['gasoline', 'gas', 'distillate', 'residual', 'coal']
+        reported = econ_census_data[fuel_types].sum(axis=1)
+        ratio = total_cost.divide(other_fuel.add(reported)).subtract(1)
+        return ratio
+
     def mining_data_1987_2017():
+        """ For updating estimates, cost of purchased fuels from the Economic
+        Census and aggregate (annual) fuel prices from EIA (Monthly Energy Review). Output data (gross output
+        and value added) derived from the Bureau of Economic Analysis (through spreadsheet
+        NonMan_output_data_date, and gross output data from the Bureau of Labor Statistics (for detailed subsectors in mining).
+
+        mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
+        mining_2012 = 'https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk'
+        mining_2007 = 'http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table'
+        mining_2002 = 'https://www.census.gov/econ/census02/guide/INDRPT21.HTM'  # extract Table 3 and Table 7
+        mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
+        mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
+        """ 
+        mining_2017 = pd.read_fwf('') # from economic census
+
 
         return {'elec': , 'fuels': }
     
@@ -224,14 +256,7 @@ class NonManufacturing:
         return sector_estimates_elec, sector_estimates_fuels
 
     def mining(self):
-        """
-        mining_2017 = 'https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-21.html'
-        mining_2012 = 'https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk'
-        mining_2007 = 'http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_21SG12&prodType=table'
-        mining_2002 = 'https://www.census.gov/econ/census02/guide/INDRPT21.HTM'  # extract Table 3 and Table 7
-        mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
-        mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
-        """            
+           
         # Mining energy_031020.xlsx/Compute_intensities (FF-FN, FQ-FS)
 
         BLS_data = pd.read_csv('./Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
@@ -263,13 +288,14 @@ class NonManufacturing:
         """Collect all nonmanufacturing data
         """        
         # starting point: NonManufacturing_reconciliation_010420.xlsx
-        # agriculture = self.agriculture() # Agriculutral_energy_010420.xlsx/Intensity_estimates (Y-AB)
-        # mining = self.mining() # Mining energy_031020.xlsx/Compute_intensities (FQ-FS)
-        # construction = self.construction() # Construction_energy_011920.xlsx/Intensity_estimates (W-Z)
+        # Agriculutral_energy_010420.xlsx/Intensity_estimates (Y-AB)
+        # Mining energy_031020.xlsx/Compute_intensities (FQ-FS)
+        # Construction_energy_011920.xlsx/Intensity_estimates (W-Z)
         data_dict = {'Agriculture': self.agriculture(), 'Mining': self.mining(), 
                      'Construction': self.construction()}
         return data_dict              
 
 if __name__ == '__main__':
+    print('main')
     data = NonManufacturing().nonmanufacturing_data()
     print(data)
