@@ -1,5 +1,7 @@
 import pandas as pd 
 from functools import reduce
+from datetime import datetime
+import os
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import Econ_census
@@ -19,15 +21,16 @@ class NonManufacturing:
 
 
     """    
-    def __init__(self):
-        BEA_data = BEA_api()
-        self.BEA_go_nominal = BEA_data.get_data(years=list(range(1949, 2018)), table_name='go_nominal')
-        self.BEA_go_quant_index = BEA_data.get_data(years=list(range(1949, 2018)), table_name='go_quant_index')
-        self.BEA_va_nominal = BEA_data.get_data(years=list(range(1949, 2018)), table_name='va_nominal')
-        self.BEA_va_quant_index = BEA_data.get_data(years=list(range(1949, 2018)), table_name='va_quant_index')
+    def __init__(self):        
+        self.currentYear = datetime.now().year
+        BEA_data = BEA_api(years=list(range(1949, 2018)))
+        self.BEA_go_nominal = BEA_data.get_data(table_name='go_nominal')
+        self.BEA_go_quant_index = BEA_data.get_data(table_name='go_quant_index')
+        self.BEA_va_nominal = BEA_data.get_data(table_name='va_nominal')
+        self.BEA_va_quant_index = BEA_data.get_data(table_name='va_quant_index')
 
-        self.ALLFOS_historical = pd.read_csv('./Data/ALLFOS_historical.csv')
-        self.ELECNEA_historical = pd.read_csv('./Data/ELECNEA_historical.csv')
+        self.ALLFOS_historical = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ALLFOS_historical.csv')
+        self.ELECNEA_historical = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ELECNEA_historical.csv')
 
     # def agriculture(self):
     #     miranowski_data = [0] # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
@@ -52,10 +55,18 @@ class NonManufacturing:
 
         return value_added, gross_output
     
+    def get_econ_census(self):
+        economic_census = Econ_census()
+        economic_census_years = list(range(1987, self.currentYear + 1, 5))       
+        e_c_data = {str(y): economic_census.get_data(year=y) 
+                    for y in economic_census_years}
+        print(e_c_data)
+        return e_c_data
+    
     def construction_raw_data(self):
         """Equivalent to Construction_energy_011920.xlsx['Construction']
-        """        
-        economic_census = 
+        """ 
+
         return construction_elec, construction_fuels
 
     def construction(self):
@@ -87,9 +98,8 @@ class NonManufacturing:
                         {'gross_output': gross_output, 'value_added': value_added}}
         return data_dict
 
-    @staticmethod
-    def agriculture():
-            miranowski_data =  pd.read_excel('./Agricultural_energy_010420.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skipfooter= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+    def agriculture(self):
+            miranowski_data =  pd.read_excel('./EnergyIntensityIndicators/Industry/Data/miranowski_data.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skipfooter= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
             
             adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
             value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data_010420.xlsx column G, S (value added and gross output chain qty indexes for farms)
@@ -135,6 +145,7 @@ class NonManufacturing:
         fuels_final = fuels_intensity.multiply(fuels_intensity)
         data_dict = {'energy': {'elec': electricity_final, 'fuels': fuels_final}, 
                      'activity': {'gross_output': gross_output}}
+        return data_dict
 
     def crude_petroleum_natgas(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
         factor = 0.0001
@@ -187,18 +198,18 @@ class NonManufacturing:
         factor = 0.01
         gross_output = bea_bls_output['Other Mining']
 
-        other_mining_types = [nonmetallic_mineral_mining, metal_mining, coal_mining]
+        other_mining_types = {'nonmetallic_mineral_mining': self.nonmetallic_mineral_mining, 
+                              'metal_mining': self.metal_mining, 
+                              'coal_mining': self.coal_mining}
    
-        other_mining_data = [self.m(bea_bls_output, nea_elec, nea_fuels, 
-                                    sector_estimates) for m in other_mining_types]
+        other_mining_data = [m(bea_bls_output, nea_elec, nea_fuels, 
+                               sector_estimates) for m in other_mining_types.values()]
 
         other_mining_elec = [m_df['energy']['elec'] for m_df in other_mining_data]
         elec = reduce(lambda x, y: x.add(y), other_mining_elec)
 
         other_mining_fuels = [m_df['energy']['fuels'] for m_df in other_mining_data]
         fuels = reduce(lambda x, y: x.add(y), other_mining_fuels)
-
-
 
         data_dict = self.build_mining_output(factor, gross_output, elec, fuels)
         return data_dict
@@ -225,10 +236,21 @@ class NonManufacturing:
             ratio dataframe: ratio of total cost to the sum of reported 
         """        
         fuel_types = ['gasoline', 'gas', 'distillate', 'residual', 'coal']
-        reported = econ_census_data[fuel_types].sum(axis=1)
-        ratio = total_cost.divide(other_fuel.add(reported)).subtract(1)
+        reported = ec_df[fuel_types].sum(axis=1)
+        ratio = ec_df[['total_cost']].divide(ec_df['other_fuel'].add(reported)).subtract(1)
         return ratio
 
+    @staticmethod
+    def price_ratios():
+        pass
+
+    @staticmethod
+    def calculate_physical_units():
+        calc = current_cost.divide(previous_cost * 
+                            current_price).multiply(previous_pyhsical_units)
+        pass
+
+    @staticmethod
     def mining_data_1987_2017():
         """ For updating estimates, cost of purchased fuels from the Economic
         Census and aggregate (annual) fuel prices from EIA (Monthly Energy Review). Output data (gross output
@@ -245,7 +267,8 @@ class NonManufacturing:
         mining_2017 = pd.read_fwf('') # from economic census
 
 
-        return {'elec': , 'fuels': }
+        # return {'elec': , 'fuels': }
+        pass
     
     def mining_sector_estimates(data_1987_2017):
         elec = data_1987_2017['elec']
@@ -259,8 +282,8 @@ class NonManufacturing:
            
         # Mining energy_031020.xlsx/Compute_intensities (FF-FN, FQ-FS)
 
-        BLS_data = pd.read_csv('./Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
-        BLS_output_data = pd.read_csv('./Data/BLS Output data 1972-2018.csv')
+        BLS_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
+        BLS_output_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/BLS Output data 1972-2018.csv')
         BEA_mining_data = self.BEA_data[['Oil and Gas Extraction', 'Mining, except oil and gas', 'Support Activities for Mining']]
         NEA_data_elec = self.aggregate_mining_data(self.ELECNEA_historical) 
         NEA_data_fuels = self.aggregate_mining_data(self.ALLFOS_historical) 
@@ -297,5 +320,5 @@ class NonManufacturing:
 
 if __name__ == '__main__':
     print('main')
-    data = NonManufacturing().nonmanufacturing_data()
+    data = NonManufacturing().get_econ_census()
     print(data)

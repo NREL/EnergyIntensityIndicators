@@ -9,6 +9,7 @@ class Manufacturing:
     """Class to collect and process manufacturing data for the industrial sector
     """
     def __init__(self):
+        pass
     # ASMdata_date.xlsx
 
     # ind_hap3_date.xlsx
@@ -24,7 +25,7 @@ class Manufacturing:
 
 
 
-    MER_Table24_Industrial_Energy_Consumption = [0]
+    # MER_Table24_Industrial_Energy_Consumption = [0]
 
     # For 2014, the values for total energy consumption and electricity consumption, both defined in terms of
     # trillion Btu, from Table 3.2 are transferred to spreadsheet ind_hap3. Worksheet MECS_Fuel in this
@@ -37,7 +38,7 @@ class Manufacturing:
 
 
     # Energy prices
-    MECS_Table72 = [0]
+    # MECS_Table72 = [0]
 
 
     def get_historical_mecs(self):
@@ -45,7 +46,7 @@ class Manufacturing:
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
         """
         historical_mecs = pd.read_csv('./')
-        historical_mecs_31_32 = pd.read_csv('./Industry/Data/historical_mecs_31_32.csv')
+        historical_mecs_31_32 = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
         return historical_mecs
 
     def manufacturing_prices(self):
@@ -53,7 +54,7 @@ class Manufacturing:
         Specify three-digit NAICS Codes
         """
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual', 'LPG', 'Coke', 'Other']
-        naics = 
+        naics = []
 
         asm_price_data = []
         for f in fuel_types: 
@@ -98,7 +99,7 @@ class Manufacturing:
         and added to csv.
         """
 
-        fallhap3b = pd.read_csv('./Industry/Data/fallhap3b.csv')
+        fallhap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/fallhap3b.csv')
         mecs_fuel = 
 
         return fallhap3b, mecs_fuel
@@ -121,7 +122,7 @@ class Manufacturing:
         """
         
         # ELEC
-        elechap3b = pd.read_csv('./Industry/Data/elechap3b.csv')
+        elechap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/elechap3b.csv')
 
         # import a CSV file of historical MECS electricity use from Table 3.2
         # Will need to aggregate NAICS 311+312, 313+314, and 315+316

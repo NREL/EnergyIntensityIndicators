@@ -610,9 +610,10 @@ class CalculateLMDI:
         cols_to_drop = [col for col in energy_shares.columns if col.endswith('_shift')]
         energy_shares = energy_shares.drop(cols_to_drop, axis=1)
 
-        ASI = self.calc_ASI()
+        ASI = self.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
+                            log_ratio_activity, log_ratio_intensity, log_ratio_structure)
 
-        results = pd.DataFrame.from_dict(data=, orient='columns')
+        results = pd.DataFrame.from_dict(data=ASI, orient='columns')
 
         if model == 'multiplicative':
             results['effect'] = results.product(axis=1)
@@ -623,7 +624,8 @@ class CalculateLMDI:
         print('results: \n', results)
         return results
 
-    def calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, ):
+    def calc_ASI(self, model, weather_data, log_mean_divisia_weights_normalized, 
+                 log_ratio_activity, log_ratio_intensity, log_ratio_structure):
         """Calculate activity, structure, and intensity 
         """        
         activity = (log_mean_divisia_weights_normalized.multiply(log_ratio_activity, axis='columns')).sum(axis=1)

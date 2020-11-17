@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn import linear_model
+import os
 
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
@@ -9,7 +10,7 @@ from EnergyIntensityIndicators.get_census_data import Asm
 from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.Industry.asm_price_fit import Mfg_prices
 from EnergyIntensityIndicators.Industry.nonmanufacuturing import NonManufacturing
-from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
+# from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
 
 
 class IndustrialIndicators(CalculateLMDI):
@@ -56,7 +57,9 @@ class IndustrialIndicators(CalculateLMDI):
 
     def manufacturing(self):
         # categories = self.sub_categories_list['Manufacturing']
-        manufacturing_data = Manufacturing().get_data()
+        # manufacturing_data = Manufacturing().manufacturing()
+        # print('manufacturing_data: \n', manufacturing_data)
+        manufacturing_data = None
         return manufacturing_data
     
     def non_manufacturing(self):
@@ -65,7 +68,9 @@ class IndustrialIndicators(CalculateLMDI):
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
         # categories = self.sub_categories_list['Nonmanufacturing']
-        non_manufacturing_data = NonManufacturing().get_data()
+        non_manufacturing_data = NonManufacturing().nonmanufacturing_data()
+        print('non_manufacturing_data: \n', non_manufacturing_data)
+
         return non_manufacturing_data
         
     def collect_data(self):
@@ -83,8 +88,9 @@ class IndustrialIndicators(CalculateLMDI):
 
         data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=False)
-        return results
+        return formatted_results
 
 if __name__ == '__main__': 
+    print('os.getcwd()', os.getcwd())
     indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Manufacturing')
     indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  
