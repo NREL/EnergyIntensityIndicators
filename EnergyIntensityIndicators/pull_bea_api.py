@@ -2,6 +2,7 @@
 import pandas as pd
 import requests
 import os
+import numpy as np
 
 
 class BEA_api:
@@ -131,60 +132,114 @@ class BEA_api:
         historical_data = {'historical_va': historical_va, 'historical_va_quant_index': historical_va_quant_index,
                            'historical_go': historical_go, 'historical_go_quant_index': historical_go_quant_index}    
         return historical_data
+    
+    @staticmethod
+    def laspeyres_quantity(nominal_data, quantity_index):
+        index = quantity_index.shift().divide(quantity_index).multiply(nominal_data)
+        laspeyres = index.sum(axis=1).divide(nominal_data.sum(axis=1))
+        return laspeyres
+
+    @staticmethod
+    def pasche_quantity(nominal_data, quantity_index):
+        index = (quantity_index.divide(quantity_index.shift())).multiply(nominal_data)
+        pasche = nominal_data.sum(axis=1).divide(index.sum(axis=1))
+        return pasche
+
+    @staticmethod
+    def adjust_transportation(qty_index, nominal_data):
+
+        nominal = nominal_data.loc[['Motor Vehicles', 'Other Transportation Equipment'], :].multiply(1000)
+        nominal_T = nominal.transpose()
+        quantity_index = qty_index.loc[['Motor Vehicles', 'Other Transportation Equipment'], :]
+        quantity_index_T = quantity_index.transpose()
+
+        laspeyres_quantity = self.laspeyres_quantity(nominal_T, quantity_index_T)
+        pasche_quantity = self.pasche_quantity(nominal_T, quantity_index_T)
+
+        laspeyres_quantity['Chained_Laspeyres'] = np.sqrt(laspeyres_quantity.multiply(pasche_quantity))
+
+        chained_laspeyres = laspeyres_quantity[['Chained_Laspeyres']].fillna(1)
+        chained_laspeyres = chained_laspeyres.reindex(columns=chained_laspeyres.columns + ['Raw_Index', 'Index_2012=100'])
+        for i in chained_laspeyres.index():
+            if i == min(chained_laspeyres.index()):
+                raw_index = 1
+            else: 
+                raw_index = chained_laspeyres.loc[i, ['Chained_Laspeyres']].multiply(chained_laspeyres.loc[i - 1, 'Raw_Index'])
+            chained_laspeyres.loc[i, 'Raw_Index'] = raw_index
+        
+        chained_laspeyres['Index_2012=100'] = chained_laspeyres[['Raw_Index']].divide(chained_laspeyres.loc[2012, 'Raw_Index']).multiply(100)
+        
+        gross_output_T.loc[:, 'Total'] = gross_output_T.sum(axis=1)
+
+        transportation_line = chained_laspeyres[['Raw_Index']].multiply(gross_output_T.loc[2012, 'Total'].values * 0.01)
+        transportation_line = transportation_line.transpose()
+        return transportation_line
+
+    @staticmethod
+    def merge_historical(api_data, historical):
+        if len(api_data) == 1:
+            api_data = api_data[0]
+        else: 
+            raise TypeError(f'list of go_nominal of len {len(api_data)}')
+
+        min_api_year = min([int(y) for y in api_data.columns])
+        api_data = api_data.loc[:, : min_api_year]
+        data = historical.merge(api_data, left_index=True, right_index=True, how='outer')
+        return data
+    
+    def transform_data(self, nominal_historical, nominal_from_api, 
+                      qty_index_historical, qty_index_from_api):
+        
+        nominal = self.merge_historical(nominal_from_api, nominal_historical)
+        qty_index = self.merge_historical(qty_index_from_api, qty_index_historical)
+
+        nominal_12 = nominal[nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
+        transfrormed_quant_index = qty_index.multiply(nominal_12, index=1).multiply(.01)
+
+        transfrormed_quant_index = transfrormed_quant_index.transpose()
+
+        transportation_qty_index = transfrormed_quant_index.loc['          Transportation equipment', :]
+        transfrormed_quant_index.loc['Transportation equipment', :] = self.adjust_transportation(transportation_qty_index, nominal)
+
+        return transfrormed_quant_index
+
+    def collect_va(self, historical_data):
+        va_nominal = self.get_data(table_name='va_nominal')
+        historical_va = historical_data['historical_va'] 
+
+        va_quant_index = self.get_data(table_name='va_quant_index')
+        historical_va_qty_index = historical_data['historical_va_qty_index'] 
+        
+        transformed_va_quant_index = self.transform_data(historical_va, va_nominal, 
+                                                         historical_va_qty_index, va_quant_index)
+
+        return transformed_va_quant_index
+
+    def collect_go(self, historical_data):
+        go_nominal = self.get_data(table_name='go_nominal')
+        historical_go = historical_data['historical_go'] 
+
+        go_quant_index = self.get_data(table_name='go_quant_index')
+        historical_go_qty_index = historical_data['historical_go_qty_index']
+
+        transformed_go_quant_index = self.transform_data(historical_go,
+                                                         go_nominal,
+                                                         historical_go_qty_index,
+                                                         go_quant_index)
+        return transformed_go_quant_index
 
     def chain_qty_indexes(self):
         """Merge historical and api data, manipulate as in ChainQtyIndexes
         """
         historical_data = self.import_historical()
         print('historical_data: \n', historical_data)
+        exit()
 
+        go_quant_index = self.collect_va(historical_data)
+        va_quant_index = self.collect_go(historical_data)
 
-        go_nominal = self.get_data(table_name='go_nominal')
-        if len(go_nominal) == 1:
-            go_nominal = go_nominal[0]
-            print('go_nominal: \n', go_nominal)
-        else: 
-            raise TypeError(f'list of go_nominal of len {len(go_nominal)}')
-
-        print('len go_nominal: \n', len(go_nominal))
-        historical_go = historical_data['historical_go'] 
-        go_nominal_12 = go_nominal[go_nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
-        print('go_nominal_12: \n', go_nominal_12)
-        go_quant_index = self.get_data(table_name='go_quant_index')
-        min_api_year = min([int(y) for y in go_quant_index.columns])
-
-        historical_go_qty_index = historical_data['historical_go_qty_index']
-        historical_go_qty_index = historical_go_qty_index.loc[:, : min_api_year]
-
-        go_quant_index = go_quant_index.merge(historical_go_qty_index, left_index=True, right_index=True, how='outer')
-        print('go_quant_index: \n', go_quant_index)
-
-        transformed_go_quant_index = go_quant_index.multiply(go_nominal_12, index=1).multiply(0.01)
-        # transformed_go_quant_index.loc['          Transportation equipment', :] = 
-
-        transformed_go_quant_index = transformed_go_quant_index.transpose()
-
-        # transformed_go_quant_index is further manipulated but I'm not sure exactly how it works
-        transformed_go_quant_index = transformed_go_quant_index.divide(transformed_go_quant_index.loc[self.base_year, :], axis=0)
-
-
-    
-        va_nominal = self.get_data(table_name='va_nominal')
-        print('len va_nominal: \n', len(va_nominal))
-
-        historical_va = historical_data['historical_va'] 
-        va_nominal_12 = va_nominal[va_nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
-        print('va_nominal_12:\n', va_nominal_12)
-        va_quant_index = self.get_data(table_name='va_quant_index')
-        historical_va_qty_index = historical_data['historical_va_qty_index'] 
-        va_quant_index = va_quant_index.merge(historical_va_qty_index, left_index=True, right_index=True, how='outer')
-
-        transformed_va_quant_index = va_quant_index.multiply(va_nominal_12, index=1).multiply(.01)
-        transformed_va_quant_index = transformed_va_quant_index.transpose()
-        # transformed_va_quant_index is further manipulated but I'm not sure exactly how it works
-
-        go_over_va = transformed_go_quant_index.divide(transformed_va_quant_index)
-        return transformed_va_quant_index, transformed_go_quant_index
+        # go_over_va = go_quant_index.divide(va_quant_index)
+        return va_quant_index, go_quant_index
 
 
 if __name__ == '__main__':

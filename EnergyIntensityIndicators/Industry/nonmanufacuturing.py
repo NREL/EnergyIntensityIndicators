@@ -2,6 +2,7 @@ import pandas as pd
 from functools import reduce
 from datetime import datetime
 import os
+import numpy as np
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import Econ_census
@@ -53,7 +54,7 @@ class NonManufacturing:
         va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
         # HERE: select columns 
 
-        return value_added, gross_output
+        return va_quant_index, go_quant_index
     
     def get_econ_census(self):
         economic_census = Econ_census()
@@ -63,9 +64,40 @@ class NonManufacturing:
         print(e_c_data)
         return e_c_data
     
+    @staticmethod
+    def petroleum_prices(retail_gasoline, retail_diesel, excl_tax_gasoline, excl_tax_diesel):
+        retail_gasoline.loc[2011] = 3.527
+        retail_gasoline.loc[2012] = 3.644
+        retail_gasoline.loc[2013] = 3.526
+        retail_gasoline.loc[2014] = 3.367
+        retail_gasoline.loc[2015] = 2.448
+        retail_gasoline.loc[2016] = 2.142
+        retail_gasoline.loc[2017] = 2.408
+
+        retail_gasoline['Excl. Tax'] = retail_gasoline.divide(retail_gasoline.loc[1994, 'Retail']).multiply(excl_tax_gasoline.loc[1994])
+        retail_gasoline['$/MMBtu'] = retail_gasoline.divide(retail_gasoline.loc[1994, 'Retail']).multiply(excl_tax_gasoline.loc[1994])
+        
+        retail_diesel['Excl. Tax'] = retail_diesel.divide(retail_diesel.loc[1994, 'Retail']).multiply(excl_tax_diesel.loc[1994])
+        retail_diesel['$/MMBtu'] = retail_diesel.divide(retail_diesel.loc[1994, 'Retail']).multiply(excl_tax_diesel.loc[1994])
+
+        gasoline_weight = 0.3
+        diesel_weight = 0.7
+        lubricant_weights = 2
+
+        dollar_mmbtu = retail_diesel['$/MMBtu'] * diesel_weight + retail_gasoline['$/MMBtu'] * gasoline_weight
+        lubricant = dollar_mmbtu.multiply(lubricant_weights)
+        return dollar_mmbtu, lubricant
+
+
     def construction_raw_data(self):
         """Equivalent to Construction_energy_011920.xlsx['Construction']
         """ 
+        stb0303 = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/stb0303.xlsx', sheet_name='stb0303')
+        stb0304 = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/stb0304.xlsx', sheet_name='stb0304')
+
+        stb0523 = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/stb0523.xlsx', sheet_name='stb0523')
+        stb0524 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T09.04')
+
 
         return construction_elec, construction_fuels
 
@@ -83,7 +115,7 @@ class NonManufacturing:
         electricity, fuels = self.construction_raw_data()
 
         elec_intensity = electricity.divide(gross_output * 0.0001)
-        elec_intensity = elec_intensity(fuels_intensity).fillna(method='bfill')
+        elec_intensity = standard_interpolation(elec_intensity).fillna(method='bfill')
 
         fuels_intensity = fuels.divide(gross_output * 0.0001)
         fuels_intensity.iloc[1982] = np.nan
@@ -241,8 +273,11 @@ class NonManufacturing:
         return ratio
 
     @staticmethod
-    def price_ratios():
-        pass
+    def price_ratios(asm_prices, agricultural_petroleum_prices, 
+                     stb0709, stb0608, stb0523):
+        mecs_years = list(range(1977, self.currentYear + 1, 5))
+        prices = 
+        return prices
 
     @staticmethod
     def calculate_physical_units():
@@ -265,7 +300,7 @@ class NonManufacturing:
         mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
         """ 
         mining_2017 = pd.read_fwf('') # from economic census
-
+        mining_2017 = mining_2017.apply(lambda column: self.price_ratios(column))
 
         # return {'elec': , 'fuels': }
         pass
