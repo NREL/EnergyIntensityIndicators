@@ -725,7 +725,7 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Freight')
+                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, save_breakout=True, calculate_lmdi=True)
 
 
