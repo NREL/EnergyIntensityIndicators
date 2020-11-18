@@ -37,29 +37,18 @@ class LMDI():
                  log_ratios):
         """Calculate activity, structure, and intensity 
         """        
-
         activity = self.calc_component(log_ratios['activity'], log_mean_divisia_weights_normalized)
         intensity = self.calc_component(log_ratios['intensity'], log_mean_divisia_weights_normalized)
         structure = self.calc_component(log_ratios['structure'], log_mean_divisia_weights_normalized)
 
         if weather_data: 
             if weather_data.shape[1] == 1:
-                if model == 'multiplicative': 
-                    structure_weather = weather_data.divide(weather_data.loc[self.base_year, :]) 
-                elif model == 'additive': 
-                    pass
+                structure_weather = weather_data.divide(weather_data.loc[self.base_year].values)
             elif weather_data.shape[1] > 1:
                 structure_weather = self.calculate_log_changes(weather_data)
                 structure_weather = (log_mean_divisia_weights_normalized.multiply(structure_weather, axis='columns')).sum(axis=1)
                 
-                if model == 'multiplicative': 
-                    # CALCULATE INDEX IF MULTIPLICATIVE, WHAT IF ADDITIVE?
-                    pass
-                elif model == 'additive': 
-                    pass
-
                 structure['structure_weather'] = structure_weather
-
 
         ASI = {'activity': activity, 'structure': structure, 
                 'intensity': intensity}
@@ -94,9 +83,11 @@ class LMDI():
             formatted_data = self.data_visualization(results, fmt_loa)
             formatted_data['@filter|Model'] = model.capitalize()
             formatted_data['@filter|EnergyType'] = energy_type
+
             results_list.append(formatted_data)
         
         final_results = pd.concat(results_list, axis=0)
+        print('final_results decomposition: \n', final_results)
 
         if save_results:
             final_results.to_csv(f'{self.output_directory}{self.sector}_{total_label}_decomposition.csv')
@@ -156,15 +147,23 @@ class LMDI():
         # scenario: additive/mult
         # filter: level?
         data = data.reset_index()
+
         data = data.rename(columns={'Year': '@timeseries|Year', 'activity': "@filter|Measure|Activity", 
                                     'effect': "@filter|Measure|Effect", 'intensity': "@filter|Measure|Intensity", 
                                     'structure': "@filter|Measure|Structure"})
-        data = data[['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Structure", "@filter|Measure|Effect", \
-                     "@filter|Measure|Intensity"]]
-        for i, l in enumerate(loa):
-            label = f"@filter|Subsector_Level_{i + 1}"
-            print('label, l:', label, l)
-            data[label] = l
+
+        # cols = ['@timeseries|Year', "@filter|Measure|Activity", "@filter|Measure|Intensity", \
+        #              "@filter|Measure|Structure", "@filter|Measure|Effect"]
+
+        # if "@filter|Measure|Activity" in data.columns:
+        #     cols = cols.append("@filter|Measure|Activity")
+        # print('cols:', cols)
+        # data = data[cols]
+        # for i, l in enumerate(loa):
+        #     label = f"@filter|Subsector_Level_{i + 1}"
+        #     print('label, l:', label, l)
+        #     data[label] = l
+        data["@filter|Sector"] = self.sector.capitalize()
 
         return data
 
@@ -545,11 +544,13 @@ class CalculateLMDI(LMDI):
 
                 else:
                     total_results_by_energy_type[e] = {'activity': total_activty_df, 'energy': total_energy_df}
-        if len(final_fmt_results) > 0: 
-            print('final_fmt_results: \n \n ', final_fmt_results)
-            for f in final_fmt_results:
-                print('f.columns', f.columns)
+
+        if len(final_fmt_results) > 1: 
+            print('final_fmt_results: \n', final_fmt_results)
             final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
+        else:
+            final_results = final_fmt_results[0]
+        print('final_results:\n', final_results)
         return total_results_by_energy_type, final_results
 
     @staticmethod
@@ -587,14 +588,6 @@ class CalculateLMDI(LMDI):
         log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
         log_ratio_df = pd.DataFrame(data=log_ratio, index=dataset.index, columns=dataset.columns)
         return log_ratio_df
-
-    def compute_index(self, effect):
-        """
-        """                     
-        index = (effect * effect.shift()).ffill() #.fillna(1)  # first value should be set to 1? 
-        index_normalized = index / index.loc[self.base_year] # 1985=1
-
-        return index, index_normalized 
 
     @staticmethod
     def logarithmic_average(x, y):
@@ -681,7 +674,6 @@ class CalculateLMDI(LMDI):
         
         energy_data, energy_shares, log_ratios = self.prepare_lmdi_inputs(energy_input_data, activity_input_data, 
                                                                           total_label, unit_conversion_factor=1)
-        print('energy_shares in call_lmdi:\n', energy_shares)                                       
         results = self.call_decomposition(energy_data, energy_shares, weather_data, 
                                           log_ratios, total_label, lmdi_type, loa, 
                                           save_results, energy_type)

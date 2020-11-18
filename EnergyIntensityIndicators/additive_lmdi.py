@@ -95,23 +95,34 @@ class AdditiveLMDI():
 
         return L
 
-    def decomposition(self, ASI):
+    def calculate_effect(self, ASI):
 
         ASI['effect'] = ASI.sum(axis=1)
 
         return ASI
 
-    def aggregate_additive(self, results_df, energy_input_data, total_label):
-        df = results_df.loc[self.base_year + 1: , :]
-        df = df.sum(axis=0)
-        df['initial_energy'] = energy_input_data.loc[self.base_year, total_label]
-        df['final_energy'] = energy_input_data.loc[max(results_df.index), total_label]
+    @staticmethod
+    def aggregate_additive(additive, base_year):
+        additive.loc[additive['Year'] <= base_year, ['activity', 'intensity', 'structure', 'effect']] = 0
+        additive = additive.set_index('Year')
+        df = additive.cumsum(axis=0)
         return df
 
-    def additive_iterate_base_years():
+    def decomposition(self, ASI):
         """Loop through 
-        """        
-        pass
+        """
+        additive_results = []
+
+        df = self.calculate_effect(ASI)
+        df = df.reset_index()
+
+        for year in df['Year']:
+            aggregated_df = self.aggregate_additive(df, year)
+            aggregated_df["@filter|Measure|BaseYear"] = year
+            additive_results.append(aggregated_df)
+
+        additive_results_df = pd.concat(additive_results, axis=0)
+        return additive_results_df
     
     def waterfall_chart(self, data, final_year, loa, model, *x_data):
         print('data: \n', data)

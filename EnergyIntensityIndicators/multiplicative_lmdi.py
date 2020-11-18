@@ -15,6 +15,9 @@ class MultiplicativeLMDI():
     def __init__(self, energy_data, energy_shares, base_year, total_label, lmdi_type=None):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
+        self.base_year = base_year
+        self.total_label = total_label
+        self.lmdi_type = lmdi_type
 
     def log_mean_divisia_weights(self):
         """Calculate log mean weights where T = t, 0 = t-1
@@ -52,14 +55,36 @@ class MultiplicativeLMDI():
             L = np.nan
 
         return L
+    
+    def compute_index(self, component, base_year_):
+        """
+        """                     
+        component_shift = component.shift()
+        index = (component.multiply(component_shift)).fillna(1)  # first value should be set to 1? 
+        print('index: \n', index.loc[base_year_])
+        index_normalized = index.divide(index.loc[base_year_]) # 1985=1
+        return index_normalized 
 
     def decomposition(self, ASI):
 
         results = ASI.apply(lambda col: np.exp(col), axis=1)
+        print('results: \n', results)
 
-        results['effect'] = results.product(axis=1)
-        
-        return results
+        multiplicative_results = []
+
+        for year in results.index:
+            print('year:', year)
+            for col in results.columns:
+                results[col] = self.compute_index(results[col], year)
+            results["@filter|Measure|BaseYear"] = year
+
+            print('results: \n', results)
+            results['effect'] = results.product(axis=1)
+            multiplicative_results.append(results)
+
+        multiplicative_results_df = pd.concat(multiplicative_results, axis=0)
+
+        return multiplicative_results_df
 
     @staticmethod
     def lineplot(data, loa, model, energy_type, *lines_to_plot): # path
