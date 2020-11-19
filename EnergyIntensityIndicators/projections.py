@@ -1,12 +1,26 @@
 import pandas as pd 
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators.transportation import TransportationIndicators
+from EnergyIntensityIndicators.industry import IndustrialIndicators
+from EnergyIntensityIndicators.commercial import CommercialIndicators
+from EnergyIntensityIndicators.residential import ResidentialIndicators
+from EnergyIntensityIndicators.electricity import ElectricityIndicators
+
+
+
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 
-class MakeProjections:
+class MakeProjections():
 
-    def __init__(self, ):
-        pass
+    def __init__(self, directory, output_directory, level_of_aggregation, 
+                 lmdi_model='multiplicative', base_year=1985, end_year=2018):
+        self.directory = directory
+        self.output_directory = output_directory
+        self.level_of_aggregation = level_of_aggregation
+        self.lmdi_model = lmdi_model 
+        self.base_year = base_year
+        self.end_year = end_year
 
     def heating_cooling_degree_days():
         regions = ['ENC', 'ESC', 'MATL', 'MTN', 'NENGL', 'PCF', 'SATL', 'WNC', 'WSC', 'USA']
@@ -59,19 +73,22 @@ class MakeProjections:
         # Industrial : Value of Shipments : Manufacturing, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_MANF_VOS_NA_USA_BLNY09DLR.A'
         # Industrial : Value of Shipments : Total, AEO2019, AEO2020 --> 'AEO.2020.AEO2019REF.ECI_NA_IDAL_NA_VOS_NA_USA_BLNY09DLR.A'
 
-        industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': {'Food Products': {'energy': {'total_energy': 'AEO.2020.REF2020.CNSM_NA_IDAL_FDP_NA_NA_NA_TRLBTU.A', 'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_FDP_PRC_NA_NA_TRLBTU.A'}, 
+        industrial_categories = {'Manufacturing': {'Food, Beverages, & Tobacco': {'Food Products': {'energy': {'total_energy': 'AEO.2020.REF2020.CNSM_NA_IDAL_FDP_NA_NA_NA_TRLBTU.A', 
+                                                                                                               'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_FDP_PRC_NA_NA_TRLBTU.A'}, 
                                                                                                     'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_FDP_NA_NA_NA_BLNY09DLR.A'}},
-                                                                                  'Beverages and Tobacco Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
-                                                                                                                     'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_BVTP_NA_NA_NA_BLNY09DLR.A'}}}, 
-                                                    'Textile Mills and Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
-                                                                                    'activity': {'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_TMP_NA_NA_NA_BLNY09DLR.A'}}, 
+                                                                                #   'Beverages and Tobacco Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
+                                                                                #                                      'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_BVTP_NA_NA_NA_BLNY09DLR.A'}}
+                                                                                  }, 
+                                                    # 'Textile Mills and Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
+                                                    #                                 'activity': {'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_TMP_NA_NA_NA_BLNY09DLR.A'}}, 
                                                     'Wood Products': {'energy': {'total_energy': 'AEO.2020.REF2020.CNSM_NA_IDAL_WDP_NA_NA_NA_TRLBTU.A', 
                                                                                  'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_WDP_ELC_NA_NA_TRLBTU.A'}, 
                                                                       'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_SHP_IDAL_WDP_NA_NA_NA_BLNY09DLR.A'}},  
-                                                    'Paper': {'energy': {'total_energy': 'AEO.2020.REF2020.CNSM_NA_IDAL_PPM_NA_NA_NA_TRLBTU.A', 'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_PPM_PRC_NA_NA_TRLBTU.A'}, 
+                                                    'Paper': {'energy': {'total_energy': 'AEO.2020.REF2020.CNSM_NA_IDAL_PPM_NA_NA_NA_TRLBTU.A', 
+                                                                         'purchased_electricity': 'AEO.2020.REF2020.CNSM_NA_IDAL_PPM_PRC_NA_NA_TRLBTU.A'}, 
                                                               'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A'}} ,
-                                                    'Printing': {'energy': {'total_energy': , 'purchased_electricity': }, 
-                                                                 'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_PRN_NA_NA_NA_BLNY09DLR.A'}}, 
+                                                    # 'Printing': {'energy': {'total_energy': , 'purchased_electricity': }, 
+                                                    #              'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_PRN_NA_NA_NA_BLNY09DLR.A'}}, 
                                                     'Petroleum & Coal Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                                                   'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_PCL_NA_NA_NA_BLNY09DLR.A'}}, 
                                                     'Chemicals': {'energy': {'total_energy': , 'purchased_electricity': }, 
@@ -231,17 +248,17 @@ class MakeProjections:
                                             {'Fossil Fuels': 
                                                 {'Coal':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_CL_NA_USA_BLNKWH.A'}, 
                                                 'Petroleum':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_PET_NA_USA_BLNKWH.A'}, 
-                                                'Natural Gas':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A'}, 
+                                                'Natural Gas':  {energy_use: 'AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NG_NA_NA_QBTU.A', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A'}, 
                                                 'Other Gasses':  {energy_use: '', million_kwh: ''}},
-                                            'Nuclear':  {energy_use: '', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A'}, 
+                                            'Nuclear':  {energy_use: 'AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NUC_NA_NA_QBTU.A', million_kwh: 'AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A'}, 
                                             'Hydro Electric':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_HYD_CNV_NA_BLNKWH.A'}, 
-                                            'Renewable':
-                                                {'Wood':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WBM_NA_NA_BLNKWH.A'}, # This is wood and other biomass
+                                            'Renewable': # 'energy_use': 'AEO.2020.REF2020.CNSM_ENU_ELEP_NA_REN_NA_NA_QBTU.A', 
+                                                {'Wood':  {energy_use: 'AEO.2020.REF2020.CNSM_NA_ELEP_NA_WBM_NA_NA_QBTU.A', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WBM_NA_NA_BLNKWH.A'}, # This is wood and other biomass
                                                 'Waste':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_BGM_NA_NA_BLNKWH.A'}, # This is Biogenic Municipal Waste
                                                 'Geothermal':  {energy_use: '', billion_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_GEOTHM_NA_NA_BLNKWH.A'}, 
                                                 'Solar':  {'Solar Photovoltaic': {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_PHTVL_NA_BLNKWH.A'}, 
                                                            'Solar Thermal': {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_THERM_NA_BLNKWH.A'}}, 
-                                                'Wind':  {energy_use: '', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WND_NA_NA_BLNKWH.A'}}},
+                                                'Wind':  {energy_use: 'AEO.2020.REF2020.CNSM_NA_ELEP_NA_OFW_NA_NA_QBTU.A', million_kwh: 'AEO.2020.REF2020.GEN_NA_ELEP_NA_WND_NA_NA_BLNKWH.A'}}},
                                         'Combined Heat & Power': 
                                             {'Fossil Fuels'
                                                 {'Coal':  {energy_use: '', million_kwh: ''}, 
@@ -280,7 +297,29 @@ class MakeProjections:
         """activity: 
             energy: 
         """        
-        activity_data = 
+        activity_data = {}
         energy_data = 
         
         pass
+    
+    def collect_data(self, economy_wide):
+        if economy_wide:
+            data_dict = self.economy_wide_projections()
+        else:
+            data_dict = {'commercial': self.commercial_projections(),
+                        'residential': self.residential_projections(), 
+                        'industrial': self.industrial_projections(), 
+                        'transportation': self.transportation_projections(),
+                        'electricity': self.electricity_projections()}
+        
+
+    def main(breakout, save_breakout, calculate_lmdi): 
+        data_dict = self.collect_data()
+        results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                       breakout=breakout, save_breakout=save_breakout, 
+                                       calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+if __name__ == '__main__': 
+    indicators = MakeProjections(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+                                 output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
+                                 level_of_aggregation='', lmdi_model=['multiplicative', 'additive']) # 
+    indicators.main(breakout=False, save_breakout=True, calculate_lmdi=True)

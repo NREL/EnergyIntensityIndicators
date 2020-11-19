@@ -172,7 +172,7 @@ class TransportationIndicators(CalculateLMDI):
                                         # 'Waterborne': None,
                                         'Pipeline': 
                                             {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
-        super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
+        super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
         # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
@@ -725,7 +725,8 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'])
+                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'],
+                                          base_year=1960, end_year=2015) #  
     indicators.main(breakout=False, save_breakout=True, calculate_lmdi=True)
 
 

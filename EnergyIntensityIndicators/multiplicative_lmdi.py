@@ -58,46 +58,53 @@ class MultiplicativeLMDI():
     
     def compute_index(self, component, base_year_):
         """
-        """                     
+        """         
         component_shift = component.shift()
-        index = (component.multiply(component_shift)).fillna(1)  # first value should be set to 1? 
-        print('index: \n', index.loc[base_year_])
+        index = component.multiply(component_shift)
+        index = index.fillna(1)  # first value should be set to 1? 
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
         return index_normalized 
 
     def decomposition(self, ASI):
 
         results = ASI.apply(lambda col: np.exp(col), axis=1)
-        print('results: \n', results)
 
-        multiplicative_results = []
+        # print('results.index:', results.index)
+        # for year in results.index:
+        #     print('year:', year)
+        #     for col in results.columns:
+        #         results[col] = self.compute_index(results[col], year)
+            
+        #     results['effect'] = results.product(axis=1)
 
-        for year in results.index:
-            print('year:', year)
-            for col in results.columns:
-                results[col] = self.compute_index(results[col], year)
-            results["@filter|Measure|BaseYear"] = year
+        #     results["@filter|Measure|BaseYear"] = year
 
-            print('results: \n', results)
-            results['effect'] = results.product(axis=1)
-            multiplicative_results.append(results)
 
-        multiplicative_results_df = pd.concat(multiplicative_results, axis=0)
+        #     if year == min(results.index):
+        #         multiplicative_results = results
+        #     else: 
+        #         multiplicative_results = pd.concat([multiplicative_results, results], axis=0)
 
-        return multiplicative_results_df
+        # print('multiplicative_results: \n', multiplicative_results)
+
+        # return multiplicative_results
+        results['effect'] = results.product(axis=1)
+
+        results["@filter|Measure|BaseYear"] = self.base_year
+        return results
 
     @staticmethod
-    def lineplot(data, loa, model, energy_type, *lines_to_plot): # path
+    def visualizations(data, base_year, end_year, loa, model, energy_type, *lines_to_plot): # path
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
 
         for i, l in enumerate(lines_to_plot):
             label_ = l.replace("_", " ").capitalize()
-            plt.plot(data.index, data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
+            plt.plot(data['@timeseries|Year'], data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
         
         loa = [l_.replace("_", " ") for l_ in loa]
         loa = " /".join(loa)
-        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()}" 
+        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()} {base_year}" 
         plt.title(title, fontsize=12, fontweight=0)
         plt.xlabel('Year')
         # plt.ylabel('')

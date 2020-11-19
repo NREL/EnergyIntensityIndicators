@@ -12,11 +12,13 @@ import plotly.express as px
 
 class AdditiveLMDI():
 
-    def __init__(self, energy_data, energy_shares, base_year, total_label, lmdi_type_='LMDI-I'):
+    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type_='LMDI-I'):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.total_label = total_label
         self.lmdi_type_ = lmdi_type_
+        self.end_year = end_year
+        self.base_year = base_year
 
     def log_mean_divisia_weights(self):
         """Calculate log mean weights for the additive model where T=t, 0 = t - 1
@@ -124,13 +126,15 @@ class AdditiveLMDI():
         additive_results_df = pd.concat(additive_results, axis=0)
         return additive_results_df
     
-    def waterfall_chart(self, data, final_year, loa, model, *x_data):
-        print('data: \n', data)
-        print('data.ravel() : \n', data.ravel())
+    def visualizations(self, data, base_year, end_year, loa, model, energy_type, *x_data):
+
         figure_labels = []
         loa = [l.replace("_", " ") for l in loa]
-        title = f"Change {self.base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
+        final_year = max(data['@timeseries|Year'])
+        title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
+        # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
         x_data = ['initial_energy'] + list(x_data) + ['final_energy']
+        data = data[data['@timeseries|Year'] == self.end_year][x_data]
         y_data = data.ravel()
         x_labels = [x.replace("_", " ").capitalize() for x in x_data]
         

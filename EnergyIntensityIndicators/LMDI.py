@@ -21,11 +21,12 @@ class LMDI():
     LMDI_types = {'additive': AdditiveLMDI,
                    'multiplicative': MultiplicativeLMDI}
 
-    def __init__(self, sector, lmdi_models, output_directory, base_year):
+    def __init__(self, sector, lmdi_models, output_directory, base_year, end_year):
         self.sector = sector
         self.lmdi_models = lmdi_models
         self.output_directory = output_directory
         self.base_year = base_year
+        self.end_year = end_year
 
     @staticmethod
     def calc_component(log_ratio_component, weights):
@@ -57,7 +58,8 @@ class LMDI():
         return ASI_df
 
     def call_decomposition(self, energy_data, energy_shares, weather_data, 
-                           log_ratios, total_label, lmdi_type, loa, save_results, energy_type):
+                           log_ratios, total_label, lmdi_type, loa, save_results, 
+                           energy_type):
         results_list = []
         if isinstance(self.lmdi_models, list):
             pass
@@ -66,23 +68,28 @@ class LMDI():
 
         for model in self.lmdi_models:
             print(f'RUNNING {model.capitalize()} Model')
-            print('energy shares: \n', energy_shares)
-
             model_ = self.LMDI_types[model](energy_data, energy_shares, 
                                             self.base_year, total_label, lmdi_type)
             weights = model_.log_mean_divisia_weights()
-            
+        
             cols_to_drop_ = [col for col in weights.columns if col.endswith('_shift')]
             weights = weights.drop(cols_to_drop_, axis=1)
 
-            print('weights:', weights)
             components = self.calc_ASI(model, weather_data, weights, log_ratios)
+
             results = model_.decomposition(components)
 
             fmt_loa = [l.replace(" ", "_") for l in loa]
             formatted_data = self.data_visualization(results, fmt_loa)
             formatted_data['@filter|Model'] = model.capitalize()
             formatted_data['@filter|EnergyType'] = energy_type
+
+            data_to_plot = formatted_data[formatted_data["@filter|Measure|BaseYear"] == self.base_year]
+
+            model_.visualizations(data_to_plot, self.base_year, self.end_year, 
+                                  loa, model, energy_type, 
+                                  "@filter|Measure|Activity", "@filter|Measure|Intensity",
+                                  "@filter|Measure|Structure", "@filter|Measure|Effect")
 
             results_list.append(formatted_data)
         
@@ -171,10 +178,10 @@ class LMDI():
 class CalculateLMDI(LMDI):
 
     def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types,
-                 directory, output_directory, base_year=1985):
+                 directory, output_directory, base_year=1985, end_year=2018):
 
         super().__init__(sector=sector, lmdi_models=lmdi_models, 
-                         output_directory=output_directory, base_year=base_year)
+                         output_directory=output_directory, base_year=base_year, end_year=end_year)
 
         self.directory = directory
         self.output_directory = output_directory
@@ -412,7 +419,8 @@ class CalculateLMDI(LMDI):
         df[total_label] = df.sum(axis=1).values
         return df 
 
-    def calculate_breakout_lmdi(self, raw_results, final_results_list, level_of_aggregation, weather_data, save_breakout):
+    def calculate_breakout_lmdi(self, raw_results, final_results_list, level_of_aggregation, weather_data, 
+                                breakout, save_breakout):
         """If breakout=True, calculate LMDI for each lower aggregation level contained in raw_results.
 
         Args:
@@ -425,6 +433,8 @@ class CalculateLMDI(LMDI):
         TODO: Lower level Total structure (product of each structure index for multiplicative) and component 
         intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
         """        
+        if breakout:
+            final_results_list = []
         for key in raw_results.keys():
 
             level_total = raw_results[key]['level_total']
@@ -452,8 +462,9 @@ class CalculateLMDI(LMDI):
                     activity_ = self.create_total_column(activity_, level_total)
 
                     category_lmdi = self.call_lmdi(energy_df, activity_, level_total,
-                                                   unit_conversion_factor=1, weather_data=weather_data, \
-                                                   save_results=save_breakout, loa=loa, energy_type=e_type) 
+                                                   unit_conversion_factor=1, weather_data=weather_data,
+                                                   save_results=save_breakout, 
+                                                   loa=loa, energy_type=e_type) 
 
                     final_results_list.append(category_lmdi)
 
@@ -464,7 +475,8 @@ class CalculateLMDI(LMDI):
 
                 category_lmdi = self.call_lmdi(energy_df, activity_, level_total,
                                                unit_conversion_factor=1, weather_data=weather_data,
-                                               save_results=save_breakout, loa=loa, energy_type=e_type) 
+                                               save_results=save_breakout, loa=loa, 
+                                               energy_type=e_type) 
 
                 final_results_list.append(category_lmdi)
 
@@ -474,15 +486,16 @@ class CalculateLMDI(LMDI):
                 for e_type, energy_df in energy.items():
                     energy_df = self.create_total_column(energy_df, level_total)
                     category_lmdi = self.call_lmdi(energy_df, activity_, level_total,
-                                                   unit_conversion_factor=1, weather_data=weather_data,\
-                                                   save_results=save_breakout, loa=loa, energy_type=e_type) 
+                                                   unit_conversion_factor=1, weather_data=weather_data, 
+                                                   save_results=save_breakout, 
+                                                   loa=loa, energy_type=e_type) 
 
                 final_results_list.append(category_lmdi)
 
         return final_results_list
 
 
-    def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False, \
+    def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False,
                         save_breakout=False, weather_data=None):
         """
         docstring
@@ -503,12 +516,11 @@ class CalculateLMDI(LMDI):
             data = data[df_type_]
 
         results_dict = dict()
-        for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict, \
+        for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
                                             level=1, level1_name=level1_name, breakout=breakout):
             if results_dict:
-                if breakout:
-                    self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, \
-                                                 weather_data, save_breakout)
+                self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, 
+                                             weather_data, breakout, save_breakout)
                     
 
         total_results_by_energy_type = dict()
@@ -517,7 +529,7 @@ class CalculateLMDI(LMDI):
             total_energy_df = results_dict[level1_name]['energy'][e]
 
             if isinstance(total_activty_, dict):
-                total_activty_ = {a_type: self.create_total_column(a_df, level_total=level1_name) for \
+                total_activty_ = {a_type: self.create_total_column(a_df, total_label=level1_name) for \
                                   (a_type, a_df) in total_activty_.items()}
 
                 pass
@@ -670,7 +682,8 @@ class CalculateLMDI(LMDI):
         return energy_input_data, energy_shares, log_ratios
 
     def call_lmdi(self, energy_input_data, activity_input_data, total_label, unit_conversion_factor,
-                  weather_data, save_results=False, lmdi_type=None, loa=None, energy_type=None):
+                  weather_data, save_results=False, lmdi_type=None, loa=None, 
+                  energy_type=None):
         
         energy_data, energy_shares, log_ratios = self.prepare_lmdi_inputs(energy_input_data, activity_input_data, 
                                                                           total_label, unit_conversion_factor=1)
@@ -680,28 +693,10 @@ class CalculateLMDI(LMDI):
         return results
 
         
-
+if __name__ == '__main__':
+    pass
 
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -744,18 +739,9 @@ class CalculateLMDI(LMDI):
 
     
     
-        
-    
-    
-    @staticmethod
-    def main():
-        print('main')
 
 
 
-
-if __name__ == '__main__':
-    pass
 
 
 
