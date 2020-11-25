@@ -173,7 +173,7 @@ class TransportationIndicators(CalculateLMDI):
                                         'Pipeline': 
                                             {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
-                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
 
         # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
         #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
@@ -701,7 +701,8 @@ class TransportationIndicators(CalculateLMDI):
             categories = ['Passenger Car', 'Light Truck', 'Motorcycles']
             results = None
         else: 
-            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, 
+                                                         calculate_lmdi=calculate_lmdi, raw_data=data_dict)
         
         results.to_csv(f"{self.output_directory}/transportation_results2.csv")
         print('RESULTS:\n', results)
@@ -726,7 +727,7 @@ if __name__ == '__main__':
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
                                           level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'],
-                                          base_year=1960, end_year=2015) #  
+                                          base_year=1985, end_year=2015) #  
     indicators.main(breakout=False, save_breakout=True, calculate_lmdi=True)
 
 

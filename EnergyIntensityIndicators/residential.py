@@ -38,7 +38,7 @@ class ResidentialIndicators(CalculateLMDI):
         self.end_year = end_year
         self.energy_types = ['elec', 'fuels', 'deliv', 'source']
         super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
+                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
 
 
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
@@ -112,7 +112,8 @@ class ResidentialIndicators(CalculateLMDI):
                 e_df = e_df.rename_axis(columns=None)
                 floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
-                nominal_energy_intensity = self.lmdi(model=None, activity_input_data=total_floorspace, energy_input_data=e_df, unit_conversion_factor=1, return_nominal_energy_intensity=True) # shouldn't rely on multiplicative?
+                nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data=e_df, activity_input_data=total_floorspace) 
+
                 nominal_energy_intensity_by_e[e] = nominal_energy_intensity 
 
             region_data = {'energy': energy_data, 'activity': region_activity}
@@ -137,7 +138,9 @@ class ResidentialIndicators(CalculateLMDI):
 
         data_dict = self.collect_data()
 
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        formatted_results.to_csv(f"{self.output_directory}/residential_results2.csv")
+
         
         return results
 

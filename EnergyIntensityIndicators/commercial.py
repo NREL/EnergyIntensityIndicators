@@ -42,9 +42,9 @@ class CommercialIndicators(CalculateLMDI):
         self.sub_categories_list = {'Commercial': {'Commercial_Total': None}} #, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
-        super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, \
-                         directory=directory, output_directory=output_directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, \
-                         base_year=base_year)
+        super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, 
+                         directory=directory, output_directory=output_directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, 
+                         base_year=base_year, end_year=end_year)
         # self.cbecs = 
         # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -54,7 +54,7 @@ class CommercialIndicators(CalculateLMDI):
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
 
     def collect_data(self, dataset_name):
-        datasets = {'national_calibration': self.eia_comm.national_calibration(), 'conversion_factors': self.eia_comm.conversion_factors(include_utility_sector_efficiency_in_total_energy_intensity=True), 
+        datasets = {'national_calibration': self.eia_comm.national_calibration(), 'conversion_factors': self.eia_comm.conversion_factors(include_utility_sector_efficiency=True), 
                     'SEDS_CensusRgn': self.eia_comm.get_seds(), 'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
         return datasets[dataset_name]
 
@@ -126,7 +126,7 @@ class CommercialIndicators(CalculateLMDI):
     def get_saus():
         """Get Data from the Statistical Abstract of the United States (SAUS)
         """        
-        saus_2002 = pd.read_csv('./Data/SAUS2002_table995.csv').set_index('Year')
+        saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
         saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
                     1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
         saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
@@ -152,7 +152,7 @@ class CommercialIndicators(CalculateLMDI):
         Returns:
             [type]: [description]
         """        
-        dod_old = pd.read_csv('./Data/DODCompareOld.csv').set_index('Year')
+        dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
 
         # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
         # dod_old = dod_old.drop(columns='Soc/Misc')
@@ -229,7 +229,7 @@ class CommercialIndicators(CalculateLMDI):
 
         Data Source: Series N 90-100 Historical Statistics of the U.S., Colonial Times to 1970
         """
-        historical_dodge = pd.read_csv('./Data/historical_dodge_data.csv').set_index('Year')        
+        historical_dodge = pd.read_csv('./EnergyIntensityIndicators/Data/historical_dodge_data.csv').set_index('Year')        
         pub_inst_values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].values
         total_1925_6 = pd.DataFrame.sum(historical_dodge.loc[list(range(1925, 1927)),], axis=0).drop(index='Commercial  (million SF)')
         inst_pub_total_1925 = pd.DataFrame.sum(historical_dodge.loc[1925,].drop('Commercial  (million SF)'), axis=0)
@@ -264,7 +264,7 @@ class CommercialIndicators(CalculateLMDI):
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
         
-        dodge_revised = pd.read_csv('./Data/Dodge_Data.csv').set_index('Year')
+        dodge_revised = pd.read_csv('./EnergyIntensityIndicators/Data/Dodge_Data.csv').set_index('Year')
         dodge_revised.index = dodge_revised.index.astype(str)
 
         dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Hotel'], axis=1).fillna(np.nan)
@@ -530,13 +530,16 @@ class CommercialIndicators(CalculateLMDI):
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
 
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict, account_for_weather=True)
-        print(results)
-        return results
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        print(formatted_results)
+        results.to_csv(f"{self.output_directory}/commercial_results2.csv")
+
+        return formatted_results
 
 if __name__ == '__main__':
     indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative'])
     indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)
+
 
 
 

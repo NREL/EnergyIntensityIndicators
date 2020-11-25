@@ -68,7 +68,6 @@ class AdditiveLMDI():
         self.energy_data = self.energy_data.drop(cols_to_drop_, axis=1)
 
         if self.lmdi_type_ == 'LMDI-I':
-            print('log_mean_values:', log_mean_values_df)
             return log_mean_values_df
 
         elif self.lmdi_type_ == 'LMDI-II':
@@ -78,6 +77,7 @@ class AdditiveLMDI():
             log_mean_weights_normalized = log_mean_weights_normalized.drop([c for c in log_mean_weights_normalized.columns \
                                                                             if not c.startswith('log_mean_weights_')], axis=1)
             return log_mean_weights_normalized
+            
         else:
             return log_mean_values_df
     
@@ -133,13 +133,20 @@ class AdditiveLMDI():
         final_year = max(data['@timeseries|Year'])
         title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
         # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
+        data = data[data['@timeseries|Year'] == self.end_year][list(x_data)]
+        print('total label: \n', self.total_label)
+        print('energy_data:\n', self.energy_data)
+        data['initial_energy'] = self.energy_data.loc[base_year, self.total_label]
+        data['final_energy'] = self.energy_data.loc[end_year, self.total_label]
+        print('data:\n', data)
         x_data = ['initial_energy'] + list(x_data) + ['final_energy']
-        data = data[data['@timeseries|Year'] == self.end_year][x_data]
-        y_data = data.ravel()
+
+        y_data = data
+        print('y_data:\n', y_data)
         x_labels = [x.replace("_", " ").capitalize() for x in x_data]
         
         # for example: ["relative", "relative", "total", "relative", "relative", "total"]
-        measure =  ['relative'] * len(list(x_labels)) 
+        measure =  ['total'] * len(list(x_labels)) 
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
                                      textposition="outside", text=figure_labels, y=y_data, 
                                      connector={"line":{"color":"rgb(63, 63, 63)"}}))

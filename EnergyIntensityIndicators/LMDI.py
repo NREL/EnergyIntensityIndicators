@@ -29,6 +29,22 @@ class LMDI():
         self.end_year = end_year
 
     @staticmethod
+    def calculate_log_changes(dataset):
+        """Calculate the log changes
+           Parameters
+           ----------
+           dataset: dataframe
+
+           Returns
+           -------
+           log_ratio: dataframe
+
+        """
+        log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
+        log_ratio_df = pd.DataFrame(data=log_ratio, index=dataset.index, columns=dataset.columns)
+        return log_ratio_df
+
+    @staticmethod
     def calc_component(log_ratio_component, weights):
         print('WEIGHTS:', weights)
         component = (weights.multiply(log_ratio_component.values, axis='columns')).sum(axis=1)
@@ -68,8 +84,9 @@ class LMDI():
 
         for model in self.lmdi_models:
             print(f'RUNNING {model.capitalize()} Model')
+            print('total_label decomposition:\n', total_label)
             model_ = self.LMDI_types[model](energy_data, energy_shares, 
-                                            self.base_year, total_label, lmdi_type)
+                                            self.base_year, self.end_year, total_label, lmdi_type)
             weights = model_.log_mean_divisia_weights()
         
             cols_to_drop_ = [col for col in weights.columns if col.endswith('_shift')]
@@ -178,7 +195,7 @@ class LMDI():
 class CalculateLMDI(LMDI):
 
     def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types,
-                 directory, output_directory, base_year=1985, end_year=2018):
+                 directory, output_directory, base_year=1985, end_year=2017):
 
         super().__init__(sector=sector, lmdi_models=lmdi_models, 
                          output_directory=output_directory, base_year=base_year, end_year=end_year)
@@ -350,27 +367,52 @@ class CalculateLMDI(LMDI):
     def build_nest(self, data, select_categories, results_dict, breakout, level, level1_name, level_name=None):
         cat_columns = []
         for key, value in select_categories.items():
+            print('select_categories:\n', select_categories)
+            print('data: \n', data)
+            exit()
             if type(value) is dict:
                 level +=  1
                 yield from self.build_nest(data=data, select_categories=value, results_dict=results_dict, \
                                                 breakout=breakout, level=level, level1_name=level1_name, \
                                                 level_name=key)
             else:
-                if type(data['activity']) is dict:
-                    for activity_type, a_df in data['activity'].items():
-                        if key not in a_df.columns:
+                print(data.keys())
+                if 'activity' in data.keys():
+
+                    if type(data['activity']) is dict:
+                        for activity_type, a_df in data['activity'].items():
+                            if key not in a_df.columns:
+                                print(f'Warning: {key} column not in activity data')
+                                yield None
+                    else:    
+                        if key not in data['activity'].columns:
                             print(f'Warning: {key} column not in activity data')
                             yield None
-                else:    
-                    if key not in data['activity'].columns:
-                        print(f'Warning: {key} column not in activity data')
-                        yield None
-                for e in self.energy_types:
-                    if key not in data['energy'][e].columns:
-                        print(f'Warning: {key} column not in {e} data')
-                        yield None
-                else:
-                    cat_columns.append(key)
+                    for e in self.energy_types:
+                        if key not in data['energy'][e].columns:
+                            print(f'Warning: {key} column not in {e} data')
+                            yield None
+                    else:
+                        cat_columns.append(key)
+                else: 
+                    for k_ in data.keys():
+                        if 'activity' in k_.keys():
+
+                            if type(data['activity']) is dict:
+                                for activity_type, a_df in data['activity'].items():
+                                    if key not in a_df.columns:
+                                        print(f'Warning: {key} column not in activity data')
+                                        yield None
+                            else:    
+                                if key not in data['activity'].columns:
+                                    print(f'Warning: {key} column not in activity data')
+                                    yield None
+                            for e in self.energy_types:
+                                if key not in data['energy'][e].columns:
+                                    print(f'Warning: {key} column not in {e} data')
+                                    yield None
+                            else:
+                                cat_columns.append(key)
 
         if isinstance(data['activity'], dict):
             activity_data = dict()
@@ -496,7 +538,7 @@ class CalculateLMDI(LMDI):
 
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False,
-                        save_breakout=False, weather_data=None):
+                        save_breakout=False):
         """
         docstring
 
@@ -518,10 +560,15 @@ class CalculateLMDI(LMDI):
         results_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
                                             level=1, level1_name=level1_name, breakout=breakout):
+            print('results_dict:\n', results_dict)
             if results_dict:
+                if 'weather_factors' in results_dict.keys():
+                    weather_data = results_dict['weather_factors']
+                else: 
+                    weather_data = None
                 self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, 
                                              weather_data, breakout, save_breakout)
-                    
+        exit()
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
@@ -541,10 +588,18 @@ class CalculateLMDI(LMDI):
                         total_energy_df[key] = results_dict[key]['energy'][e][key].values
                 
                 total_activty_df = self.create_total_column(total_activty_df, level1_name)
+                print('total_activty_df: \n', total_activty_df)
+
                 total_energy_df = self.create_total_column(total_activty_df, level1_name)
-                
+                print('total_energy_df: \n', total_energy_df)
+
                 if calculate_lmdi:
                     loa = [self.sector.capitalize()] + level_of_aggregation
+                    try: 
+                        weather_data = results_dict[level1_name]['weather_factors']
+                    except KeyError:
+                        weather_data = None
+
                     final_results = self.call_lmdi(total_energy_df, total_activty_df, total_label=level1_name,
                                                    unit_conversion_factor=1,
                                                    weather_data=weather_data, save_results=True, 
@@ -585,21 +640,6 @@ class CalculateLMDI(LMDI):
         shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares
 
-    @staticmethod
-    def calculate_log_changes(dataset):
-        """Calculate the log changes
-           Parameters
-           ----------
-           dataset: dataframe
-
-           Returns
-           -------
-           log_ratio: dataframe
-
-        """
-        log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
-        log_ratio_df = pd.DataFrame(data=log_ratio, index=dataset.index, columns=dataset.columns)
-        return log_ratio_df
 
     @staticmethod
     def logarithmic_average(x, y):
@@ -617,8 +657,9 @@ class CalculateLMDI(LMDI):
 
         return L
 
-    @staticmethod
-    def nominal_energy_intensity(energy_input_data, activity_input_data):
+    def nominal_energy_intensity(self, energy_input_data, activity_input_data):
+        energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
+
         if isinstance(activity_input_data, pd.DataFrame):
             activity_width = activity_input_data.shape[1]
         elif isinstance(activity_input_data, pd.Series):
@@ -677,8 +718,6 @@ class CalculateLMDI(LMDI):
                       'structure': log_ratio_structure, 
                       'intensity': log_ratio_intensity}
 
-
-
         return energy_input_data, energy_shares, log_ratios
 
     def call_lmdi(self, energy_input_data, activity_input_data, total_label, unit_conversion_factor,
@@ -696,15 +735,7 @@ class CalculateLMDI(LMDI):
 if __name__ == '__main__':
     pass
 
-        
-
-
-
-
-# add to commercial:             nominal_energy_intensity = {activity: self.nominal_energy_intensity(energy_input_data, activity_df) 
-#                                                                                 for (activity, activity_df)
-#                                                                                 in activity_input_data.items()}
-
+    
 
 
 

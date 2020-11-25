@@ -12,10 +12,11 @@ import plotly.express as px
 
 class MultiplicativeLMDI():
 
-    def __init__(self, energy_data, energy_shares, base_year, total_label, lmdi_type=None):
+    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type=None):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.base_year = base_year
+        self.end_year = end_year
         self.total_label = total_label
         self.lmdi_type = lmdi_type
 
@@ -69,29 +70,29 @@ class MultiplicativeLMDI():
 
         results = ASI.apply(lambda col: np.exp(col), axis=1)
 
-        # print('results.index:', results.index)
-        # for year in results.index:
-        #     print('year:', year)
-        #     for col in results.columns:
-        #         results[col] = self.compute_index(results[col], year)
+        print('results.index:', results.index)
+        for year in results.index:
+            print('year:', year)
+            for col in results.columns:
+                results[col] = self.compute_index(results[col], year)
             
-        #     results['effect'] = results.product(axis=1)
+            results['effect'] = results.product(axis=1)
 
-        #     results["@filter|Measure|BaseYear"] = year
+            results["@filter|Measure|BaseYear"] = year
 
 
-        #     if year == min(results.index):
-        #         multiplicative_results = results
-        #     else: 
-        #         multiplicative_results = pd.concat([multiplicative_results, results], axis=0)
+            if year == min(results.index):
+                multiplicative_results = results
+            else: 
+                multiplicative_results = pd.concat([multiplicative_results, results], axis=0)
 
-        # print('multiplicative_results: \n', multiplicative_results)
+        print('multiplicative_results: \n', multiplicative_results)
 
-        # return multiplicative_results
-        results['effect'] = results.product(axis=1)
+        return multiplicative_results
+        # results['effect'] = results.product(axis=1)
 
-        results["@filter|Measure|BaseYear"] = self.base_year
-        return results
+        # results["@filter|Measure|BaseYear"] = self.base_year
+        # return results
 
     @staticmethod
     def visualizations(data, base_year, end_year, loa, model, energy_type, *lines_to_plot): # path

@@ -209,8 +209,13 @@ class WeatherFactors:
         return weights_df
     
     def heating_cooling_data(self):
-        hdd_by_division_historical = pd.read_csv('./Data/historical_hdd_census_division.csv').set_index('Year')
-        cdd_by_division_historical = pd.read_csv('./Data/historical_cdd_census_division.csv').set_index('Year')
+        print('Heating/Cooling Directory:', os.getcwd())
+        try: 
+            hdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_hdd_census_division.csv').set_index('Year')
+            cdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_cdd_census_division.csv').set_index('Year')
+        except FileNotFoundError:
+            hdd_by_division_historical = pd.read_csv('./Data/historical_hdd_census_division.csv').set_index('Year')
+            cdd_by_division_historical = pd.read_csv('./Data/historical_cdd_census_division.csv').set_index('Year')
 
         hdd_by_division = self.eia_data.eia_api(id_='1566347', id_type='category')
         hdd_to_drop = [c for c in list(hdd_by_division.columns) if 'Monthly' in c]
@@ -242,13 +247,44 @@ class WeatherFactors:
         cdd_by_division = cdd_by_division.rename(columns=cdd_new_names_dict)
 
         return hdd_by_division, cdd_by_division
+    
+    @staticmethod
+    def use_intersection(data, intersection_):
+        
+        if isinstance(data, pd.Series): 
+            data_new = data.loc[intersection_]
+        else:
+            data_new = data.loc[intersection_, :]
+            
+        return data_new
+
+    def ensure_same_indices(self, df1, df2):
+        """Returns two dataframes with the same indices
+        purpose: enable dataframe operations such as multiply and divide between the two dfs
+        """        
+        df1.index = df1.index.astype(int)
+        df2.index = df2.index.astype(int)
+
+        intersection_ = df1.index.intersection(df2.index)
+
+        if len(intersection_) == 0: 
+            raise ValueError('DataFrames do not contain any shared years')
+        
+        df1_new = self.use_intersection(df1, intersection_)
+        df2_new = self.use_intersection(df2, intersection_)
+
+        return df1_new, df2_new
 
     def estimate_regional_shares(self):
         """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
         assumed commercial floorspace in each region follows same trends as population or housing units"""
+        print('estimate_regional_shares directory:', os.getcwd())
         regions = ['Northeast', 'Midwest', 'South', 'West']
+        try:
+            cbecs_data = pd.read_csv('./EnergyIntensityIndicators/Data/cbecs_data_millionsf.csv').set_index('Year')
+        except FileNotFoundError:
+            cbecs_data = pd.read_csv('./Data/cbecs_data_millionsf.csv').set_index('Year')
 
-        cbecs_data = pd.read_csv('./Data/cbecs_data_millionsf.csv').set_index('Year')
         cbecs_data.index = cbecs_data.index.astype(str)
         cbecs_years = list(cbecs_data.index)
         cbecs_data = cbecs_data.rename(columns={'Midwest ': 'Midwest', ' South': 'South', ' West': 'West'})
@@ -483,7 +519,7 @@ class WeatherFactors:
 
 
     def national_method2_regression_models(self, seds_data, weather_factors):
-        seds_data, weather_factors = CalculateLMDI.ensure_same_indices(seds_data, weather_factors)
+        seds_data, weather_factors = self.ensure_same_indices(seds_data, weather_factors)
         
         weather_adjusted_consumption = seds_data.drop('National', axis=1).multiply(weather_factors.values)
         weather_adjusted_consumption['National'] = weather_adjusted_consumption.sum(axis=1)
@@ -547,6 +583,7 @@ class WeatherFactors:
                 weather_factors_t = pd.concat([weather_factors_early, weather_factors_late], sort=True)
 
                 weather_factors[type] = weather_factors_t
+
             return weather_factors
 
 if __name__ == '__main__':

@@ -276,7 +276,7 @@ class NonManufacturing:
     def price_ratios(asm_prices, agricultural_petroleum_prices, 
                      stb0709, stb0608, stb0523):
         mecs_years = list(range(1977, self.currentYear + 1, 5))
-        prices = 
+        prices = []
         return prices
 
     @staticmethod

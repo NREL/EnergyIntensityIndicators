@@ -226,7 +226,7 @@ class ResidentialFloorspace:
             [type]: [description]
         """        
         # CSV for 3 average housing size columns
-        if self.end_year > max(df.index) or not os.path.exists(f'./resuts_{self.end_year}.csv'):
+        if self.end_year > max(df.index) or not os.path.exists(f'./EnergyIntensityIndicators/Residential/resuts_{self.end_year}.csv'):
 
             df = df.reindex(columns=list(df.columns) + ['BI', 'post_1984_units', 'BM', 'BN', 'BL'])
             
@@ -275,7 +275,7 @@ class ResidentialFloorspace:
             results = self.model_average_housing_unit_size_sf(x0, df)
 
         else:
-            resuts = pd.read_csv(f'./resuts_{self.end_year}.csv')
+            resuts = pd.read_csv(f'./EnergyIntensityIndicators/Residential/resuts_{self.end_year}.csv')
         return results
 
     
@@ -685,10 +685,16 @@ class ResidentialFloorspace:
 
     def final_floorspace_estimates(self):
         try: 
-            os.chdir('./Residential')
+            os.chdir('./EnergyIntensityIndicators/Residential') # 
             cwd_changed = True
         except FileNotFoundError:
-            cwd_changed = False
+            try: 
+                os.chdir('./Residential') # 
+                cwd_changed = True
+            except FileNotFoundError:
+                cwd_changed = False
+        
+        print('final floorspace directory:', os.getcwd())
 
         number_occupied_units_national, average_size_national = self.get_housing_stock()
         number_occupied_units_national = number_occupied_units_national[['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
