@@ -364,97 +364,160 @@ class CalculateLMDI(LMDI):
     def deep_get(dictionary, keys, default=None):
         return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
 
-    def build_nest(self, data, select_categories, results_dict, breakout, level, level1_name, level_name=None):
+    # def build_nest(self, data, select_categories, results_dict, breakout, level, level1_name, level_name=None):
+    #     cat_columns = []
+    #     for key, value in select_categories.items():
+    #         print('select_categories:\n', select_categories)
+    #         print('data: \n', data)
+    #         exit()
+    #         if type(value) is dict:
+    #             level +=  1
+    #             yield from self.build_nest(data=data, select_categories=value, results_dict=results_dict, \
+    #                                             breakout=breakout, level=level, level1_name=level1_name, \
+    #                                             level_name=key)
+    #         else:
+    #             print(data.keys())
+    #             if 'activity' in data.keys():
+
+    #                 if type(data['activity']) is dict:
+    #                     for activity_type, a_df in data['activity'].items():
+    #                         if key not in a_df.columns:
+    #                             print(f'Warning: {key} column not in activity data')
+    #                             yield None
+    #                 else:    
+    #                     if key not in data['activity'].columns:
+    #                         print(f'Warning: {key} column not in activity data')
+    #                         yield None
+    #                 for e in self.energy_types:
+    #                     if key not in data['energy'][e].columns:
+    #                         print(f'Warning: {key} column not in {e} data')
+    #                         yield None
+    #                 else:
+    #                     cat_columns.append(key)
+    #             else: 
+    #                 for k_ in data.keys():
+    #                     if 'activity' in k_.keys():
+
+    #                         if type(data['activity']) is dict:
+    #                             for activity_type, a_df in data['activity'].items():
+    #                                 if key not in a_df.columns:
+    #                                     print(f'Warning: {key} column not in activity data')
+    #                                     yield None
+    #                         else:    
+    #                             if key not in data['activity'].columns:
+    #                                 print(f'Warning: {key} column not in activity data')
+    #                                 yield None
+    #                         for e in self.energy_types:
+    #                             if key not in data['energy'][e].columns:
+    #                                 print(f'Warning: {key} column not in {e} data')
+    #                                 yield None
+    #                         else:
+    #                             cat_columns.append(key)
+
+    #     if isinstance(data['activity'], dict):
+    #         activity_data = dict()
+    #         energy_data = dict()
+
+    #         for activity_type, a_df in data['activity'].items():
+    #             a_data = a_df[cat_columns]
+    #             new_col_names = {c: f'{activity_type}_{c}' for c in cat_columns}
+    #             a_data = a_data.rename(columns=new_col_names)
+    #             for e in self.energy_types:
+    #                 e_data = data['energy'][e][cat_columns]
+    #                 e_data, a_data = self.ensure_same_indices(e_data, a_data)
+
+    #                 if not level_name:
+    #                     level_name = level1_name
+    #                 else:
+    #                     a_data[level_name] = a_data.sum(axis=1).values
+    #                     e_data[level_name] = e_data.sum(axis=1).values
+
+    #                 energy_data[e] = e_data
+    #                 activity_data[activity_type] = a_data
+
+    #     elif isinstance(data['activity'], pd.DataFrame):
+    #         activity_data = data['activity'][cat_columns]
+
+    #         energy_data = dict()
+    #         for e in self.energy_types:
+    #             e_data = data['energy'][e][cat_columns]
+    #             e_data, activity_data = self.ensure_same_indices(e_data, activity_data)
+
+    #             if not level_name:
+    #                 level_name = level1_name
+    #             else:
+    #                 activity_data[level_name] = activity_data.sum(axis=1).values
+    #                 e_data[level_name] = e_data.sum(axis=1).values
+
+    #             energy_data[e] = e_data
+
+    #     data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+
+    #     results_dict[f'{level_name}'] = data_dict 
+    #     yield results_dict
+
+    @staticmethod
+    def check_cols(dict_key, df, label):
+        if dict_key not in df.columns:
+            print(f'Warning: {dict_key} column not in {label} data')
+            return False
+        else:
+            return True
+
+    def agg_df(self, data, level_name, cat_columns):
+        data = self.create_total_column(data, level_name)
+        data = data[cat_columns]
+        return data
+
+    def build_nest(self, data, select_categories, results_dict, level1_name, level_name=None):
         cat_columns = []
         for key, value in select_categories.items():
-            print('select_categories:\n', select_categories)
-            print('data: \n', data)
-            exit()
             if type(value) is dict:
-                level +=  1
-                yield from self.build_nest(data=data, select_categories=value, results_dict=results_dict, \
-                                                breakout=breakout, level=level, level1_name=level1_name, \
-                                                level_name=key)
-            else:
-                print(data.keys())
-                if 'activity' in data.keys():
+                yield from self.build_nest(data=data, select_categories=value, 
+                                           results_dict=results_dict, level1_name=level1_name, 
+                                           level_name=key)
 
-                    if type(data['activity']) is dict:
-                        for activity_type, a_df in data['activity'].items():
-                            if key not in a_df.columns:
-                                print(f'Warning: {key} column not in activity data')
-                                yield None
-                    else:    
-                        if key not in data['activity'].columns:
-                            print(f'Warning: {key} column not in activity data')
-                            yield None
-                    for e in self.energy_types:
-                        if key not in data['energy'][e].columns:
-                            print(f'Warning: {key} column not in {e} data')
-                            yield None
-                    else:
-                        cat_columns.append(key)
-                else: 
-                    for k_ in data.keys():
-                        if 'activity' in k_.keys():
+            else: 
+                if isinstance(data['activity'], pd.DataFrame):
+                    col_a = self.check_cols(key, data['activity'], label='activity')
 
-                            if type(data['activity']) is dict:
-                                for activity_type, a_df in data['activity'].items():
-                                    if key not in a_df.columns:
-                                        print(f'Warning: {key} column not in activity data')
-                                        yield None
-                            else:    
-                                if key not in data['activity'].columns:
-                                    print(f'Warning: {key} column not in activity data')
-                                    yield None
-                            for e in self.energy_types:
-                                if key not in data['energy'][e].columns:
-                                    print(f'Warning: {key} column not in {e} data')
-                                    yield None
-                            else:
-                                cat_columns.append(key)
+                elif isinstance(data['activity'], dict):
+                    cols_a = [self.check_cols(key, a_df, label=f'activity_{a_type}') for a_type, a_df in data['activity'].items()]
+                    if False in cols_a:
+                        col_a = False
 
-        if isinstance(data['activity'], dict):
-            activity_data = dict()
-            energy_data = dict()
-
-            for activity_type, a_df in data['activity'].items():
-                a_data = a_df[cat_columns]
-                new_col_names = {c: f'{activity_type}_{c}' for c in cat_columns}
-                a_data = a_data.rename(columns=new_col_names)
                 for e in self.energy_types:
-                    e_data = data['energy'][e][cat_columns]
-                    e_data, a_data = self.ensure_same_indices(e_data, a_data)
+                    col_e = self.check_cols(key, data['energy'][e], label=f'energy_{e}')
 
-                    if not level_name:
-                        level_name = level1_name
-                    else:
-                        a_data[level_name] = a_data.sum(axis=1).values
-                        e_data[level_name] = e_data.sum(axis=1).values
+                if col_a and col_e:
+                    cat_columns.append(key)
 
-                    energy_data[e] = e_data
-                    activity_data[activity_type] = a_data
+        if not level_name:
+            level_name = level1_name
 
-        elif isinstance(data['activity'], pd.DataFrame):
-            activity_data = data['activity'][cat_columns]
+        energy_data = dict()
+        for e in self.energy_types:
+            e_data = data['energy'][e]
+            e_data = self.agg_df(e_data, level_name, cat_columns)
+            energy_data[e] = e_data
 
-            energy_data = dict()
-            for e in self.energy_types:
-                e_data = data['energy'][e][cat_columns]
-                e_data, activity_data = self.ensure_same_indices(e_data, activity_data)
+        activity_dict = dict()
+        activity_data = data['activity']
+        if isinstance(activity_data, pd.DataFrame):
+            activity_data = self.agg_df(activity_data, level_name, cat_columns)
+            activity_dict[level_name] = activity_data
 
-                if not level_name:
-                    level_name = level1_name
-                else:
-                    activity_data[level_name] = activity_data.sum(axis=1).values
-                    e_data[level_name] = e_data.sum(axis=1).values
+        elif isinstance(activity_data, dict):
+            for a_name, a_df in activity_data:
+                a_df = self.agg_df(a_df, level_name, cat_columns)
+                activity_dict[a_name] = a_df
+        
 
-                energy_data[e] = e_data
-
-        data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+        data_dict = {'energy': energy_data, 'activity': activity_dict, 'level_total': level_name}
 
         results_dict[f'{level_name}'] = data_dict 
         yield results_dict
+
 
     @staticmethod
     def create_total_column(df, total_label):
@@ -559,7 +622,7 @@ class CalculateLMDI(LMDI):
 
         results_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
-                                            level=1, level1_name=level1_name, breakout=breakout):
+                                            level1_name=level1_name):
             print('results_dict:\n', results_dict)
             if results_dict:
                 if 'weather_factors' in results_dict.keys():
