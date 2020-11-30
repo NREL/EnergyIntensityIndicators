@@ -373,12 +373,15 @@ class CalculateLMDI(LMDI):
             return True
 
     def agg_df(self, data, level_name, cat_columns):
-        data = self.create_total_column(data, level_name)
         data = data[cat_columns]
+        # print('data before total column:\n', data)
+        data = self.create_total_column(data, level_name)
+        # print('data with total column:\n', data)
         return data
 
     def build_nest(self, data, select_categories, results_dict, level1_name, level_name=None):
         cat_columns = []
+
         for key, value in select_categories.items():
             if type(value) is dict:
                 yield from self.build_nest(data=data, select_categories=value, 
@@ -386,6 +389,8 @@ class CalculateLMDI(LMDI):
                                            level_name=key)
 
             else: 
+                # print('DATA missing ACTIVITY:\n', data.keys(), data)
+                # exit()
                 if isinstance(data['activity'], pd.DataFrame):
                     col_a = self.check_cols(key, data['activity'], label='activity')
 
@@ -399,6 +404,8 @@ class CalculateLMDI(LMDI):
 
                 if col_a and col_e:
                     cat_columns.append(key)
+                else:
+                    yield None
 
         if not level_name:
             level_name = level1_name
@@ -420,12 +427,10 @@ class CalculateLMDI(LMDI):
                 a_df = self.agg_df(a_df, level_name, cat_columns)
                 activity_dict[a_name] = a_df
         
-
         data_dict = {'energy': energy_data, 'activity': activity_dict, 'level_total': level_name}
 
         results_dict[f'{level_name}'] = data_dict 
         yield results_dict
-
 
     @staticmethod
     def create_total_column(df, total_label):
@@ -446,8 +451,6 @@ class CalculateLMDI(LMDI):
         TODO: Lower level Total structure (product of each structure index for multiplicative) and component 
         intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
         """        
-        final_results_list = []
-
         for key in raw_results.keys():
 
             level_total = raw_results[key]['level_total']
@@ -469,7 +472,6 @@ class CalculateLMDI(LMDI):
 
         return final_results_list
 
-
     def get_nested_lmdi(self, level_of_aggregation, raw_data, calculate_lmdi=False, breakout=False,
                         save_breakout=False):
         """
@@ -478,8 +480,6 @@ class CalculateLMDI(LMDI):
         TODO: 
             - Build in weather capabilities
         """
-        final_fmt_results = []
-
         categories = self.deep_get(self.categories_dict, level_of_aggregation)
         level_of_aggregation = level_of_aggregation.split(".")
         level1_name = level_of_aggregation[-1]
@@ -494,21 +494,42 @@ class CalculateLMDI(LMDI):
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
                                             level1_name=level1_name):
             if results_dict:
-                print(results_dict)
                 weather_data = []
-                self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, 
-                                             weather_data, breakout, save_breakout)
+                if breakout:
+                    final_fmt_results = self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation, 
+                                                                    weather_data, breakout, save_breakout)
+                else: 
+                    final_fmt_results = []
+        
+        total_activity_dfs = {}
+        total_activty_dict = results_dict[level1_name]['activity']
+        for activity_, total_activty_df in total_activty_dict.items():
+            for key, value in categories.items():
+                if type(value) is dict: 
+                    print("results_dict[key]['activity']:", results_dict[key]['activity'][key][key])
+                    total_activty_df[key] = results_dict[key]['activity'][key][key].values
+            print('total_activty_df here:\n', total_activty_df)
+            total_activty_df = total_activty_df.drop(level1_name, axis=1)
+            print('total_activty_df there:\n', total_activty_df)
+            total_activty_df[level1_name] = total_activty_df.sum(axis=1).values
+            print('total_activty_df: \n', total_activty_df)
+            total_activity_dfs[activity_] = total_activty_df
 
         total_results_by_energy_type = dict()
         for e in self.energy_types:
-            total_activty_dict = results_dict[level1_name]['activity']
             total_energy_df = results_dict[level1_name]['energy'][e]
             weather_data = []
+
+            for key, value in categories.items():
+                if type(value) is dict: 
+                    total_energy_df[key] = results_dict[key]['energy'][e][key].values
+            total_energy_df = total_energy_df.drop(level1_name, axis=1)
+            total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
 
             if calculate_lmdi:
                 loa = [self.sector.capitalize()] + level_of_aggregation
 
-                final_results = self.call_lmdi(total_energy_df, total_activty_dict, total_label=level1_name,
+                final_results = self.call_lmdi(total_energy_df, total_activity_dfs, total_label=level1_name,
                                                 unit_conversion_factor=1,
                                                 weather_data=weather_data, save_results=True, 
                                                 loa=loa, energy_type=e)
@@ -518,12 +539,12 @@ class CalculateLMDI(LMDI):
                 total_results_by_energy_type[e] = final_results
 
             else:
-                total_results_by_energy_type[e] = {'activity': total_activty_dict, 'energy': total_energy_df}
+                total_results_by_energy_type[e] = {'activity': total_activity_dfs, 'energy': total_energy_df}
 
         if len(final_fmt_results) > 1: 
             final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
         else:
-            final_results = final_fmt_results[0]
+            final_results = final_fmt_results
 
         return total_results_by_energy_type, final_results
 
@@ -593,6 +614,9 @@ class CalculateLMDI(LMDI):
         Returns:
             [type]: [description]
         """
+        print('total_label: \n', total_label)
+        print('energy_input_data: \n', energy_input_data)
+        print('activity_input_data: \n', activity_input_data)
 
         log_ratio_structure = []
         log_ratio_activity = []

@@ -728,7 +728,7 @@ if __name__ == '__main__':
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
                                           level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'],
                                           base_year=1985, end_year=2015) #  
-    indicators.main(breakout=False, save_breakout=True, calculate_lmdi=True)
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=True)
 
 
 
