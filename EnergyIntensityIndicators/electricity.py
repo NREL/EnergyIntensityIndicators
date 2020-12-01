@@ -428,7 +428,7 @@ class ElectricityIndicators(CalculateLMDI):
                      'Nuclear': {'energy': {'primary': nuclear_energy}, 'activity': nuclear_activity}}
         return data_dict
 
-    def collect_data(self):
+    def collect_data(self): 
         industrial_sector_chp_renew = self.industrial_sector_chp_renew()
         industrial_sector_chp_fossil = self.industrial_sector_chp_fossil()
         industrial_sector_total = self.industrial_sector_total()

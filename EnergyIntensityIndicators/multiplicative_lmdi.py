@@ -29,15 +29,17 @@ class MultiplicativeLMDI():
         """
 
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
-
+        print("log_mean_divisia_weights energy shares:", self.energy_shares)
         for col in self.energy_shares.columns: 
+            print(f'log_mean_divisia_weights col: {col}')
             self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            
+            print('energy shares with shift:\n', self.energy_shares)
             # apply generally not preferred for row-wise operations but?
             log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
                                                           self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
-        
+        print('log mean weights: \n', log_mean_weights)
         sum_log_mean_shares = log_mean_weights.sum(axis=1)
+        print('sum_log_mean_shares:\n', sum_log_mean_shares)
         log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
         return log_mean_weights_normalized
 
@@ -45,10 +47,17 @@ class MultiplicativeLMDI():
     def logarithmic_average(x, y):
         """The logarithmic average of two positive numbers x and y
         """        
+        try:
+            x = float(x)
+            y = float(y)
+        except TypeError:
+            L = np.nan
+            return L  
+                 
         if x > 0 and y > 0:
             if x != y:
                 difference = x - y
-                log_difference = np.log(x) - np.log(y)
+                log_difference = np.log(x / y)
                 L = difference / log_difference
             else:
                 L = x

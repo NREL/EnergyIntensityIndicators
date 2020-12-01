@@ -21,7 +21,7 @@ from EnergyIntensityIndicators.weather_factors import WeatherFactors
 
 
 class ResidentialIndicators(CalculateLMDI): 
-
+ 
     def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
         self.eia_res = GetEIAData('residential')
         self.sub_categories_list = {'National': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}, 

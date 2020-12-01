@@ -53,7 +53,7 @@ class CommercialIndicators(CalculateLMDI):
         # self.mer_data23_Dec_2019 =  GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
 
-    def collect_data(self, dataset_name):
+    def collect_input_data(self, dataset_name):
         datasets = {'national_calibration': self.eia_comm.national_calibration(), 'conversion_factors': self.eia_comm.conversion_factors(include_utility_sector_efficiency=True), 
                     'SEDS_CensusRgn': self.eia_comm.get_seds(), 'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
         return datasets[dataset_name]
@@ -93,7 +93,7 @@ class CommercialIndicators(CalculateLMDI):
         published_consumption_trillion_btu = self.eia_comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')  # Column W (electricity retail sales to the commercial sector) # for years 1949-69
         published_consumption_trillion_btu = published_consumption_trillion_btu.rename(columns={'Electricity Retail Sales to the Commercial Sector, Annual, Trillion Btu': 'published_consumption_trillion_btu'})
         # 1970-2018
-        national_calibration = self.collect_data('national_calibration')
+        national_calibration = self.collect_input_data('national_calibration')
         published_consumption_trillion_btu.loc['1970':, ['published_consumption_trillion_btu']] = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_elec']].values  # Column G (electricity final est) # for years 1970-2018
         # 1977-1989
 
@@ -483,7 +483,7 @@ class CommercialIndicators(CalculateLMDI):
         """
         year_range = list(range(1949, 1970))
         year_range = [str(y) for y in year_range]
-        national_calibration = self.collect_data('national_calibration')
+        national_calibration = self.collect_input_data('national_calibration')
         total_primary_energy_consumption = self.eia_comm.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series') # pre 1969: AER table 2.1c update column U 
         total_primary_energy_consumption = total_primary_energy_consumption.rename(columns={'Total Primary Energy Consumed by the Commercial Sector, Annual, Trillion Btu': 'total_primary'})
         # total_primary_energy_consumption = total_primary_energy_consumption[total_primary_energy_consumption.index.isin(year_range)]
@@ -499,7 +499,7 @@ class CommercialIndicators(CalculateLMDI):
         return energy_data
 
     def get_seds(self):
-        seds = self.collect_data('SEDS_CensusRgn')
+        seds = self.collect_input_data('SEDS_CensusRgn')
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
         total_fuels = seds[0].rename(columns=census_regions)
         elec = seds[1].rename(columns=census_regions)
@@ -515,8 +515,7 @@ class CommercialIndicators(CalculateLMDI):
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
 
-
-    def main(self, breakout, save_breakout, calculate_lmdi):
+    def collect_data(self):
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
@@ -529,10 +528,13 @@ class CommercialIndicators(CalculateLMDI):
         print('weather_factors', weather_factors)
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
+        return data_dict
 
+    def main(self, breakout, save_breakout, calculate_lmdi):
+        data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
         print(formatted_results)
-        results.to_csv(f"{self.output_directory}/commercial_results2.csv")
+        formatted_results.to_csv(f"{self.output_directory}/commercial_results2.csv")
 
         return formatted_results
 

@@ -1,0 +1,2160 @@
+============================= test session starts =============================
+platform win32 -- Python 3.6.5, pytest-5.4.3, py-1.8.0, pluggy-0.12.0
+rootdir: C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators
+collected 4 items
+
+tests\lmdi_test.py FFFF                                                  [100%]
+
+================================== FAILURES ===================================
+__________________ TestLMDI.test_build_nest[transportation] ___________________
+
+self = <lmdi_test.TestLMDI object at 0x00000155B550CFD0>
+sector = 'transportation', acceptable_pct_difference = 0.05
+
+    @pytest.mark.parametrize('sector', ['transportation']) # , 'residential', 'commercial', 'industrial', 'electricity'
+    def test_build_nest(self, sector, acceptable_pct_difference=0.05):
+        """testing the results of LMDI.build_nest against a csv (to be compiled) of PNNL data.
+    
+        - Assertion should be in terms of a % difference from the PNNL data.
+        - Test should be parameterized to loop through and test all sectors.
+    
+        output of build_nest:
+        data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+    
+        results_dict[f'{level_name}'] = data_dict
+        """
+        eii, pnnl = self.input_data(sector)
+        for energy_type, energy_dict in pnnl.items():
+            for data_type, data_dict in energy_dict.items():
+                for cat, pnnl_df in data_dict.items():
+                    pnnl_df.index = pnnl_df.index.astype(int)
+                    eii_df = eii[energy_type][data_type][[cat]]
+    
+                    diff_df = eii_df.merge(pnnl_df, how='inner',
+                                            left_index=True, right_index=True,
+                                            suffixes=['_eii','_pnnl'])
+                    diff_df['diff'] = diff_df[f'{cat}_pnnl'].subtract(diff_df[f'{cat}_eii'])
+                    diff_df['absolute_diff'] = np.absolute(diff_df['diff'])
+                    diff_df['pct_diff'] = diff_df['absolute_diff'].divide(diff_df[f'{cat}_pnnl'])
+                    pct_diff = diff_df[['pct_diff']]
+                    print('diff_df: ', diff_df)
+    
+>                   assert all((pct_diff <= acceptable_pct_difference).all())
+E                   assert False
+E                    +  where False = all(pct_diff    False\ndtype: bool)
+E                    +    where pct_diff    False\ndtype: bool = <bound method DataFrame.all of       pct_diff\nYear          \n1970     False\n1971     False\n1972     False\n1973     Fal...010     False\n2011     False\n2012     False\n2013     False\n2014     False\n2015     False\n2016     False\n2017     False>()
+E                    +      where <bound method DataFrame.all of       pct_diff\nYear          \n1970     False\n1971     False\n1972     False\n1973     Fal...010     False\n2011     False\n2012     False\n2013     False\n2014     False\n2015     False\n2016     False\n2017     False> =       pct_diff\nYear          \n1970       NaN\n1971       NaN\n1972       NaN\n1973       NaN\n1974       NaN\n1975       Na...2010       NaN\n2011       NaN\n2012       NaN\n2013       NaN\n2014       NaN\n2015       NaN\n2016       NaN\n2017       NaN <= 0.05.all
+
+tests\lmdi_test.py:204: AssertionError
+---------------------------- Captured stdout call -----------------------------
+      Single-Unit Truck  Combination Truck  ...  Oil Pipeline  Natural Gas Pipeline
+Year                                        ...                                    
+1949                NaN                NaN  ...           NaN                   NaN
+1950                NaN                NaN  ...           NaN            129.437926
+1951                NaN                NaN  ...           NaN            198.463376
+1952                NaN                NaN  ...           NaN            213.630417
+1953                NaN                NaN  ...           NaN            237.453734
+1954                NaN                NaN  ...           NaN            237.764065
+1955                NaN                NaN  ...           NaN            252.848626
+1956                NaN                NaN  ...           NaN            305.147132
+1957                NaN                NaN  ...           NaN            308.511285
+1958                NaN                NaN  ...           NaN            321.899851
+1959                NaN                NaN  ...           NaN            360.177788
+1960                NaN                NaN  ...           NaN            357.834325
+1961                NaN                NaN  ...           NaN            389.312817
+1962                NaN                NaN  ...           NaN            394.353376
+1963                NaN           0.000000  ...           NaN            436.920273
+1964                NaN           0.000000  ...           NaN            449.072670
+1965                NaN           0.000000  ...           NaN            516.040244
+1966           0.000000           0.000000  ...           NaN            551.948943
+1967           0.000000           0.000000  ...           NaN            593.600312
+1968           0.000000           0.000000  ...           NaN            609.284915
+1969           0.000000           0.000000  ...           NaN            650.521822
+1970         888.413336        1091.711420  ...           NaN            778.391688
+1971         944.112565        1128.435166  ...           NaN            800.407995
+1972        1084.485544        1206.432138  ...           NaN            825.806618
+1973        1185.178405        1341.001136  ...           NaN            784.870686
+1974        1177.732134        1349.103500  ...           NaN            720.862148
+1975        1213.502200        1363.533043  ...           NaN            628.350758
+1976        1277.369919        1441.540417  ...           NaN            591.013791
+1977        1403.176242        1606.712888  ...           NaN            574.141017
+1978        1547.433559        1796.178344  ...           NaN            571.750331
+...                 ...                ...  ...           ...                   ...
+1988        1708.634864        2241.517837  ...           NaN            661.709355
+1989        1726.979704        2317.888922  ...           NaN            678.304041
+1990        1855.637298        2377.456615  ...           NaN            711.187303
+1991        1815.809994        2478.528803  ...           NaN            648.120811
+1992        1830.802864        2539.537151  ...           NaN            633.467345
+1993        1886.653726        2617.972362  ...           NaN            672.914756
+1994        2009.086065        2753.647175  ...           NaN            738.722238
+1995        2051.508898        2921.671724  ...           NaN            754.860991
+1996        2096.128437        2985.451865  ...           NaN            766.837061
+1997        2134.869496        3003.701973  ...           NaN            809.977210
+1998        2173.376382        3294.961809  ...           NaN            684.953341
+1999        2091.696916        3634.380369  ...           NaN            695.561610
+2000        2135.377900        3803.459910  ...           NaN            692.210553
+2001        2159.032784        3781.395383  ...           NaN            673.621830
+2002        2305.789510        3926.050910  ...           NaN            718.844399
+2003        1984.082612        3990.892601  ...           NaN            637.543801
+2004        2001.508403        4061.683287  ...           NaN            610.268629
+2005        2122.595305        4105.253191  ...           NaN            629.496520
+2006        2201.011361        4167.210070  ...           NaN            629.698079
+2007        2234.076682        4232.064839  ...           NaN            669.741545
+2008        2347.738791        4185.093630  ...           NaN            698.403919
+2009        2225.723202        3841.231515  ...           NaN            722.351746
+2010        2067.417903        4098.272212  ...           NaN            726.609281
+2011        1946.689571        3859.170956  ...           NaN            741.332808
+2012        1968.750976        3831.001925  ...           NaN            787.687127
+2013        1985.923540        3943.253529  ...           NaN            897.920641
+2014        2039.604922        3987.444809  ...           NaN            754.661588
+2015        2033.716403        3955.701584  ...           NaN            730.984303
+2016        2100.489469        4047.274900  ...           NaN            740.198903
+2017        2136.286186        4158.061220  ...           NaN            777.693237
+
+[69 rows x 8 columns]
+total_activty_df here:
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+total_activty_df there:
+       Oil Pipeline  Natural Gas Pipeline
+Year                                    
+1949           NaN           57425.93309
+1950      129000.0           65444.87939
+1951      152000.0           75925.35464
+1952      158000.0           82233.55629
+1953      170000.0           87168.55522
+1954      179000.0           93242.01875
+1955      203000.0          101601.72830
+1956      230000.0          110945.29400
+1957      223000.0          118033.03560
+1958      211000.0          122802.54040
+1959      227000.0          135140.17660
+1960      229000.0          144162.48740
+1961      233000.0          150274.87030
+1962      238000.0          159877.75050
+1963      253000.0          168498.23230
+1964      269000.0          180606.48990
+1965      306000.0          189153.54840
+1966      333000.0          206657.99190
+1967      361000.0          217599.18200
+1968      391000.0          233321.38750
+1969      411000.0          251033.85460
+1970      431000.0          264069.44300
+1971      444000.0          272660.72490
+1972      476000.0          276028.09080
+1973      507000.0          275271.90530
+1974      506000.0          264881.61250
+1975      507000.0          243795.97560
+1976      515000.0          246648.83650
+1977      546000.0          240608.19690
+1978      586000.0          242279.23070
+...            ...                   ...
+1989      584000.0          241872.00050
+1990      584000.0          239894.24920
+1991      579000.0          247588.51100
+1992      589000.0          256449.89590
+1993      593000.0          263724.15330
+1994      591000.0          269894.90840
+1995      601000.0          281674.44100
+1996      619200.0          286695.02640
+1997      616500.0          288565.62790
+1998      619800.0          283776.79530
+1999      617700.0          287151.42310
+2000      577300.0          299080.24610
+2001      576100.0          284572.52510
+2002      586200.0          294734.98060
+2003      590200.0          285511.39420
+2004      599600.0          287762.92800
+2005      607500.0          282072.49330
+2006      581300.0          277121.09630
+2007      557700.0          295045.65520
+2008      605700.0          297142.37230
+2009      568400.0          291092.27710
+2010      550000.0          307231.82100
+2011      550000.0          311952.78420
+2012      550000.0          325065.26720
+2013      550000.0          331001.08970
+2014      550000.0          338528.88550
+2015      550000.0          346973.72330
+2016      550000.0          350068.29260
+2017      550000.0          344900.56890
+2018      550000.0          382226.62350
+
+[70 rows x 2 columns]
+total_activty_df: 
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+level1_name Pipeline
+pnnl_data_raw['Nest level']: ['Buses' 'Cars and SWB Vehicles' 'Freight Total' 'Freight Trucks'
+ 'transportation' nan 'Light Trucks and LWB' 'Passenger Air'
+ 'Passenger Highway' 'Passenger-Rail' 'Passenger' 'Personal Vehicles'
+ 'Pipelines' 'Urban Rail']
+diff_df:        Natural Gas Pipeline_eii  ...  pct_diff
+Year                            ...          
+1970                778.391688  ...       0.0
+1971                800.407995  ...       0.0
+1972                825.806618  ...       0.0
+1973                784.870686  ...       0.0
+1974                720.862148  ...       0.0
+1975                628.350758  ...       0.0
+1976                591.013791  ...       0.0
+1977                574.141017  ...       0.0
+1978                571.750331  ...       0.0
+1979                647.753262  ...       0.0
+1980                684.031773  ...       0.0
+1981                692.334506  ...       0.0
+1982                642.845779  ...       0.0
+1983                528.195207  ...       0.0
+1984                569.921207  ...       0.0
+1985                542.987716  ...       0.0
+1986                522.804844  ...       0.0
+1987                559.591026  ...       0.0
+1988                661.709355  ...       0.0
+1989                678.304041  ...       0.0
+1990                711.187303  ...       0.0
+1991                648.120811  ...       0.0
+1992                633.467345  ...       0.0
+1993                672.914756  ...       0.0
+1994                738.722238  ...       0.0
+1995                754.860991  ...       0.0
+1996                766.837061  ...       0.0
+1997                809.977210  ...       0.0
+1998                684.953341  ...       0.0
+1999                695.561610  ...       0.0
+2000                692.210553  ...       0.0
+2001                673.621830  ...       0.0
+2002                718.844399  ...       0.0
+2003                637.543801  ...       0.0
+2004                610.268629  ...       0.0
+2005                629.496520  ...       0.0
+2006                629.698079  ...       0.0
+2007                669.741545  ...       0.0
+2008                698.403919  ...       0.0
+2009                722.351746  ...       0.0
+2010                726.609281  ...       0.0
+2011                741.332808  ...       0.0
+2012                787.687127  ...       0.0
+2013                897.920641  ...       0.0
+2014                754.661588  ...       0.0
+2015                730.984303  ...       0.0
+2016                740.198903  ...       0.0
+2017                777.693237  ...       0.0
+
+[48 rows x 5 columns]
+diff_df:        Oil Pipeline_eii  Oil Pipeline_pnnl  diff  absolute_diff  pct_diff
+Year                                                                    
+1970               NaN       4.310000e-07   NaN            NaN       NaN
+1971               NaN       4.440000e-07   NaN            NaN       NaN
+1972               NaN       4.760000e-07   NaN            NaN       NaN
+1973               NaN       5.070000e-07   NaN            NaN       NaN
+1974               NaN       5.060000e-07   NaN            NaN       NaN
+1975               NaN       5.070000e-07   NaN            NaN       NaN
+1976               NaN       5.150000e-07   NaN            NaN       NaN
+1977               NaN       5.460000e-07   NaN            NaN       NaN
+1978               NaN       5.860000e-07   NaN            NaN       NaN
+1979               NaN       6.080000e-07   NaN            NaN       NaN
+1980               NaN       5.880000e-07   NaN            NaN       NaN
+1981               NaN       5.640000e-07   NaN            NaN       NaN
+1982               NaN       5.660000e-07   NaN            NaN       NaN
+1983               NaN       5.560000e-07   NaN            NaN       NaN
+1984               NaN       5.680000e-07   NaN            NaN       NaN
+1985               NaN       5.640000e-07   NaN            NaN       NaN
+1986               NaN       5.780000e-07   NaN            NaN       NaN
+1987               NaN       5.870000e-07   NaN            NaN       NaN
+1988               NaN       6.010000e-07   NaN            NaN       NaN
+1989               NaN       5.840000e-07   NaN            NaN       NaN
+1990               NaN       5.840000e-07   NaN            NaN       NaN
+1991               NaN       5.790000e-07   NaN            NaN       NaN
+1992               NaN       5.890000e-07   NaN            NaN       NaN
+1993               NaN       5.930000e-07   NaN            NaN       NaN
+1994               NaN       5.910000e-07   NaN            NaN       NaN
+1995               NaN       6.010000e-07   NaN            NaN       NaN
+1996               NaN       6.190000e-07   NaN            NaN       NaN
+1997               NaN       6.170000e-07   NaN            NaN       NaN
+1998               NaN       6.200000e-07   NaN            NaN       NaN
+1999               NaN       6.180000e-07   NaN            NaN       NaN
+2000               NaN       5.770000e-07   NaN            NaN       NaN
+2001               NaN       5.760000e-07   NaN            NaN       NaN
+2002               NaN       5.860000e-07   NaN            NaN       NaN
+2003               NaN       5.900000e-07   NaN            NaN       NaN
+2004               NaN       6.000000e-07   NaN            NaN       NaN
+2005               NaN       6.080000e-07   NaN            NaN       NaN
+2006               NaN       5.810000e-07   NaN            NaN       NaN
+2007               NaN       5.580000e-07   NaN            NaN       NaN
+2008               NaN       6.060000e-07   NaN            NaN       NaN
+2009               NaN       5.680000e-07   NaN            NaN       NaN
+2010               NaN       5.500000e-07   NaN            NaN       NaN
+2011               NaN       5.500000e-07   NaN            NaN       NaN
+2012               NaN       5.500000e-07   NaN            NaN       NaN
+2013               NaN       5.500000e-07   NaN            NaN       NaN
+2014               NaN       5.500000e-07   NaN            NaN       NaN
+2015               NaN       5.500000e-07   NaN            NaN       NaN
+2016               NaN       5.500000e-07   NaN            NaN       NaN
+2017               NaN       5.500000e-07   NaN            NaN       NaN
+______________ TestLMDI.test_prepare_lmdi_inputs[transportation] ______________
+
+self = <lmdi_test.TestLMDI object at 0x00000155B550CBE0>
+sector = 'transportation'
+
+    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity',
+    def test_prepare_lmdi_inputs(self, sector):
+        """`LMDI.prepare_lmdi_inputs to test original PNNL data (compiled for #13 ) against
+        PNNL results for energy_input_data, energy_shares, and log_ratios
+    
+        -Test should be parameterized to loop through all sectors.
+    
+        prepare_lmdi_inputs returns the following:
+            log_ratios = {'activity': log_ratio_activity,
+                          'structure': log_ratio_structure,
+                          'intensity': log_ratio_intensity}
+        """
+        eii = self.eii_output_factory(sector)
+        pnnl_output = self.get_pnnl_data(sector)
+        pnnl_output = pnnl_output['components']
+        print('pnnl_output:\n', pnnl_output)
+    
+        eii_data, pnnl = self.input_data(sector)
+        print('pnnl:', pnnl)
+        for e_, e_dict in pnnl.items():
+            activity_data = e_dict['activity']
+    
+            print('activity_data.columns:', activity_data.columns)
+            energy_data = e_dict['energy']
+            print('energy_data.columns:', energy_data.columns)
+            try:
+                total_label = activity_data.columns.name
+            except ValueError:
+                print(f'Error: activity data of type {type(activity_data)} \
+                        with columns: {activity_data.columns}')
+                continue
+    
+            activity_dict = dict()
+            if isinstance(activity_data, pd.DataFrame):
+                activity_dict[total_label] = activity_data
+    
+            print('activity_data:', activity_data)
+            print('energy_data:', energy_data)
+            if total_label in activity_data.columns and total_label in energy_data.columns:
+                energy_data, energy_shares, eii_log_ratios = eii.prepare_lmdi_inputs(energy_input_data=energy_data,
+                                                                                     activity_input_data=activity_dict,
+                                                                                     total_label=total_label)
+                print('eii_output:\n', eii_log_ratios)
+    
+                pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_) & (pnnl_output['Nest level'] == total_label)]
+                pnnl_output_ = pnnl_output_.pivot(index='Year', columns='Category', values='Value')
+                print('pnnl output cols:\n', pnnl_output_.columns)
+                print('pnnl_output_:\n', pnnl_output_)
+>               assert all(eii_log_ratios == pnnl_output_)
+
+tests\lmdi_test.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:2091: in f
+    other = _align_method_FRAME(self, other, axis=None)
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:1985: in _align_method_FRAME
+    right = to_series(right)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+right = {'activity': Pipeline  Pipeline
+Year              
+1970           NaN
+1971      0.032016
+1972      0.012274
+1973     -...                    1.401241e-08              -0.008879
+2017                      -2.354044e-08               0.014872}
+
+    def to_series(right):
+        msg = ('Unable to coerce to Series, length must be {req_len}: '
+               'given {given_len}')
+        if axis is not None and left._get_axis_name(axis) == 'index':
+            if len(left.index) != len(right):
+                raise ValueError(msg.format(req_len=len(left.index),
+                                            given_len=len(right)))
+            right = left._constructor_sliced(right, index=left.index)
+        else:
+            if len(left.columns) != len(right):
+                raise ValueError(msg.format(req_len=len(left.columns),
+>                                           given_len=len(right)))
+E               ValueError: Unable to coerce to Series, length must be 0: given 3
+
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:1947: ValueError
+---------------------------- Captured stdout call -----------------------------
+pnnl_output:
+               Sector      Nest level  ...         Category     Value
+0     transportation           Buses  ...  Intensity Index  0.912927
+1     transportation           Buses  ...  Intensity Index  0.915242
+2     transportation           Buses  ...  Intensity Index  0.910865
+3     transportation           Buses  ...  Intensity Index  0.926068
+4     transportation           Buses  ...  Intensity Index  0.903262
+5     transportation           Buses  ...  Intensity Index  0.947173
+6     transportation           Buses  ...  Intensity Index  0.958352
+7     transportation           Buses  ...  Intensity Index  0.944888
+8     transportation           Buses  ...  Intensity Index  0.955984
+9     transportation           Buses  ...  Intensity Index  0.931133
+10    transportation           Buses  ...  Intensity Index  0.938097
+11    transportation           Buses  ...  Intensity Index  0.963874
+12    transportation           Buses  ...  Intensity Index  0.988312
+13    transportation           Buses  ...  Intensity Index  0.981754
+14    transportation           Buses  ...  Intensity Index  0.984913
+15    transportation           Buses  ...  Intensity Index  1.000000
+16    transportation           Buses  ...  Intensity Index  1.021774
+17    transportation           Buses  ...  Intensity Index  1.033687
+18    transportation           Buses  ...  Intensity Index  1.048775
+19    transportation           Buses  ...  Intensity Index  1.043475
+20    transportation           Buses  ...  Intensity Index  1.057856
+21    transportation           Buses  ...  Intensity Index  1.071308
+22    transportation           Buses  ...  Intensity Index  1.119726
+23    transportation           Buses  ...  Intensity Index  1.102739
+24    transportation           Buses  ...  Intensity Index  1.118698
+25    transportation           Buses  ...  Intensity Index  1.121381
+26    transportation           Buses  ...  Intensity Index  1.126090
+27    transportation           Buses  ...  Intensity Index  1.133291
+28    transportation           Buses  ...  Intensity Index  1.119197
+29    transportation           Buses  ...  Intensity Index  1.103319
+...              ...             ...  ...              ...       ...
+1506  transportation  transportation  ...   Activity Index  1.099140
+1507  transportation  transportation  ...   Activity Index  1.112908
+1508  transportation  transportation  ...   Activity Index  1.128181
+1509  transportation  transportation  ...   Activity Index  1.138741
+1510  transportation  transportation  ...   Activity Index  1.174356
+1511  transportation  transportation  ...   Activity Index  1.192886
+1512  transportation  transportation  ...   Activity Index  1.235195
+1513  transportation  transportation  ...   Activity Index  1.272946
+1514  transportation  transportation  ...   Activity Index  1.307984
+1515  transportation  transportation  ...   Activity Index  1.337441
+1516  transportation  transportation  ...   Activity Index  1.367569
+1517  transportation  transportation  ...   Activity Index  1.404284
+1518  transportation  transportation  ...   Activity Index  1.440108
+1519  transportation  transportation  ...   Activity Index  1.452776
+1520  transportation  transportation  ...   Activity Index  1.478019
+1521  transportation  transportation  ...   Activity Index  1.501908
+1522  transportation  transportation  ...   Activity Index  1.563308
+1523  transportation  transportation  ...   Activity Index  1.586042
+1524  transportation  transportation  ...   Activity Index  1.607195
+1525  transportation  transportation  ...   Activity Index  1.600680
+1526  transportation  transportation  ...   Activity Index  1.572292
+1527  transportation  transportation  ...   Activity Index  1.488903
+1528  transportation  transportation  ...   Activity Index  1.524910
+1529  transportation  transportation  ...   Activity Index  1.520630
+1530  transportation  transportation  ...   Activity Index  1.523769
+1531  transportation  transportation  ...   Activity Index  1.535333
+1532  transportation  transportation  ...   Activity Index  1.571859
+1533  transportation  transportation  ...   Activity Index  1.588332
+1534  transportation  transportation  ...   Activity Index  1.594518
+1535  transportation  transportation  ...   Activity Index  1.627786
+
+[1536 rows x 7 columns]
+      Single-Unit Truck  Combination Truck  ...  Oil Pipeline  Natural Gas Pipeline
+Year                                        ...                                    
+1949                NaN                NaN  ...           NaN                   NaN
+1950                NaN                NaN  ...           NaN            129.437926
+1951                NaN                NaN  ...           NaN            198.463376
+1952                NaN                NaN  ...           NaN            213.630417
+1953                NaN                NaN  ...           NaN            237.453734
+1954                NaN                NaN  ...           NaN            237.764065
+1955                NaN                NaN  ...           NaN            252.848626
+1956                NaN                NaN  ...           NaN            305.147132
+1957                NaN                NaN  ...           NaN            308.511285
+1958                NaN                NaN  ...           NaN            321.899851
+1959                NaN                NaN  ...           NaN            360.177788
+1960                NaN                NaN  ...           NaN            357.834325
+1961                NaN                NaN  ...           NaN            389.312817
+1962                NaN                NaN  ...           NaN            394.353376
+1963                NaN           0.000000  ...           NaN            436.920273
+1964                NaN           0.000000  ...           NaN            449.072670
+1965                NaN           0.000000  ...           NaN            516.040244
+1966           0.000000           0.000000  ...           NaN            551.948943
+1967           0.000000           0.000000  ...           NaN            593.600312
+1968           0.000000           0.000000  ...           NaN            609.284915
+1969           0.000000           0.000000  ...           NaN            650.521822
+1970         888.413336        1091.711420  ...           NaN            778.391688
+1971         944.112565        1128.435166  ...           NaN            800.407995
+1972        1084.485544        1206.432138  ...           NaN            825.806618
+1973        1185.178405        1341.001136  ...           NaN            784.870686
+1974        1177.732134        1349.103500  ...           NaN            720.862148
+1975        1213.502200        1363.533043  ...           NaN            628.350758
+1976        1277.369919        1441.540417  ...           NaN            591.013791
+1977        1403.176242        1606.712888  ...           NaN            574.141017
+1978        1547.433559        1796.178344  ...           NaN            571.750331
+...                 ...                ...  ...           ...                   ...
+1988        1708.634864        2241.517837  ...           NaN            661.709355
+1989        1726.979704        2317.888922  ...           NaN            678.304041
+1990        1855.637298        2377.456615  ...           NaN            711.187303
+1991        1815.809994        2478.528803  ...           NaN            648.120811
+1992        1830.802864        2539.537151  ...           NaN            633.467345
+1993        1886.653726        2617.972362  ...           NaN            672.914756
+1994        2009.086065        2753.647175  ...           NaN            738.722238
+1995        2051.508898        2921.671724  ...           NaN            754.860991
+1996        2096.128437        2985.451865  ...           NaN            766.837061
+1997        2134.869496        3003.701973  ...           NaN            809.977210
+1998        2173.376382        3294.961809  ...           NaN            684.953341
+1999        2091.696916        3634.380369  ...           NaN            695.561610
+2000        2135.377900        3803.459910  ...           NaN            692.210553
+2001        2159.032784        3781.395383  ...           NaN            673.621830
+2002        2305.789510        3926.050910  ...           NaN            718.844399
+2003        1984.082612        3990.892601  ...           NaN            637.543801
+2004        2001.508403        4061.683287  ...           NaN            610.268629
+2005        2122.595305        4105.253191  ...           NaN            629.496520
+2006        2201.011361        4167.210070  ...           NaN            629.698079
+2007        2234.076682        4232.064839  ...           NaN            669.741545
+2008        2347.738791        4185.093630  ...           NaN            698.403919
+2009        2225.723202        3841.231515  ...           NaN            722.351746
+2010        2067.417903        4098.272212  ...           NaN            726.609281
+2011        1946.689571        3859.170956  ...           NaN            741.332808
+2012        1968.750976        3831.001925  ...           NaN            787.687127
+2013        1985.923540        3943.253529  ...           NaN            897.920641
+2014        2039.604922        3987.444809  ...           NaN            754.661588
+2015        2033.716403        3955.701584  ...           NaN            730.984303
+2016        2100.489469        4047.274900  ...           NaN            740.198903
+2017        2136.286186        4158.061220  ...           NaN            777.693237
+
+[69 rows x 8 columns]
+total_activty_df here:
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+total_activty_df there:
+       Oil Pipeline  Natural Gas Pipeline
+Year                                    
+1949           NaN           57425.93309
+1950      129000.0           65444.87939
+1951      152000.0           75925.35464
+1952      158000.0           82233.55629
+1953      170000.0           87168.55522
+1954      179000.0           93242.01875
+1955      203000.0          101601.72830
+1956      230000.0          110945.29400
+1957      223000.0          118033.03560
+1958      211000.0          122802.54040
+1959      227000.0          135140.17660
+1960      229000.0          144162.48740
+1961      233000.0          150274.87030
+1962      238000.0          159877.75050
+1963      253000.0          168498.23230
+1964      269000.0          180606.48990
+1965      306000.0          189153.54840
+1966      333000.0          206657.99190
+1967      361000.0          217599.18200
+1968      391000.0          233321.38750
+1969      411000.0          251033.85460
+1970      431000.0          264069.44300
+1971      444000.0          272660.72490
+1972      476000.0          276028.09080
+1973      507000.0          275271.90530
+1974      506000.0          264881.61250
+1975      507000.0          243795.97560
+1976      515000.0          246648.83650
+1977      546000.0          240608.19690
+1978      586000.0          242279.23070
+...            ...                   ...
+1989      584000.0          241872.00050
+1990      584000.0          239894.24920
+1991      579000.0          247588.51100
+1992      589000.0          256449.89590
+1993      593000.0          263724.15330
+1994      591000.0          269894.90840
+1995      601000.0          281674.44100
+1996      619200.0          286695.02640
+1997      616500.0          288565.62790
+1998      619800.0          283776.79530
+1999      617700.0          287151.42310
+2000      577300.0          299080.24610
+2001      576100.0          284572.52510
+2002      586200.0          294734.98060
+2003      590200.0          285511.39420
+2004      599600.0          287762.92800
+2005      607500.0          282072.49330
+2006      581300.0          277121.09630
+2007      557700.0          295045.65520
+2008      605700.0          297142.37230
+2009      568400.0          291092.27710
+2010      550000.0          307231.82100
+2011      550000.0          311952.78420
+2012      550000.0          325065.26720
+2013      550000.0          331001.08970
+2014      550000.0          338528.88550
+2015      550000.0          346973.72330
+2016      550000.0          350068.29260
+2017      550000.0          344900.56890
+2018      550000.0          382226.62350
+
+[70 rows x 2 columns]
+total_activty_df: 
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+level1_name Pipeline
+pnnl_data_raw['Nest level']: ['Buses' 'Cars and SWB Vehicles' 'Freight Total' 'Freight Trucks'
+ 'transportation' nan 'Light Trucks and LWB' 'Passenger Air'
+ 'Passenger Highway' 'Passenger-Rail' 'Passenger' 'Personal Vehicles'
+ 'Pipelines' 'Urban Rail']
+pnnl: {'deliv': {'energy': Pipeline  Natural Gas Pipeline  Oil Pipeline    Pipeline
+Year                                                    
+1970                778.391688  4.310000e-07  778.391688
+1971                800.407995  4.440000e-07  800.407996
+1972                825.806618  4.760000e-07  825.806618
+1973                784.870686  5.070000e-07  784.870687
+1974                720.862148  5.060000e-07  720.862148
+1975                628.350758  5.070000e-07  628.350759
+1976                591.013791  5.150000e-07  591.013792
+1977                574.141017  5.460000e-07  574.141018
+1978                571.750331  5.860000e-07  571.750331
+1979                647.753262  6.080000e-07  647.753263
+1980                684.031773  5.880000e-07  684.031774
+1981                692.334506  5.640000e-07  692.334507
+1982                642.845779  5.660000e-07  642.845780
+1983                528.195207  5.560000e-07  528.195207
+1984                569.921207  5.680000e-07  569.921208
+1985                542.987716  5.640000e-07  542.987717
+1986                522.804844  5.780000e-07  522.804844
+1987                559.591026  5.870000e-07  559.591026
+1988                661.709355  6.010000e-07  661.709355
+1989                678.304041  5.840000e-07  678.304042
+1990                711.187303  5.840000e-07  711.187304
+1991                648.120811  5.790000e-07  648.120812
+1992                633.467345  5.890000e-07  633.467346
+1993                672.914756  5.930000e-07  672.914757
+1994                738.722238  5.910000e-07  738.722239
+1995                754.860991  6.010000e-07  754.860992
+1996                766.837061  6.190000e-07  766.837061
+1997                809.977210  6.170000e-07  809.977211
+1998                684.953341  6.200000e-07  684.953342
+1999                695.561610  6.180000e-07  695.561611
+2000                692.210553  5.770000e-07  692.210553
+2001                673.621830  5.760000e-07  673.621831
+2002                718.844399  5.860000e-07  718.844400
+2003                637.543801  5.900000e-07  637.543801
+2004                610.268629  6.000000e-07  610.268629
+2005                629.496520  6.080000e-07  629.496521
+2006                629.698079  5.810000e-07  629.698080
+2007                669.741545  5.580000e-07  669.741546
+2008                698.403919  6.060000e-07  698.403920
+2009                722.351746  5.680000e-07  722.351747
+2010                726.609281  5.500000e-07  726.609282
+2011                741.332808  5.500000e-07  741.332809
+2012                787.687127  5.500000e-07  787.687127
+2013                897.920641  5.500000e-07  897.920642
+2014                754.661588  5.500000e-07  754.661588
+2015                730.984303  5.500000e-07  730.984303
+2016                740.198903  5.500000e-07  740.198903
+2017                777.693237  5.500000e-07  777.693237, 'activity': Pipeline  Natural Gas Pipeline  Oil Pipeline     Pipeline
+Year                                                     
+1970               264069.4430        0.4310  264069.8740
+1971               272660.7249        0.4440  272661.1689
+1972               276028.0908        0.4760  276028.5668
+1973               275271.9053        0.5070  275272.4123
+1974               264881.6125        0.5060  264882.1185
+1975               243795.9756        0.5070  243796.4826
+1976               246648.8365        0.5150  246649.3515
+1977               240608.1969        0.5460  240608.7429
+1978               242279.2307        0.5860  242279.8167
+1979               251889.6782        0.6080  251890.2862
+1980               252930.5736        0.5880  252931.1616
+1981               247622.5013        0.5640  247623.0653
+1982               226257.8612        0.5660  226258.4272
+1983               213363.9959        0.5560  213364.5519
+1984               226947.1909        0.5680  226947.7589
+1985               219535.9589        0.5640  219536.5229
+1986               205687.1736        0.5780  205687.7516
+1987               215802.6703        0.5870  215803.2573
+1988               226598.6522        0.6010  226599.2532
+1989               241872.0005        0.5840  241872.5845
+1990               239894.2492        0.5840  239894.8332
+1991               247588.5110        0.5790  247589.0900
+1992               256449.8959        0.5890  256450.4849
+1993               263724.1533        0.5930  263724.7463
+1994               269894.9084        0.5910  269895.4994
+1995               281674.4410        0.6010  281675.0420
+1996               286695.0264        0.6192  286695.6456
+1997               288565.6279        0.6165  288566.2444
+1998               283776.7953        0.6198  283777.4151
+1999               287151.4231        0.6177  287152.0408
+2000               299080.2461        0.5773  299080.8234
+2001               284572.5251        0.5761  284573.1012
+2002               294734.9806        0.5862  294735.5668
+2003               285511.3942        0.5902  285511.9844
+2004               287762.9280        0.5996  287763.5276
+2005               282072.4933        0.6075  282073.1008
+2006               277121.0963        0.5813  277121.6776
+2007               295045.6552        0.5577  295046.2129
+2008               297142.3723        0.6057  297142.9780
+2009               291092.2771        0.5684  291092.8455
+2010               307231.8210        0.5500  307232.3710
+2011               311952.7842        0.5500  311953.3342
+2012               325065.2672        0.5500  325065.8172
+2013               331001.0897        0.5500  331001.6397
+2014               338528.8855        0.5500  338529.4355
+2015               346973.7233        0.5500  346974.2733
+2016               350068.2926        0.5500  350068.8426
+2017               344900.5689        0.5500  344901.1189}}
+activity_data.columns: Index(['Natural Gas Pipeline', 'Oil Pipeline', 'Pipeline'], dtype='object', name='Pipeline')
+energy_data.columns: Index(['Natural Gas Pipeline', 'Oil Pipeline', 'Pipeline'], dtype='object', name='Pipeline')
+activity_data: Pipeline  Natural Gas Pipeline  Oil Pipeline     Pipeline
+Year                                                     
+1970               264069.4430        0.4310  264069.8740
+1971               272660.7249        0.4440  272661.1689
+1972               276028.0908        0.4760  276028.5668
+1973               275271.9053        0.5070  275272.4123
+1974               264881.6125        0.5060  264882.1185
+1975               243795.9756        0.5070  243796.4826
+1976               246648.8365        0.5150  246649.3515
+1977               240608.1969        0.5460  240608.7429
+1978               242279.2307        0.5860  242279.8167
+1979               251889.6782        0.6080  251890.2862
+1980               252930.5736        0.5880  252931.1616
+1981               247622.5013        0.5640  247623.0653
+1982               226257.8612        0.5660  226258.4272
+1983               213363.9959        0.5560  213364.5519
+1984               226947.1909        0.5680  226947.7589
+1985               219535.9589        0.5640  219536.5229
+1986               205687.1736        0.5780  205687.7516
+1987               215802.6703        0.5870  215803.2573
+1988               226598.6522        0.6010  226599.2532
+1989               241872.0005        0.5840  241872.5845
+1990               239894.2492        0.5840  239894.8332
+1991               247588.5110        0.5790  247589.0900
+1992               256449.8959        0.5890  256450.4849
+1993               263724.1533        0.5930  263724.7463
+1994               269894.9084        0.5910  269895.4994
+1995               281674.4410        0.6010  281675.0420
+1996               286695.0264        0.6192  286695.6456
+1997               288565.6279        0.6165  288566.2444
+1998               283776.7953        0.6198  283777.4151
+1999               287151.4231        0.6177  287152.0408
+2000               299080.2461        0.5773  299080.8234
+2001               284572.5251        0.5761  284573.1012
+2002               294734.9806        0.5862  294735.5668
+2003               285511.3942        0.5902  285511.9844
+2004               287762.9280        0.5996  287763.5276
+2005               282072.4933        0.6075  282073.1008
+2006               277121.0963        0.5813  277121.6776
+2007               295045.6552        0.5577  295046.2129
+2008               297142.3723        0.6057  297142.9780
+2009               291092.2771        0.5684  291092.8455
+2010               307231.8210        0.5500  307232.3710
+2011               311952.7842        0.5500  311953.3342
+2012               325065.2672        0.5500  325065.8172
+2013               331001.0897        0.5500  331001.6397
+2014               338528.8855        0.5500  338529.4355
+2015               346973.7233        0.5500  346974.2733
+2016               350068.2926        0.5500  350068.8426
+2017               344900.5689        0.5500  344901.1189
+energy_data: Pipeline  Natural Gas Pipeline  Oil Pipeline    Pipeline
+Year                                                    
+1970                778.391688  4.310000e-07  778.391688
+1971                800.407995  4.440000e-07  800.407996
+1972                825.806618  4.760000e-07  825.806618
+1973                784.870686  5.070000e-07  784.870687
+1974                720.862148  5.060000e-07  720.862148
+1975                628.350758  5.070000e-07  628.350759
+1976                591.013791  5.150000e-07  591.013792
+1977                574.141017  5.460000e-07  574.141018
+1978                571.750331  5.860000e-07  571.750331
+1979                647.753262  6.080000e-07  647.753263
+1980                684.031773  5.880000e-07  684.031774
+1981                692.334506  5.640000e-07  692.334507
+1982                642.845779  5.660000e-07  642.845780
+1983                528.195207  5.560000e-07  528.195207
+1984                569.921207  5.680000e-07  569.921208
+1985                542.987716  5.640000e-07  542.987717
+1986                522.804844  5.780000e-07  522.804844
+1987                559.591026  5.870000e-07  559.591026
+1988                661.709355  6.010000e-07  661.709355
+1989                678.304041  5.840000e-07  678.304042
+1990                711.187303  5.840000e-07  711.187304
+1991                648.120811  5.790000e-07  648.120812
+1992                633.467345  5.890000e-07  633.467346
+1993                672.914756  5.930000e-07  672.914757
+1994                738.722238  5.910000e-07  738.722239
+1995                754.860991  6.010000e-07  754.860992
+1996                766.837061  6.190000e-07  766.837061
+1997                809.977210  6.170000e-07  809.977211
+1998                684.953341  6.200000e-07  684.953342
+1999                695.561610  6.180000e-07  695.561611
+2000                692.210553  5.770000e-07  692.210553
+2001                673.621830  5.760000e-07  673.621831
+2002                718.844399  5.860000e-07  718.844400
+2003                637.543801  5.900000e-07  637.543801
+2004                610.268629  6.000000e-07  610.268629
+2005                629.496520  6.080000e-07  629.496521
+2006                629.698079  5.810000e-07  629.698080
+2007                669.741545  5.580000e-07  669.741546
+2008                698.403919  6.060000e-07  698.403920
+2009                722.351746  5.680000e-07  722.351747
+2010                726.609281  5.500000e-07  726.609282
+2011                741.332808  5.500000e-07  741.332809
+2012                787.687127  5.500000e-07  787.687127
+2013                897.920641  5.500000e-07  897.920642
+2014                754.661588  5.500000e-07  754.661588
+2015                730.984303  5.500000e-07  730.984303
+2016                740.198903  5.500000e-07  740.198903
+2017                777.693237  5.500000e-07  777.693237
+total_label: 
+ Pipeline
+energy_input_data: 
+ Pipeline  Natural Gas Pipeline  Oil Pipeline    Pipeline
+Year                                                    
+1970                778.391688  4.310000e-07  778.391688
+1971                800.407995  4.440000e-07  800.407996
+1972                825.806618  4.760000e-07  825.806618
+1973                784.870686  5.070000e-07  784.870687
+1974                720.862148  5.060000e-07  720.862148
+1975                628.350758  5.070000e-07  628.350759
+1976                591.013791  5.150000e-07  591.013792
+1977                574.141017  5.460000e-07  574.141018
+1978                571.750331  5.860000e-07  571.750331
+1979                647.753262  6.080000e-07  647.753263
+1980                684.031773  5.880000e-07  684.031774
+1981                692.334506  5.640000e-07  692.334507
+1982                642.845779  5.660000e-07  642.845780
+1983                528.195207  5.560000e-07  528.195207
+1984                569.921207  5.680000e-07  569.921208
+1985                542.987716  5.640000e-07  542.987717
+1986                522.804844  5.780000e-07  522.804844
+1987                559.591026  5.870000e-07  559.591026
+1988                661.709355  6.010000e-07  661.709355
+1989                678.304041  5.840000e-07  678.304042
+1990                711.187303  5.840000e-07  711.187304
+1991                648.120811  5.790000e-07  648.120812
+1992                633.467345  5.890000e-07  633.467346
+1993                672.914756  5.930000e-07  672.914757
+1994                738.722238  5.910000e-07  738.722239
+1995                754.860991  6.010000e-07  754.860992
+1996                766.837061  6.190000e-07  766.837061
+1997                809.977210  6.170000e-07  809.977211
+1998                684.953341  6.200000e-07  684.953342
+1999                695.561610  6.180000e-07  695.561611
+2000                692.210553  5.770000e-07  692.210553
+2001                673.621830  5.760000e-07  673.621831
+2002                718.844399  5.860000e-07  718.844400
+2003                637.543801  5.900000e-07  637.543801
+2004                610.268629  6.000000e-07  610.268629
+2005                629.496520  6.080000e-07  629.496521
+2006                629.698079  5.810000e-07  629.698080
+2007                669.741545  5.580000e-07  669.741546
+2008                698.403919  6.060000e-07  698.403920
+2009                722.351746  5.680000e-07  722.351747
+2010                726.609281  5.500000e-07  726.609282
+2011                741.332808  5.500000e-07  741.332809
+2012                787.687127  5.500000e-07  787.687127
+2013                897.920641  5.500000e-07  897.920642
+2014                754.661588  5.500000e-07  754.661588
+2015                730.984303  5.500000e-07  730.984303
+2016                740.198903  5.500000e-07  740.198903
+2017                777.693237  5.500000e-07  777.693237
+activity_input_data: 
+ {'Pipeline': Pipeline  Natural Gas Pipeline  Oil Pipeline     Pipeline
+Year                                                     
+1970               264069.4430        0.4310  264069.8740
+1971               272660.7249        0.4440  272661.1689
+1972               276028.0908        0.4760  276028.5668
+1973               275271.9053        0.5070  275272.4123
+1974               264881.6125        0.5060  264882.1185
+1975               243795.9756        0.5070  243796.4826
+1976               246648.8365        0.5150  246649.3515
+1977               240608.1969        0.5460  240608.7429
+1978               242279.2307        0.5860  242279.8167
+1979               251889.6782        0.6080  251890.2862
+1980               252930.5736        0.5880  252931.1616
+1981               247622.5013        0.5640  247623.0653
+1982               226257.8612        0.5660  226258.4272
+1983               213363.9959        0.5560  213364.5519
+1984               226947.1909        0.5680  226947.7589
+1985               219535.9589        0.5640  219536.5229
+1986               205687.1736        0.5780  205687.7516
+1987               215802.6703        0.5870  215803.2573
+1988               226598.6522        0.6010  226599.2532
+1989               241872.0005        0.5840  241872.5845
+1990               239894.2492        0.5840  239894.8332
+1991               247588.5110        0.5790  247589.0900
+1992               256449.8959        0.5890  256450.4849
+1993               263724.1533        0.5930  263724.7463
+1994               269894.9084        0.5910  269895.4994
+1995               281674.4410        0.6010  281675.0420
+1996               286695.0264        0.6192  286695.6456
+1997               288565.6279        0.6165  288566.2444
+1998               283776.7953        0.6198  283777.4151
+1999               287151.4231        0.6177  287152.0408
+2000               299080.2461        0.5773  299080.8234
+2001               284572.5251        0.5761  284573.1012
+2002               294734.9806        0.5862  294735.5668
+2003               285511.3942        0.5902  285511.9844
+2004               287762.9280        0.5996  287763.5276
+2005               282072.4933        0.6075  282073.1008
+2006               277121.0963        0.5813  277121.6776
+2007               295045.6552        0.5577  295046.2129
+2008               297142.3723        0.6057  297142.9780
+2009               291092.2771        0.5684  291092.8455
+2010               307231.8210        0.5500  307232.3710
+2011               311952.7842        0.5500  311953.3342
+2012               325065.2672        0.5500  325065.8172
+2013               331001.0897        0.5500  331001.6397
+2014               338528.8855        0.5500  338529.4355
+2015               346973.7233        0.5500  346974.2733
+2016               350068.2926        0.5500  350068.8426
+2017               344900.5689        0.5500  344901.1189}
+DATASET COLUMNS IN CALC SHARE: Index(['Natural Gas Pipeline', 'Oil Pipeline', 'Pipeline'], dtype='object', name='Pipeline')
+total COLUMN: Pipeline
+DATASET COLUMNS IN CALC SHARE: Index(['Natural Gas Pipeline', 'Oil Pipeline', 'Pipeline'], dtype='object', name='Pipeline')
+total COLUMN: Pipeline
+eii_output:
+ {'activity': Pipeline  Pipeline
+Year              
+1970           NaN
+1971      0.032016
+1972      0.012274
+1973     -0.002743
+1974     -0.038476
+1975     -0.082951
+1976      0.011634
+1977     -0.024796
+1978      0.006921
+1979      0.038900
+1980      0.004124
+1981     -0.021210
+1982     -0.090230
+1983     -0.058676
+1984      0.061718
+1985     -0.033201
+1986     -0.065159
+1987      0.048008
+1988      0.048816
+1989      0.065228
+1990     -0.008210
+1991      0.031570
+1992      0.035165
+1993      0.027970
+1994      0.023129
+1995      0.042719
+1996      0.017667
+1997      0.006503
+1998     -0.016734
+1999      0.011822
+2000      0.040702
+2001     -0.049724
+2002      0.035088
+2003     -0.031795
+2004      0.007855
+2005     -0.019973
+2006     -0.017710
+2007      0.062675
+2008      0.007081
+2009     -0.020571
+2010      0.053962
+2011      0.015249
+2012      0.041174
+2013      0.018096
+2014      0.022488
+2015      0.024640
+2016      0.008879
+2017     -0.014872, 'structure': Pipeline  Pipeline_Natural Gas Pipeline  Pipeline_Oil Pipeline
+Year                                                          
+1970                                NaN                    NaN
+1971                       3.749086e-09              -0.002300
+1972                      -9.606466e-08               0.057319
+1973                      -1.173529e-07               0.065836
+1974                      -6.847197e-08               0.036502
+1975                      -1.693200e-07               0.084925
+1976                      -8.381001e-09               0.004022
+1977                      -1.812602e-07               0.083248
+1978                      -1.494471e-07               0.063780
+1979                       4.941670e-09              -0.002045
+1980                       8.900630e-08              -0.037572
+1981                       4.708796e-08              -0.020463
+1982                      -2.239095e-07               0.093770
+1983                      -1.043046e-07               0.040850
+1984                       1.030903e-07              -0.040365
+1985                      -6.627016e-08               0.026134
+1986                      -2.410367e-07               0.089679
+1987                       9.001477e-08              -0.032557
+1988                       6.781094e-08              -0.025246
+1989                       2.377656e-07              -0.093922
+1990                      -1.990573e-08               0.008210
+1991                       9.584815e-08              -0.040168
+1992                       4.181259e-08              -0.018041
+1993                       4.818324e-08              -0.021202
+1994                       5.882026e-08              -0.026507
+1995                       5.607216e-08              -0.025940
+1996                      -2.611736e-08               0.012166
+1997                       2.335720e-08              -0.010873
+1998                      -4.768174e-08               0.022073
+1999                       3.298100e-08              -0.015216
+2000                       2.208782e-07              -0.108343
+2001                      -9.418862e-08               0.047643
+2002                       3.553450e-08              -0.017709
+2003                      -7.826236e-08               0.038595
+2004                      -1.649167e-08               0.007946
+2005                      -7.004188e-08               0.033062
+2006                       5.606262e-08              -0.026376
+2007                       2.074226e-07              -0.104121
+2008                      -1.482006e-07               0.075482
+2009                       8.577120e-08              -0.042988
+2010                       1.624660e-07              -0.086869
+2011                       2.709178e-08              -0.015249
+2012                       7.111930e-08              -0.041174
+2013                       3.034191e-08              -0.018096
+2014                       3.694917e-08              -0.022488
+2015                       3.954221e-08              -0.024640
+2016                       1.401241e-08              -0.008879
+2017                      -2.354044e-08               0.014872, 'intensity': Pipeline  Natural Gas Pipeline  Oil Pipeline
+Year                                        
+1970                       NaN           NaN
+1971              1.413492e-11      0.001825
+1972             -1.057233e-10      0.038354
+1973             -3.157907e-11      0.113935
+1974             -5.656631e-11      0.083097
+1975             -1.021201e-10      0.139324
+1976             -2.194708e-10      0.076915
+1977              1.443388e-10      0.087416
+1978             -1.785433e-10      0.074873
+1979              1.231308e-10     -0.087952
+1980              4.912626e-11     -0.087942
+1981              1.051936e-11     -0.053738
+1982             -6.671674e-11      0.077704
+1983             -2.025939e-10      0.178613
+1984              8.316681e-11     -0.054679
+1985             -5.222023e-11      0.041344
+1986             -4.265843e-11      0.062398
+1987              7.544410e-11     -0.052547
+1988              1.654692e-10     -0.144050
+1989              2.218359e-11     -0.053463
+1990              4.089951e-11     -0.047340
+1991             -8.209378e-11      0.084260
+1992             -2.141465e-11      0.039992
+1993              5.552447e-11     -0.053642
+1994              7.943046e-11     -0.096682
+1995              1.736500e-11     -0.004833
+1996             -1.179922e-10      0.013770
+1997              4.861866e-11     -0.057968
+1998             -1.175016e-11      0.172506
+1999              1.335954e-11     -0.018600
+2000              1.402889e-10     -0.063817
+2001             -1.683841e-10      0.025487
+2002              1.951470e-10     -0.047764
+2003             -8.869905e-11      0.126825
+2004             -1.989139e-10      0.060531
+2005              3.003109e-11     -0.017776
+2006              1.591114e-10     -0.045744
+2007              4.747469e-11     -0.102043
+2008             -1.125450e-10      0.040615
+2009              1.669183e-10     -0.098473
+2010              4.055645e-12     -0.038080
+2011              1.366707e-11     -0.020061
+2012             -8.726309e-11     -0.060651
+2013              9.351342e-11     -0.130981
+2014             -1.268478e-10      0.173812
+2015              1.110492e-10      0.031877
+2016             -1.265836e-10     -0.012527
+2017              1.676661e-10     -0.049413}
+pnnl output cols:
+ Index([], dtype='object', name='Category')
+pnnl_output_:
+ Empty DataFrame
+Columns: []
+Index: []
+_ TestLMDI.test_multiplicative_lmdi_log_mean_divisia_weights[transportation] __
+
+self = <lmdi_test.TestLMDI object at 0x00000155B5758B38>
+sector = 'transportation'
+
+    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity',
+    def test_multiplicative_lmdi_log_mean_divisia_weights(self, sector):
+        """Multiplicative test should use original PNNL data (compiled for #13)
+        Test should be parametrized to loop through all sectors.
+        """
+        eii = self.eii_output_factory(sector)
+    
+        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+        eii, pnnl_data_ = self.input_data(sector)
+    
+        bools_list = []
+    
+        for e_type in pnnl_data['Energy Type'].unique():
+    
+            for level_ in pnnl_data['Nest level'].unique():
+                energy_data = pnnl_data_[e_type]['energy']
+                energy_shares = pnnl_data[pnnl_data['Data Type'] == 'Energy Shares']
+                energy_shares = energy_shares[['Year', 'Category', 'Value']]
+                energy_shares['Value'] = energy_shares['Value'].astype(float)
+                energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
+                energy_shares = energy_shares.dropna(axis=1, how='all')
+                total_label = level_
+                model_ = MultiplicativeLMDI(energy_data, energy_shares, 1985, 2017, total_label)
+                eii_output = model_.log_mean_divisia_weights()
+                print('eii_output log mean divisia weights: \n', eii_output.head())
+    
+                # pnnl_data_raw = self.get_pnnl_data(sector)['results']
+                # weights_cols = [cat for cat in pnnl_data_raw['Category'].unique() if cat.endswith('eights')]
+                # pnnl_weights = pnnl_data_raw[pnnl_data_raw['Category'].isin(weights_cols)]
+                pnnl_weights = pnnl_data[pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)']
+    
+                pnnl_weights_ = pnnl_weights.pivot(index='Year', columns='Category', values='Value')
+                pnnl_weights_ = pnnl_weights_.dropna(axis=1, how='all')
+                print('pnnl_weights_:\n', pnnl_weights_)
+                bools_list.append(eii_output.equals(pnnl_weights))
+    
+>       assert all(all(bools_list))
+E       TypeError: 'bool' object is not iterable
+
+tests\lmdi_test.py:296: TypeError
+---------------------------- Captured stdout call -----------------------------
+      Single-Unit Truck  Combination Truck  ...  Oil Pipeline  Natural Gas Pipeline
+Year                                        ...                                    
+1949                NaN                NaN  ...           NaN                   NaN
+1950                NaN                NaN  ...           NaN            129.437926
+1951                NaN                NaN  ...           NaN            198.463376
+1952                NaN                NaN  ...           NaN            213.630417
+1953                NaN                NaN  ...           NaN            237.453734
+1954                NaN                NaN  ...           NaN            237.764065
+1955                NaN                NaN  ...           NaN            252.848626
+1956                NaN                NaN  ...           NaN            305.147132
+1957                NaN                NaN  ...           NaN            308.511285
+1958                NaN                NaN  ...           NaN            321.899851
+1959                NaN                NaN  ...           NaN            360.177788
+1960                NaN                NaN  ...           NaN            357.834325
+1961                NaN                NaN  ...           NaN            389.312817
+1962                NaN                NaN  ...           NaN            394.353376
+1963                NaN           0.000000  ...           NaN            436.920273
+1964                NaN           0.000000  ...           NaN            449.072670
+1965                NaN           0.000000  ...           NaN            516.040244
+1966           0.000000           0.000000  ...           NaN            551.948943
+1967           0.000000           0.000000  ...           NaN            593.600312
+1968           0.000000           0.000000  ...           NaN            609.284915
+1969           0.000000           0.000000  ...           NaN            650.521822
+1970         888.413336        1091.711420  ...           NaN            778.391688
+1971         944.112565        1128.435166  ...           NaN            800.407995
+1972        1084.485544        1206.432138  ...           NaN            825.806618
+1973        1185.178405        1341.001136  ...           NaN            784.870686
+1974        1177.732134        1349.103500  ...           NaN            720.862148
+1975        1213.502200        1363.533043  ...           NaN            628.350758
+1976        1277.369919        1441.540417  ...           NaN            591.013791
+1977        1403.176242        1606.712888  ...           NaN            574.141017
+1978        1547.433559        1796.178344  ...           NaN            571.750331
+...                 ...                ...  ...           ...                   ...
+1988        1708.634864        2241.517837  ...           NaN            661.709355
+1989        1726.979704        2317.888922  ...           NaN            678.304041
+1990        1855.637298        2377.456615  ...           NaN            711.187303
+1991        1815.809994        2478.528803  ...           NaN            648.120811
+1992        1830.802864        2539.537151  ...           NaN            633.467345
+1993        1886.653726        2617.972362  ...           NaN            672.914756
+1994        2009.086065        2753.647175  ...           NaN            738.722238
+1995        2051.508898        2921.671724  ...           NaN            754.860991
+1996        2096.128437        2985.451865  ...           NaN            766.837061
+1997        2134.869496        3003.701973  ...           NaN            809.977210
+1998        2173.376382        3294.961809  ...           NaN            684.953341
+1999        2091.696916        3634.380369  ...           NaN            695.561610
+2000        2135.377900        3803.459910  ...           NaN            692.210553
+2001        2159.032784        3781.395383  ...           NaN            673.621830
+2002        2305.789510        3926.050910  ...           NaN            718.844399
+2003        1984.082612        3990.892601  ...           NaN            637.543801
+2004        2001.508403        4061.683287  ...           NaN            610.268629
+2005        2122.595305        4105.253191  ...           NaN            629.496520
+2006        2201.011361        4167.210070  ...           NaN            629.698079
+2007        2234.076682        4232.064839  ...           NaN            669.741545
+2008        2347.738791        4185.093630  ...           NaN            698.403919
+2009        2225.723202        3841.231515  ...           NaN            722.351746
+2010        2067.417903        4098.272212  ...           NaN            726.609281
+2011        1946.689571        3859.170956  ...           NaN            741.332808
+2012        1968.750976        3831.001925  ...           NaN            787.687127
+2013        1985.923540        3943.253529  ...           NaN            897.920641
+2014        2039.604922        3987.444809  ...           NaN            754.661588
+2015        2033.716403        3955.701584  ...           NaN            730.984303
+2016        2100.489469        4047.274900  ...           NaN            740.198903
+2017        2136.286186        4158.061220  ...           NaN            777.693237
+
+[69 rows x 8 columns]
+total_activty_df here:
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+total_activty_df there:
+       Oil Pipeline  Natural Gas Pipeline
+Year                                    
+1949           NaN           57425.93309
+1950      129000.0           65444.87939
+1951      152000.0           75925.35464
+1952      158000.0           82233.55629
+1953      170000.0           87168.55522
+1954      179000.0           93242.01875
+1955      203000.0          101601.72830
+1956      230000.0          110945.29400
+1957      223000.0          118033.03560
+1958      211000.0          122802.54040
+1959      227000.0          135140.17660
+1960      229000.0          144162.48740
+1961      233000.0          150274.87030
+1962      238000.0          159877.75050
+1963      253000.0          168498.23230
+1964      269000.0          180606.48990
+1965      306000.0          189153.54840
+1966      333000.0          206657.99190
+1967      361000.0          217599.18200
+1968      391000.0          233321.38750
+1969      411000.0          251033.85460
+1970      431000.0          264069.44300
+1971      444000.0          272660.72490
+1972      476000.0          276028.09080
+1973      507000.0          275271.90530
+1974      506000.0          264881.61250
+1975      507000.0          243795.97560
+1976      515000.0          246648.83650
+1977      546000.0          240608.19690
+1978      586000.0          242279.23070
+...            ...                   ...
+1989      584000.0          241872.00050
+1990      584000.0          239894.24920
+1991      579000.0          247588.51100
+1992      589000.0          256449.89590
+1993      593000.0          263724.15330
+1994      591000.0          269894.90840
+1995      601000.0          281674.44100
+1996      619200.0          286695.02640
+1997      616500.0          288565.62790
+1998      619800.0          283776.79530
+1999      617700.0          287151.42310
+2000      577300.0          299080.24610
+2001      576100.0          284572.52510
+2002      586200.0          294734.98060
+2003      590200.0          285511.39420
+2004      599600.0          287762.92800
+2005      607500.0          282072.49330
+2006      581300.0          277121.09630
+2007      557700.0          295045.65520
+2008      605700.0          297142.37230
+2009      568400.0          291092.27710
+2010      550000.0          307231.82100
+2011      550000.0          311952.78420
+2012      550000.0          325065.26720
+2013      550000.0          331001.08970
+2014      550000.0          338528.88550
+2015      550000.0          346973.72330
+2016      550000.0          350068.29260
+2017      550000.0          344900.56890
+2018      550000.0          382226.62350
+
+[70 rows x 2 columns]
+total_activty_df: 
+       Oil Pipeline  Natural Gas Pipeline      Pipeline
+Year                                                  
+1949           NaN           57425.93309   57425.93309
+1950      129000.0           65444.87939  194444.87939
+1951      152000.0           75925.35464  227925.35464
+1952      158000.0           82233.55629  240233.55629
+1953      170000.0           87168.55522  257168.55522
+1954      179000.0           93242.01875  272242.01875
+1955      203000.0          101601.72830  304601.72830
+1956      230000.0          110945.29400  340945.29400
+1957      223000.0          118033.03560  341033.03560
+1958      211000.0          122802.54040  333802.54040
+1959      227000.0          135140.17660  362140.17660
+1960      229000.0          144162.48740  373162.48740
+1961      233000.0          150274.87030  383274.87030
+1962      238000.0          159877.75050  397877.75050
+1963      253000.0          168498.23230  421498.23230
+1964      269000.0          180606.48990  449606.48990
+1965      306000.0          189153.54840  495153.54840
+1966      333000.0          206657.99190  539657.99190
+1967      361000.0          217599.18200  578599.18200
+1968      391000.0          233321.38750  624321.38750
+1969      411000.0          251033.85460  662033.85460
+1970      431000.0          264069.44300  695069.44300
+1971      444000.0          272660.72490  716660.72490
+1972      476000.0          276028.09080  752028.09080
+1973      507000.0          275271.90530  782271.90530
+1974      506000.0          264881.61250  770881.61250
+1975      507000.0          243795.97560  750795.97560
+1976      515000.0          246648.83650  761648.83650
+1977      546000.0          240608.19690  786608.19690
+1978      586000.0          242279.23070  828279.23070
+...            ...                   ...           ...
+1989      584000.0          241872.00050  825872.00050
+1990      584000.0          239894.24920  823894.24920
+1991      579000.0          247588.51100  826588.51100
+1992      589000.0          256449.89590  845449.89590
+1993      593000.0          263724.15330  856724.15330
+1994      591000.0          269894.90840  860894.90840
+1995      601000.0          281674.44100  882674.44100
+1996      619200.0          286695.02640  905895.02640
+1997      616500.0          288565.62790  905065.62790
+1998      619800.0          283776.79530  903576.79530
+1999      617700.0          287151.42310  904851.42310
+2000      577300.0          299080.24610  876380.24610
+2001      576100.0          284572.52510  860672.52510
+2002      586200.0          294734.98060  880934.98060
+2003      590200.0          285511.39420  875711.39420
+2004      599600.0          287762.92800  887362.92800
+2005      607500.0          282072.49330  889572.49330
+2006      581300.0          277121.09630  858421.09630
+2007      557700.0          295045.65520  852745.65520
+2008      605700.0          297142.37230  902842.37230
+2009      568400.0          291092.27710  859492.27710
+2010      550000.0          307231.82100  857231.82100
+2011      550000.0          311952.78420  861952.78420
+2012      550000.0          325065.26720  875065.26720
+2013      550000.0          331001.08970  881001.08970
+2014      550000.0          338528.88550  888528.88550
+2015      550000.0          346973.72330  896973.72330
+2016      550000.0          350068.29260  900068.29260
+2017      550000.0          344900.56890  894900.56890
+2018      550000.0          382226.62350  932226.62350
+
+[70 rows x 3 columns]
+level1_name Pipeline
+pnnl_data_raw['Nest level']: ['Buses' 'Cars and SWB Vehicles' 'Freight Total' 'Freight Trucks'
+ 'transportation' nan 'Light Trucks and LWB' 'Passenger Air'
+ 'Passenger Highway' 'Passenger-Rail' 'Passenger' 'Personal Vehicles'
+ 'Pipelines' 'Urban Rail']
+log_mean_divisia_weights energy shares: Category  All Freight  All Passenger
+Year                                
+1970         0.240835       0.759165
+1971         0.238708       0.761292
+1972         0.239341       0.760659
+1973         0.241436       0.758564
+1974         0.246057       0.753943
+1975         0.236451       0.763549
+1976         0.233568       0.766432
+1977         0.241733       0.758267
+1978         0.250504       0.749496
+1979         0.262765       0.737235
+1980         0.278213       0.721787
+1981         0.281486       0.718514
+1982         0.276867       0.723133
+1983         0.271452       0.728548
+1984         0.273378       0.726622
+1985         0.265260       0.734740
+1986         0.260405       0.739595
+1987         0.263649       0.736351
+1988         0.266858       0.733142
+1989         0.268956       0.731044
+1990         0.278211       0.721789
+1991         0.283112       0.716888
+1992         0.278569       0.721431
+1993         0.279293       0.720707
+1994         0.287916       0.712084
+1995         0.292702       0.707298
+1996         0.291272       0.708728
+1997         0.290066       0.709934
+1998         0.290532       0.709468
+1999         0.289905       0.710095
+2000         0.296963       0.703037
+2001         0.295160       0.704840
+2002         0.301765       0.698235
+2003         0.286618       0.713382
+2004         0.285974       0.714026
+2005         0.292662       0.707338
+2006         0.295833       0.704167
+2007         0.304037       0.695963
+2008         0.312287       0.687713
+2009         0.306047       0.693953
+2010         0.309241       0.690759
+2011         0.299196       0.700804
+2012         0.299756       0.700244
+2013         0.306440       0.693560
+2014         0.302940       0.697060
+2015         0.300863       0.699137
+2016         0.300364       0.699636
+2017         0.306578       0.693422
+log_mean_divisia_weights col: All Freight
+log_mean_divisia_weights col: All Passenger
+eii_output log mean divisia weights: 
+       log_mean_weights_All Freight  log_mean_weights_All Passenger
+Year                                                              
+1970                           NaN                             NaN
+1971                      0.239771                        0.760229
+1972                      0.239025                        0.760975
+1973                      0.240388                        0.759612
+1974                      0.243741                        0.756259
+pnnl_weights_:
+ Category  All Freight All Passenger
+Year                               
+1970      0.608850775   0.391149225
+1971      0.239770744   0.760229256
+1972      0.239024762   0.760975238
+1973      0.240387686   0.759612314
+1974      0.243741448   0.756258552
+1975      0.241231962   0.758768038
+1976      0.235007094   0.764992906
+1977      0.237634347   0.762365653
+1978      0.246101264   0.753898736
+1979      0.256602754   0.743397246
+1980      0.270442574   0.729557426
+1981      0.279847161   0.720152839
+1982      0.279172345   0.720827655
+1983        0.2741537     0.7258463
+1984      0.272414092   0.727585908
+1985      0.269306122   0.730693878
+1986      0.262827876   0.737172124
+1987      0.262025142   0.737974858
+1988      0.265251786   0.734748214
+1989      0.267906342   0.732093658
+1990      0.273567007   0.726432993
+1991      0.280656795   0.719343205
+1992      0.280836489   0.719163511
+1993      0.278930833   0.721069167
+1994      0.283591521   0.716408479
+1995      0.290305297   0.709694703
+1996      0.291986545   0.708013455
+1997      0.290668637   0.709331363
+1998      0.290298857   0.709701143
+1999       0.29021822    0.70978178
+2000      0.293425836   0.706574164
+2001      0.296061011   0.703938989
+2002      0.298455408   0.701544592
+2003      0.294153398   0.705846602
+2004      0.286295778   0.713704222
+2005      0.289310547   0.710689453
+2006      0.294246124   0.705753876
+2007      0.299924275   0.700075725
+2008      0.308151523   0.691848477
+2009      0.309160982   0.690839018
+2010      0.307642032   0.692357968
+2011      0.304202829   0.695797171
+2012      0.299476281   0.700523719
+2013      0.303091362   0.696908638
+2014      0.304688021   0.695311979
+2015       0.30190084    0.69809916
+2016      0.300613563   0.699386437
+2017      0.303464906   0.696535094
+___________________ TestLMDI.test_calc_asi[transportation] ____________________
+
+x = array([['0.608850775', '0.391149225'],
+       ['0.239770744', '0.760229256'],
+       ['0.239024762', '0.760975238'],
+ ....30190084', '0.69809916'],
+       ['0.300613563', '0.699386437'],
+       ['0.303464906', '0.696535094']], dtype=object)
+y = array([['0.096806155', '0.161959122'],
+       ['0.012509638', '0.055198278'],
+       ['0.039590548', '0.066717595'],
+ ...0.02705306', '0.0266332'],
+       ['-0.031911694', '0.019274601'],
+       ['0.040630652', '0.01194314']], dtype=object)
+
+    def na_op(x, y):
+        import pandas.core.computation.expressions as expressions
+    
+        try:
+>           result = expressions.evaluate(op, str_rep, x, y, **eval_kwargs)
+
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:2001: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+op = <built-in function mul>, op_str = '*'
+a = array([['0.608850775', '0.391149225'],
+       ['0.239770744', '0.760229256'],
+       ['0.239024762', '0.760975238'],
+ ....30190084', '0.69809916'],
+       ['0.300613563', '0.699386437'],
+       ['0.303464906', '0.696535094']], dtype=object)
+b = array([['0.096806155', '0.161959122'],
+       ['0.012509638', '0.055198278'],
+       ['0.039590548', '0.066717595'],
+ ...0.02705306', '0.0266332'],
+       ['-0.031911694', '0.019274601'],
+       ['0.040630652', '0.01194314']], dtype=object)
+use_numexpr = True, eval_kwargs = {}
+
+    def evaluate(op, op_str, a, b, use_numexpr=True,
+                 **eval_kwargs):
+        """ evaluate and return the expression of the op on a and b
+    
+            Parameters
+            ----------
+    
+            op :    the actual operand
+            op_str: the string version of the op
+            a :     left operand
+            b :     right operand
+            use_numexpr : whether to try to use numexpr (default True)
+            """
+    
+        use_numexpr = use_numexpr and _bool_arith_check(op_str, a, b)
+        if use_numexpr:
+>           return _evaluate(op, op_str, a, b, **eval_kwargs)
+
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\computation\expressions.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+op = <built-in function mul>, op_str = '*'
+a = array([['0.608850775', '0.391149225'],
+       ['0.239770744', '0.760229256'],
+       ['0.239024762', '0.760975238'],
+ ....30190084', '0.69809916'],
+       ['0.300613563', '0.699386437'],
+       ['0.303464906', '0.696535094']], dtype=object)
+b = array([['0.096806155', '0.161959122'],
+       ['0.012509638', '0.055198278'],
+       ['0.039590548', '0.066717595'],
+ ...0.02705306', '0.0266332'],
+       ['-0.031911694', '0.019274601'],
+       ['0.040630652', '0.01194314']], dtype=object)
+eval_kwargs = {}
+
+    def _evaluate_standard(op, op_str, a, b, **eval_kwargs):
+        """ standard evaluation """
+        if _TEST_MODE:
+            _store_test_result(False)
+        with np.errstate(all='ignore'):
+>           return op(a, b)
+E           TypeError: can't multiply sequence by non-int of type 'str'
+
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\computation\expressions.py:68: TypeError
+
+During handling of the above exception, another exception occurred:
+
+self = <lmdi_test.TestLMDI object at 0x00000155B5660B00>
+sector = 'transportation'
+
+    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity',
+    def test_calc_asi(self, sector):
+        """Write test_calc_ASI to test LMDI class.
+    
+        - Test both additive and multiplicative forms
+        - Test all sectors
+        """
+    
+        eii = self.eii_output_factory(sector)
+    
+        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+    
+        pnnl_output = self.get_pnnl_data(sector)
+        pnnl_output = pnnl_output['results']
+    
+        model = 'multiplicative'
+    
+        bools_list = []
+    
+        for e_type in pnnl_data['Energy Type'].unique():
+    
+            for level_ in pnnl_data['Nest level'].unique():
+    
+    
+                if 'Weather' in pnnl_data['Energy Type']:
+                    weather_data = pnnl_data[pnnl_data['Energy Type'] == 'Weather']
+                else:
+                    weather_data = None
+    
+                log_mean_divisia_weights_normalized = pnnl_data[pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                log_ratio_activity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Activity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                log_ratio_structure = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Lower-level Structure'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                log_ratio_intensity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Intensity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    
+                log_ratios = {'activity': log_ratio_activity,
+                              'structure': log_ratio_structure,
+                              'intensity': log_ratio_intensity}
+                print('log ratios:\n', log_ratios)
+    
+                eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized,
+>                                         log_ratios)
+
+tests\lmdi_test.py:367: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+EnergyIntensityIndicators\LMDI.py:57: in calc_ASI
+    activity = self.calc_component(log_ratios['activity'], log_mean_divisia_weights_normalized)
+EnergyIntensityIndicators\LMDI.py:50: in calc_component
+    component = (weights.multiply(log_ratio_component.values, axis='columns')).sum(axis=1)
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:2023: in f
+    return self._combine_frame(other, pass_op, fill_value, level)
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\frame.py:5090: in _combine_frame
+    result = _arith_op(this.values, other.values)
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\frame.py:5084: in _arith_op
+    return func(left, right)
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:2003: in na_op
+    result = masked_arith_op(x, y, op)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+x = array([['0.608850775', '0.391149225'],
+       ['0.239770744', '0.760229256'],
+       ['0.239024762', '0.760975238'],
+ ....30190084', '0.69809916'],
+       ['0.300613563', '0.699386437'],
+       ['0.303464906', '0.696535094']], dtype=object)
+y = array([['0.096806155', '0.161959122'],
+       ['0.012509638', '0.055198278'],
+       ['0.039590548', '0.066717595'],
+ ...0.02705306', '0.0266332'],
+       ['-0.031911694', '0.019274601'],
+       ['0.040630652', '0.01194314']], dtype=object)
+op = <built-in function mul>
+
+    def masked_arith_op(x, y, op):
+        """
+        If the given arithmetic operation fails, attempt it again on
+        only the non-null elements of the input array(s).
+    
+        Parameters
+        ----------
+        x : np.ndarray
+        y : np.ndarray, Series, Index
+        op : binary operator
+        """
+        # For Series `x` is 1D so ravel() is a no-op; calling it anyway makes
+        # the logic valid for both Series and DataFrame ops.
+        xrav = x.ravel()
+        assert isinstance(x, (np.ndarray, ABCSeries)), type(x)
+        if isinstance(y, (np.ndarray, ABCSeries, ABCIndexClass)):
+            dtype = find_common_type([x.dtype, y.dtype])
+            result = np.empty(x.size, dtype=dtype)
+    
+            # PeriodIndex.ravel() returns int64 dtype, so we have
+            # to work around that case.  See GH#19956
+            yrav = y if is_period_dtype(y) else y.ravel()
+            mask = notna(xrav) & notna(yrav)
+    
+            if yrav.shape != mask.shape:
+                # FIXME: GH#5284, GH#5035, GH#19448
+                # Without specifically raising here we get mismatched
+                # errors in Py3 (TypeError) vs Py2 (ValueError)
+                # Note: Only = an issue in DataFrame case
+                raise ValueError('Cannot broadcast operands together.')
+    
+            if mask.any():
+                with np.errstate(all='ignore'):
+                    result[mask] = op(xrav[mask],
+>                                     com.values_from_object(yrav[mask]))
+E                   TypeError: can't multiply sequence by non-int of type 'str'
+
+..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\ops.py:1009: TypeError
+---------------------------- Captured stdout call -----------------------------
+log ratios:
+ {'activity': Category   All Freight All Passenger
+Year                                
+1970       0.096806155   0.161959122
+1971       0.012509638   0.055198278
+1972       0.039590548   0.066717595
+1973       0.044233561   0.033861297
+1974      -0.009055406  -0.022533458
+1975      -0.077333131   0.031182689
+1976       0.061607242   0.056339033
+1977         0.0405845   0.044283022
+1978       0.123801243   0.048208394
+1979       0.025930786  -0.002894105
+1980       0.009776566  -0.006401902
+1981      -0.013817976   0.010052787
+1982      -0.064549833    0.02109073
+1983       0.044745903   0.035326614
+1984       0.041633123    0.02885477
+1985      -0.012930704   0.024529705
+1986      -0.004934736   0.023939543
+1987       0.052788745   0.036030931
+1988       0.034970964   0.038760646
+1989      -0.004730154   0.018735291
+1990       0.019785747    0.01131162
+1991       0.015962806   0.006723754
+1992       0.022011136   0.034227069
+1993       0.011146468   0.017400531
+1994       0.059199713   0.025215173
+1995       0.044723842   0.024125124
+1996        0.01297523   0.032999967
+1997       0.000186499   0.031321711
+1998       0.006279644   0.028819723
+1999       0.022653038   0.028062354
+2000       0.014594735   0.029591614
+2001       0.004577175   0.010515709
+2002       0.015186281   0.018094928
+2003       0.011963082   0.017729875
+2004       0.037710762   0.041013484
+2005       0.003478487   0.018898883
+2006        0.00766208   0.015577703
+2007       0.007842547  -0.009162247
+2008      -0.002355431  -0.024814473
+2009      -0.105295339  -0.031761241
+2010        0.05780145   0.008829944
+2011      -0.015842608   0.002887358
+2012      -0.006265971   0.005622445
+2013       0.015031685   0.004311259
+2014        0.04212671   0.015354636
+2015       -0.02705306     0.0266332
+2016      -0.031911694   0.019274601
+2017       0.040630652    0.01194314, 'structure': Category   All Freight All Passenger
+Year                                
+1970               NaN           NaN
+1971       0.037469362   0.002118139
+1972       0.012897149    0.00487575
+1973       0.007623402   0.002684911
+1974      -0.005374615   0.001175374
+1975        0.02627478   0.002852761
+1976       0.014454445   0.004664285
+1977         0.0177932   0.002882611
+1978      -0.047097439   0.004968025
+1979      -0.013132632   0.001463526
+1980      -0.051588389  -0.000325444
+1981      -0.010720001   0.000320178
+1982       0.040146463   0.000525562
+1983       0.010901578    0.00099159
+1984       0.010566036   0.003420521
+1985       0.013925259   0.001937475
+1986       0.019937607   0.001831526
+1987       0.003985571   0.000786739
+1988        0.01077928   0.001655062
+1989       0.033807234   0.000772634
+1990      -0.001508237   0.001691263
+1991       0.003298914   0.004136129
+1992       0.003747888   0.001318281
+1993       0.031420366   0.000165791
+1994       0.007104106  -0.001804907
+1995      -0.004092493  -0.000186987
+1996       0.011937279   0.000990808
+1997       0.036064285   0.002205142
+1998       0.009676687   0.000455747
+1999      -0.001502865   0.001365372
+2000       0.008706753  -0.000151843
+2001       0.002712335   0.001694243
+2002       0.018443159   0.000112675
+2003       0.000875099  -0.000294087
+2004      -0.011755564   0.000370793
+2005       0.003809132   0.001351745
+2006      -0.006486742   0.000842816
+2007       0.008920244  -0.009467519
+2008       0.009910363   0.002627648
+2009       0.024969595  -0.014896964
+2010      -0.038435288   0.000200129
+2011      -0.033613607  -0.001353524
+2012       0.011738708  -0.000158042
+2013        0.00311203   0.000439848
+2014      -0.022845608    0.00186684
+2015       0.027468237  -0.003508787
+2016       0.049156787   0.000534436
+2017      -0.006357992  -0.000574497, 'intensity': Category   All Freight All Passenger
+Year                                
+1970               NaN           NaN
+1971      -0.012914199  -0.008582749
+1972       0.016967107  -0.005619071
+1973        0.00051612   0.004355665
+1974      -0.000855051  -0.018994463
+1975       0.022827571  -0.009783096
+1976      -0.038124262  -0.007029033
+1977       0.004659995  -0.029202705
+1978       0.006478678  -0.017269846
+1979        0.02540492  -0.024644597
+1980       0.050440851  -0.062944546
+1981       0.034298639  -0.016853144
+1982      -0.007726699  -0.030794023
+1983      -0.063693297  -0.017150618
+1984      -0.011763728  -0.001558782
+1985      -0.013375954   0.002406395
+1986       -0.00292494   0.011363644
+1987      -0.021136343   -0.01795566
+1988      -0.006954097  -0.018086013
+1989      -0.008367768  -0.009493063
+1990        0.01962475  -0.021671439
+1991      -0.029211551  -0.045086463
+1992      -0.009432601   0.003274978
+1993      -0.011345816   0.010052966
+1994      -0.003518032  -0.003069478
+1995      -0.001004392  -0.007539993
+1996       -0.00582632  -0.007985752
+1997      -0.018486056  -0.009914431
+1998       0.011559083  -0.004020456
+1999       0.011733462   0.006499307
+2000       0.011554828  -0.028629664
+2001       -0.01553529  -0.011801117
+2002       0.009534003  -0.006592304
+2003      -0.052729119    0.01563585
+2004      -0.009432319  -0.021713033
+2005       0.016928181  -0.028562926
+2006       0.017354245  -0.013161803
+2007      -0.004439865  -0.008116549
+2008      -0.005699059  -0.014657341
+2009       0.000860095  -0.003589422
+2010       0.004783241   0.000124438
+2011       0.008399669   0.004865344
+2012      -0.005514249   -0.00817592
+2013        0.01264409  -0.005606602
+2014      -0.021931769  -0.003348371
+2015      -0.011268859  -0.024127005
+2016       -0.00090368  -0.001091129
+2017      -0.004784855  -0.011280475}
+WEIGHTS: Category  All Freight All Passenger
+Year                               
+1970      0.608850775   0.391149225
+1971      0.239770744   0.760229256
+1972      0.239024762   0.760975238
+1973      0.240387686   0.759612314
+1974      0.243741448   0.756258552
+1975      0.241231962   0.758768038
+1976      0.235007094   0.764992906
+1977      0.237634347   0.762365653
+1978      0.246101264   0.753898736
+1979      0.256602754   0.743397246
+1980      0.270442574   0.729557426
+1981      0.279847161   0.720152839
+1982      0.279172345   0.720827655
+1983        0.2741537     0.7258463
+1984      0.272414092   0.727585908
+1985      0.269306122   0.730693878
+1986      0.262827876   0.737172124
+1987      0.262025142   0.737974858
+1988      0.265251786   0.734748214
+1989      0.267906342   0.732093658
+1990      0.273567007   0.726432993
+1991      0.280656795   0.719343205
+1992      0.280836489   0.719163511
+1993      0.278930833   0.721069167
+1994      0.283591521   0.716408479
+1995      0.290305297   0.709694703
+1996      0.291986545   0.708013455
+1997      0.290668637   0.709331363
+1998      0.290298857   0.709701143
+1999       0.29021822    0.70978178
+2000      0.293425836   0.706574164
+2001      0.296061011   0.703938989
+2002      0.298455408   0.701544592
+2003      0.294153398   0.705846602
+2004      0.286295778   0.713704222
+2005      0.289310547   0.710689453
+2006      0.294246124   0.705753876
+2007      0.299924275   0.700075725
+2008      0.308151523   0.691848477
+2009      0.309160982   0.690839018
+2010      0.307642032   0.692357968
+2011      0.304202829   0.695797171
+2012      0.299476281   0.700523719
+2013      0.303091362   0.696908638
+2014      0.304688021   0.695311979
+2015       0.30190084    0.69809916
+2016      0.300613563   0.699386437
+2017      0.303464906   0.696535094
+============================== warnings summary ===============================
+tests/lmdi_test.py::TestLMDI::test_build_nest[transportation]
+tests/lmdi_test.py::TestLMDI::test_prepare_lmdi_inputs[transportation]
+tests/lmdi_test.py::TestLMDI::test_multiplicative_lmdi_log_mean_divisia_weights[transportation]
+  C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\EnergyIntensityIndicators\LMDI.py:447: SettingWithCopyWarning:
+  
+  
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+
+tests/lmdi_test.py::TestLMDI::test_build_nest[transportation]
+tests/lmdi_test.py::TestLMDI::test_prepare_lmdi_inputs[transportation]
+tests/lmdi_test.py::TestLMDI::test_prepare_lmdi_inputs[transportation]
+tests/lmdi_test.py::TestLMDI::test_multiplicative_lmdi_log_mean_divisia_weights[transportation]
+tests/lmdi_test.py::TestLMDI::test_calc_asi[transportation]
+  C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\tests\lmdi_test.py:101: SettingWithCopyWarning:
+  
+  
+  A value is trying to be set on a copy of a slice from a DataFrame.
+  Try using .loc[row_indexer,col_indexer] = value instead
+  
+  See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+=========================== short test summary info ===========================
+FAILED tests/lmdi_test.py::TestLMDI::test_build_nest[transportation] - assert...
+FAILED tests/lmdi_test.py::TestLMDI::test_prepare_lmdi_inputs[transportation]
+FAILED tests/lmdi_test.py::TestLMDI::test_multiplicative_lmdi_log_mean_divisia_weights[transportation]
+FAILED tests/lmdi_test.py::TestLMDI::test_calc_asi[transportation] - TypeErro...
+================== 4 failed, 8 warnings in 304.64s (0:05:04) ==================
