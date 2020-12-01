@@ -12,7 +12,7 @@ import plotly.express as px
 
 class MultiplicativeLMDI():
 
-    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type=None):
+    def __init__(self, energy_data=None, energy_shares=None, base_year=None, end_year=None, total_label=None, lmdi_type=None):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.base_year = base_year
@@ -69,39 +69,32 @@ class MultiplicativeLMDI():
     def compute_index(self, component, base_year_):
         """
         """         
-        component_shift = component.shift()
-        index = component.multiply(component_shift)
-        index = index.fillna(1)  # first value should be set to 1? 
+        index = pd.DataFrame(index=component.index, columns=['index'])
+        for y in component.index:
+            if y == min(component.index):
+                index.loc[y, 'index'] = 1
+            else:
+                if component.loc[y] == np.nan:
+                    index.loc[y, 'index'] = index.loc[y - 1, 'index']
+                else:
+                    index.loc[y, 'index'] = index.loc[y - 1, ['index']].multiply(component.loc[y])
+
+
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
         return index_normalized 
 
     def decomposition(self, ASI):
-
+        print('ASI decomposition:\n', ASI)
         results = ASI.apply(lambda col: np.exp(col), axis=1)
+        print('results decomposition:\n', results)
 
-        print('results.index:', results.index)
-        for year in results.index:
-            print('year:', year)
-            for col in results.columns:
-                results[col] = self.compute_index(results[col], year)
-            
-            results['effect'] = results.product(axis=1)
+        for col in results.columns:
+            results[col] = self.compute_index(results[col], self.base_year)
+        
+        results['effect'] = results.product(axis=1)
 
-            results["@filter|Measure|BaseYear"] = year
-
-
-            if year == min(results.index):
-                multiplicative_results = results
-            else: 
-                multiplicative_results = pd.concat([multiplicative_results, results], axis=0)
-
-        print('multiplicative_results: \n', multiplicative_results)
-
-        return multiplicative_results
-        # results['effect'] = results.product(axis=1)
-
-        # results["@filter|Measure|BaseYear"] = self.base_year
-        # return results
+        results["@filter|Measure|BaseYear"] = self.base_year
+        return results
 
     @staticmethod
     def visualizations(data, base_year, end_year, loa, model, energy_type, *lines_to_plot): # path

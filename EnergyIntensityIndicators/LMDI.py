@@ -469,7 +469,7 @@ class CalculateLMDI(LMDI):
             activity_ = raw_results[key]['activity']
 
             if 'weather' in raw_results[key].keys():
-                weather_data = raw_results[KeyboardInterrupt]['weather']
+                weather_data = raw_results[key]['weather']
             else:
                 weather_data = None
 
@@ -482,7 +482,9 @@ class CalculateLMDI(LMDI):
                 category_lmdi = self.call_lmdi(energy_df, activity_, level_total,
                                                unit_conversion_factor=1, weather_data=weather_data, 
                                                save_results=save_breakout, 
-                                               loa=loa, energy_type=e_type) 
+                                               loa=loa, energy_type=e_type)
+                structure_cols = [col for col in category_lmdi if col.contains('structure')]
+                category_lmdi['total_structure'] = category_lmdi[structure_cols].product(axis=1)
 
             final_results_list.append(category_lmdi)
 

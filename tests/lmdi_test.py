@@ -172,110 +172,110 @@ class TestLMDI:
         
         return eii, pnnl_data_
     
-    @pytest.mark.parametrize('sector', ['transportation']) # , 'residential', 'commercial', 'industrial', 'electricity'
-    def test_build_nest(self, sector, acceptable_pct_difference=0.05):
-        """testing the results of LMDI.build_nest against a csv (to be compiled) of PNNL data.
+    # @pytest.mark.parametrize('sector', ['transportation']) # , 'residential', 'commercial', 'industrial', 'electricity'
+    # def test_build_nest(self, sector, acceptable_pct_difference=0.05):
+    #     """testing the results of LMDI.build_nest against a csv (to be compiled) of PNNL data.
 
-        - Assertion should be in terms of a % difference from the PNNL data.
-        - Test should be parameterized to loop through and test all sectors.
+    #     - Assertion should be in terms of a % difference from the PNNL data.
+    #     - Test should be parameterized to loop through and test all sectors.
 
-        output of build_nest:
-        data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+    #     output of build_nest:
+    #     data_dict = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
 
-        results_dict[f'{level_name}'] = data_dict 
-        """
-        eii, pnnl = self.input_data(sector)
-        for energy_type, energy_dict in pnnl.items():
-            for data_type, data_dict in energy_dict.items():
-                for cat, pnnl_df in data_dict.items():
-                    pnnl_df.index = pnnl_df.index.astype(int)
-                    eii_df = eii[energy_type][data_type][[cat]]
+    #     results_dict[f'{level_name}'] = data_dict 
+    #     """
+    #     eii, pnnl = self.input_data(sector)
+    #     for energy_type, energy_dict in pnnl.items():
+    #         for data_type, data_dict in energy_dict.items():
+    #             for cat, pnnl_df in data_dict.items():
+    #                 pnnl_df.index = pnnl_df.index.astype(int)
+    #                 eii_df = eii[energy_type][data_type][[cat]]
 
-                    acceptable_bool = self.pct_diff(pnnl_df, eii_df, acceptable_pct_difference, sector)
+    #                 acceptable_bool = self.pct_diff(pnnl_df, eii_df, acceptable_pct_difference, sector)
 
-                    assert all(acceptable_bool)      
+    #                 assert all(acceptable_bool)      
                 
-    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
-    def test_prepare_lmdi_inputs(self, sector, acceptable_pct_diff=0.5):
-        """`LMDI.prepare_lmdi_inputs to test original PNNL data (compiled for #13 ) against 
-        PNNL results for energy_input_data, energy_shares, and log_ratios
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # def test_prepare_lmdi_inputs(self, sector, acceptable_pct_diff=0.5):
+    #     """`LMDI.prepare_lmdi_inputs to test original PNNL data (compiled for #13 ) against 
+    #     PNNL results for energy_input_data, energy_shares, and log_ratios
 
-        -Test should be parameterized to loop through all sectors.
+    #     -Test should be parameterized to loop through all sectors.
 
-        prepare_lmdi_inputs returns the following:
-            log_ratios = {'activity': log_ratio_activity, 
-                          'structure': log_ratio_structure, 
-                          'intensity': log_ratio_intensity}
-        """        
-        eii = self.eii_output_factory(sector)
-        pnnl_output = self.get_pnnl_input(sector, 'intermediate')
+    #     prepare_lmdi_inputs returns the following:
+    #         log_ratios = {'activity': log_ratio_activity, 
+    #                       'structure': log_ratio_structure, 
+    #                       'intensity': log_ratio_intensity}
+    #     """        
+    #     eii = self.eii_output_factory(sector)
+    #     pnnl_output = self.get_pnnl_input(sector, 'intermediate')
 
-        print('pnnl_output:\n', pnnl_output)
+    #     print('pnnl_output:\n', pnnl_output)
 
-        eii_data, pnnl = self.input_data(sector, level_of_aggregation_='All_Freight.Pipeline')
-        print('pnnl:', pnnl)
-        for e_, e_dict in pnnl.items():
-            activity_data = e_dict['activity']
+    #     eii_data, pnnl = self.input_data(sector, level_of_aggregation_='All_Freight.Pipeline')
+    #     print('pnnl:', pnnl)
+    #     for e_, e_dict in pnnl.items():
+    #         activity_data = e_dict['activity']
 
-            print('activity_data.columns:', activity_data.columns)
-            energy_data = e_dict['energy']
-            print('energy_data.columns:', energy_data.columns)
-            try:
-                total_label = activity_data.columns.name
-            except ValueError:
-                print(f'Error: activity data of type {type(activity_data)} \
-                        with columns: {activity_data.columns}')
-                continue
+    #         print('activity_data.columns:', activity_data.columns)
+    #         energy_data = e_dict['energy']
+    #         print('energy_data.columns:', energy_data.columns)
+    #         try:
+    #             total_label = activity_data.columns.name
+    #         except ValueError:
+    #             print(f'Error: activity data of type {type(activity_data)} \
+    #                     with columns: {activity_data.columns}')
+    #             continue
             
-            activity_dict = dict()
-            if isinstance(activity_data, pd.DataFrame):
-                activity_dict[total_label] = activity_data
+    #         activity_dict = dict()
+    #         if isinstance(activity_data, pd.DataFrame):
+    #             activity_dict[total_label] = activity_data
 
-            print('activity_data:', activity_data)
-            print('energy_data:', energy_data)
-            if total_label in activity_data.columns and total_label in energy_data.columns:
-                energy_data, energy_shares, eii_log_ratios = eii.prepare_lmdi_inputs(energy_input_data=energy_data, 
-                                                                                     activity_input_data=activity_dict, 
-                                                                                     total_label=total_label)
-                print('eii_output:\n', eii_log_ratios) 
-                print('pnnl_output_ pre manipulation:\n', pnnl_output)
-                pnnl_output = pnnl_output.replace({'Pipelines': 'Pipeline', 
-                                                     'Freight Total': 'All_Freight', 
-                                                     'Deliv': 'deliv'})
-                print("total_label in pnnl_output['Nest level']", total_label in pnnl_output['Nest level'])
-                print("e_ in pnnl_output['Energy Type']", e_ in pnnl_output['Nest level'])
+    #         print('activity_data:', activity_data)
+    #         print('energy_data:', energy_data)
+    #         if total_label in activity_data.columns and total_label in energy_data.columns:
+    #             energy_data, energy_shares, eii_log_ratios = eii.prepare_lmdi_inputs(energy_input_data=energy_data, 
+    #                                                                                  activity_input_data=activity_dict, 
+    #                                                                                  total_label=total_label)
+    #             print('eii_output:\n', eii_log_ratios) 
+    #             print('pnnl_output_ pre manipulation:\n', pnnl_output)
+    #             pnnl_output = pnnl_output.replace({'Pipelines': 'Pipeline', 
+    #                                                  'Freight Total': 'All_Freight', 
+    #                                                  'Deliv': 'deliv'})
+    #             print("total_label in pnnl_output['Nest level']", total_label in pnnl_output['Nest level'])
+    #             print("e_ in pnnl_output['Energy Type']", e_ in pnnl_output['Nest level'])
 
-                print("pnnl_output['Energy Type'].unique()]", pnnl_output['Energy Type'].unique())
-                print("pnnl_output['Nest level'].unique()]", pnnl_output['Nest level'].unique())
-                print("pnnl_output['Category'].unique()", pnnl_output['Category'].unique())
+    #             print("pnnl_output['Energy Type'].unique()]", pnnl_output['Energy Type'].unique())
+    #             print("pnnl_output['Nest level'].unique()]", pnnl_output['Nest level'].unique())
+    #             print("pnnl_output['Category'].unique()", pnnl_output['Category'].unique())
 
-                pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_) & (pnnl_output['Nest level'] == total_label)]
-                print('pnnl_output_ here:\n', pnnl_output_)
+    #             pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_) & (pnnl_output['Nest level'] == total_label)]
+    #             print('pnnl_output_ here:\n', pnnl_output_)
 
-                pnnl_component_data = dict()
-                for d_type in pnnl_output_['Data Type'].unique():
-                    pnnl_df = pnnl_output_[pnnl_output_['Data Type'] == d_type][['Year', 'Category', 'Value']]
-                    pnnl_df = pnnl_df.pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
-                    pnnl_df.columns.name = total_label
-                    print('dtype:', d_type)
-                    print('pnnl_df:\n', pnnl_df)
-                    if d_type == 'Log Changes Intensity':
-                        pnnl_component_data['intensity'] = pnnl_df
-                    elif d_type == 'Log Changes Activity':
-                        pnnl_component_data['activity'] = pnnl_df
-                    elif d_type == 'Log Changes Structure':
-                        pnnl_component_data['structure'] = pnnl_df
-                print('pnnl_component_data:\n', pnnl_component_data)
-                eii_test_data = {k: eii_log_ratios[k] for k in pnnl_component_data.keys()}
-                print('eii_test_data:\n', eii_test_data)
-                if eii_test_data != eii_log_ratios:
-                    print('PNNL missed components')
-                bools_list = [self.pct_diff(pnnl_component_data[k], eii_test_data[k], acceptable_pct_diff, sector) for k in pnnl_component_data.keys()]
-                assert all(bools_list)
-            else:
-                print(f'Missing {total_label}, with {activity_data.columns} activity columns and \
-                        {energy_data.columns} energy columns')
-                continue
+    #             pnnl_component_data = dict()
+    #             for d_type in pnnl_output_['Data Type'].unique():
+    #                 pnnl_df = pnnl_output_[pnnl_output_['Data Type'] == d_type][['Year', 'Category', 'Value']]
+    #                 pnnl_df = pnnl_df.pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    #                 pnnl_df.columns.name = total_label
+    #                 print('dtype:', d_type)
+    #                 print('pnnl_df:\n', pnnl_df)
+    #                 if d_type == 'Log Changes Intensity':
+    #                     pnnl_component_data['intensity'] = pnnl_df
+    #                 elif d_type == 'Log Changes Activity':
+    #                     pnnl_component_data['activity'] = pnnl_df
+    #                 elif d_type == 'Log Changes Structure':
+    #                     pnnl_component_data['structure'] = pnnl_df
+    #             print('pnnl_component_data:\n', pnnl_component_data)
+    #             eii_test_data = {k: eii_log_ratios[k] for k in pnnl_component_data.keys()}
+    #             print('eii_test_data:\n', eii_test_data)
+    #             if eii_test_data != eii_log_ratios:
+    #                 print('PNNL missed components')
+    #             bools_list = [self.pct_diff(pnnl_component_data[k], eii_test_data[k], acceptable_pct_diff, sector) for k in pnnl_component_data.keys()]
+    #             assert all(bools_list)
+    #         else:
+    #             print(f'Missing {total_label}, with {activity_data.columns} activity columns and \
+    #                     {energy_data.columns} energy columns')
+    #             continue
 
     def test_log_mean_divisia(self, sector='transportation'):
         eii = self.eii_output_factory(sector)
@@ -284,6 +284,134 @@ class TestLMDI:
         L = eii.logarithmic_average(x, y)
         pnnl_result = 0.578
         assert round(L, 3) == pnnl_result
+    
+    def test_calculate_log_changes(self, sector='transportation'):
+        eii = self.eii_output_factory(sector)
+        
+        input_data = [[1.2759, 0.9869],
+                      [1.2650, 0.9743],
+                      [1.2579, 0.9910],
+                      [1.2634, 0.9915],
+                      [1.2396, 0.9906]]
+
+
+        input_df = pd.DataFrame(input_data, 
+                                     index=[1970, 1971, 1972, 1973, 1974], 
+                                     columns=['All_Passenger', 'All_Freight'])
+
+        log_ratio_df = eii.calculate_log_changes(input_df)
+        log_ratio_df = log_ratio_df.round(4)
+        comparison_output = [[np.nan, np.nan],
+                             [-0.0086, -0.0129],
+                             [-0.0056, 0.0170],
+                             [0.0044, 0.0005],
+                             [-0.0190, -0.0009]]
+
+        comparison_df = pd.DataFrame(comparison_output, 
+                                     index=[1970, 1971, 1972, 1973, 1974], 
+                                     columns=['All_Passenger', 'All_Freight'])
+        print('comparison_df:\n', comparison_df)
+        print('log_ratio_df:\n', log_ratio_df)
+        assert log_ratio_df.equals(comparison_df)
+
+    def calc_component(self, sector):
+        eii = self.eii_output_factory(sector)
+
+        log_ratio_component = [[np.nan, np.nan],
+                               [-0.0086, -0.0129],
+                               [-0.0056, 0.0170],
+                               [0.0044, 0.0005],
+                               [-0.0190, -0.0009]]
+        log_ratio_component = pd.DataFrame(log_ratio_component, 
+                                           index=[1970, 1971, 1972, 1973, 1974], 
+                                           columns=['All_Passenger', 'All_Freight'])
+        
+        weights = [[0.3911, 0.6089],
+                   [0.7602, 0.2398],
+                   [0.7610, 0.2390],
+                   [0.7596, 0.2404],
+                   [0.7563, 0.2437]]
+
+        weights = pd.DataFrame(weights, 
+                               index=[1970, 1971, 1972, 1973, 1974], 
+                               columns=['All_Passenger', 'All_Freight'])
+
+        component = eii.calc_component(log_ratio_component, weights)
+        component = component.apply(lambda col: np.exp(col), axis=1)
+
+        comparison_output = [[np.nan], 
+                             [0.9904],
+                             [0.9998],
+                             [1.0034],
+                             [0.9855]]
+        comparison_output = pd.DataFrame(comparison_output, 
+                                         index=[1970, 1971, 1972, 1973, 1974], 
+                                         columns=['Intensity Index'])
+        print('component:\n', component)
+        print('comparison_output:\n', comparison_output)
+        assert component.equals(comparison_output)
+
+    def test_compute_index(self):
+        eii = MultiplicativeLMDI()
+        
+        results = [[0.9705, 1.0386, 1.0037], 
+                   [0.9957, 1.0329, 1.0054],
+                   [0.9982, 1.0145, 1.0052],
+                   [1.0076, 1.0165, 1.0066],
+                   [0.9814, 1.0412, 1.0016]]
+
+        results = pd.DataFrame(results, 
+                               index=[1983, 1984, 1985, 1986, 1987], 
+                               columns=['Intensity Index', 'Activity Index', 'Structure Index'])
+        
+        for col in results.columns:
+            results[col] = eii.compute_index(results[col], 1985)
+
+        results = results.round(4)
+        comparison_output = [[1.0062, 0.9543, 0.9895],
+                             [1.0018, 0.9857, 0.9948],
+                             [1.0000, 1.0000, 1.0000],
+                             [1.0076, 1.0165, 1.0066],
+                             [0.9889, 1.0584, 1.0082]]
+        
+        comparison_output = pd.DataFrame(comparison_output, 
+                                         index=[1983, 1984, 1985, 1986, 1987], 
+                                         columns=['Intensity Index', 'Activity Index', 'Structure Index'])
+        print('results:\n', results)
+        print('comparison_output:\n', comparison_output)
+        assert results.equals(comparison_output)
+    
+    # def test_multiplicative_decomposition(self, sector='transportation'):
+    #     eii = MultiplicativeLMDI()
+
+    #     test_asi = [[1.0062, 0.9543, 0.9895],
+    #                 [1.0018, 0.9857, 0.9948],
+    #                 [1.0000, 1.0000, 1.0000],
+    #                 [1.0076, 1.0165, 1.0066],
+    #                 [0.9889, 1.0584, 1.0082]]
+        
+    #     test_asi = pd.DataFrame(test_asi, 
+    #                             index=[1983, 1984, 1985, 1986, 1987], 
+    #                             columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
+
+    #     test_weights = 
+    #     test_log_ratios = 
+    #     weather_data = None
+    #     model = 'multiplicative'
+    #     components = self.calc_ASI(model, weather_data, weights, test_log_ratios)
+    #     results = eii.decomposition(components)
+    #     results = results[['effect']].round(4)
+
+    #     comparison_output = [[0.9502],
+    #                          [0.9824],
+    #                          [1.0000],
+    #                          [1.0310],
+    #                          [1.0553]]
+        
+    #     comparison_output = pd.DataFrame(comparison_output, 
+    #                                      index=[1983, 1984, 1985, 1986, 1987], 
+    #                                      columns=['effect'])
+
 
     def test_shift(self, sector='transportation', acceptable_pct_difference=0.05):
         eii = self.eii_output_factory(sector)
@@ -384,68 +512,68 @@ class TestLMDI:
         assert all(bools_list) #         assert all(all(bools_list))
 
 
-    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
-    def test_additive_lmdi_log_mean_divisia_weights(self, sector):
-        """Additive test should use "fake" data whose results are know
-        Test should be parametrized to loop through all sectors.
-        """
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # def test_additive_lmdi_log_mean_divisia_weights(self, sector):
+    #     """Additive test should use "fake" data whose results are know
+    #     Test should be parametrized to loop through all sectors.
+    #     """
 
-        eii = self.eii_output_factory(sector)
+    #     eii = self.eii_output_factory(sector)
 
-        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
-        eii, pnnl_data_ = self.input_data(sector)
+    #     pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+    #     eii, pnnl_data_ = self.input_data(sector)
 
-        bools_list = []
+    #     bools_list = []
 
-        for e_type in pnnl_data['Energy Type'].unique():
+    #     for e_type in pnnl_data['Energy Type'].unique():
 
-            for level_ in pnnl_data['Nest level'].unique():
-                energy_data = pnnl_data_[e_type]['energy'].head(5)
-                energy_shares = pnnl_data[pnnl_data['Data Type'] == 'Energy Shares']
-                energy_shares = energy_shares[['Year', 'Category', 'Value']]
-                energy_shares['Value'] = energy_shares['Value'].astype(float)
-                energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
-                energy_shares = energy_shares.dropna(axis=1, how='all').head(5)
-                total_label = level_
-                lmdi_type = 'LMDI-I'      
-                model_ = AdditiveLMDI(energy_data, energy_shares, 1985, 2017, total_label, lmdi_type)
-                eii_output = model_.log_mean_divisia_weights()
+    #         for level_ in pnnl_data['Nest level'].unique():
+    #             energy_data = pnnl_data_[e_type]['energy'].head(5)
+    #             energy_shares = pnnl_data[pnnl_data['Data Type'] == 'Energy Shares']
+    #             energy_shares = energy_shares[['Year', 'Category', 'Value']]
+    #             energy_shares['Value'] = energy_shares['Value'].astype(float)
+    #             energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
+    #             energy_shares = energy_shares.dropna(axis=1, how='all').head(5)
+    #             total_label = level_
+    #             lmdi_type = 'LMDI-I'      
+    #             model_ = AdditiveLMDI(energy_data, energy_shares, 1985, 2017, total_label, lmdi_type)
+    #             eii_output = model_.log_mean_divisia_weights()
 
 
 
-                eii = self.eii_output_factory(sector)
-                pnnl_data = [[1980.1, 528.1], 
-                             [2072.5, 530.2],
-                             [2290.9, 554.4]]
-                energy_data = pd.DataFrame(pnnl_data, index=[1970, 1971, 1972], columns=['Highway', 'Rail']) 
+    #             eii = self.eii_output_factory(sector)
+    #             pnnl_data = [[1980.1, 528.1], 
+    #                          [2072.5, 530.2],
+    #                          [2290.9, 554.4]]
+    #             energy_data = pd.DataFrame(pnnl_data, index=[1970, 1971, 1972], columns=['Highway', 'Rail']) 
 
-                log_mean_weights = pd.DataFrame(index=energy_data.index)
-                print("log_mean_divisia_weights energy shares:", energy_data)
-                for col in energy_data.columns: 
-                    print(f'log_mean_divisia_weights col: {col}')
-                    energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
-                    print('energy shares with shift:\n', energy_data)
-                    # apply generally not preferred for row-wise operations but?
-                    log_mean_weights[f'log_mean_weights_{col}'] = energy_data.apply(lambda row: \
-                                                                  eii.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1)
-                print('log_mean_weights:\n', log_mean_weights)
-                log_mean_weights = log_mean_weights.loc[1971:, :]
-                log_mean_weights = log_mean_weights.round(4)
-                print('log_mean_weights:\n', log_mean_weights)
+    #             log_mean_weights = pd.DataFrame(index=energy_data.index)
+    #             print("log_mean_divisia_weights energy shares:", energy_data)
+    #             for col in energy_data.columns: 
+    #                 print(f'log_mean_divisia_weights col: {col}')
+    #                 energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
+    #                 print('energy shares with shift:\n', energy_data)
+    #                 # apply generally not preferred for row-wise operations but?
+    #                 log_mean_weights[f'log_mean_weights_{col}'] = energy_data.apply(lambda row: \
+    #                                                               eii.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1)
+    #             print('log_mean_weights:\n', log_mean_weights)
+    #             log_mean_weights = log_mean_weights.loc[1971:, :]
+    #             log_mean_weights = log_mean_weights.round(4)
+    #             print('log_mean_weights:\n', log_mean_weights)
 
-                print('energy_data:\n', energy_data)
-                print('energy_shares:\n', energy_shares)
-                print('eii_output log mean divisia weights: \n', eii_output.head())
-                one = eii.logarithmic_average(2072.5, 1980.1)
-                two = eii.logarithmic_average(2290.9, 2072.5)
-                three = eii.logarithmic_average(530.2, 528.1)
-                four = eii.logarithmic_average(554.4, 530.2)
-                constructed_data = [[one, three], [two, four]]
+    #             print('energy_data:\n', energy_data)
+    #             print('energy_shares:\n', energy_shares)
+    #             print('eii_output log mean divisia weights: \n', eii_output.head())
+    #             one = eii.logarithmic_average(2072.5, 1980.1)
+    #             two = eii.logarithmic_average(2290.9, 2072.5)
+    #             three = eii.logarithmic_average(530.2, 528.1)
+    #             four = eii.logarithmic_average(554.4, 530.2)
+    #             constructed_data = [[one, three], [two, four]]
 
-                constructed_df = pd.DataFrame(constructed_data, columns=eii_output.columns)
-                bools_list.append(eii_output.equal(constructed_data))
+    #             constructed_df = pd.DataFrame(constructed_data, columns=eii_output.columns)
+    #             bools_list.append(eii_output.equal(constructed_data))
 
-        assert all(bools_list)
+    #     assert all(bools_list)
 
     def pct_diff(self, pnnl_data, eii_data, acceptable_pct_difference, sector):
         eii = self.eii_output_factory(sector)
@@ -455,8 +583,8 @@ class TestLMDI:
         pct_diff = diff_df_abs.divide(pnnl_data)
         print('diff_df: ', diff_df)
         print('\npct_diff:\n', pct_diff)
-        print('(pct_diff <= acceptable_pct_difference).all(axis=1):', (pct_diff <= acceptable_pct_difference).all(axis=1))
-        return (pct_diff <= acceptable_pct_difference).all(axis=1)
+        print('(pct_diff <= acceptable_pct_difference).all():', (pct_diff <= acceptable_pct_difference).all().all())
+        return (pct_diff <= acceptable_pct_difference).all().all()
 
     @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
     def test_calc_asi(self, sector, acceptable_pct_difference=0.05):
