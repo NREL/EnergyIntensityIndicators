@@ -12,11 +12,11 @@ import plotly.express as px
 
 class AdditiveLMDI():
 
-    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type_='LMDI-I'):
+    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type='LMDI-I'):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.total_label = total_label
-        self.lmdi_type_ = lmdi_type_
+        self.lmdi_type = lmdi_type
         self.end_year = end_year
         self.base_year = base_year
 
@@ -27,11 +27,11 @@ class AdditiveLMDI():
             energy_data (dataframe): energy consumption data
             energy_shares (dataframe): Shares of total energy for each category in level of aggregation
             total_label (str): Name of aggregation of categories in level of aggregation
-            lmdi_type_ (str, optional): 'LMDI-I' or 'LMDI-II'. Defaults to 'LMDI-I' because it is 'consistent in aggregation and perfect 
+            lmdi_type (str, optional): 'LMDI-I' or 'LMDI-II'. Defaults to 'LMDI-I' because it is 'consistent in aggregation and perfect 
                                         in decomposition at the subcategory level' (Ang, B.W., 2015. LMDI decomposition approach: A guide for 
                                         implementation. Energy Policy 86, 233-238.).
         """        
-        print(f'ADDITIVE LMDI TYPE: {self.lmdi_type_}')
+        print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
         log_mean_shares_labels = [f"log_mean_shares_{col}" for col in self.energy_shares.columns]
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
         log_mean_values_df = pd.DataFrame(index=self.energy_data.index)
@@ -65,10 +65,10 @@ class AdditiveLMDI():
         cols_to_drop_ = [col for col in self.energy_data.columns if col.endswith('_shift')]
         self.energy_data = self.energy_data.drop(cols_to_drop_, axis=1)
 
-        if self.lmdi_type_ == 'LMDI-I':
+        if self.lmdi_type == 'LMDI-I':
             return log_mean_values_df
 
-        elif self.lmdi_type_ == 'LMDI-II':
+        elif self.lmdi_type == 'LMDI-II':
             sum_log_mean_shares = self.energy_shares[log_mean_shares_labels].sum(axis=1)
             log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
 

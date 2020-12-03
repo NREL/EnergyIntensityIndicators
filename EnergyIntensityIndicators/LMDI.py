@@ -393,38 +393,13 @@ class CalculateLMDI(LMDI):
         
         return col_a
 
-    def agg_df(self, categories, results_dict, level_name, data_type, types):
-
-        if not types:
-            try:
-                print("results_dict[list(results_dict.keys())[0]]keys", results_dict[list(results_dict.keys())[0]].keys())
-                types = results_dict[list(results_dict.keys())[0]][data_type].keys()
-            except KeyError:
-                print("results_dict[key][data_type]:\n", results_dict[list(results_dict.keys())[0]][data_type])
-
-        data_by_type = dict()
-        for t in types:
-            dfs = []
-            for key, value in categories.items():
-                if type(value) is dict: 
-                    sub_data_ = results_dict[key][data_type][t]
-                    data_ = self.create_total_column(sub_data_, level_name)[[level_name]]
-
-                else:
-                    data_ = results_dict[key][data_type][t]
-                
-                dfs.append(data_)
-
-            df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), dfs)
-            df = self.create_total_column(df, level_name)
-            data_by_type[t] = df
-
-        return data_by_type
-
     def build_nest(self, data, select_categories, results_dict, level1_name, level_name=None):
         if isinstance(select_categories, dict):
+            # level_energy_data = []
+            # level_activity_data = []
             for key, value in select_categories.items():
                 print('BUILD NEST:', key)
+                print('level name:', level_name)
                 if type(value) is dict:
                     print(f'value for {key} is dictionary: with value:\n {value}')
                     yield from self.build_nest(data=data[key], select_categories=value, 
@@ -432,6 +407,9 @@ class CalculateLMDI(LMDI):
                                             level_name=key)
 
                 else: 
+                    if not level_name:
+                        level_name = level1_name
+
                     print(f'value for {key} is NOT dictionary: with value:\n {value}')
                     print('type data:', type(data))
                     if isinstance(data, dict):
@@ -445,46 +423,106 @@ class CalculateLMDI(LMDI):
                         raw_energy_dict = data[key]['energy']
                         activity_data = data[key]['activity']
 
-                    if not level_name:
-                        level_name = level1_name
+                    energy = self.collect_energy_data(raw_energy_dict)
+                    energy_data = []
+                    for e in self.energy_types:
+                        e_data = energy[e] # .drop('Energy_Type', errors='ignore', axis=1)
+                        if 'Energy_Type' not in e_data.columns:
+                            e_data['Energy_Type'] = e
+                        energy_data.append(e_data)
+                    energy_data = pd.concat(energy_data, axis=0)
 
-                    activity_dict = dict()
                     if isinstance(activity_data, pd.DataFrame):
-                        activity_dict[level_name] = activity_data
+                        print('activity data is dataframe')
+                        activity_data['activity_type'] = 'only_activity'
 
                     elif isinstance(activity_data, dict):
-                        activity_dict = activity_data
+                        print('activity data is dictionary')
 
-                    energy = self.collect_energy_data(raw_energy_dict)
-                    energy_data = dict()
-                    for e in self.energy_types:
-                        e_data = energy[e].drop('Energy_Type', errors='ignore', axis=1)
-                        energy_data[e] = e_data
+                        activity_data_ = []
+                        for a_type, a_df in activity_data.items():
+                            print(f"A TYPE: {a_type}")
+                            print('a_df type:', type(a_df))
+                            print('a_df:\n', a_df)
+                            a_df.loc[:, 'activity_type'] == a_type
+                            print(f"{a_type} act df:\n", a_df)
+                            activity_data_.append(a_df)
+                        activity_data = pd.concat(activity_data_, axis=0)
+                        print('pd.concat(activity_data_, axis=0):\n', pd.concat(activity_data_, axis=0))
                     
-                    data_dict = {'energy': energy_data, 'activity': activity_dict, 'level_total': level_name}
+                    print('energy_data:\n', energy_data)
+                    print('activity_data:\n', activity_data)
 
-                    results_dict[f'{level_name}'] = data_dict 
+                    if level_name in results_dict:
+                        energy_data = self.merge_input_data([energy_data, results_dict[level_name]['energy']], 'Energy_Type')
+                        activity_data = self.merge_input_data([activity_data, results_dict[level_name]['activity']], 'activity_type')
+
+                    data_dict_ = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+                    results_dict[level_name] = data_dict_
 
         else:
             print('OOOPS')
             results_dict = results_dict
+        
+
+        print("results_dict[level_name]['energy'].columns:", results_dict[level_name]['energy'].columns)
+        print('select_categories.keys():', select_categories.keys())
+        if set(select_categories.keys()).issubset(results_dict[level_name]['energy'].columns):
+            yield results_dict
+        else:
+            if level_name in results_dict.keys():
+                aggregate_activty = [results_dict[level_name]['activity']]
+                print('aggregate_activity begin:\n', aggregate_activty)
+                aggregate_energy = [results_dict[level_name]['energy']]
+                print('aggregate_energy begin:\n', aggregate_energy)
+            else: 
+                aggregate_activty = []
+                aggregate_energy = []
+
+            for key, value in select_categories.items():
+                print('key here:', key)
+                print('results dict keys', results_dict.keys())
+                try:
+                    if isinstance(value, dict):
+                        print('results dict[key]', results_dict[key])
+                        lower_level_e = results_dict[key]['energy']
+                        lower_level_a = results_dict[key]['activity']
+                        print("lower_level_e.columns:", lower_level_e.columns)
+                        lower_level_a = self.create_total_column(lower_level_a, key)[['activity_type', key]]              
+                        lower_level_e = self.create_total_column(lower_level_e, key)[['Energy_Type', key]]       
+
+                    else:
+                        lower_level_e = results_dict[key]['energy'][['Energy_Type', key]]
+                        print('lower_level_e:\n', lower_level_e)
+                        lower_level_a = results_dict[key]['activity'][['activity_type', key]]
+                        print('lower_level_a:\n', lower_level_a)
+                    aggregate_activty.append(lower_level_a)
+                    aggregate_energy.append(lower_level_e)
+                except KeyError:
+                    print(f'key: {key} failed on level : {level_name}')
+                    continue
+
+                e_df = self.merge_input_data(aggregate_energy, 'Energy_Type')
+                e_df = self.create_total_column(e_df, level_name)                
+                print('e_df:\n', e_df)
+                agg_a_df = self.merge_input_data(aggregate_activty, 'activity_type')   
+                agg_a_df = self.create_total_column(agg_a_df, level_name)                
+                print('a_df:\n', agg_a_df)
+
+                data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
+                print('data_dict')
+                results_dict[f'{level_name}'] = data_dict 
+                yield results_dict
     
-        yield results_dict
-
-    def aggregate_levels(self, results_dict, categories):
-        print('results dict:', results_dict)
-        print('results dict keys:', results_dict.keys())
-
-        agg_results = dict()
-        levels = [sub['level_total'] for sub in results_dict.values()]
-        for l in levels:
-            results_dict_ = results_dict[l]
-            agg_activity_results = self.agg_df(categories, results_dict_, l, 'activity', types=None)
-            agg_energy_results = self.agg_df(categories, results_dict_, l, 'energy', types=self.energy_types)
-            data_dict = {'activity': agg_activity_results, 'energy': agg_energy_results, 'level_total': l}
-
-        agg_results[f'{l}'] = data_dict 
-        return agg_results
+    @staticmethod
+    def merge_input_data(list_dfs, second_index):
+        print('list dfs:', list_dfs)
+        if all(df.equals(list_dfs[0]) for df in list_dfs):
+            return list_dfs[0]
+        else:
+            list_dfs = [l.reset_index() for l in list_dfs]
+            df = reduce(lambda df1,df2: df1.merge(df2, how='outer', on=['Year', second_index]), list_dfs).set_index('Year')
+            return df
 
     @staticmethod
     def create_total_column(df, total_label):
@@ -509,47 +547,42 @@ class CalculateLMDI(LMDI):
             print('BREAK OUT KEY:', key)
             level_total = raw_results[key]['level_total']
 
-            if level_total == level_of_aggregation[0]:
-                print(f"level total {level_total} is the highest \
-                        level of aggregation: {level_of_aggregation[0]}")
-                continue
-            else: 
-                print(f"level total {level_total} is not equal to the highest \
-                        level of aggregation: {level_of_aggregation[0]}")
-
             if level_of_aggregation[-1] == level_total:
-                categories = self.deep_get(self.categories_dict, level_of_aggregation)
+                loa = [self.sector.capitalize()] + level_of_aggregation
+                categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
+
             else:
+                loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
                 categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation) + f'.{key}')
 
             if not categories:
                 print(f"{key} not in categories")
                 continue
             
-            energy = raw_results[key]['energy']
-            activity_ = raw_results[key]['activity']
+            activity_ = dict()
+            total_activty_df = raw_results[key]['activity']
+            for a_type in total_activty_df['activity_type'].unique():
+                a_df = total_activty_df[total_activty_df['activity_type'] == a_type].drop('activity_type', axis=1)
 
-            # activity_ = {a_type: self.create_total_column(a_df, level_total) for (a_type, a_df) in activity_.items()}
-            for a_type, a_df in activity_.items():
                 if level_total not in a_df.columns:
                     raise KeyError(f'{level_total} not in {a_type} dataframe')
                     exit()
+                else:
+                    activity_[a_type] = a_df
 
-            if 'weather' in raw_results[key].keys():
-                weather_data = raw_results[key]['weather']
-            else:
-                weather_data = None
-
-            if level_of_aggregation[-1] == level_total:
-                loa = [self.sector.capitalize()] + level_of_aggregation
-
-            else:
-                loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
-
-            for e_type, energy_df in energy.items():
+ 
+            total_energy_df = raw_results[key]['energy']
+            for e_type in self.energy_types:
+                energy_df = total_energy_df[total_energy_df['Energy_Type'] == e_type].drop('Energy_Type', axis=1)
                 if level_total not in energy_df.columns:
                     raise KeyError(f'{level_total} not in energy_df')
                     exit()
+
+                if 'weather' in raw_results[key].keys():
+                    all_weather_data = raw_results[key]['weather']
+                    weather_data = all_weather_data[all_weather_data['Energy_Type'] == e_type].drop('Energy_Type', axis=1)
+                else:
+                    weather_data = None
 
                 lower_level_structure = self.calc_lower_level(categories, final_results_list, e_type)
 
@@ -607,48 +640,44 @@ class CalculateLMDI(LMDI):
         TODO: 
             - Build in weather capabilities
         """
+        print('categories:', self.categories_dict)
+    
         categories = self.deep_get(self.categories_dict, level_of_aggregation)
+        print('categories:', categories)
+
+        data = reduce(lambda d, key: d.get(key, d) if isinstance(d, dict) else d, level_of_aggregation.split("."), raw_data)
+
         level_of_aggregation_ = level_of_aggregation.split(".")
         level1_name = level_of_aggregation_[-1]
 
         categories_pre_breakout = categories
         results_dict = dict()
-        for results_dict in self.build_nest(data=raw_data, select_categories=categories, results_dict=results_dict,
+        for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
                                             level1_name=level1_name):
             continue
-        results_dict = self.aggregate_levels(results_dict, categories)
+
         print('results_dict.keys()', results_dict.keys())
         print('aGgg results:\n', results_dict)
-        exit()
         final_fmt_results = []
 
         if breakout:
             final_fmt_results = self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation_,
                                                              breakout, save_breakout, categories_pre_breakout, lmdi_type)
 
-        total_activity_dfs = {}
-        total_activty_dict = results_dict[level1_name]['activity']
-        for activity_, total_activty_df in total_activty_dict.items():
-            for key, value in categories.items():
-                if type(value) is dict: 
-                    total_activty_df[key] = results_dict[key]['activity'][key][key].values
-            total_activty_df = total_activty_df.drop(level1_name, axis=1)
-            total_activty_df[level1_name] = total_activty_df.sum(axis=1).values
-            total_activity_dfs[activity_] = total_activty_df
+        total_activity_dfs = dict()
+        total_activty_df = results_dict[level1_name]['activity']
+        for a_type in total_activty_df['activity_type'].unique():
+            total_activity_dfs[a_type] = total_activty_df[total_activty_df['activity_type'] == a_type].drop('activity_type', axis=1)
 
         total_results_by_energy_type = dict()
+        total_energy_df = results_dict[level1_name]['energy']
         for e in self.energy_types:
-            total_energy_df = results_dict[level1_name]['energy'][e]
+            energy_data = total_energy_df[total_energy_df['Energy_Type'] == e].drop('Energy_Type', axis=1)
+
             if 'weather' in results_dict[level1_name].keys():
                 weather_data = results_dict[level1_name]['weather']
             else:
                 weather_data = None
-
-            for key, value in categories.items():
-                if type(value) is dict: 
-                    total_energy_df[key] = results_dict[key]['energy'][e][key].values
-            total_energy_df = total_energy_df.drop(level1_name, axis=1)
-            total_energy_df[level1_name] = total_energy_df.sum(axis=1).values
 
             lower_level_structure_df = self.calc_lower_level(categories, final_fmt_results, e)
             print('final lower level structure df:\n', lower_level_structure_df)
@@ -656,7 +685,7 @@ class CalculateLMDI(LMDI):
             if calculate_lmdi:
                 loa = [self.sector.capitalize()] + level_of_aggregation_
 
-                final_results = self.call_lmdi(total_energy_df, total_activity_dfs, 
+                final_results = self.call_lmdi(energy_data, total_activity_dfs, 
                                                lower_level_structure_df, 
                                                total_label=level1_name,
                                                unit_conversion_factor=1,
