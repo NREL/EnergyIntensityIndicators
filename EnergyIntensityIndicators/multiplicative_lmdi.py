@@ -29,17 +29,12 @@ class MultiplicativeLMDI():
         """
 
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
-        print("log_mean_divisia_weights energy shares:", self.energy_shares)
         for col in self.energy_shares.columns: 
-            print(f'log_mean_divisia_weights col: {col}')
             self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            print('energy shares with shift:\n', self.energy_shares)
             # apply generally not preferred for row-wise operations but?
             log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
                                                           self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
-        print('log mean weights: \n', log_mean_weights)
         sum_log_mean_shares = log_mean_weights.sum(axis=1)
-        print('sum_log_mean_shares:\n', sum_log_mean_shares)
         log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
         return log_mean_weights_normalized
 
@@ -76,23 +71,24 @@ class MultiplicativeLMDI():
             else:
                 if component.loc[y] == np.nan:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index']
+
                 else:
-                    index.loc[y, 'index'] = index.loc[y - 1, ['index']].multiply(component.loc[y])
-
-
+                    index.loc[y, 'index'] = index.loc[y - 1, 'index'] * component.loc[y]
+            
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
         return index_normalized 
 
     def decomposition(self, ASI):
-        print('ASI decomposition:\n', ASI)
-        results = ASI.apply(lambda col: np.exp(col), axis=1)
-        print('results decomposition:\n', results)
+        ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        print('ASI_df:\n', ASI_df)
+        results = ASI_df.apply(lambda col: np.exp(col), axis=1)
+        print(' log ASI_df:\n', results)
 
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)
-        
+        print('indexed log ASI df:\n', results)
         results['effect'] = results.product(axis=1)
-
+        print("results['effect']:\n", results['effect'])
         results["@filter|Measure|BaseYear"] = self.base_year
         return results
 

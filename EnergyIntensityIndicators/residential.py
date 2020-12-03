@@ -138,11 +138,14 @@ class ResidentialIndicators(CalculateLMDI):
 
         data_dict = self.collect_data()
 
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                                               breakout=breakout, save_breakout=save_breakout, 
+                                                               calculate_lmdi=calculate_lmdi, raw_data=data_dict, 
+                                                               lmdi_type='LMDI-I')
         formatted_results.to_csv(f"{self.output_directory}/residential_results2.csv")
 
         
-        return results
+        return results_dict
 
     # def residential_total_lmdi_utiladj(self, _base_year=None):
     # """purpose
@@ -179,7 +182,7 @@ class ResidentialIndicators(CalculateLMDI):
 
 if __name__ == '__main__':
     indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='National')
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  
+    indicators.main(breakout=True, save_breakout=False, calculate_lmdi=False)  
 
 
 

@@ -315,7 +315,8 @@ class MakeProjections():
         data_dict = self.collect_data()
         results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
                                        breakout=breakout, save_breakout=save_breakout, 
-                                       calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+                                       calculate_lmdi=calculate_lmdi, raw_data=data_dict,
+                                       lmdi_type='LMDI-I')
 if __name__ == '__main__': 
     indicators = MakeProjections(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                  output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 

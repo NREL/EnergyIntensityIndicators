@@ -1,0 +1,8 @@
+============================= test session starts =============================
+platform win32 -- Python 3.6.5, pytest-5.4.3, py-1.8.0, pluggy-0.12.0
+rootdir: C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators
+collected 1 item
+
+tests\lmdi_test.py .                                                     [100%]
+
+============================= 1 passed in 39.04s ==============================

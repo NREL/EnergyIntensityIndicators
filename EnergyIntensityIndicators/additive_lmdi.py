@@ -36,7 +36,6 @@ class AdditiveLMDI():
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
         log_mean_values_df = pd.DataFrame(index=self.energy_data.index)
 
-        print('self.energy_shares.columns:', self.energy_shares.columns)
         for col in self.energy_shares.columns: 
             self.energy_data[f"{col}_shift"] = self.energy_data[col].shift(periods=1, axis='index', fill_value=0)
 
@@ -46,7 +45,6 @@ class AdditiveLMDI():
                                                                 row[f"{col}_shift"]), axis=1) 
 
             log_mean_values_df[col] = log_mean_values.values 
-            print(log_mean_values)                             
 
             self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
             # apply generally not preferred for row-wise operations but?
@@ -120,9 +118,13 @@ class AdditiveLMDI():
     def decomposition(self, ASI):
         """Loop through 
         """
+        ASI.pop('lower_level_structure', None)
+
+        ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+
         additive_results = []
 
-        df = self.calculate_effect(ASI)
+        df = self.calculate_effect(ASI_df)
         df = df.reset_index()
 
         for year in df['Year']:
@@ -141,15 +143,12 @@ class AdditiveLMDI():
         title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
         # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
         data = data[data['@timeseries|Year'] == self.end_year][list(x_data)]
-        print('total label: \n', self.total_label)
-        print('energy_data:\n', self.energy_data)
+
         data['initial_energy'] = self.energy_data.loc[base_year, self.total_label]
         data['final_energy'] = self.energy_data.loc[end_year, self.total_label]
-        print('data:\n', data)
         x_data = ['initial_energy'] + list(x_data) + ['final_energy']
 
         y_data = data
-        print('y_data:\n', y_data)
         x_labels = [x.replace("_", " ").capitalize() for x in x_data]
         
         # for example: ["relative", "relative", "total", "relative", "relative", "total"]

@@ -87,7 +87,10 @@ class IndustrialIndicators(CalculateLMDI):
         unit_conversion_factor = 1
 
         data_dict = self.collect_data()
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                                               breakout=breakout, save_breakout=save_breakout, 
+                                                               calculate_lmdi=calculate_lmdi, raw_data=data_dict,
+                                                               lmdi_type='LMDI-I')
         return formatted_results
 
 if __name__ == '__main__': 

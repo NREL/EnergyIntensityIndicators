@@ -147,31 +147,31 @@ class TransportationIndicators(CalculateLMDI):
         self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
         self.tedb_date = tedb_date
         self.energy_types = ['deliv']
-        self.sub_categories_list = {'All_Passenger':
-                                        {'Highway': 
-                                            {'Passenger Cars and Trucks': 
-                                                {'Passenger Car – SWB Vehicles': 
-                                                    {'Passenger Car': None, 'SWB Vehicles': None},
-                                                'Light Trucks – LWB Vehicles': 
-                                                    {'Light Trucks': None, 'LWB Vehicles': None},
-                                                'Motorcycles': None}, 
-                                            'Buses': 
-                                                {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
-                                            'Paratransit':
-                                                None}, 
-                                        'Rail': 
-                                            {'Urban Rail': 
-                                                {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
-                                            'Intercity Rail': None}, 
-                                        'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
-                                    'All_Freight': 
-                                        {'Highway': 
-                                                {'Single-Unit Truck': None, 'Combination Truck': None}, 
-                                        'Rail': None, 
-                                        'Air': None, 
-                                        # 'Waterborne': None,
-                                        'Pipeline': 
-                                            {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}
+        self.sub_categories_list = {'All_Transportation': {'All_Passenger':
+                                                                {'Highway': 
+                                                                    {'Passenger Cars and Trucks': 
+                                                                        {'Passenger Car – SWB Vehicles': 
+                                                                            {'Passenger Car': None, 'SWB Vehicles': None},
+                                                                        'Light Trucks – LWB Vehicles': 
+                                                                            {'Light Trucks': None, 'LWB Vehicles': None},
+                                                                        'Motorcycles': None}, 
+                                                                    'Buses': 
+                                                                        {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
+                                                                    'Paratransit':
+                                                                        None}, 
+                                                                'Rail': 
+                                                                    {'Urban Rail': 
+                                                                        {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
+                                                                    'Intercity Rail': None}, 
+                                                                'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
+                                                            'All_Freight': 
+                                                                {'Highway': 
+                                                                        {'Single-Unit Truck': None, 'Combination Truck': None}, 
+                                                                'Rail': None, 
+                                                                'Air': None, 
+                                                                # 'Waterborne': None,
+                                                                'Pipeline': 
+                                                                    {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
 
@@ -660,19 +660,43 @@ class TransportationIndicators(CalculateLMDI):
         # freight_based_energy_use = self.energy_consumption('All_Freight')
         # freight_based_activity = self.activity('All_Freight')
 
-        passenger_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_energy_use.csv').set_index('Year')
-        passenger_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_activity.csv').set_index('Year')
+        passenger_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_energy_use.csv').set_index('Year').rename(columns={'Light Truck': 'Light Trucks', 
+                                                                                                                                                                'Para-transit': 'Paratransit',
+                                                                                                                                                                'Intercity Rail (Amtrak)': 'Intercity Rail'})
+        passenger_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_activity.csv').set_index('Year').rename(columns={'Motor-cycles': 'Motorcycles', 
+                                                                                                                                                            'Light Truck': 'Light Trucks',
+                                                                                                                                                            'Transit Bus': 'Urban Bus', 
+                                                                                                                                                            'Para-Transit': 'Paratransit'})
         freight_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_energy_use.csv').set_index('Year')
         freight_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_activity.csv').set_index('Year')
 
-        data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
-                     'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
+        data_dict = {'All_Passenger':
+                        {'Highway': 
+                            {'Passenger Cars and Trucks': 
+                                {'Passenger Car – SWB Vehicles': {'energy': {'deliv': passenger_based_energy_use[['Passenger Car', 'SWB Vehicles']]}, 'activity': passenger_based_activity[['Passenger Car', 'SWB Vehicles']]},
+                                'Light Trucks – LWB Vehicles': {'energy': {'deliv': passenger_based_energy_use[['Light Trucks', 'LWB Vehicles']]}, 'activity': passenger_based_activity[['Light Trucks', 'LWB Vehicles']]},
+                                'Motorcycles': {'energy': {'deliv': passenger_based_energy_use[['Motorcycles']]}, 'activity': passenger_based_activity[['Motorcycles']]}}, 
+                            'Buses': {'energy': {'deliv': passenger_based_energy_use[['Urban Bus', 'Intercity Bus', 'School Bus']]}, 'activity': passenger_based_activity[['Urban Bus', 'Intercity Bus', 'School Bus']]}, 
+                            'Paratransit':
+                                {'energy': {'deliv': passenger_based_energy_use[['Paratransit']]}, 'activity': passenger_based_activity[['Paratransit']]}}, 
+                        'Rail': 
+                            # {'Urban Rail': {'energy': {'deliv': passenger_based_energy_use[['Commuter Rail', 'Heavy Rail', 'Light Rail']]}, 'activity': passenger_based_activity[['Commuter Rail', 'Heavy Rail', 'Light Rail']]}, 
+                            {'Urban Rail': {'energy': {'deliv': passenger_based_energy_use[['Urban Rail (Hvy, Lt, Commuter)']]}, 'activity': passenger_based_activity[['Urban Rail (Hvy, Lt, Commuter)']]}, 
 
-        print(freight_based_energy_use)
+                            'Intercity Rail': {'energy': {'deliv': passenger_based_energy_use[['Intercity Rail']]}, 'activity': passenger_based_activity[['Intercity Rail']]}}, 
+                        # 'Air': {'energy': {'deliv': passenger_based_energy_use[['Commercial Carriers', 'General Aviation']]}, 'activity': passenger_based_activity[['Commercial Carriers', 'General Aviation']]}}, 
+                        'Air': {'energy': {'deliv': passenger_based_energy_use[['Carrier']]}, 'activity': passenger_based_activity[['Domestic Carriers (passenger-miles, millions)']]}}, 
+
+                    'All_Freight': 
+                        {'Highway': 
+                                {'energy': {'deliv': freight_based_energy_use[['Single-Unit Truck', 'Combination Truck']]}, 'activity': freight_based_activity[['Single-Unit Truck', 'Combination Truck']]}, 
+                        'Rail': {'energy': {'deliv': freight_based_energy_use[['Rail']]}, 'activity': freight_based_activity[['Rail']]}, 
+                        'Air': {'energy': {'deliv': freight_based_energy_use[['Air']]}, 'activity': freight_based_activity[['Air']]}, 
+                        'Waterborne': {'energy': {'deliv': freight_based_energy_use[['Domestic & Foreign Commerce in US Waters - Revised']]}, 'activity': freight_based_activity[['Waterborne']]},
+                        'Pipeline': {'energy': {'deliv': freight_based_energy_use[['Oil Pipeline', 'Natural Gas Pipeline']]}, 'activity': freight_based_activity[['Oil Pipeline', 'Natural Gas Pipeline']]}}}
 
         return data_dict
-
-
+       
     def main(self, breakout, save_breakout, calculate_lmdi): # base_year=None, 
         """potentially refactor later
     
@@ -686,23 +710,15 @@ class TransportationIndicators(CalculateLMDI):
         #     _base_year = _base_year
         data_dict = self.collect_data()
 
-        if self.level_of_aggregation == 'all_transportation':
-            freight_activity, freight_energy = self.get_nested_lmdi(level_of_aggregation='All_Freight', breakout=breakout, save_breakout=save_breakout, calculate_lmdi=False, raw_data=data_dict)
-            passenger_activity, passenger_energy = self.get_nested_lmdi(level_of_aggregation='All_Passenger', breakout=breakout, save_breakout=save_breakout, calculate_lmdi=False, raw_data=data_dict)
-            all_transportation_activity = freight_activity[['All_Freight']].merge(passenger_activity[['All_Passenger']], \
-                                                                        left_index=True, right_index=True, how='outer')
-            all_transportation_energy = freight_energy[['All_Freight']].merge(passenger_energy[['All_Passenger']], \
-                                                                        left_index=True, right_index=True, how='outer')                                                            
-
-            results = self.call_lmdi(unit_conversion_factor=1, lmdi_models=self.lmdi_models)
-
-        elif self.level_of_aggregation == 'personal_vehicles_aggregate':
+        if self.level_of_aggregation == 'personal_vehicles_aggregate':
             # THIS CASE NEEDS A DIFFERENT FORMAT (NOT SAME NESTED DICTIONARY STRUCTURE), need to come back
             categories = ['Passenger Car', 'Light Truck', 'Motorcycles']
             results = None
         else: 
-            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, 
-                                                         calculate_lmdi=calculate_lmdi, raw_data=data_dict)
+            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                                         breakout=breakout, save_breakout=save_breakout, 
+                                                         calculate_lmdi=calculate_lmdi, raw_data=data_dict, 
+                                                         lmdi_type='LMDI-I')
         
         results.to_csv(f"{self.output_directory}/transportation_results2.csv")
         print('RESULTS:\n', results)
@@ -726,9 +742,9 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Freight', lmdi_model=['multiplicative', 'additive'],
+                                          level_of_aggregation='All_Transportation', lmdi_model=['multiplicative', 'additive'],
                                           base_year=1985, end_year=2015) #  
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=True)
+    indicators.main(breakout=True, save_breakout=False, calculate_lmdi=True)
 
 
 

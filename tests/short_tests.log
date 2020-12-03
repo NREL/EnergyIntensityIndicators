@@ -1,214 +1,52 @@
 ============================= test session starts =============================
 platform win32 -- Python 3.6.5, pytest-5.4.3, py-1.8.0, pluggy-0.12.0
 rootdir: C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators
-collected 5 items
+collected 3 items
 
-tests\lmdi_test.py .EFFF                                                 [100%]
+tests\lmdi_test.py .F.                                                   [100%]
 
-=================================== ERRORS ====================================
-____________ ERROR at setup of TestLMDI.test_calculate_log_changes ____________
-file C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\tests\lmdi_test.py, line 288
-      def test_calculate_log_changes(self, sector):
-E       fixture 'sector' not found
->       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
->       use 'pytest --fixtures [testpath]' for help on them.
-
-C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\tests\lmdi_test.py:288
 ================================== FAILURES ===================================
-_________________________ TestLMDI.test_compute_index _________________________
+_____________________ TestLMDI.test_calculate_log_changes _____________________
 
-self = <lmdi_test.TestLMDI object at 0x000001B95102ED30>
+self = <lmdi_test.TestLMDI object at 0x000001FE929C7E48>
 sector = 'transportation'
 
-    def test_compute_index(self, sector='transportation'):
-        eii = self.eii_output_factory(sector)
-    
-        results = [[0.9705, 1.0386, 1.0037],
-                   [0.9957, 1.0329, 1.0054],
-                   [0.9982, 1.0145, 1.0052],
-                   [1.0076, 1.0165, 1.0066],
-                   [0.9814, 1.0412, 1.0016]]
-    
-        results = pd.DataFrame(results,
-                               index=[1983, 1984, 1985, 1986, 1987],
-                               columns=['Intensity Index', 'Activity Index', 'Structure Index'])
-    
-        for col in results.columns:
->           results[col] = eii.compute_index(results[col], 1985)
-E           AttributeError: 'TransportationIndicators' object has no attribute 'compute_index'
+>   ???
+E   AssertionError: assert False
+E    +  where False = <bound method TestLMDI.pct_diff of <lmdi_test.TestLMDI object at 0x000001FE929C7E48>>(      All_Passenger  All_Freight\n1970            NaN          NaN\n1971        -0.0086      -0.0129\n1972        -0.0056       0.0170\n1973         0.0044       0.0005\n1974        -0.0190      -0.0009,       All_Passenger  All_Freight\n1970            NaN          NaN\n1971        -0.0086      -0.0128\n1972        -0.0056       0.0170\n1973         0.0044       0.0005\n1974        -0.0190      -0.0009, acceptable_pct_difference=0.05, sector='transportation')
+E    +    where <bound method TestLMDI.pct_diff of <lmdi_test.TestLMDI object at 0x000001FE929C7E48>> = <lmdi_test.TestLMDI object at 0x000001FE929C7E48>.pct_diff
 
-tests\lmdi_test.py:365: AttributeError
-_____________________________ TestLMDI.test_shift _____________________________
-
-self = <lmdi_test.TestLMDI object at 0x000001B951027128>
-sector = 'transportation', acceptable_pct_difference = 0.05
-
-    def test_shift(self, sector='transportation', acceptable_pct_difference=0.05):
-        eii = self.eii_output_factory(sector)
-        pnnl_data = [[0.5433, 0.1449], [0.5479, 0.1402], [0.5650, 0.1367]]
-        energy_shares = pd.DataFrame(pnnl_data, index=[1970, 1971, 1972], columns=['Highway', 'Rail'])
-    
-        log_mean_weights = pd.DataFrame(index=energy_shares.index)
-        print("log_mean_divisia_weights energy shares:", energy_shares)
-        for col in energy_shares.columns:
-            print(f'log_mean_divisia_weights col: {col}')
-            energy_shares[f"{col}_shift"] = energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            print('energy shares with shift:\n', energy_shares)
-            # apply generally not preferred for row-wise operations but?
-            log_mean_weights[f'log_mean_weights_{col}'] = energy_shares.apply(lambda row: \
-                                                          eii.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1)
-        print('log_mean_weights:\n', log_mean_weights)
-        log_mean_weights = log_mean_weights.loc[1971:, :]
-        print('log_mean_weights:\n', log_mean_weights)
-        log_mean_weights = log_mean_weights.round(4)
-        print('log_mean_weights:\n', log_mean_weights)
-    
-        pnnl_results = [[0.5456, 0.1425], [0.5564, 0.1385]]
-        pnnl_df = pd.DataFrame(pnnl_results, index=[1971, 1972], columns=['log_mean_weights_Highway', 'log_mean_weights_Rail'])
-        print('pnnl_df:\n', pnnl_df)
-        acceptable_bool = self.pct_diff(pnnl_df, log_mean_weights, acceptable_pct_difference, sector)
->       assert acceptable_bool
-
-tests\lmdi_test.py:403: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = log_mean_weights_Highway    True
-log_mean_weights_Rail       True
-dtype: bool
-
-    def __nonzero__(self):
-        raise ValueError("The truth value of a {0} is ambiguous. "
-                         "Use a.empty, a.bool(), a.item(), a.any() or a.all()."
->                        .format(self.__class__.__name__))
-E       ValueError: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
-
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\generic.py:1478: ValueError
+tests\lmdi_test.py:316: AssertionError
 ---------------------------- Captured stdout call -----------------------------
-log_mean_divisia_weights energy shares:       Highway    Rail
-1970   0.5433  0.1449
-1971   0.5479  0.1402
-1972   0.5650  0.1367
-log_mean_divisia_weights col: Highway
-energy shares with shift:
-       Highway    Rail  Highway_shift
-1970   0.5433  0.1449         0.0000
-1971   0.5479  0.1402         0.5433
-1972   0.5650  0.1367         0.5479
-log_mean_divisia_weights col: Rail
-energy shares with shift:
-       Highway    Rail  Highway_shift  Rail_shift
-1970   0.5433  0.1449         0.0000      0.0000
-1971   0.5479  0.1402         0.5433      0.1449
-1972   0.5650  0.1367         0.5479      0.1402
-log_mean_weights:
-       log_mean_weights_Highway  log_mean_weights_Rail
-1970                       NaN                    NaN
-1971                  0.545597               0.142537
-1972                  0.556406               0.138443
-log_mean_weights:
-       log_mean_weights_Highway  log_mean_weights_Rail
-1971                  0.545597               0.142537
-1972                  0.556406               0.138443
-log_mean_weights:
-       log_mean_weights_Highway  log_mean_weights_Rail
-1971                    0.5456                 0.1425
-1972                    0.5564                 0.1384
-pnnl_df:
-       log_mean_weights_Highway  log_mean_weights_Rail
-1971                    0.5456                 0.1425
-1972                    0.5564                 0.1385
-diff_df:        log_mean_weights_Highway  log_mean_weights_Rail
-1971                       0.0                 0.0000
-1972                       0.0                 0.0001
+comparison_df:
+       All_Passenger  All_Freight
+1970            NaN          NaN
+1971        -0.0086      -0.0129
+1972        -0.0056       0.0170
+1973         0.0044       0.0005
+1974        -0.0190      -0.0009
+log_ratio_df:
+       All_Passenger  All_Freight
+1970            NaN          NaN
+1971        -0.0086      -0.0128
+1972        -0.0056       0.0170
+1973         0.0044       0.0005
+1974        -0.0190      -0.0009
+diff_df:        All_Passenger  All_Freight
+1970            NaN          NaN
+1971            0.0      -0.0001
+1972            0.0       0.0000
+1973            0.0       0.0000
+1974            0.0       0.0000
 
 pct_diff:
-       log_mean_weights_Highway  log_mean_weights_Rail
-1971                       0.0               0.000000
-1972                       0.0               0.000722
-(pct_diff <= acceptable_pct_difference).all(): log_mean_weights_Highway    True
-log_mean_weights_Rail       True
-dtype: bool
-_______________________ TestLMDI.test_normalize_weights _______________________
-
-self = <lmdi_test.TestLMDI object at 0x000001B95102ECF8>
-sector = 'transportation', acceptable_pct_difference = 0.05
-
-    def test_normalize_weights(self, sector='transportation', acceptable_pct_difference=0.05):
-        # eii = self.eii_output_factory(sector)
-        pnnl_results = [[0.5456, 0.1425, 0.0436, 0.0556, 0.2126],
-                        [0.5564, 0.1385, 0.0449, 0.0525, 0.2076]]
-        log_mean_weights = pd.DataFrame(pnnl_results, index=[1971, 1972], columns=['log_mean_weights_Highway', 'log_mean_weights_Rail', 'log_mean_weights_Air', 'log_mean_weights_Waterborne', 'log_mean_weights_Pipeline'])
-        sum_log_mean_shares = log_mean_weights.sum(axis=1)
-        test_total = pd.Series([[0.9999], [0.9999]], index=[1971, 1972])
-        print('sum_log_mean_shares:\n', sum_log_mean_shares)
-        print('sum_log_mean_shares == test_total', sum_log_mean_shares.equals(test_total))
-        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
-        log_mean_weights_normalized = log_mean_weights_normalized.round(4)
-        print('log_mean_weights_normalized:\n', log_mean_weights_normalized)
-    
-        pnnl_normalized = [[0.5456, 0.1425, 0.0436, 0.0556, 0.2126],
-                           [0.5565, 0.1385, 0.0449, 0.0525, 0.2076]]
-        pnnl_normalized_df = pd.DataFrame(pnnl_normalized, index=[1971, 1972], columns=['log_mean_weights_Highway', 'log_mean_weights_Rail', 'log_mean_weights_Air', 'log_mean_weights_Waterborne', 'log_mean_weights_Pipeline'])
-        print('pnnl_normalized_df:\n', pnnl_normalized_df)
-        acceptable_bool = self.pct_diff(pnnl_normalized_df, log_mean_weights_normalized, acceptable_pct_difference, sector=sector)
->       assert acceptable_bool
-
-tests\lmdi_test.py:423: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = log_mean_weights_Highway       True
-log_mean_weights_Rail          True
-log_mean_weights_Air           True
-log_mean_weights_Waterborne    True
-log_mean_weights_Pipeline      True
-dtype: bool
-
-    def __nonzero__(self):
-        raise ValueError("The truth value of a {0} is ambiguous. "
-                         "Use a.empty, a.bool(), a.item(), a.any() or a.all()."
->                        .format(self.__class__.__name__))
-E       ValueError: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
-
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\generic.py:1478: ValueError
----------------------------- Captured stdout call -----------------------------
-sum_log_mean_shares:
- 1971    0.9999
-1972    0.9999
-dtype: float64
-sum_log_mean_shares == test_total False
-log_mean_weights_normalized:
-       log_mean_weights_Highway  ...  log_mean_weights_Pipeline
-1971                    0.5457  ...                     0.2126
-1972                    0.5565  ...                     0.2076
-
-[2 rows x 5 columns]
-pnnl_normalized_df:
-       log_mean_weights_Highway  ...  log_mean_weights_Pipeline
-1971                    0.5456  ...                     0.2126
-1972                    0.5565  ...                     0.2076
-
-[2 rows x 5 columns]
-diff_df:        log_mean_weights_Highway  ...  log_mean_weights_Pipeline
-1971                   -0.0001  ...                        0.0
-1972                    0.0000  ...                        0.0
-
-[2 rows x 5 columns]
-
-pct_diff:
-       log_mean_weights_Highway  ...  log_mean_weights_Pipeline
-1971                  0.000183  ...                        0.0
-1972                  0.000000  ...                        0.0
-
-[2 rows x 5 columns]
-(pct_diff <= acceptable_pct_difference).all(): log_mean_weights_Highway       True
-log_mean_weights_Rail          True
-log_mean_weights_Air           True
-log_mean_weights_Waterborne    True
-log_mean_weights_Pipeline      True
-dtype: bool
+       All_Passenger  All_Freight
+1970            NaN          NaN
+1971           -0.0    -0.007752
+1972           -0.0     0.000000
+1973            0.0     0.000000
+1974           -0.0    -0.000000
+(pct_diff <= acceptable_pct_difference).all(): False
 =========================== short test summary info ===========================
-FAILED tests/lmdi_test.py::TestLMDI::test_compute_index - AttributeError: 'Tr...
-FAILED tests/lmdi_test.py::TestLMDI::test_shift - ValueError: The truth value...
-FAILED tests/lmdi_test.py::TestLMDI::test_normalize_weights - ValueError: The...
-ERROR tests/lmdi_test.py::TestLMDI::test_calculate_log_changes
-============== 3 failed, 1 passed, 1 error in 134.71s (0:02:14) ===============
+FAILED tests/lmdi_test.py::TestLMDI::test_calculate_log_changes - AssertionEr...
+=================== 1 failed, 2 passed in 129.67s (0:02:09) ===================
