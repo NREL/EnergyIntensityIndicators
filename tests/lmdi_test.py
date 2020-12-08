@@ -278,143 +278,151 @@ class TestLMDI:
     #                     {energy_data.columns} energy columns')
     #             continue
 
-    # def test_log_mean_divisia(self, sector='transportation'):
-    #     eii = self.eii_output_factory(sector)
-    #     x = 0.5913
-    #     y = 0.5650
-    #     L = eii.logarithmic_average(x, y)
-    #     pnnl_result = 0.578
-    #     assert round(L, 3) == pnnl_result
+    def test_log_mean_divisia(self, sector='transportation'):
+        eii = self.eii_output_factory(sector)
+        x = 0.5913
+        y = 0.5650
+        L = eii.logarithmic_average(x, y)
+        pnnl_result = 0.578
+        assert round(L, 3) == pnnl_result
     
-    # def test_calculate_log_changes(self, sector='transportation'):
-    #     eii = self.eii_output_factory(sector)
+    def test_calculate_log_changes(self, sector='transportation'):
+        eii = self.eii_output_factory(sector)
         
-    #     input_data = [[1.2759, 0.9869],
-    #                   [1.2650, 0.9743],
-    #                   [1.2579, 0.9910],
-    #                   [1.2634, 0.9915],
-    #                   [1.2396, 0.9906]]
+        input_data = [[1.2759, 0.9869],
+                      [1.2650, 0.9743],
+                      [1.2579, 0.9910],
+                      [1.2634, 0.9915],
+                      [1.2396, 0.9906]]
 
 
-    #     input_df = pd.DataFrame(input_data, 
-    #                                  index=[1970, 1971, 1972, 1973, 1974], 
-    #                                  columns=['All_Passenger', 'All_Freight'])
+        input_df = pd.DataFrame(input_data, 
+                                     index=[1970, 1971, 1972, 1973, 1974], 
+                                     columns=['All_Passenger', 'All_Freight'])
 
-    #     log_ratio_df = eii.calculate_log_changes(input_df)
-    #     log_ratio_df = log_ratio_df.round(4)
-    #     comparison_output = [[np.nan, np.nan],
-    #                          [-0.0086, -0.0129],
-    #                          [-0.0056, 0.0170],
-    #                          [0.0044, 0.0005],
-    #                          [-0.0190, -0.0009]]
+        log_ratio_df = eii.calculate_log_changes(input_df)
+        log_ratio_df = log_ratio_df.round(4)
+        comparison_output = [[np.nan, np.nan],
+                             [-0.0086, -0.0129],
+                             [-0.0056, 0.0170],
+                             [0.0044, 0.0005],
+                             [-0.0190, -0.0009]]
 
-    #     comparison_df = pd.DataFrame(comparison_output, 
-    #                                  index=[1970, 1971, 1972, 1973, 1974], 
-    #                                  columns=['All_Passenger', 'All_Freight'])
-    #     print('comparison_df:\n', comparison_df)
-    #     print('log_ratio_df:\n', log_ratio_df)
-    #     # assert log_ratio_df.equals(comparison_df)
-    #     assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference=0.05, sector='transportation')
+        comparison_df = pd.DataFrame(comparison_output, 
+                                     index=[1970, 1971, 1972, 1973, 1974], 
+                                     columns=['All_Passenger', 'All_Freight'])
+        print('comparison_df:\n', comparison_df)
+        print('log_ratio_df:\n', log_ratio_df)
+        # assert log_ratio_df.equals(comparison_df)
+        assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference=0.05, sector='transportation')
 
-    # def calc_component(self, sector):
-    #     eii = self.eii_output_factory(sector)
+    def calc_component(self, sector):
+        eii = self.eii_output_factory(sector)
 
-    #     log_ratio_component = [[np.nan, np.nan],
-    #                            [-0.0086, -0.0129],
-    #                            [-0.0056, 0.0170],
-    #                            [0.0044, 0.0005],
-    #                            [-0.0190, -0.0009]]
-    #     log_ratio_component = pd.DataFrame(log_ratio_component, 
-    #                                        index=[1970, 1971, 1972, 1973, 1974], 
-    #                                        columns=['All_Passenger', 'All_Freight'])
+        log_ratio_component = [[np.nan, np.nan],
+                               [-0.0086, -0.0129],
+                               [-0.0056, 0.0170],
+                               [0.0044, 0.0005],
+                               [-0.0190, -0.0009]]
+        log_ratio_component = pd.DataFrame(log_ratio_component, 
+                                           index=[1970, 1971, 1972, 1973, 1974], 
+                                           columns=['All_Passenger', 'All_Freight'])
         
-    #     weights = [[0.3911, 0.6089],
-    #                [0.7602, 0.2398],
-    #                [0.7610, 0.2390],
-    #                [0.7596, 0.2404],
-    #                [0.7563, 0.2437]]
+        weights = [[0.3911, 0.6089],
+                   [0.7602, 0.2398],
+                   [0.7610, 0.2390],
+                   [0.7596, 0.2404],
+                   [0.7563, 0.2437]]
 
-    #     weights = pd.DataFrame(weights, 
-    #                            index=[1970, 1971, 1972, 1973, 1974], 
-    #                            columns=['All_Passenger', 'All_Freight'])
+        weights = pd.DataFrame(weights, 
+                               index=[1970, 1971, 1972, 1973, 1974], 
+                               columns=['All_Passenger', 'All_Freight'])
 
-    #     component = eii.calc_component(log_ratio_component, weights)
-    #     component = component.apply(lambda col: np.exp(col), axis=1)
+        component = eii.calc_component(log_ratio_component, weights)
+        component = component.apply(lambda col: np.exp(col), axis=1)
 
-    #     comparison_output = [[np.nan], 
-    #                          [0.9904],
-    #                          [0.9998],
-    #                          [1.0034],
-    #                          [0.9855]]
-    #     comparison_output = pd.DataFrame(comparison_output, 
-    #                                      index=[1970, 1971, 1972, 1973, 1974], 
-    #                                      columns=['Intensity Index'])
-    #     print('component:\n', component)
-    #     print('comparison_output:\n', comparison_output)
-    #     assert component.equals(comparison_output)
+        comparison_output = [[np.nan], 
+                             [0.9904],
+                             [0.9998],
+                             [1.0034],
+                             [0.9855]]
+        comparison_output = pd.DataFrame(comparison_output, 
+                                         index=[1970, 1971, 1972, 1973, 1974], 
+                                         columns=['Intensity Index'])
+        print('component:\n', component)
+        print('comparison_output:\n', comparison_output)
+        assert component.equals(comparison_output)
 
-    # def test_compute_index(self):
-    #     eii = MultiplicativeLMDI()
+    def test_compute_index(self):
+        eii = MultiplicativeLMDI()
         
-    #     results = [[0.9705, 1.0386, 1.0037], 
-    #                [0.9957, 1.0329, 1.0054],
-    #                [0.9982, 1.0145, 1.0052],
-    #                [1.0076, 1.0165, 1.0066],
-    #                [0.9814, 1.0412, 1.0016]]
+        results = [[0.9705, 1.0386, 1.0037], 
+                   [0.9957, 1.0329, 1.0054],
+                   [0.9982, 1.0145, 1.0052],
+                   [1.0076, 1.0165, 1.0066],
+                   [0.9814, 1.0412, 1.0016]]
 
-    #     results = pd.DataFrame(results, 
-    #                            index=[1983, 1984, 1985, 1986, 1987], 
-    #                            columns=['Intensity Index', 'Activity Index', 'Structure Index'])
+        results = pd.DataFrame(results, 
+                               index=[1983, 1984, 1985, 1986, 1987], 
+                               columns=['Intensity Index', 'Activity Index', 'Structure Index'])
         
-    #     for col in results.columns:
-    #         results[col] = eii.compute_index(results[col], 1985)
-    #         results[col] = results[col].astype(float).round(4)
+        for col in results.columns:
+            results[col] = eii.compute_index(results[col], 1985)
+            results[col] = results[col].astype(float).round(4)
 
-    #     comparison_output = [[1.0062, 0.9543, 0.9895],
-    #                          [1.0018, 0.9857, 0.9948],
-    #                          [1.0000, 1.0000, 1.0000],
-    #                          [1.0076, 1.0165, 1.0066],
-    #                          [0.9889, 1.0584, 1.0082]]
+        comparison_output = [[1.0062, 0.9543, 0.9895],
+                             [1.0018, 0.9857, 0.9948],
+                             [1.0000, 1.0000, 1.0000],
+                             [1.0076, 1.0165, 1.0066],
+                             [0.9889, 1.0584, 1.0082]]
         
-    #     comparison_output = pd.DataFrame(comparison_output, 
-    #                                      index=[1983, 1984, 1985, 1986, 1987], 
-    #                                      columns=['Intensity Index', 'Activity Index', 'Structure Index'])
-    #     print('results_:\n', results)
-    #     print('comparison_output:\n', comparison_output)
-    #     # assert results.equals(comparison_output)
-    #     assert self.pct_diff(comparison_output, results, acceptable_pct_difference=0.05, sector='transportation')
+        comparison_output = pd.DataFrame(comparison_output, 
+                                         index=[1983, 1984, 1985, 1986, 1987], 
+                                         columns=['Intensity Index', 'Activity Index', 'Structure Index'])
+        print('results_:\n', results)
+        print('comparison_output:\n', comparison_output)
+        # assert results.equals(comparison_output)
+        assert self.pct_diff(comparison_output, results, acceptable_pct_difference=0.05, sector='transportation')
     
-    # def test_multiplicative_decomposition(self, sector='transportation'):
-    #     eii = MultiplicativeLMDI()
+    def test_multiplicative_decomposition(self, sector='transportation'):
+        eii = MultiplicativeLMDI()
 
-    #     test_asi = [[1.0062, 0.9543, 0.9895],
-    #                 [1.0018, 0.9857, 0.9948],
-    #                 [1.0000, 1.0000, 1.0000],
-    #                 [1.0076, 1.0165, 1.0066],
-    #                 [0.9889, 1.0584, 1.0082]]
+        test_asi = [[1.0062, 0.9543, 0.9895],
+                    [1.0018, 0.9857, 0.9948],
+                    [1.0000, 1.0000, 1.0000],
+                    [1.0076, 1.0165, 1.0066],
+                    [0.9889, 1.0584, 1.0082]]
         
-    #     test_asi = pd.DataFrame(test_asi, 
-    #                             index=[1983, 1984, 1985, 1986, 1987], 
-    #                             columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
+        test_asi = pd.DataFrame(test_asi, 
+                                index=[1983, 1984, 1985, 1986, 1987], 
+                                columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
 
-    #     test_weights = 
-    #     test_log_ratios = 
-    #     weather_data = None
-    #     model = 'multiplicative'
-    #     components = self.calc_ASI(model, weather_data, weights, test_log_ratios)
-    #     results = eii.decomposition(components)
-    #     results = results[['effect']].round(4)
+        test_weights = 
+        test_log_ratios = 
+        weather_data = None
+        model = 'multiplicative'
+        components = self.calc_ASI(model, weather_data, weights, test_log_ratios)
+        results = eii.decomposition(components)
+        results = results[['effect']].round(4)
 
-    #     comparison_output = [[0.9502],
-    #                          [0.9824],
-    #                          [1.0000],
-    #                          [1.0310],
-    #                          [1.0553]]
+        comparison_output = [[0.9502],
+                             [0.9824],
+                             [1.0000],
+                             [1.0310],
+                             [1.0553]]
         
-    #     comparison_output = pd.DataFrame(comparison_output, 
-    #                                      index=[1983, 1984, 1985, 1986, 1987], 
-    #                                      columns=['effect'])
+        comparison_output = pd.DataFrame(comparison_output, 
+                                         index=[1983, 1984, 1985, 1986, 1987], 
+                                         columns=['effect'])
 
+    def test_lower_level_structure(self, sector='transportation', acceptable_pct_diff=0.05):
+        eii = self.eii_output_factory(sector)
+        final_fmt_results =
+        categories = 
+        lower_level_results = eii.calc_lower_level(categories, final_fmt_results, e_type='deliv')
+
+        comparison_df = 
+        acceptable_bool = self.pct_diff(comparison_df, lower_level_results, acceptable_pct_diff, sector)
 
     def test_shift(self, sector='transportation', acceptable_pct_difference=0.05):
         eii = self.eii_output_factory(sector)
@@ -462,57 +470,57 @@ class TestLMDI:
         acceptable_bool = self.pct_diff(pnnl_normalized_df, log_mean_weights_normalized, acceptable_pct_difference, sector=sector)
         assert acceptable_bool
 
-    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
-    def test_multiplicative_lmdi_log_mean_divisia_weights(self, sector, acceptable_pct_difference=0.05):
-        """Multiplicative test should use original PNNL data (compiled for #13)
-        Test should be parametrized to loop through all sectors.
-        """                
-        eii = self.eii_output_factory(sector)
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # def test_multiplicative_lmdi_log_mean_divisia_weights(self, sector, acceptable_pct_difference=0.05):
+    #     """Multiplicative test should use original PNNL data (compiled for #13)
+    #     Test should be parametrized to loop through all sectors.
+    #     """                
+    #     eii = self.eii_output_factory(sector)
 
-        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
-        eii_, pnnl_data_ = self.input_data(sector, level_of_aggregation_='All_Freight.Pipeline')
+    #     pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+    #     eii_, pnnl_data_ = self.input_data(sector, level_of_aggregation_='All_Freight.Pipeline')
 
-        bools_list = []
+    #     bools_list = []
 
-        for e_type in pnnl_data['Energy Type'].unique():
+    #     for e_type in pnnl_data['Energy Type'].unique():
 
-            for level_ in pnnl_data['Nest level'].unique():
-                energy_data = pnnl_data_[e_type]['energy']
-                energy_shares = pnnl_data[(pnnl_data['Energy Type'] == e_type) & (pnnl_data['Data Type'] == 'Energy Shares') & (pnnl_data['Nest level'] == level_)]
-                energy_shares = energy_shares[['Year', 'Category', 'Value']]
-                energy_shares['Value'] = energy_shares['Value'].astype(float)
-                energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
-                print('energy_share columns (should just be pipeline):', energy_shares.columns)
+    #         for level_ in pnnl_data['Nest level'].unique():
+    #             energy_data = pnnl_data_[e_type]['energy']
+    #             energy_shares = pnnl_data[(pnnl_data['Energy Type'] == e_type) & (pnnl_data['Data Type'] == 'Energy Shares') & (pnnl_data['Nest level'] == level_)]
+    #             energy_shares = energy_shares[['Year', 'Category', 'Value']]
+    #             energy_shares['Value'] = energy_shares['Value'].astype(float)
+    #             energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
+    #             print('energy_share columns (should just be pipeline):', energy_shares.columns)
 
-                energy_shares = energy_shares.dropna(axis=1, how='all')
-                total_label = level_
-                model_ = MultiplicativeLMDI(energy_data, energy_shares, 1985, 2017, total_label)
-                eii_output = model_.log_mean_divisia_weights()
-                print('eii_output log mean divisia weights: \n', eii_output.head())
+    #             energy_shares = energy_shares.dropna(axis=1, how='all')
+    #             total_label = level_
+    #             model_ = MultiplicativeLMDI(energy_data, energy_shares, 1985, 2017, total_label)
+    #             eii_output = model_.log_mean_divisia_weights()
+    #             print('eii_output log mean divisia weights: \n', eii_output.head())
 
-                # pnnl_data_raw = self.get_pnnl_data(sector)['results']
-                # weights_cols = [cat for cat in pnnl_data_raw['Category'].unique() if cat.endswith('eights')]
-                # pnnl_weights = pnnl_data_raw[pnnl_data_raw['Category'].isin(weights_cols)]
-                print('pnnl_data:\n', pnnl_data)
-                pnnl_weights = pnnl_data[(pnnl_data['Energy Type'] == e_type) & (pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)') & (pnnl_data['Nest level'] == level_)]
-                pnnl_weights = pnnl_weights[['Year', 'Category', 'Value']]
+    #             # pnnl_data_raw = self.get_pnnl_data(sector)['results']
+    #             # weights_cols = [cat for cat in pnnl_data_raw['Category'].unique() if cat.endswith('eights')]
+    #             # pnnl_weights = pnnl_data_raw[pnnl_data_raw['Category'].isin(weights_cols)]
+    #             print('pnnl_data:\n', pnnl_data)
+    #             pnnl_weights = pnnl_data[(pnnl_data['Energy Type'] == e_type) & (pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)') & (pnnl_data['Nest level'] == level_)]
+    #             pnnl_weights = pnnl_weights[['Year', 'Category', 'Value']]
 
-                print('pnnl_weights:\n', pnnl_weights)
+    #             print('pnnl_weights:\n', pnnl_weights)
 
-                pnnl_weights_ = pnnl_weights.pivot(index='Year', columns='Category', values='Value')
-                pnnl_weights_.columns.name = None
-                print('pnnl_weights_:\n', pnnl_weights_)
+    #             pnnl_weights_ = pnnl_weights.pivot(index='Year', columns='Category', values='Value')
+    #             pnnl_weights_.columns.name = None
+    #             print('pnnl_weights_:\n', pnnl_weights_)
 
-                pnnl_weights_ = pnnl_weights_.dropna(axis=1, how='all')
-                pnnl_weights_ = pnnl_weights_.rename(columns={col: f'log_mean_weights_{col}' for col in pnnl_weights_.columns})
-                print('pnnl_weights_:\n', pnnl_weights_)
+    #             pnnl_weights_ = pnnl_weights_.dropna(axis=1, how='all')
+    #             pnnl_weights_ = pnnl_weights_.rename(columns={col: f'log_mean_weights_{col}' for col in pnnl_weights_.columns})
+    #             print('pnnl_weights_:\n', pnnl_weights_)
 
-                acceptable_bool = self.pct_diff(pnnl_weights_, eii_output, acceptable_pct_difference, sector)
+    #             acceptable_bool = self.pct_diff(pnnl_weights_, eii_output, acceptable_pct_difference, sector)
    
-                bools_list.append(acceptable_bool)
-                print('bools_list:', bools_list)    
+    #             bools_list.append(acceptable_bool)
+    #             print('bools_list:', bools_list)    
 
-        assert all(bools_list) #         assert all(all(bools_list))
+    #     assert all(bools_list) #         assert all(all(bools_list))
 
 
     # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
@@ -589,61 +597,61 @@ class TestLMDI:
         print('(pct_diff <= acceptable_pct_difference).all():', (pct_diff <= acceptable_pct_difference).all().all())
         return (pct_diff <= acceptable_pct_difference).all().all()
 
-    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
-    def test_calc_asi(self, sector, acceptable_pct_difference=0.05):
-        """Write test_calc_ASI to test LMDI class.
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # def test_calc_asi(self, sector, acceptable_pct_difference=0.05):
+    #     """Write test_calc_ASI to test LMDI class.
 
-        - Test both additive and multiplicative forms
-        - Test all sectors
-        """   
+    #     - Test both additive and multiplicative forms
+    #     - Test all sectors
+    #     """   
 
-        eii = self.eii_output_factory(sector)
+    #     eii = self.eii_output_factory(sector)
 
-        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+    #     pnnl_data = self.get_pnnl_input(sector, 'intermediate')
 
-        pnnl_output = self.get_pnnl_data(sector)
-        pnnl_output = pnnl_output['results']
+    #     pnnl_output = self.get_pnnl_data(sector)
+    #     pnnl_output = pnnl_output['results']
 
-        model = 'multiplicative'
+    #     model = 'multiplicative'
 
-        bools_list = []
+    #     bools_list = []
 
-        for e_type in pnnl_data['Energy Type'].unique():
+    #     for e_type in pnnl_data['Energy Type'].unique():
 
-            for level_ in pnnl_data['Nest level'].unique():
+    #         for level_ in pnnl_data['Nest level'].unique():
 
             
-                if 'Weather' in pnnl_data['Energy Type']:
-                    weather_data = pnnl_data[pnnl_data['Energy Type'] == 'Weather']
-                else:
-                    weather_data = None
+    #             if 'Weather' in pnnl_data['Energy Type']:
+    #                 weather_data = pnnl_data[pnnl_data['Energy Type'] == 'Weather']
+    #             else:
+    #                 weather_data = None
 
-                log_mean_divisia_weights_normalized = pnnl_data[pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
-                log_ratio_activity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Activity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
-                log_ratio_structure = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Lower-level Structure'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
-                log_ratio_intensity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Intensity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    #             log_mean_divisia_weights_normalized = pnnl_data[pnnl_data['Data Type'] == 'Log Mean Divisia Weights (normalized)'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    #             log_ratio_activity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Activity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    #             log_ratio_structure = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Lower-level Structure'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+    #             log_ratio_intensity = pnnl_data[pnnl_data['Data Type'] == 'Log Changes Intensity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
 
-                log_ratios = {'activity': log_ratio_activity, 
-                              'structure': log_ratio_structure, 
-                              'intensity': log_ratio_intensity}
-                print('log ratios:\n', log_ratios)
-                print('log ratios type:\n', type(log_ratios['activity']))
+    #             log_ratios = {'activity': log_ratio_activity, 
+    #                           'structure': log_ratio_structure, 
+    #                           'intensity': log_ratio_intensity}
+    #             print('log ratios:\n', log_ratios)
+    #             print('log ratios type:\n', type(log_ratios['activity']))
 
-                print("log_mean_divisia_weights_normalized: \n", log_mean_divisia_weights_normalized)
+    #             print("log_mean_divisia_weights_normalized: \n", log_mean_divisia_weights_normalized)
 
-                print("log_mean_divisia_weights_normalized type: \n", type(log_mean_divisia_weights_normalized))
+    #             print("log_mean_divisia_weights_normalized type: \n", type(log_mean_divisia_weights_normalized))
 
-                eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
-                                          log_ratios)
-                print('eii_output calc asi:\n', eii_output)
-                pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_type) & (pnnl_output['Nest level'] == level_)]
-                pnnl_output_ = pnnl_output_[pnnl_output_['Category'].isin(['Structure: Lower level (**)', 'Component Intensity Index', 'Weighted Activity Index'])]
-                pnnl_output_ = pnnl_output_.pivot(index='Year', columns='Category', values='Value')
-                print('pnnl_output calc asi:\n', pnnl_output_)
-                acceptable_bool = self.pct_diff(pnnl_output_, eii_output, acceptable_pct_difference, sector)
-                bools_list.append(acceptable_bool)
+    #             eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
+    #                                       log_ratios)
+    #             print('eii_output calc asi:\n', eii_output)
+    #             pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_type) & (pnnl_output['Nest level'] == level_)]
+    #             pnnl_output_ = pnnl_output_[pnnl_output_['Category'].isin(['Structure: Lower level (**)', 'Component Intensity Index', 'Weighted Activity Index'])]
+    #             pnnl_output_ = pnnl_output_.pivot(index='Year', columns='Category', values='Value')
+    #             print('pnnl_output calc asi:\n', pnnl_output_)
+    #             acceptable_bool = self.pct_diff(pnnl_output_, eii_output, acceptable_pct_difference, sector)
+    #             bools_list.append(acceptable_bool)
         
-        assert all(bools_list)  #         assert all(all(bools_list))
+    #     assert all(bools_list)  #         assert all(all(bools_list))
 
 
 if __name__ == '__main__':

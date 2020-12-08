@@ -40,7 +40,12 @@ class LMDI():
            log_ratio: dataframe
 
         """
-        log_ratio = np.log(dataset.divide(dataset.shift().values, axis='columns'))
+        change = dataset.divide(dataset.shift().values).astype(float)
+        print('change:\n', change)
+        print(change.dtypes)
+        
+        log_ratio = change.apply(lambda col: np.log(col), axis=1)
+
         log_ratio_df = pd.DataFrame(data=log_ratio, index=dataset.index, columns=dataset.columns)
         return log_ratio_df
 
@@ -55,10 +60,13 @@ class LMDI():
         """        
         activity = self.calc_component(log_ratios['activity'], log_mean_divisia_weights_normalized)
         intensity = self.calc_component(log_ratios['intensity'], log_mean_divisia_weights_normalized)
+        print('intensity component:\n', intensity)
         structure = self.calc_component(log_ratios['structure'], log_mean_divisia_weights_normalized)
+
+
         try:
             lower_level_structure = self.calc_component(log_ratios['lower_level_structure'], log_mean_divisia_weights_normalized)
-            print('COMPONENT:\n', lower_level_structure)
+            print('COMPONENT lower_level_structure:\n', lower_level_structure)
         except KeyError:
             lower_level_structure = pd.DataFrame()
 
@@ -69,12 +77,13 @@ class LMDI():
                 structure_weather = self.calculate_log_changes(weather_data)
                 structure_weather = (log_mean_divisia_weights_normalized.multiply(structure_weather, axis='columns')).sum(axis=1)
 
+
+        ASI = {'activity': activity, 'structure': structure, 
+                'intensity': intensity}
+
         if not lower_level_structure.empty:
-            ASI = {'activity': activity, 'structure': structure, 
-                    'intensity': intensity, 'lower_level_structure': lower_level_structure}
-        else: 
-            ASI = {'activity': activity, 'structure': structure, 
-                   'intensity': intensity}
+            ASI['lower_level_structure'] = lower_level_structure
+        
 
         print('FINAL ASI KEYS:', ASI.keys())
         return ASI
@@ -203,7 +212,7 @@ class LMDI():
 class CalculateLMDI(LMDI):
 
     def __init__(self, sector, level_of_aggregation, lmdi_models, categories_dict, energy_types,
-                 directory, output_directory, base_year=1985, end_year=2017):
+                 directory, output_directory, base_year=1985, end_year=2017, unit_conversion_factor=1):
 
         super().__init__(sector=sector, lmdi_models=lmdi_models, 
                          output_directory=output_directory, base_year=base_year, end_year=end_year)
@@ -215,6 +224,7 @@ class CalculateLMDI(LMDI):
         self.categories_dict = categories_dict
         self.base_year = base_year
         self.energy_types = energy_types  # could use energy_data.keys but need 'elec' and 'fuels' to come before the others
+        self.unit_conversion_factor = unit_conversion_factor
 
     @staticmethod
     def use_intersection(data, intersection_):
@@ -309,9 +319,7 @@ class CalculateLMDI(LMDI):
 
         if e_type in ['deliv', 'source', 'source_adj']:
             elec = energy_data['elec']
-            # elec['Total'] = elec.sum(axis=1)
             fuels = energy_data['fuels']
-            # fuels['Total'] = fuels.sum(axis=1)
             e_type_df = funcs[e_type](elec, fuels)
         elif e_type in ['elec', 'fuels']:
             data = energy_data[e_type]
@@ -441,14 +449,11 @@ class CalculateLMDI(LMDI):
 
                         activity_data_ = []
                         for a_type, a_df in activity_data.items():
-                            print(f"A TYPE: {a_type}")
-                            print('a_df type:', type(a_df))
-                            print('a_df:\n', a_df)
-                            a_df.loc[:, 'activity_type'] == a_type
-                            print(f"{a_type} act df:\n", a_df)
+                            a_df.loc[:, 'activity_type'] = a_type
                             activity_data_.append(a_df)
                         activity_data = pd.concat(activity_data_, axis=0)
-                        print('pd.concat(activity_data_, axis=0):\n', pd.concat(activity_data_, axis=0))
+                    
+                    # activity_data = activity_data.drop('Total', axis=1)
                     
                     print('energy_data:\n', energy_data)
                     print('activity_data:\n', activity_data)
@@ -465,62 +470,63 @@ class CalculateLMDI(LMDI):
             results_dict = results_dict
         
 
-        print("results_dict[level_name]['energy'].columns:", results_dict[level_name]['energy'].columns)
-        print('select_categories.keys():', select_categories.keys())
-        if set(select_categories.keys()).issubset(results_dict[level_name]['energy'].columns):
+        # print("results_dict[level_name]['energy'].columns:", results_dict[level_name]['energy'].columns)
+        # print('select_categories.keys():', select_categories.keys())
+        # if set(select_categories.keys()).issubset(results_dict[level_name]['energy'].columns):
+        #     yield results_dict
+        # else:
+        if level_name in results_dict.keys():
+            aggregate_activty = [results_dict[level_name]['activity']]
+            print('aggregate_activity begin:\n', aggregate_activty)
+            aggregate_energy = [results_dict[level_name]['energy']]
+            print('aggregate_energy begin:\n', aggregate_energy)
+        else: 
+            aggregate_activty = []
+            aggregate_energy = []
+
+        for key, value in select_categories.items():
+            print('key here:', key)
+            print('results dict keys', results_dict.keys())
+            try:
+                if isinstance(value, dict):
+                    print('results dict[key]', results_dict[key])
+                    lower_level_e = results_dict[key]['energy']
+                    lower_level_a = results_dict[key]['activity']
+                    print("lower_level_e.columns:", lower_level_e.columns)
+                    lower_level_a = self.create_total_column(lower_level_a, key)[['activity_type', key]]              
+                    lower_level_e = self.create_total_column(lower_level_e, key)[['Energy_Type', key]]       
+
+                else:
+                    lower_level_e = results_dict[key]['energy'][['Energy_Type', key]]
+                    print('lower_level_e:\n', lower_level_e)
+                    lower_level_a = results_dict[key]['activity'][['activity_type', key]]
+                    print('lower_level_a:\n', lower_level_a)
+                aggregate_activty.append(lower_level_a)
+                aggregate_energy.append(lower_level_e)
+            except KeyError:
+                print(f'key: {key} failed on level : {level_name}')
+                continue
+
+            e_df = self.merge_input_data(aggregate_energy, 'Energy_Type')
+            e_df = self.create_total_column(e_df, level_name)                
+            print('e_df:\n', e_df)
+            agg_a_df = self.merge_input_data(aggregate_activty, 'activity_type')   
+            agg_a_df = self.create_total_column(agg_a_df, level_name)                
+            print('a_df:\n', agg_a_df)
+
+            data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
+            print('data_dict')
+            results_dict[f'{level_name}'] = data_dict 
             yield results_dict
-        else:
-            if level_name in results_dict.keys():
-                aggregate_activty = [results_dict[level_name]['activity']]
-                print('aggregate_activity begin:\n', aggregate_activty)
-                aggregate_energy = [results_dict[level_name]['energy']]
-                print('aggregate_energy begin:\n', aggregate_energy)
-            else: 
-                aggregate_activty = []
-                aggregate_energy = []
 
-            for key, value in select_categories.items():
-                print('key here:', key)
-                print('results dict keys', results_dict.keys())
-                try:
-                    if isinstance(value, dict):
-                        print('results dict[key]', results_dict[key])
-                        lower_level_e = results_dict[key]['energy']
-                        lower_level_a = results_dict[key]['activity']
-                        print("lower_level_e.columns:", lower_level_e.columns)
-                        lower_level_a = self.create_total_column(lower_level_a, key)[['activity_type', key]]              
-                        lower_level_e = self.create_total_column(lower_level_e, key)[['Energy_Type', key]]       
-
-                    else:
-                        lower_level_e = results_dict[key]['energy'][['Energy_Type', key]]
-                        print('lower_level_e:\n', lower_level_e)
-                        lower_level_a = results_dict[key]['activity'][['activity_type', key]]
-                        print('lower_level_a:\n', lower_level_a)
-                    aggregate_activty.append(lower_level_a)
-                    aggregate_energy.append(lower_level_e)
-                except KeyError:
-                    print(f'key: {key} failed on level : {level_name}')
-                    continue
-
-                e_df = self.merge_input_data(aggregate_energy, 'Energy_Type')
-                e_df = self.create_total_column(e_df, level_name)                
-                print('e_df:\n', e_df)
-                agg_a_df = self.merge_input_data(aggregate_activty, 'activity_type')   
-                agg_a_df = self.create_total_column(agg_a_df, level_name)                
-                print('a_df:\n', agg_a_df)
-
-                data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
-                print('data_dict')
-                results_dict[f'{level_name}'] = data_dict 
-                yield results_dict
-    
     @staticmethod
     def merge_input_data(list_dfs, second_index):
         print('list dfs:', list_dfs)
         if all(df.equals(list_dfs[0]) for df in list_dfs):
             return list_dfs[0]
         else:
-            list_dfs = [l.reset_index() for l in list_dfs]
+            list_dfs = [l.reset_index().rename(columns={'index': 'Year'}) for l in list_dfs]
+            print([l.columns for l in list_dfs])
             df = reduce(lambda df1,df2: df1.merge(df2, how='outer', on=['Year', second_index]), list_dfs).set_index('Year')
             return df
 
@@ -528,6 +534,19 @@ class CalculateLMDI(LMDI):
     def create_total_column(df, total_label):
         df[total_label] = df.sum(axis=1).values
         return df 
+
+    def order_categories(self, level_of_aggregation, raw_results):
+        categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
+        categories_list = []
+        print('raw_results.keys():', raw_results.keys())
+        for key in raw_results.keys():
+            if key in categories.keys():
+                categories_list.append(key)
+
+        for key in raw_results.keys():
+            if key not in categories.keys():
+                categories_list.append(key)
+        return categories_list
 
     def calculate_breakout_lmdi(self, raw_results, final_results_list, level_of_aggregation, 
                                 breakout, save_breakout, categories, lmdi_type):
@@ -543,7 +562,9 @@ class CalculateLMDI(LMDI):
         TODO: Lower level Total structure (product of each structure index for multiplicative) and component 
         intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
         """        
-        for key in raw_results.keys():
+        categories_list = self.order_categories(level_of_aggregation, raw_results)
+        print('CATEGORIES LIST:', categories_list)
+        for key in categories_list:
             print('BREAK OUT KEY:', key)
             level_total = raw_results[key]['level_total']
 
@@ -558,9 +579,10 @@ class CalculateLMDI(LMDI):
             if not categories:
                 print(f"{key} not in categories")
                 continue
-            
+            print('CATEGORIES:\n', categories)
             activity_ = dict()
             total_activty_df = raw_results[key]['activity']
+
             for a_type in total_activty_df['activity_type'].unique():
                 a_df = total_activty_df[total_activty_df['activity_type'] == a_type].drop('activity_type', axis=1)
 
@@ -584,10 +606,11 @@ class CalculateLMDI(LMDI):
                 else:
                     weather_data = None
 
-                lower_level_structure = self.calc_lower_level(categories, final_results_list, e_type)
+                lower_level_structure_df, lower_level_intensity_df = self.calc_lower_level(categories, final_results_list, e_type)
 
                 category_lmdi = self.call_lmdi(energy_df, activity_, 
-                                               lower_level_structure, level_total,
+                                               lower_level_structure_df, lower_level_intensity_df, 
+                                               level_total,
                                                unit_conversion_factor=1, weather_data=weather_data, 
                                                save_results=save_breakout, 
                                                loa=loa, energy_type=e_type, lmdi_type=lmdi_type)
@@ -601,36 +624,61 @@ class CalculateLMDI(LMDI):
 
     def calc_lower_level(self, categories, final_fmt_results, e_type):
         if not final_fmt_results:
-            return pd.DataFrame()
+            return pd.DataFrame(), pd.DataFrame()
         else:
-            print('CATEGORIES:\n', categories)
+            print('CATEGORIES in lowr level:\n', categories.keys())
             final_fmt_results = pd.concat(final_fmt_results, axis=0)
             lower_level_structure_list = []
+            lower_level_intensity_list = []
+
             for key, value in categories.items():
+                print('LOWER LEVEL for key:', key)
+                print('final_fmt_results:\n', final_fmt_results)
                 lower_level = final_fmt_results[(final_fmt_results['lower_level'] == key) & (final_fmt_results["@filter|EnergyType"] == e_type) & (final_fmt_results["@filter|Measure|BaseYear"] == self.base_year) & (final_fmt_results["@filter|Model"] == 'Multiplicative')]
-                lower_level = lower_level[['@timeseries|Year', 'total_structure']].set_index('@timeseries|Year')
+                print('lower_level:\n', lower_level)
 
                 if not value:
                     print('KEY:', key)
                     lower_level_structure = pd.DataFrame(index=lower_level.index, columns=[f'lower_level_structure_{key}'])
                     lower_level_structure[f'lower_level_structure_{key}'] = 1
+
+                    lower_level_intensity = pd.DataFrame(index=lower_level.index, columns=[key])
+
                 elif type(value) is dict: 
                     try:
-                        lower_level_structure = lower_level.rename(columns={'total_structure': f'lower_level_structure_{key}'})
-
+                        lower_level_structure = lower_level[['@timeseries|Year', 'total_structure']].set_index('@timeseries|Year')
+                        print('lower_level 2:\n', lower_level_structure)
+                        lower_level_structure = lower_level_structure.rename(columns={'total_structure': f'lower_level_structure_{key}'})
+                        
                     except KeyError:
                         print(f"{key} dataframe does not contain total_structure column, \
                                 columns are {lower_level.columns}")
                         continue
+
+                    try:
+                        lower_level_intensity = lower_level[['@timeseries|Year', '@filter|Measure|Intensity']].set_index('@timeseries|Year')
+                        lower_level_intensity = lower_level_intensity.rename(columns={'@filter|Measure|Intensity': key})
+                    except KeyError:
+                        print(f"{key} dataframe does not contain @filter|Measure|Intensity column, \
+                                columns are {lower_level.columns}")
+                        continue
+
                 lower_level_structure_list.append(lower_level_structure)
+                lower_level_intensity_list.append(lower_level_intensity)
 
             if not lower_level_structure_list:
-                return pd.DataFrame()
+                lower_level_structure_df = pd.DataFrame()
             else:
                 lower_level_structure_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), lower_level_structure_list)
                 lower_level_structure_df = lower_level_structure_df.fillna(1)
                 print('lower_level_structure_df:\n', lower_level_structure_df)
-                return lower_level_structure_df
+
+            if not lower_level_intensity_list:
+                lower_level_intensity_df =  pd.DataFrame()
+            else:
+                lower_level_intensity_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), lower_level_intensity_list)
+
+            return lower_level_structure_df, lower_level_intensity_df
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data, lmdi_type, calculate_lmdi=False, breakout=False,
                         save_breakout=False):
@@ -679,14 +727,14 @@ class CalculateLMDI(LMDI):
             else:
                 weather_data = None
 
-            lower_level_structure_df = self.calc_lower_level(categories, final_fmt_results, e)
+            lower_level_structure_df, lower_level_intensity_df = self.calc_lower_level(categories, final_fmt_results, e)
             print('final lower level structure df:\n', lower_level_structure_df)
 
             if calculate_lmdi:
                 loa = [self.sector.capitalize()] + level_of_aggregation_
 
                 final_results = self.call_lmdi(energy_data, total_activity_dfs, 
-                                               lower_level_structure_df, 
+                                               lower_level_structure_df, lower_level_intensity_df,
                                                total_label=level1_name,
                                                unit_conversion_factor=1,
                                                weather_data=weather_data, save_results=True, 
@@ -752,17 +800,15 @@ class CalculateLMDI(LMDI):
     def nominal_energy_intensity(self, energy_input_data, activity_input_data):
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
 
-        if isinstance(activity_input_data, pd.DataFrame):
-            activity_width = activity_input_data.shape[1]
-        elif isinstance(activity_input_data, pd.Series):
-            activity_width = 1
+        # if isinstance(activity_input_data, pd.DataFrame):
+        #     activity_width = activity_input_data.shape[1]
+        # elif isinstance(activity_input_data, pd.Series):
+        #     activity_width = 1
 
-        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), \
-                                                                                                activity_width)) 
-                                                                                    #.multiply(unit_conversion_factor)
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values).multiply(self.unit_conversion_factor)
         return nominal_energy_intensity
 
-    def prepare_lmdi_inputs(self, energy_input_data, activity_input_data, 
+    def prepare_lmdi_inputs(self, energy_input_data, activity_input_data, lower_level_intensity_df,
                             total_label, unit_conversion_factor=1):
         """Calculate the LMDI
 
@@ -782,10 +828,11 @@ class CalculateLMDI(LMDI):
  
         log_ratio_structure = []
         log_ratio_activity = []
-        for activity, activty_data in activity_input_data.items():
+        log_ratio_intensity = []
+        for activity, activity_data in activity_input_data.items():
 
-            energy_input_data, activty_data = self.ensure_same_indices(energy_input_data, activty_data)
-            activity_shares = self.calculate_shares(activty_data, total_label)
+            energy_input_data, activity_data = self.ensure_same_indices(energy_input_data, activity_data)
+            activity_shares = self.calculate_shares(activity_data, total_label)
 
             # ln(ST_i/S0_i) --> S_i= Q_i / Q,  S_i is the activity share of sector i
             log_ratio_structure_activity = self.calculate_log_changes(activity_shares).rename(columns={col: 
@@ -795,21 +842,40 @@ class CalculateLMDI(LMDI):
             log_ratio_structure.append(log_ratio_structure_activity)
 
             # ln(QT/Q0)  --> Q = Q,  Q is the total industrial activity level
-            log_ratio_activity_a = self.calculate_log_changes(activty_data[[total_label]])  
+            log_ratio_activity_a = self.calculate_log_changes(activity_data[[total_label]])  
             log_ratio_activity.append(log_ratio_activity_a)
+
+            # E is the total energy consumption in industry, Q is the total industrial activity level
+            # ln(IT_i/I0_i) --> I_i = E_i / Q_i,  I_i is the energy intensity of sector i
+            nom_intensity = self.nominal_energy_intensity(energy_input_data, activity_data).drop(total_label, axis=1)
+            print('nom_intensity_index:\n', nom_intensity)
+
+            nom_intensity_base = nom_intensity.loc[self.base_year, :]
+            intensity_index = nom_intensity.divide(np.tile(nom_intensity_base, (len(nom_intensity), 1)))
+            print('intensity_index:\n', intensity_index)
+
+            if not lower_level_intensity_df.empty:
+                lower_level_intensity_df = lower_level_intensity_df.fillna(intensity_index)
+                print('lower_level_intensity_df:\n', lower_level_intensity_df)
+                log_ratio_intensity_a = self.calculate_log_changes(lower_level_intensity_df)
+
+            else:
+                log_ratio_intensity_a = self.calculate_log_changes(nom_intensity) 
+
+            log_ratio_intensity.append(log_ratio_intensity_a)
+
 
         if len(log_ratio_structure) > 1:
             log_ratio_structure = pd.concat(log_ratio_structure, axis=0, ignore_index=True, join='outer')
             log_ratio_activity = pd.concat(log_ratio_activity, axis=0, ignore_index=True, join='outer')
+            log_ratio_intensity = pd.concat(log_ratio_intensity, axis=0, ignore_index=True, join='outer')
+
         else:
             log_ratio_structure = log_ratio_structure[0]
             log_ratio_activity = log_ratio_activity[0]
+            log_ratio_intensity = log_ratio_intensity[0]
 
         energy_shares = self.calculate_shares(energy_input_data, total_label)
-
-        # E is the total energy consumption in industry, Q is the total industrial activity level
-        # ln(IT_i/I0_i) --> I_i = E_i / E,  I_i is the energy intensity of sector i
-        log_ratio_intensity = self.calculate_log_changes(energy_shares) 
 
         log_ratios = {'activity': log_ratio_activity, 
                       'structure': log_ratio_structure, 
@@ -817,15 +883,18 @@ class CalculateLMDI(LMDI):
 
         return energy_input_data, energy_shares, log_ratios
 
-    def call_lmdi(self, energy_input_data, activity_input_data, lower_level_structure, total_label, unit_conversion_factor,
+    def call_lmdi(self, energy_input_data, activity_input_data, lower_level_structure, lower_level_intensity_df, 
+                  total_label, unit_conversion_factor,
                   weather_data, lmdi_type, save_results=False, loa=None, 
                   energy_type=None):
         
         energy_data, energy_shares, log_ratios = self.prepare_lmdi_inputs(energy_input_data, activity_input_data, 
-                                                                          total_label, unit_conversion_factor=1)
+                                                                                           lower_level_intensity_df,
+                                                                                           total_label, unit_conversion_factor=1)
         if not lower_level_structure.empty:
+            print('lower_level_structure:\n', lower_level_structure)
             log_ratios['lower_level_structure'] = lower_level_structure
-
+        
         results = self.call_decomposition(energy_data, energy_shares, weather_data, 
                                           log_ratios, total_label, lmdi_type, loa, 
                                           save_results, energy_type)

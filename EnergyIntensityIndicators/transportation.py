@@ -169,11 +169,12 @@ class TransportationIndicators(CalculateLMDI):
                                                                         {'Single-Unit Truck': None, 'Combination Truck': None}, 
                                                                 'Rail': None, 
                                                                 'Air': None, 
-                                                                # 'Waterborne': None,
+                                                                'Waterborne': None,
                                                                 'Pipeline': 
                                                                     {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}}
         super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
-                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year,
+                         unit_conversion_factor=1000000)
 
         # self.transportation_data = {'Passenger Car – SWB Vehicles': {'total_fuel': 
         #                                                         {'unit': 'gallons', 'source': 'TEDB', 'table_number': '4_01', 'header_starts': 8, 'column_name': 'Fuel use'}, # Table4_01_{date}
@@ -670,6 +671,14 @@ class TransportationIndicators(CalculateLMDI):
         freight_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_energy_use.csv').set_index('Year')
         freight_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_activity.csv').set_index('Year')
 
+        freight_based_activity['Single-Unit Truck'] = freight_based_activity['Single-Unit Truck'].multiply(3)
+        freight_based_activity['Oil Pipeline'] = freight_based_activity['Oil Pipeline'].multiply(0.000001)
+        freight_based_energy_use['Oil Pipeline'] = freight_based_activity['Oil Pipeline'].multiply(0.000001)
+
+        passenger_based_energy_use['Paratransit'] = passenger_based_energy_use['Paratransit'].fillna(0.000000001)
+
+
+
         data_dict = {'All_Passenger':
                         {'Highway': 
                             {'Passenger Cars and Trucks': 
@@ -692,7 +701,7 @@ class TransportationIndicators(CalculateLMDI):
                                 {'energy': {'deliv': freight_based_energy_use[['Single-Unit Truck', 'Combination Truck']]}, 'activity': freight_based_activity[['Single-Unit Truck', 'Combination Truck']]}, 
                         'Rail': {'energy': {'deliv': freight_based_energy_use[['Rail']]}, 'activity': freight_based_activity[['Rail']]}, 
                         'Air': {'energy': {'deliv': freight_based_energy_use[['Air']]}, 'activity': freight_based_activity[['Air']]}, 
-                        'Waterborne': {'energy': {'deliv': freight_based_energy_use[['Domestic & Foreign Commerce in US Waters - Revised']]}, 'activity': freight_based_activity[['Waterborne']]},
+                        'Waterborne': {'energy': {'deliv': freight_based_energy_use[['Waterborne']]}, 'activity': freight_based_activity[['Waterborne']]},
                         'Pipeline': {'energy': {'deliv': freight_based_energy_use[['Oil Pipeline', 'Natural Gas Pipeline']]}, 'activity': freight_based_activity[['Oil Pipeline', 'Natural Gas Pipeline']]}}}
         # data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 'activity': passenger_based_activity}, 
         #                     'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 'activity': freight_based_activity}}
@@ -745,7 +754,7 @@ class TransportationIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                           output_directory='C:/Users/irabidea/Desktop/LMDI_Results', 
-                                          level_of_aggregation='All_Transportation.All_Freight', lmdi_model=['multiplicative', 'additive'],
+                                          level_of_aggregation='All_Transportation.All_Freight', lmdi_model=['multiplicative'],
                                           base_year=1985, end_year=2015) #  
     indicators.main(breakout=True, save_breakout=False, calculate_lmdi=True)
 
