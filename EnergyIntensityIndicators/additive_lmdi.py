@@ -122,18 +122,14 @@ class AdditiveLMDI():
 
         ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
 
-        additive_results = []
 
         df = self.calculate_effect(ASI_df)
         df = df.reset_index()
 
-        for year in df['Year']:
-            aggregated_df = self.aggregate_additive(df, year)
-            aggregated_df["@filter|Measure|BaseYear"] = year
-            additive_results.append(aggregated_df)
+        aggregated_df = self.aggregate_additive(df, self.base_year)
+        aggregated_df["@filter|Measure|BaseYear"] = self.base_year
 
-        additive_results_df = pd.concat(additive_results, axis=0)
-        return additive_results_df
+        return aggregated_df
     
     def visualizations(self, data, base_year, end_year, loa, model, energy_type, *x_data):
 
