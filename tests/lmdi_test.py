@@ -286,7 +286,7 @@ class TestLMDI:
         pnnl_result = 0.578
         assert round(L, 3) == pnnl_result
     
-    def test_calculate_log_changes(self, sector='transportation'):
+    def test_calculate_log_changes(self, sector='transportation', acceptable_pct_difference=0.05):
         eii = self.eii_output_factory(sector)
         
         input_data = [[1.2759, 0.9869],
@@ -314,7 +314,7 @@ class TestLMDI:
         print('comparison_df:\n', comparison_df)
         print('log_ratio_df:\n', log_ratio_df)
         # assert log_ratio_df.equals(comparison_df)
-        assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference=0.05, sector='transportation')
+        assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference, sector='transportation')
 
     def calc_component(self, sector):
         eii = self.eii_output_factory(sector)
@@ -384,45 +384,45 @@ class TestLMDI:
         # assert results.equals(comparison_output)
         assert self.pct_diff(comparison_output, results, acceptable_pct_difference=0.05, sector='transportation')
     
-    def test_multiplicative_decomposition(self, sector='transportation'):
-        eii = MultiplicativeLMDI()
+    # def test_multiplicative_decomposition(self, sector='transportation'):
+    #     eii = MultiplicativeLMDI()
 
-        test_asi = [[1.0062, 0.9543, 0.9895],
-                    [1.0018, 0.9857, 0.9948],
-                    [1.0000, 1.0000, 1.0000],
-                    [1.0076, 1.0165, 1.0066],
-                    [0.9889, 1.0584, 1.0082]]
+    #     test_asi = [[1.0062, 0.9543, 0.9895],
+    #                 [1.0018, 0.9857, 0.9948],
+    #                 [1.0000, 1.0000, 1.0000],
+    #                 [1.0076, 1.0165, 1.0066],
+    #                 [0.9889, 1.0584, 1.0082]]
         
-        test_asi = pd.DataFrame(test_asi, 
-                                index=[1983, 1984, 1985, 1986, 1987], 
-                                columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
+    #     test_asi = pd.DataFrame(test_asi, 
+    #                             index=[1983, 1984, 1985, 1986, 1987], 
+    #                             columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
 
-        test_weights = 
-        test_log_ratios = 
-        weather_data = None
-        model = 'multiplicative'
-        components = self.calc_ASI(model, weather_data, weights, test_log_ratios)
-        results = eii.decomposition(components)
-        results = results[['effect']].round(4)
+    #     test_weights = 
+    #     test_log_ratios = 
+    #     weather_data = None
+    #     model = 'multiplicative'
+    #     components = self.calc_ASI(model, weather_data, weights, test_log_ratios)
+    #     results = eii.decomposition(components)
+    #     results = results[['effect']].round(4)
 
-        comparison_output = [[0.9502],
-                             [0.9824],
-                             [1.0000],
-                             [1.0310],
-                             [1.0553]]
+    #     comparison_output = [[0.9502],
+    #                          [0.9824],
+    #                          [1.0000],
+    #                          [1.0310],
+    #                          [1.0553]]
         
-        comparison_output = pd.DataFrame(comparison_output, 
-                                         index=[1983, 1984, 1985, 1986, 1987], 
-                                         columns=['effect'])
+    #     comparison_output = pd.DataFrame(comparison_output, 
+    #                                      index=[1983, 1984, 1985, 1986, 1987], 
+    #                                      columns=['effect'])
 
-    def test_lower_level_structure(self, sector='transportation', acceptable_pct_diff=0.05):
-        eii = self.eii_output_factory(sector)
-        final_fmt_results =
-        categories = 
-        lower_level_results = eii.calc_lower_level(categories, final_fmt_results, e_type='deliv')
+    # def test_lower_level_structure(self, sector='transportation', acceptable_pct_diff=0.05):
+    #     eii = self.eii_output_factory(sector)
+    #     final_fmt_results =
+    #     categories = 
+    #     lower_level_results = eii.calc_lower_level(categories, final_fmt_results, e_type='deliv')
 
-        comparison_df = 
-        acceptable_bool = self.pct_diff(comparison_df, lower_level_results, acceptable_pct_diff, sector)
+    #     comparison_df = 
+    #     acceptable_bool = self.pct_diff(comparison_df, lower_level_results, acceptable_pct_diff, sector)
 
     def test_shift(self, sector='transportation', acceptable_pct_difference=0.05):
         eii = self.eii_output_factory(sector)
@@ -591,11 +591,14 @@ class TestLMDI:
         pnnl_data, eii_data = eii.ensure_same_indices(pnnl_data, eii_data)
         diff_df = pnnl_data.subtract(eii_data)
         diff_df_abs = np.absolute(diff_df)
-        pct_diff = diff_df_abs.divide(pnnl_data)
+        pct_diff = np.absolute(diff_df_abs.divide(pnnl_data))
+        compare_df = pct_diff.fillna(0).apply(lambda col: col<=acceptable_pct_difference, axis=1)
+
+        print('compare df:\n', compare_df)
         print('diff_df: ', diff_df)
         print('\npct_diff:\n', pct_diff)
         print('(pct_diff <= acceptable_pct_difference).all():', (pct_diff <= acceptable_pct_difference).all().all())
-        return (pct_diff <= acceptable_pct_difference).all().all()
+        return compare_df.all(axis=None)
 
     # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
     # def test_calc_asi(self, sector, acceptable_pct_difference=0.05):

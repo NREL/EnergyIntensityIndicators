@@ -74,7 +74,8 @@ class MultiplicativeLMDI():
 
                 else:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index'] * component.loc[y]
-            
+                    
+        index = index.fillna(1)    
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
         return index_normalized 
 
@@ -89,6 +90,7 @@ class MultiplicativeLMDI():
         print('indexed log ASI df:\n', results)
         results['effect'] = results.product(axis=1)
         print("results['effect']:\n", results['effect'])
+        print('all results df:\n', results)
         results["@filter|Measure|BaseYear"] = self.base_year
         return results
 
