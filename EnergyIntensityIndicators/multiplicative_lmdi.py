@@ -74,7 +74,7 @@ class MultiplicativeLMDI():
 
                 else:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index'] * component.loc[y]
-                    
+
         index = index.fillna(1)    
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
         return index_normalized 

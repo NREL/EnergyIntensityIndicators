@@ -600,8 +600,11 @@ class TestLMDI:
         print('(pct_diff <= acceptable_pct_difference).all():', (pct_diff <= acceptable_pct_difference).all().all())
         return compare_df.all(axis=None)
 
-    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
-    # def test_calc_asi(self, sector, acceptable_pct_difference=0.05):
+    def get_eii_asi(self, sector):
+        pass
+
+    # # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # def test_calc_asi(self, sector='transportation', acceptable_pct_difference=0.05):
     #     """Write test_calc_ASI to test LMDI class.
 
     #     - Test both additive and multiplicative forms
@@ -637,6 +640,7 @@ class TestLMDI:
     #             log_ratios = {'activity': log_ratio_activity, 
     #                           'structure': log_ratio_structure, 
     #                           'intensity': log_ratio_intensity}
+
     #             print('log ratios:\n', log_ratios)
     #             print('log ratios type:\n', type(log_ratios['activity']))
 
@@ -646,6 +650,7 @@ class TestLMDI:
 
     #             eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
     #                                       log_ratios)
+
     #             print('eii_output calc asi:\n', eii_output)
     #             pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_type) & (pnnl_output['Nest level'] == level_)]
     #             pnnl_output_ = pnnl_output_[pnnl_output_['Category'].isin(['Structure: Lower level (**)', 'Component Intensity Index', 'Weighted Activity Index'])]
@@ -655,6 +660,65 @@ class TestLMDI:
     #             bools_list.append(acceptable_bool)
         
     #     assert all(bools_list)  #         assert all(all(bools_list))
+
+
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    def test_calc_asi(self, sector='transportation', acceptable_pct_difference=0.05):
+        """Write test_calc_ASI to test LMDI class.
+
+        - Test both additive and multiplicative forms
+        - Test all sectors
+        """   
+
+        eii = self.eii_output_factory(sector)
+
+        pnnl_data = self.get_pnnl_input(sector, 'intermediate')
+
+        pnnl_output = self.get_pnnl_data(sector)
+        pnnl_output = pnnl_output['results']
+
+        model = 'multiplicative'
+
+        bools_list = []
+
+        for e_type in pnnl_data['Energy Type'].unique():
+
+            for level_ in pnnl_data['Nest level'].unique():
+
+
+                pnnl_intensity = pnnl_data[pnnl_data['Category'] == 'Intensity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                pnnl_activity = pnnl_data[pnnl_data['Category'] == 'Activity'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                pnnl_lower_level_structure = pnnl_data[pnnl_data['Category'] == 'Structure: Next lower level'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                pnnl_structure = pnnl_data[pnnl_data['Category'] == 'Structure: Current Level'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+                pnnl_effect = pnnl_data[pnnl_data['Category'] == 'Effect'][['Year', 'Category', 'Value']].pivot(index='Year', columns='Category', values='Value').dropna(axis=1, how='all')
+
+                # eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
+                #                           log_ratios)
+                output_directory = 'C:/Users/irabidea/Desktop/LMDI_Results/'
+                eii_results_data = pd.read_csv(f'{output_directory}transportation_results2.csv').rename(columns={'@timeseries|Year': 'Year'}).set_index('Year')
+
+
+                eii_effect = eii_results_data[['@filter|Measure|Effect']].rename(columns={'@filter|Measure|Effect': 'Effect'})
+                eii_intensity = eii_results_data[['@filter|Measure|Intensity']].rename(columns={'@filter|Measure|Intensity': 'Intensity'})
+                eii_structure = eii_results_data[['@filter|Measure|Structure']].rename(columns={'@filter|Measure|Structure': 'Structure: Current Level'})
+                eii_lower_level_structure = eii_results_data[['lower_level_structure']].rename(columns={'lower_level_structure': 'Structure: Next lower level'})
+                eii_activity = eii_results_data[['@filter|Measure|Activity']].rename(columns={'@filter|Measure|Activity': 'Activity'})
+
+                print('eii_effect == pnnl_effect', eii_effect == pnnl_effect)
+                print('eii_intensity == pnnl_intensity', eii_intensity == pnnl_intensity)
+                print('eii_activity == pnnl_activity', eii_activity == pnnl_activity)
+                print('eii_lower_level_structure == pnnl_lower_level_structure', eii_lower_level_structure == pnnl_lower_level_structure)
+                print('eii_structure == eii_structure', eii_structure == eii_structure)
+
+
+                print('eii_output calc asi:\n', eii_output)
+                pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_type) & (pnnl_output['Nest level'] == level_)]
+               
+               
+                acceptable_bool = self.pct_diff(pnnl_output_, eii_output, acceptable_pct_difference, sector)
+                bools_list.append(acceptable_bool)
+        
+        assert all(bools_list)  #         assert all(all(bools_list))
 
 
 if __name__ == '__main__':

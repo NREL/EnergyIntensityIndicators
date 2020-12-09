@@ -106,12 +106,12 @@ class LMDI():
         """        
         print('log ratio activity final:\n', log_ratios['activity'])
         print('log ratio intensity final:\n', log_ratios['intensity'])
-        test = pd.read_csv('./EnergyIntensityIndicators/Transportation/test_data.csv').set_index('Year').replace('#DIV/0!', np.nan)
-        for col in test.columns:
-            test[col] = test[col].astype(float)
-        print('test:\n', test)
-        print('test.dtypes', test.dtypes)
-        diff = self.pct_diff(test, log_ratios['intensity'], acceptable_pct_difference=0.05)
+        # test = pd.read_csv('./EnergyIntensityIndicators/Transportation/test_data.csv').set_index('Year').replace('#DIV/0!', np.nan)
+        # for col in test.columns:
+        #     test[col] = test[col].astype(float)
+        # print('test:\n', test)
+        # print('test.dtypes', test.dtypes)
+        # diff = self.pct_diff(test, log_ratios['intensity'], acceptable_pct_difference=0.05)
         print('log ratio structure final:\n', log_ratios['structure'])
 
         activity = self.calc_component(log_ratios['activity'], log_mean_divisia_weights_normalized)
