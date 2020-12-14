@@ -3,94 +3,25 @@ platform win32 -- Python 3.6.5, pytest-5.4.3, py-1.8.0, pluggy-0.12.0
 rootdir: C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators
 collected 10 items
 
-tests\lmdi_test.py ..F..F..FF                                            [100%]
+tests\lmdi_test.py ..E..F..FF                                            [100%]
 
+=================================== ERRORS ====================================
+_______________ ERROR at setup of TestLMDI.test_calc_component ________________
+file C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\tests\lmdi_test.py, line 321
+      def test_calc_component(self, sector):
+E       fixture 'sector' not found
+>       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\irabidea\Documents\GitHub\EnergyIntensityIndicators\tests\lmdi_test.py:321
 ================================== FAILURES ===================================
-________________________ TestLMDI.test_calc_component _________________________
-
-self = <lmdi_test.TestLMDI object at 0x00000270983E0978>
-sector = 'transportation'
-
-    def test_calc_component(self, sector='transportation'):
-        eii = self.eii_output_factory(sector)
-    
-        log_ratio_component = [[np.nan, np.nan],
-                               [-0.0086, -0.0129],
-                               [-0.0056, 0.0170],
-                               [0.0044, 0.0005],
-                               [-0.0190, -0.0009]]
-        log_ratio_component = pd.DataFrame(log_ratio_component,
-                                           index=[1970, 1971, 1972, 1973, 1974],
-                                           columns=['All_Passenger', 'All_Freight'])
-    
-        weights = [[0.3911, 0.6089],
-                   [0.7602, 0.2398],
-                   [0.7610, 0.2390],
-                   [0.7596, 0.2404],
-                   [0.7563, 0.2437]]
-    
-        weights = pd.DataFrame(weights,
-                               index=[1970, 1971, 1972, 1973, 1974],
-                               columns=['All_Passenger', 'All_Freight'])
-    
-        component = eii.calc_component(log_ratio_component, weights)
->       component = component.apply(lambda col: np.exp(col), axis=1)
-
-tests\lmdi_test.py:344: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\series.py:3591: in apply
-    mapped = lib.map_infer(values, f, convert=convert_dtype)
-pandas\_libs\lib.pyx:2217: in pandas._libs.lib.map_infer
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-x = 0.0
-
-    def f(x):
->       return func(x, *args, **kwds)
-E       TypeError: <lambda>() got an unexpected keyword argument 'axis'
-
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\series.py:3578: TypeError
 _________________ TestLMDI.test_multiplicative_decomposition __________________
 
-self = Int64Index([1983, 1984, 1985, 1986, 1987], dtype='int64'), key = None
-method = None, tolerance = None
-
-    @Appender(_index_shared_docs['get_loc'])
-    def get_loc(self, key, method=None, tolerance=None):
-        if method is None:
-            if tolerance is not None:
-                raise ValueError('tolerance argument only valid if using pad, '
-                                 'backfill or nearest lookups')
-            try:
->               return self._engine.get_loc(key)
-
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\indexes\base.py:2657: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
->   ???
-
-pandas\_libs\index.pyx:108: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
->   ???
-
-pandas\_libs\index.pyx:129: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
->   ???
-E   KeyError: None
-
-pandas\_libs\index_class_helper.pxi:91: KeyError
-
-During handling of the above exception, another exception occurred:
-
-self = <lmdi_test.TestLMDI object at 0x00000270A441D048>
+self = <lmdi_test.TestLMDI object at 0x0000024054ECF320>
 sector = 'transportation'
 
     def test_multiplicative_decomposition(self, sector='transportation'):
-        mult = MultiplicativeLMDI()
-        eii = self.eii_output_factory(sector)
+        eii = MultiplicativeLMDI()
     
         test_weights = [[0.7258, 0.2742],
                         [0.7276, 0.2724],
@@ -156,127 +87,13 @@ sector = 'transportation'
     
         weather_data = None
         model = 'multiplicative'
-        components = eii.calc_ASI(model, weather_data, test_weights, test_log_ratios)
-        print('test_asi:\n', test_asi)
-        print('components:\n', components)
->       results = mult.decomposition(components)
+>       components = eii.calc_ASI(model, weather_data, test_weights, test_log_ratios)
+E       AttributeError: 'MultiplicativeLMDI' object has no attribute 'calc_ASI'
 
-tests\lmdi_test.py:524: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-EnergyIntensityIndicators\multiplicative_lmdi.py:89: in decomposition
-    results[col] = self.compute_index(results[col], self.base_year)
-EnergyIntensityIndicators\multiplicative_lmdi.py:79: in compute_index
-    index_normalized = index.divide(index.loc[base_year_]) # 1985=1
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\indexing.py:1500: in __getitem__
-    return self._getitem_axis(maybe_callable, axis=axis)
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\indexing.py:1913: in _getitem_axis
-    return self._get_label(key, axis=axis)
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\indexing.py:141: in _get_label
-    return self.obj._xs(label, axis=axis)
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\generic.py:3585: in xs
-    loc = self.index.get_loc(key)
-..\..\..\Anaconda3\envs\EIIEnvironment\lib\site-packages\pandas\core\indexes\base.py:2659: in get_loc
-    return self._engine.get_loc(self._maybe_cast_indexer(key))
-pandas\_libs\index.pyx:108: in pandas._libs.index.IndexEngine.get_loc
-    ???
-pandas\_libs\index.pyx:129: in pandas._libs.index.IndexEngine.get_loc
-    ???
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
->   ???
-E   KeyError: None
-
-pandas\_libs\index_class_helper.pxi:91: KeyError
----------------------------- Captured stdout call -----------------------------
-log ratio activity final:
-       All Passenger  All Freight
-1983         0.0353       0.0447
-1984         0.0289       0.0416
-1985         0.0245      -0.0129
-1986         0.0239      -0.0049
-1987         0.0360       0.0528
-log ratio intensity final:
-       All Passenger  All Freight
-1983        -0.0172      -0.0637
-1984        -0.0016      -0.0118
-1985         0.0024      -0.0134
-1986         0.0114      -0.0029
-1987        -0.0180      -0.0211
-log ratio structure final:
-       All Passenger  All Freight
-1983              1            1
-1984              1            1
-1985              1            1
-1986              1            1
-1987              1            1
-intensity component:
- 1983   -0.029950
-1984   -0.004378
-1985   -0.001855
-1986    0.007642
-1987   -0.018812
-dtype: float64
-log ratio lower level stucture:
-       All Passenger  All Freight
-1983         0.0010       0.0109
-1984         0.0034       0.0106
-1985         0.0019       0.0139
-1986         0.0018       0.0199
-1987         0.0008       0.0040
-COMPONENT lower_level_structure:
- 1983    0.003715
-1984    0.005361
-1985    0.005132
-1986    0.006557
-1987    0.001638
-dtype: float64
-FINAL ASI KEYS: dict_keys(['activity', 'structure', 'intensity', 'lower_level_structure'])
-test_asi:
-       Intensity Index  Activity Index  Structure Index (lower level)
-1983           1.0062          0.9543                         0.9895
-1984           1.0018          0.9857                         0.9948
-1985           1.0000          1.0000                         1.0000
-1986           1.0076          1.0165                         1.0066
-1987           0.9889          1.0584                         1.0082
-components:
- {'activity': 1983    0.037877
-1984    0.032359
-1985    0.014428
-1986    0.016331
-1987    0.040402
-dtype: float64, 'structure': 1983    1.0
-1984    1.0
-1985    1.0
-1986    1.0
-1987    1.0
-dtype: float64, 'intensity': 1983   -0.029950
-1984   -0.004378
-1985   -0.001855
-1986    0.007642
-1987   -0.018812
-dtype: float64, 'lower_level_structure': 1983    0.003715
-1984    0.005361
-1985    0.005132
-1986    0.006557
-1987    0.001638
-dtype: float64}
-ASI_df:
-       activity  structure  intensity  lower_level_structure
-1983  0.037877        1.0  -0.029950               0.003715
-1984  0.032359        1.0  -0.004378               0.005361
-1985  0.014428        1.0  -0.001855               0.005132
-1986  0.016331        1.0   0.007642               0.006557
-1987  0.040402        1.0  -0.018812               0.001638
- log ASI_df:
-       activity  structure  intensity  lower_level_structure
-1983  1.038604   2.718282   0.970494               1.003721
-1984  1.032889   2.718282   0.995631               1.005376
-1985  1.014533   2.718282   0.998147               1.005145
-1986  1.016465   2.718282   1.007671               1.006578
-1987  1.041229   2.718282   0.981364               1.001640
+tests\lmdi_test.py:520: AttributeError
 ___________________________ TestLMDI.test_calc_asi ____________________________
 
-self = <lmdi_test.TestLMDI object at 0x00000270A410FEB8>
+self = <lmdi_test.TestLMDI object at 0x0000024054EEF6D8>
 sector = 'transportation', acceptable_pct_difference = 0.05
 
     def test_calc_asi(self, sector='transportation', acceptable_pct_difference=0.05):
@@ -326,7 +143,7 @@ sector = 'transportation', acceptable_pct_difference = 0.05
                 eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized,
 >                                         log_ratios)
 
-tests\lmdi_test.py:771: 
+tests\lmdi_test.py:770: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 EnergyIntensityIndicators\LMDI.py:120: in calc_ASI
     structure = self.calc_component(log_ratios['structure'], log_mean_divisia_weights_normalized)
@@ -407,7 +224,7 @@ pnnl_Passenger Highway.csv failed with error could not convert string to float: 
        'Passenger Cars and Trucks', 'Buses', 'Paratransit',
        'Passenger Highway'],
       dtype='object')
-pnnl_weights.csv failed with error could not convert string to float: 'Structure: Lower level' for results, 
+pnnl_weights.csv failed with error could not convert string to float: 'Passenger Cars and Trucks Weights ' for results, 
  print Index(['Sector', 'Nest level', 'Energy Type', 'Unit', 'Data Type', 'Year',
        'All Passenger Weights ', 'All Freight Weights', 'Unnamed: 8',
        'Weighted Activity Index', 'Index of  Aggregate Intensity',
@@ -839,7 +656,7 @@ intensity component:
 dtype: float64
 __________________________ TestLMDI.test_components ___________________________
 
-self = <lmdi_test.TestLMDI object at 0x00000270A476EF28>
+self = <lmdi_test.TestLMDI object at 0x00000240551D4DD8>
 sector = 'transportation', acceptable_pct_difference = 0.05
 
     def test_components(self, sector='transportation', acceptable_pct_difference=0.05):
@@ -933,7 +750,7 @@ sector = 'transportation', acceptable_pct_difference = 0.05
 E       assert False
 E        +  where False = all([True, True, True, True, True, True, ...])
 
-tests\lmdi_test.py:871: AssertionError
+tests\lmdi_test.py:870: AssertionError
 ---------------------------- Captured stdout call -----------------------------
 pnnl_Cars and SWB Vehicles.csv failed with error could not convert string to float: 'raw_data' for input_data, 
  print Index(['Sector', 'Nest level', 'Unit', 'Data Type', 'Energy Type', 'datatype',
@@ -948,7 +765,7 @@ pnnl_Passenger Highway.csv failed with error could not convert string to float: 
        'Passenger Cars and Trucks', 'Buses', 'Paratransit',
        'Passenger Highway'],
       dtype='object')
-pnnl_weights.csv failed with error could not convert string to float: 'Structure: Lower level' for results, 
+pnnl_weights.csv failed with error could not convert string to float: 'Passenger Cars and Trucks Weights ' for results, 
  print Index(['Sector', 'Nest level', 'Energy Type', 'Unit', 'Data Type', 'Year',
        'All Passenger Weights ', 'All Freight Weights', 'Unnamed: 8',
        'Weighted Activity Index', 'Index of  Aggregate Intensity',
@@ -966,28 +783,28 @@ pnnl levels: ['Buses' 'Cars and SWB Vehicles' 'All_Freight' 'Freight Trucks'
  'Urban-Rail']
 level_: Freight Trucks
 e_type: Deliv
-categories: ['Intensity' 'Effect' 'Actual Energy Use' 'Structure'
- 'Combination Truck Weights' 'Unnamed: 8' 'Structure x Intensity Index'
- 'Activity' 'Single-Unit Truck Weights' 'Index of  Aggregate Intensity']
+categories: ['Index of  Aggregate Intensity' 'Intensity' 'Single-Unit Truck Weights'
+ 'Effect' 'Unnamed: 8' 'Structure' 'Actual Energy Use'
+ 'Combination Truck Weights' 'Structure x Intensity Index' 'Activity']
 Freight Trucks effect is True
 Freight Trucks intensity is True
 Freight Trucks activity is True
 Freight Trucks structure is True
 level_: Pipeline
 e_type: Deliv
-categories: ['Intensity' 'Effect' 'Actual Energy Use' 'Natural Gas Pipeline Weights'
- 'Structure' 'Unnamed: 8' 'Oil Pipeline Weights'
- 'Structure x Intensity Index' 'Activity' 'Index of  Aggregate Intensity']
+categories: ['Index of  Aggregate Intensity' 'Intensity' 'Effect' 'Unnamed: 8'
+ 'Structure' 'Actual Energy Use' 'Oil Pipeline Weights'
+ 'Structure x Intensity Index' 'Natural Gas Pipeline Weights' 'Activity']
 Pipeline effect is True
 Pipeline intensity is True
 Pipeline activity is True
 Pipeline structure is True
 level_: All_Freight
 e_type: Deliv
-categories: ['Effect' 'Total Structure' 'Actual Energy Use' 'Waterborne Weights'
- 'Pipeline Weights' '  Highway Weights' 'Structure' 'Rail Weights'
- 'Structure: Next lower level' 'Air Weights' 'Intensity' 'Activity'
- 'Index of  Aggregate Intensity']
+categories: ['Waterborne Weights' 'Rail Weights' 'Total Structure'
+ 'Index of  Aggregate Intensity' 'Effect' 'Pipeline Weights' 'Structure'
+ '  Highway Weights' 'Actual Energy Use' 'Air Weights' 'Intensity'
+ 'Structure: Next lower level' 'Activity']
 All_Freight lower level structure is True
 All_Freight effect is False
 All_Freight intensity is False
@@ -1001,8 +818,8 @@ nan intensity is False
 nan activity is False
 nan structure is False
 =========================== short test summary info ===========================
-FAILED tests/lmdi_test.py::TestLMDI::test_calc_component - TypeError: <lambda...
-FAILED tests/lmdi_test.py::TestLMDI::test_multiplicative_decomposition - KeyE...
+FAILED tests/lmdi_test.py::TestLMDI::test_multiplicative_decomposition - Attr...
 FAILED tests/lmdi_test.py::TestLMDI::test_calc_asi - ValueError: Unable to co...
 FAILED tests/lmdi_test.py::TestLMDI::test_components - assert False
-=================== 4 failed, 6 passed in 820.37s (0:13:40) ===================
+ERROR tests/lmdi_test.py::TestLMDI::test_calc_component
+============== 3 failed, 6 passed, 1 error in 774.54s (0:12:54) ===============
