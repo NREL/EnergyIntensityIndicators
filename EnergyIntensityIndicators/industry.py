@@ -10,7 +10,7 @@ from EnergyIntensityIndicators.get_census_data import Asm
 from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.Industry.asm_price_fit import Mfg_prices
 from EnergyIntensityIndicators.Industry.nonmanufacuturing import NonManufacturing
-# from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
+from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
 
 
 class IndustrialIndicators(CalculateLMDI):
@@ -56,10 +56,8 @@ class IndustrialIndicators(CalculateLMDI):
         pass
 
     def manufacturing(self):
-        # categories = self.sub_categories_list['Manufacturing']
-        # manufacturing_data = Manufacturing().manufacturing()
-        # print('manufacturing_data: \n', manufacturing_data)
-        manufacturing_data = None
+        manufacturing_data = Manufacturing().manufacturing()
+        print('manufacturing_data: \n', manufacturing_data)
         return manufacturing_data
     
     def non_manufacturing(self):
@@ -67,7 +65,6 @@ class IndustrialIndicators(CalculateLMDI):
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
-        # categories = self.sub_categories_list['Nonmanufacturing']
         non_manufacturing_data = NonManufacturing().nonmanufacturing_data()
         print('non_manufacturing_data: \n', non_manufacturing_data)
 
@@ -96,4 +93,4 @@ class IndustrialIndicators(CalculateLMDI):
 if __name__ == '__main__': 
     print('os.getcwd()', os.getcwd())
     indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Manufacturing')
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  
+    indicators.main(breakout=True, save_breakout=False, calculate_lmdi=True)  

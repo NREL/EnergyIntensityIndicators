@@ -286,8 +286,8 @@ class Mfg_prices:
 
         mecs_prices = self.mecs_historical_prices(fuel_type, naics)
 
-        fit_coeffs = Mfg_prices.calc_predicted_coeffs()
-        predicted = Mfg_prices.calc_predicted_prices()
+        fit_coeffs = self.calc_predicted_coeffs()
+        predicted = self.calc_predicted_prices()
 
         price_df['calibrated_prediction'] = \
             price_df.interp_resid + price_df.predicted

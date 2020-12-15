@@ -160,7 +160,8 @@ class LMDI():
                 lmdi_type_ = lmdi_type
             else:
                 lmdi_type_ = None
-
+            print('energy data in call decomp:\n', energy_data)
+            print('energy shares in call decomp:\n', energy_shares)
             model_ = self.LMDI_types[model](energy_data, energy_shares, 
                                             self.base_year, self.end_year, total_label, lmdi_type_)
             weights = model_.log_mean_divisia_weights()
@@ -298,12 +299,17 @@ class CalculateLMDI(LMDI):
         """Returns two dataframes with the same indices
         purpose: enable dataframe operations such as multiply and divide between the two dfs
         """        
+        if df1.empty or df2.empty:
+            raise ValueError('at least one dataframe is empty')
+
         df1.index = df1.index.astype(int)
         df2.index = df2.index.astype(int)
 
         intersection_ = df1.index.intersection(df2.index)
 
         if len(intersection_) == 0: 
+            print('df1.index:', df1.index)
+            print('df2.index:', df1.index)
             raise ValueError('DataFrames do not contain any shared years')
         
         df1_new = self.use_intersection(df1, intersection_)
@@ -412,10 +418,11 @@ class CalculateLMDI(LMDI):
             energy_data_by_type = energy_data
         elif 'elec' in energy_data and 'fuels' in energy_data:
             energy_data_by_type = dict()
-            for type in self.energy_types:
+            for type_ in self.energy_types:
+                print('type_:', type_)
                 try: 
-                    e_type_df = self.calculate_energy_data(type, energy_data)
-                    energy_data_by_type[type] = e_type_df
+                    e_type_df = self.calculate_energy_data(type_, energy_data)
+                    energy_data_by_type[type_] = e_type_df
                 except KeyError as err:
                     print(err.args) 
         else: 
@@ -492,11 +499,15 @@ class CalculateLMDI(LMDI):
                     energy = self.collect_energy_data(raw_energy_dict)
                     energy_data = []
                     for e in self.energy_types:
-                        e_data = energy[e] # .drop('Energy_Type', errors='ignore', axis=1)
+                        print('e in build nest:\n', e)
+                        e_data = energy[e].drop('Energy_Type', errors='ignore', axis=1)
+                        e_data = e_data.apply(pd.to_numeric, errors='ignore', axis=1)
+
                         if 'Energy_Type' not in e_data.columns:
                             e_data['Energy_Type'] = e
                         energy_data.append(e_data)
                     energy_data = pd.concat(energy_data, axis=0)
+                    print('energy data concat:\n', energy_data)
 
                     if isinstance(activity_data, pd.DataFrame):
                         print('activity data is dataframe')
@@ -507,12 +518,14 @@ class CalculateLMDI(LMDI):
 
                         activity_data_ = []
                         for a_type, a_df in activity_data.items():
+                            a_df = a_df.apply(pd.to_numeric, errors='ignore', axis=1)
                             a_df.loc[:, 'activity_type'] = a_type
                             activity_data_.append(a_df)
                         activity_data = pd.concat(activity_data_, axis=0)
                     
-                    # activity_data = activity_data.drop('Total', axis=1)
-                    
+                    activity_data = activity_data.drop('Total', axis=1, errors='ignore')
+                    energy_data = energy_data.drop('Total', axis=1, errors='ignore')
+
                     print('energy_data:\n', energy_data)
                     print('activity_data:\n', activity_data)
 
@@ -524,10 +537,10 @@ class CalculateLMDI(LMDI):
                     results_dict[level_name] = data_dict_
 
         else:
-            print('OOOPS')
             results_dict = results_dict
-        
 
+        if not level_name:
+            level_name = level1_name
         # print("results_dict[level_name]['energy'].columns:", results_dict[level_name]['energy'].columns)
         # print('select_categories.keys():', select_categories.keys())
         # if set(select_categories.keys()).issubset(results_dict[level_name]['energy'].columns):
@@ -543,24 +556,38 @@ class CalculateLMDI(LMDI):
             aggregate_energy = []
 
         for key, value in select_categories.items():
+            if key == np.nan:
+                raise ValueError('SELECT CATEGORIES KEY IS NAN')
+
             print('key here:', key)
             print('results dict keys', results_dict.keys())
+            print('results dict pre agg:\n', results_dict)
             try:
+                lower_level_e = results_dict[key]['energy']
+                lower_level_a = results_dict[key]['activity']
                 if isinstance(value, dict):
-                    print('results dict[key]', results_dict[key])
-                    lower_level_e = results_dict[key]['energy']
-                    lower_level_a = results_dict[key]['activity']
-                    print("lower_level_e.columns:", lower_level_e.columns)
-                    lower_level_a = self.create_total_column(lower_level_a, key)[['activity_type', key]]              
-                    lower_level_e = self.create_total_column(lower_level_e, key)[['Energy_Type', key]]       
+                    base_col_a = 'activity_type'
+                    if len(lower_level_a.columns.difference([base_col_a]).tolist()) > 1:
+                        lower_level_a = self.create_total_column(lower_level_a, key)[[base_col_a, key]]              
+
+                    base_col_e = 'Energy_Type'
+                    if len(lower_level_e.columns.difference([base_col_e]).tolist()) > 1:
+                        lower_level_e = self.create_total_column(lower_level_e, key)[[base_col_e, key]]       
 
                 else:
-                    lower_level_e = results_dict[key]['energy'][['Energy_Type', key]]
-                    print('lower_level_e:\n', lower_level_e)
-                    lower_level_a = results_dict[key]['activity'][['activity_type', key]]
-                    print('lower_level_a:\n', lower_level_a)
+
+                    if key in lower_level_e.columns:
+                        lower_level_e = lower_level_e[['Energy_Type', key]]
+
+                    if key in lower_level_a.columns:
+                        lower_level_a = lower_level_a[['activity_type', key]]
+
+                
+                print('lower_level_e:\n', lower_level_e)
+                print('lower_level_a:\n', lower_level_a)
                 aggregate_activty.append(lower_level_a)
                 aggregate_energy.append(lower_level_e)
+
             except KeyError:
                 print(f'key: {key} failed on level : {level_name}')
                 continue
@@ -579,21 +606,32 @@ class CalculateLMDI(LMDI):
 
     @staticmethod
     def merge_input_data(list_dfs, second_index):
-        print('list dfs:', list_dfs)
-        if all(df.equals(list_dfs[0]) for df in list_dfs):
+        # print('list dfs:', list_dfs)
+        # if all([df.equals(list_dfs[0]) for df in list_dfs]):
+        #     print('all dataframes are the same')
+        #     return list_dfs[0]
+        if np.array([list(df.columns) == list(list_dfs[0].columns) for df in list_dfs]).all():
+            print('dataframes have the same columns')
             return list_dfs[0]
         else:
             list_dfs = [l.reset_index().rename(columns={'index': 'Year'}) for l in list_dfs]
-            print([l.columns for l in list_dfs])
-            df = reduce(lambda df1,df2: df1.merge(df2, how='outer', on=['Year', second_index]), list_dfs).set_index('Year')
+            df = reduce(lambda df1,df2: df1.merge(df2[list(df2.columns.difference(df1.columns)) + ['Year', second_index]], how='outer', on=['Year', second_index]), list_dfs).set_index('Year')
             return df
 
     @staticmethod
     def create_total_column(df, total_label):
-        df[total_label] = df.sum(axis=1).values
+        print('df dtypes:\n', df.dtypes)
+        df_drop_str = df.select_dtypes(exclude='object')
+        print("df_drop_str.columns:", df_drop_str.columns)
+        if len(df_drop_str.columns.tolist()) > 1:
+            df[total_label] = df.drop(total_label, axis=1, errors='ignore').sum(axis=1, numeric_only=True)
+        elif len(df_drop_str.columns.tolist()) == 1:
+            df[total_label] = df[df_drop_str.columns]
+            print("df after duplicating column:\n", df)
         return df 
 
     def order_categories(self, level_of_aggregation, raw_results):
+      
         categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
         categories_list = []
         print('raw_results.keys():', raw_results.keys())
@@ -747,9 +785,18 @@ class CalculateLMDI(LMDI):
             - Build in weather capabilities
         """
         print('categories:', self.categories_dict)
-    
         categories = self.deep_get(self.categories_dict, level_of_aggregation)
+        
+        if len(self.categories_dict) == 1 and not categories:
+            categories = self.categories_dict
+
         print('categories:', categories)
+        print('type categories:', categories)
+        if isinstance(categories, dict):
+            for k, v in categories.items():
+                print('categories k:', k)
+                print('categories v:', v)
+                print("type(v):", type(v))
 
         data = reduce(lambda d, key: d.get(key, d) if isinstance(d, dict) else d, level_of_aggregation.split("."), raw_data)
 
@@ -777,7 +824,10 @@ class CalculateLMDI(LMDI):
 
         total_results_by_energy_type = dict()
         total_energy_df = results_dict[level1_name]['energy']
+        print('total_energy_df:\n', total_energy_df)
+        print("total_energy_df['Energy_Type'].unique()", total_energy_df['Energy_Type'].unique())
         for e in self.energy_types:
+            print('energy type (e):', e)
             energy_data = total_energy_df[total_energy_df['Energy_Type'] == e].drop('Energy_Type', axis=1)
 
             if 'weather' in results_dict[level1_name].keys():
@@ -791,6 +841,9 @@ class CalculateLMDI(LMDI):
             if calculate_lmdi:
                 loa = [self.sector.capitalize()] + level_of_aggregation_
 
+                print('total_activity_dfs:\n', total_activity_dfs)
+                print('energy_data\n', energy_data)
+
                 final_results = self.call_lmdi(energy_data, total_activity_dfs, 
                                                lower_level_structure_df, lower_level_intensity_df,
                                                total_label=level1_name,
@@ -803,7 +856,7 @@ class CalculateLMDI(LMDI):
                 total_results_by_energy_type[e] = final_results
 
             else:
-                total_results_by_energy_type[e] = {'activity': total_activity_dfs, 'energy': total_energy_df}
+                total_results_by_energy_type[e] = {'activity': total_activity_dfs, 'energy': total_energy_df, 'weather': weather_data}
 
         if len(final_fmt_results) > 1: 
             final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer')
@@ -829,7 +882,7 @@ class CalculateLMDI(LMDI):
         shares: dataframe
             contains shares of each energy category relative to total energy 
         """
-
+        dataset[total_label] = dataset[total_label].replace(0, np.nan)
         shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares
 
@@ -855,15 +908,21 @@ class CalculateLMDI(LMDI):
 
         return L
 
-    def nominal_energy_intensity(self, energy_input_data, activity_input_data):
+    def nominal_energy_intensity(self, energy_input_data, activity_input_data, total_label):
         energy_input_data, activity_input_data = self.ensure_same_indices(energy_input_data, activity_input_data)
+        print('energy input in nom energy intensity:\n', energy_input_data)
+        print('activity input in nom energy intensity:\n', activity_input_data)
+        
+        energy_input_data = energy_input_data.T.drop_duplicates().T
+        activity_input_data = activity_input_data.T.drop_duplicates().T
 
-        # if isinstance(activity_input_data, pd.DataFrame):
-        #     activity_width = activity_input_data.shape[1]
-        # elif isinstance(activity_input_data, pd.Series):
-        #     activity_width = 1
+        if isinstance(activity_input_data, pd.DataFrame):
+            activity_width = activity_input_data.shape[1]
+        elif isinstance(activity_input_data, pd.Series):
+            activity_width = 1
 
-        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values).multiply(self.unit_conversion_factor)
+        nominal_energy_intensity = energy_input_data.divide(activity_input_data.values.reshape(len(activity_input_data), \
+                                                                                                   activity_width)).multiply(self.unit_conversion_factor)
         return nominal_energy_intensity
 
     def prepare_lmdi_inputs(self, energy_input_data, activity_input_data, lower_level_intensity_df,
@@ -946,7 +1005,7 @@ class CalculateLMDI(LMDI):
                   total_label, unit_conversion_factor,
                   weather_data, lmdi_type, save_results=False, loa=None, 
                   energy_type=None):
-        
+
         energy_data, energy_shares, log_ratios = self.prepare_lmdi_inputs(energy_input_data, activity_input_data, 
                                                                                            lower_level_intensity_df,
                                                                                            total_label, unit_conversion_factor=1)

@@ -39,7 +39,7 @@ class CommercialIndicators(CalculateLMDI):
 
     def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
         self.end_year = end_year
-        self.sub_categories_list = {'Commercial': {'Commercial_Total': None}} #, 'Total_Commercial_LMDI_UtilAdj': None}
+        self.sub_categories_list = {'Commercial_Total': None} #, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
         super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, 
@@ -117,6 +117,7 @@ class CommercialIndicators(CalculateLMDI):
 
         adjusted_supplier_data = adjusted_supplier_data.set_index('Year')
         adjusted_supplier_data['adjusted_consumption_trillion_btu'] = adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].add(adjusted_supplier_data['published_consumption_trillion_btu'])
+        adjusted_supplier_data['adjusted_consumption_trillion_btu'] = adjusted_supplier_data['adjusted_consumption_trillion_btu'].astype(float)
         adjusted_supplier_data = adjusted_supplier_data.sort_index(ascending=True)
 
         return adjusted_supplier_data[['adjusted_consumption_trillion_btu']]
@@ -493,6 +494,7 @@ class CommercialIndicators(CalculateLMDI):
         replacement_data = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_fuels']]  # >= 1970: National Calibration Column 0
         fuels_dataframe.loc['1970':, ['total_primary']] = replacement_data.values
         fuels_dataframe = fuels_dataframe.rename(columns={'total_primary': 'adjusted_consumption_trillion_btu'})
+        fuels_dataframe['adjusted_consumption_trillion_btu'] = fuels_dataframe['adjusted_consumption_trillion_btu'].astype(float)
         elec_dataframe =  self.adjusted_supplier_data() 
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
@@ -543,7 +545,7 @@ class CommercialIndicators(CalculateLMDI):
 
 if __name__ == '__main__':
     indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative'])
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)
+    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=True)
 
 
 

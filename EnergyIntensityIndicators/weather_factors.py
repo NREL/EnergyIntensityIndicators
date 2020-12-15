@@ -209,7 +209,6 @@ class WeatherFactors:
         return weights_df
     
     def heating_cooling_data(self):
-        print('Heating/Cooling Directory:', os.getcwd())
         try: 
             hdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_hdd_census_division.csv').set_index('Year')
             cdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_cdd_census_division.csv').set_index('Year')
@@ -278,7 +277,6 @@ class WeatherFactors:
     def estimate_regional_shares(self):
         """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
         assumed commercial floorspace in each region follows same trends as population or housing units"""
-        print('estimate_regional_shares directory:', os.getcwd())
         regions = ['Northeast', 'Midwest', 'South', 'West']
         try:
             cbecs_data = pd.read_csv('./EnergyIntensityIndicators/Data/cbecs_data_millionsf.csv').set_index('Year')
