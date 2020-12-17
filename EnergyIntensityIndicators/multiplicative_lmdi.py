@@ -80,7 +80,9 @@ class MultiplicativeLMDI():
         return index_normalized 
 
     def decomposition(self, ASI):
-        ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        print('ASI:\n', ASI)
+        # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
         print('ASI_df:\n', ASI_df)
         results = ASI_df.apply(lambda col: np.exp(col), axis=1)
         print(' log ASI_df:\n', results)
@@ -95,7 +97,11 @@ class MultiplicativeLMDI():
         return results
 
     @staticmethod
-    def visualizations(data, base_year, end_year, loa, model, energy_type, *lines_to_plot): # path
+    def visualizations(data, base_year, end_year, loa, model, energy_type): # path
+
+        lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Intensity",
+                          "@filter|Measure|Structure", "@filter|Measure|Effect"]
+
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
 

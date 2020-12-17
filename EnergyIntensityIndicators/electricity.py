@@ -3,6 +3,7 @@ from sklearn import linear_model
 from functools import reduce
 import requests 
 import win32com.client as win32
+import numpy as np
 
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
@@ -10,7 +11,7 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 class ElectricityIndicators(CalculateLMDI):
     
-    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], base_year=1985):
+    def __init__(self, directory, output_directory, level_of_aggregation, end_year, lmdi_model=['multiplicative'], base_year=1985):
         self.sub_categories_list = {'Elec Generation Total': 
                                         {'Elec Power Sector': 
                                             {'Electricity Only':
@@ -69,7 +70,7 @@ class ElectricityIndicators(CalculateLMDI):
         self.Table85c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03B') # Consumption of combustible fuels for electricity generation: Electric power sector
         self.Table82d = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.02C')
         super().__init__(sector='electric', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
     @staticmethod
     def get_eia_aer():
         """Prior to 2012, the data for the indicators were taken directly from tables published (and downloaded in 
@@ -124,9 +125,9 @@ class ElectricityIndicators(CalculateLMDI):
         """
         difference = total.subtract(elec_gen) # Btu
         implied_conversion_factor = total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
-        elec_only_billionbtu = elec_only_plants.multiply(assumed_conv_factor).multiply(1000) # Billion Btu
-        chp_elec_billionbtu = chp_elec.multiply(assumed_conv_factor).multiply(0.001) # Billion Btu 
-        chp_heat_billionbtu = chp_heat.multiply(assumed_conv_factor).multiply(0.001) # Billion Btu
+        elec_only_billionbtu = elec_only_plants.multiply(assumed_conv_factor[0]).multiply(1000) # Billion Btu
+        chp_elec_billionbtu = chp_elec.multiply(assumed_conv_factor[1]).multiply(0.001) # Billion Btu 
+        chp_heat_billionbtu = chp_heat.multiply(assumed_conv_factor[2]).multiply(0.001) # Billion Btu
         total_fuel = elec_only_billionbtu.add(chp_elec_billionbtu).add(chp_heat_billionbtu)
 
         # Cross Check
@@ -225,7 +226,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         fuels_list = [consumption_combustible_fuels_electricity_generation_distillate_fuel_oil, consumption_combustible_fuels_electricity_generation_residual_fuel_oil,
                     consumption_combustible_fuels_electricity_generation_other_liquids, consumption_combustible_fuels_electricity_generation_petroleum_coke]
-        elec_only_plants_petroleum = reduce(lambda x, y: pd.merge(x, y, on ='Period'), fuels_list)
+        elec_only_plants_petroleum = reduce(lambda x, y: pd.merge(x, y, left_index=True, right_index=True), fuels_list)
         
         consumption_combustible_fuels_useful_thermal_output_distillate_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.DKEIPUS.A', id_type='series')# Table86b11 column D, F, G, I
         consumption_combustible_fuels_useful_thermal_output_residual_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.RFEIPUS.A', id_type='series')
@@ -242,9 +243,9 @@ class ElectricityIndicators(CalculateLMDI):
 
     def othgas_reconcile(self):
         consumption_for_electricity_generation_fossil_fuels = self.elec_power_eia.eia_api(id_='TOTAL.FFEIBUS.A', id_type='series')# Table84b11 column H
-        consumption_for_electricity_generation_oth_gas = consumption_for_electricity_generation_fossil_fuels - consumption_for_electricity_generation_petroleum - consumption_for_electricity_generation_natgas - consumption_for_electricity_generation_coal
         consumption_combustible_fuels_electricity_generation_oth_gas = self.elec_power_eia.eia_api(id_='TOTAL.OJL1BUS.A', id_type='series')# Table85c11 column P
         consumption_combustible_fuels_useful_thermal_output_othgas = self.elec_power_eia.eia_api(id_='TOTAL.OJEIBUS.A', id_type='series')# Table86b11 column O
+        consumption_for_electricity_generation_oth_gas = consumption_for_electricity_generation_fossil_fuels #- consumption_for_electricity_generation_petroleum - consumption_for_electricity_generation_natgas - consumption_for_electricity_generation_coal
 
         elec_gen = consumption_for_electricity_generation_oth_gas
         elec_only_plants = consumption_combustible_fuels_electricity_generation_oth_gas 
@@ -258,10 +259,39 @@ class ElectricityIndicators(CalculateLMDI):
     # consumption_combustible_fuels_useful_thermal_output = 
     # print(consumption_combustible_fuels_useful_thermal_output)
 
-    def industrial_sector_chp_renew(self):
+    @staticmethod
+    def format_eii_table(table, factor, name):
+        """
+        Format EII input data (that isn't from the API). The Month 13 represents annual data.
+        """
+        table['YYYYMM'] = table['YYYYMM'].astype(str)
+        table['Month'] = table['YYYYMM'].apply(lambda x: x[-2:])
+        table = table[table['Month'] == '13']
+        table['Year'] = table['YYYYMM'].apply(lambda x: x[:-2]).astype(int)
 
-        wood_energy = self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'].multiply(0.001)
-        waste_energy = self.Table84c[self.Table84c['Description'] == 'Waste Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column R # TBtu
+        table = table[['Year', 'Value']].set_index('Year')
+        table = table.replace('Not Available', np.nan)
+        try:
+            table['Value'] = table['Value'].astype(float)
+            table = table.multiply(factor)
+        except Exception as e:
+            print('error:', e)
+            print('Table failed with datatypes:\n', table, table.dtypes)
+            print("table['Value'].unique():\n", table['Value'].unique())
+            exit()
+
+        table = table.rename(columns={'Value': name})
+        return table
+
+    def industrial_sector_chp_renew(self):
+        print('wood energy:\n', self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'])
+        print('wood energy columns:\n', self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'].columns)
+
+        wood_energy = self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector']
+        wood_energy = self.format_eii_table(wood_energy, factor=0.001, name='Wood')
+        waste_energy = self.Table84c[self.Table84c['Description'] == 'Waste Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column R # TBtu
+        waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
+
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
@@ -270,10 +300,17 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def industrial_sector_chp_fossil(self):
-        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column B # TBtu
-        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column D # TBtu
-        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column F # TBtu
-        othgas_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4c column H # TBtu
+        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Industrial Sector'] # Table 8.4c column B # TBtu
+        coal_energy = self.format_eii_table(coal_energy, factor=0.001, name='Coal')
+
+        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Industrial Sector'] # Table 8.4c column D # TBtu
+        petroleum_energy = self.format_eii_table(petroleum_energy, factor=0.001, name='Petroleum')
+
+        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Industrial Sector'] # Table 8.4c column F # TBtu
+        natgas_energy = self.format_eii_table(natgas_energy, factor=0.001, name='Natural Gas')
+
+        othgas_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'] # Table 8.4c column H # TBtu
+        othgas_energy = self.format_eii_table(othgas_energy, factor=0.001, name='Other Gas')
 
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
@@ -291,7 +328,8 @@ class ElectricityIndicators(CalculateLMDI):
 
         """    
         hydroelectric_energy = None #.multiply(0.001) # Table 8.4C11 column N
-        other_energy = self.Table84c[self.Table84c['Description'] == 'Other Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C11 column AB
+        other_energy = self.Table84c[self.Table84c['Description'] == 'Other Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C11 column AB
+        other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
 
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d11 Column P
         other_activity = None #  self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d11 Column AD
@@ -302,8 +340,11 @@ class ElectricityIndicators(CalculateLMDI):
     def comm_sector_chp_renew(self):
         """As is, these are the same sources as ind sector, but should be different part of columns? 
         """    
-        wood_energy =  self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column P # TBtu
-        waste_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'].multiply(0.001) # Table 8.4C column R # TBtu
+        wood_energy =  self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column P # TBtu
+        wood_energy = self.format_eii_table(wood_energy, factor=0.001, name='Wood')
+
+        waste_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column R # TBtu
+        waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
 
         wood_activity = None # self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2d column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
@@ -312,9 +353,15 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def comm_sector_chp_fossil(self):
-        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column B # TBtu
-        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column D # TBtu
-        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Commercial Sector'].multiply(0.001) # Table 8.4c column F # TBtu
+        coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Commercial Sector'] # Table 8.4c column B # TBtu
+        coal_energy = self.format_eii_table(coal_energy, factor=0.001, name='Coal')
+
+        petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Commercial Sector'] # Table 8.4c column D # TBtu
+        petroleum_energy = self.format_eii_table(petroleum_energy, factor=0.001, name='Petroleum')
+
+        natgas_energy = self.Table84c[self.Table84c['Description'] == 'Natural Gas Consumption for Electricity Generation, Commercial Sector'] # Table 8.4c column F # TBtu
+        natgas_energy = self.format_eii_table(natgas_energy, factor=0.001, name='Natural Gas')
+
         othgas_energy = None #.multiply(0.001) # Table 8.4c column H # TBtu
 
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
@@ -345,8 +392,11 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def elec_power_sector_chp_renew(self):
-        wood_energy = self.Table85c[self.Table85c['Description'] == 'Wood Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5C column R # TBtu
-        waste_energy = self.Table85c[self.Table85c['Description'] == 'Waste Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5C column T # TBtu
+        wood_energy = self.Table85c[self.Table85c['Description'] == 'Wood Consumption for Electricity Generation, Electric Power Sector'] # Table 8.5C column R # TBtu
+        wood_energy = self.format_eii_table(wood_energy, factor=0.001, name='Wood')
+
+        waste_energy = self.Table85c[self.Table85c['Description'] == 'Waste Consumption for Electricity Generation, Electric Power Sector'] # Table 8.5C column T # TBtu
+        waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column T
@@ -356,9 +406,9 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def elec_power_sector_chp_fossil(self):
-        coal_energy = self.coal_reconcile()
-        petroleum_energy = self.petroleum_reconcile()
-        natgas_energy = self.natgas_reconcile()
+        coal_energy, elec_only_fuel = self.coal_reconcile() 
+        petroleum_energy, elec_only_petroleum = self.petroleum_reconcile()
+        natgas_energy, elec_only_fuel = self.natgas_reconcile() 
         othgas_energy = self.othgas_reconcile()
         
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column B
@@ -374,7 +424,9 @@ class ElectricityIndicators(CalculateLMDI):
 
     def elec_power_sector_chp_total(self):
 
-        other_energy = self.Table85c[self.Table85c['Description'] == 'Other Consumption for Electricity Generation, Electric Power Sector'].multiply(0.001) # Table 8.5c column V
+        other_energy = self.Table85c[self.Table85c['Description'] == 'Other Consumption for Electricity Generation, Electric Power Sector'] # Table 8.5c column V
+        other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
+
         other_activty = None # self.elec_power_eia.eia_api(id_='', id_type='series').multiply(0.001) # Table 8.2c columnAD
 
         data_dict = {'Other': {'energy': {'primary': other_energy}, 'activity': other_activty}}
@@ -401,8 +453,8 @@ class ElectricityIndicators(CalculateLMDI):
         return data_dict
 
     def electricity_only_fossil(self):
-        coal_energy = self.coal_reconcile()
-        petroleum_energy = self.petroleum_reconcile()
+        chp_plants_fuel, coal_energy = self.coal_reconcile() 
+        chp_plants_petroleum, petroleum_energy = self.petroleum_reconcile()
         natgas_energy = self.natgas_reconcile()
         othgas_energy = self.othgas_reconcile()
         
@@ -448,9 +500,9 @@ class ElectricityIndicators(CalculateLMDI):
         elec_power_sector_chp_total['Renewable'] = elec_power_sector_chp_renew
 
         all_chp = dict()
-        all_chp['Industrial Sector'] = industrial_sector_total
-        all_chp['Commercial Sector'] = comm_sector_total
-        all_chp['Elec Power Sector'] = elec_power_sector_chp_total
+        all_chp['Industrial Sector'] = {'Combined Heat & Power': industrial_sector_total}
+        all_chp['Commercial Sector'] = {'Combined Heat & Power': comm_sector_total}
+        all_chp['Elec Power Sector'] = {'Combined Heat & Power': elec_power_sector_chp_total}
 
         electricity_only_renew = self.electricity_only_renew()
         electricity_only_fossil = self.electricity_only_fossil()
@@ -458,18 +510,12 @@ class ElectricityIndicators(CalculateLMDI):
         electricity_only_total['Fossil Fuels'] = electricity_only_fossil
         electricity_only_total['Renewable'] = electricity_only_total
 
-        chp_elec_power_sector = dict()
-        chp_renew = self.chp_renew()
-        chp_fossil = self.chp_fossil()
-        chp_elec_power_sector['Fossil Fuels'] = chp_fossil
-        chp_elec_power_sector['Renewable'] = chp_renew
-
         elec_power_sector = dict()
         elec_power_sector['Electricity Only']  = electricity_only_total
-        elec_power_sector['Combined Heat & Power'] = chp_elec_power_sector
+        elec_power_sector['Combined Heat & Power'] = elec_power_sector_chp_total
 
         elec_generation_total = dict() # Need to build this from commerical and industrial_totals
-        elec_generation_total['Elec Power Sector'] = elec_power_sector
+        elec_generation_total['Elec Power Sector'] = {'Electricity Only': elec_power_sector}
         elec_generation_total['Commercial Sector'] = comm_sector_total
         elec_generation_total['Industrial Sector'] = industrial_sector_total
 
@@ -483,8 +529,8 @@ class ElectricityIndicators(CalculateLMDI):
                                                                breakout=breakout, save_breakout=save_breakout, 
                                                                calculate_lmdi=calculate_lmdi, raw_data=data_dict,
                                                                lmdi_type='LMDI-I')
-
+        formatted_results.to_csv(self.output_directory + './electricity_decomposition.csv', ignore_index=True)
 
 if __name__ == '__main__':
-    indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='All CHP.Elec Power Sector')
+    indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='All CHP.Elec Power Sector', end_year=2018)
     indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)

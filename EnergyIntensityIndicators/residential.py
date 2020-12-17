@@ -37,8 +37,9 @@ class ResidentialIndicators(CalculateLMDI):
         self.directory = directory
         self.end_year = end_year
         self.energy_types = ['elec', 'fuels', 'deliv', 'source']
-        super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
+        super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
+                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, primary_activity='occupied_housing_units',
+                         base_year=base_year, end_year=end_year)
 
 
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'

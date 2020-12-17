@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import (Econ_census, Asm)
@@ -10,7 +11,8 @@ class Manufacturing:
     """Class to collect and process manufacturing data for the industrial sector
     """
     def __init__(self):
-        pass
+        self.end_year = datetime.now().year
+
     # ASMdata_date.xlsx
 
     # ind_hap3_date.xlsx
@@ -55,7 +57,8 @@ class Manufacturing:
         Specify three-digit NAICS Codes
         """
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual', 'LPG', 'Coke', 'Other']
-        naics = []
+        naics = [311, 312, 313, 314, 315, 316, 321, 322, 323, 324, 
+                 325, 326, 327, 331, 332, 333, 334, 335, 336, 337, 339]
 
         asm_price_data = []
         for f in fuel_types: 
@@ -99,12 +102,12 @@ class Manufacturing:
         these values will need to be manually downloaded from Table 3.2
         and added to csv.
         """
-
         fallhap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/fallhap3b.csv')
-        mecs_fuel = []
+        mecs_fuel = self.get_historical_mecs()
 
         return fallhap3b, mecs_fuel
     
+    @staticmethod
     def mecs_annual_fuel(mecs_fuel):
         """TODO: Do NAICS codes 324, 325 have different data?
 
@@ -112,31 +115,31 @@ class Manufacturing:
             mecs_fuel ([type]): [description]
         """        
         mecs_annual_fuel = standard_interpolation(mecs_fuel, axis=1)
+        return mecs_annual_fuel
 
-
-    def import_mecs_electricity(self):
+    @staticmethod
+    def import_mecs_electricity():
         """
         ### NOT SURE IF ASM or MECS ELECTRICITY DATA ARE USED ###
         Imports MECS data on electricityuse by 3-digit NAICS code.
         In the future,these values will need to be manually downloaded from
         Table 3.2 and added to csv.
         """
-        
-        # ELEC
-        elechap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/elechap3b.csv')
-
         # import a CSV file of historical MECS electricity use from Table 3.2
+        historical_mecs = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/elechap3b.csv')
+
         # Will need to aggregate NAICS 311+312, 313+314, and 315+316
-        mecs_published = []
-        table31_net_elec = [] # different in years < 2010 and after
-        mecs_fuel = mecs_published.subtract(table31_net_elec)
-        mecs_fuel_to_transfer = mecs_fuel.loc[321:339, ['Net Elec', 'Total Fuel']]
-        mecs_fuel_to_transfer.loc['311+312', :] = mecs_fuel.loc[311:312, :].sum(axis=0)
-        mecs_fuel_to_transfer.loc['313+314', :] = mecs_fuel.loc[313:314, :].sum(axis=0)
-        mecs_fuel_to_transfer.loc['315+316', :] = mecs_fuel.loc[315:316, :].sum(axis=0)
-        mecs_interpolated_data = [] # USE STANDARD INTERPOLATION METHOD # from mecs_annual_fuel2
-        mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
-        return mecs_elect
+        # mecs_published = []
+        # table31_net_elec = [] # different in years < 2010 and after
+        # mecs_fuel = mecs_published.subtract(table31_net_elec)
+        # mecs_fuel_to_transfer = mecs_fuel.loc[321:339, ['Net Elec', 'Total Fuel']]
+        # mecs_fuel_to_transfer.loc['311+312', :] = mecs_fuel.loc[311:312, :].sum(axis=0)
+        # mecs_fuel_to_transfer.loc['313+314', :] = mecs_fuel.loc[313:314, :].sum(axis=0)
+        # mecs_fuel_to_transfer.loc['315+316', :] = mecs_fuel.loc[315:316, :].sum(axis=0)
+        # mecs_interpolated_data = [] # USE STANDARD INTERPOLATION METHOD # from mecs_annual_fuel2
+        # mecs_interpolated_data.loc[324:325, :] = elec.loc[324:325, :] 
+
+        return mecs_elec
     
     # Data used in ASMdata_010220.xlsx[3DNAICS]
     def call_census_data(self):
@@ -145,7 +148,18 @@ class Manufacturing:
         Annual Survey of Manufacturers and Economic Census (for years ending
         with 2 and 7).
         """
-        paa
+        economic_census = Econ_census()
+        economic_census_years = list(range(1987, self.end_year + 1, 5))       
+        e_c_data = {str(y): economic_census.get_data(year=y) 
+                    for y in economic_census_years}
+        print(e_c_data)
+
+        asm_ = Asm()
+        census_years = list(range(1987, self.end_year + 1))     
+        asm_data = {str(y): asm_.get_data(year=y) 
+                    for y in census_years}
+
+        return e_c_data, asm_data
 
     # Data used in industrial_indicators[Manufacturing]
     def call_activity_data(self):
@@ -176,6 +190,8 @@ class Manufacturing:
         mecs_table42 = []
 
         ratio_fuel_offsite = []
+
+        return interpolated_mecs
     
     def expenditure_ratios_revised(NAICS3D):
         mecs = [] # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/AW (also called EXPFUEL)
@@ -187,10 +203,10 @@ class Manufacturing:
         interpolated_ratio = standard_interpolation(mecs_asm_ratio) # H
         mecs_based_expenditure = [] # I depends on MECS year/not
 
-        
         return mecs_based_expenditure
 
     def expend_ratios_revised_85_97(self, NAICS3D):
+        e_c_data, asm_data = self.call_census_data()
         mecs =[] # from MECS_prices_101116b.xlsx[MECS_data_SIC]/BL
         asm_data = [] # from Ind_hap3_102316.xlsx[ASM_Fuel_Cost_1985-88]/ R
         asm_data = asm_data.iloc[[1985, 1986, 1987]]
@@ -203,7 +219,8 @@ class Manufacturing:
         mecs_based_expenditure = asm.multiply(interpolated_ratio * 1000)
         return mecs_based_expenditure
     
-    def final_quantities_asm_85(self):
+    @staticmethod
+    def final_quantities_asm_85():
         mecs = [] # from [MECS_prices_101116b.xlsx]MECS_data_SIC
         asm = [] # [Ind_hap3_101316.xlsx]ASM_Fuel_Cost_1985-88
         mecs_asm_ratio = mecs.divide(asm)
@@ -213,16 +230,15 @@ class Manufacturing:
         jan_2020_estimate = mecs_based_expenditure.divide(dollar_per_mmbtu)
         ratio_fuel_to_offsite = [] # from mixed sources
 
-
         final_quantities_asm_85 = jan_2020_estimate.multiply(ratio_fuel_to_offsite)
         asm_data = final_quantities_asm_85.loc[321:339, :] # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
         asm.loc['311+312', :] = final_quantities_asm_85.loc[311:312, :].sum(axis=0)
         asm.loc['313+314', :] = final_quantities_asm_85.loc[313:314, :].sum(axis=0)
         asm.loc['315+316', :] = final_quantities_asm_85.loc[315:316, :].sum(axis=0)
         
-        return final_quanities
+        return asm
 
-    def manufacturing_energy():
+    def manufacturing_energy(self):
         """Collect electricity and fuels for the manufacturing sector
         """        
         asm = self.final_quantities_asm_85()
@@ -232,15 +248,16 @@ class Manufacturing:
 
         nea_based_data_linked = nea_based_data.multiply(link_ratio, axis=1)
 
-        electricity_consumption = pd.concat([nea_based_data_linked, asm_data], axis=1)
+        electricity_consumption = pd.concat([nea_based_data_linked, asm], axis=1)
         electricity_consumption = electricity_consumption.transpose()
-
-        
-
-        fuels_nea, mecs_fuel = self.import_mecs_fuel() # fallhap3
 
 
         # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
+        fuels_nea, mecs_fuel = self.import_mecs_fuel() # fallhap3
+        historical_ASMdata_010220_xlsx_data = pd.read_csv('./historical_asm_data.csv')
+        ASMdata_010220_xlsx_data = []
+        mecs_interpolated_data = self.interpolate_mecs(mecs_fuel, ASMdata_010220_xlsx_data)
+
         link_ratio = mecs_interpolated_data[[1985]].divide(fuels_nea[1985])
         nea_adjusted = fuels_nea.multiply(link_ratio)
         fuels_consumption = pd.concat([nea_adjusted, mecs_interpolated_data], axis=1)
@@ -254,15 +271,17 @@ class Manufacturing:
         https://www.eia.gov/consumption/manufacturing/data/2014/
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4
         """
+
         electricity_consumption, fuels_consumption = self.manufacturing_energy()
         va_quant_index, go_quant_index = self.call_activity_data()
+
         data_dict = {'energy': {'elec': electricity_consumption, 
                                 'fuels': fuels_consumption}, 
                      'activity': {'gross_output': go_quant_index,
                                   'value_added': va_quant_index}}
-    #     return data_dict
+        return data_dict
 
 if __name__ == '__main__':
-    data = manufacturing()
+    data = Manufacturing().manufacturing()
     print(data)
     pass

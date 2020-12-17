@@ -544,7 +544,7 @@ class CommercialIndicators(CalculateLMDI):
         return formatted_results
 
 if __name__ == '__main__':
-    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative'])
+    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=False, save_breakout=False, calculate_lmdi=True)
 
 

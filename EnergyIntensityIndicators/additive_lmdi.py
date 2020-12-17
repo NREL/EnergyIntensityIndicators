@@ -32,6 +32,11 @@ class AdditiveLMDI():
                                         implementation. Energy Policy 86, 233-238.).
         """        
         print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
+        if not self.lmdi_type:
+            self.lmdi_type = 'LMDI-I'
+        
+        print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
+
         log_mean_shares_labels = [f"log_mean_shares_{col}" for col in self.energy_shares.columns]
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
         log_mean_values_df = pd.DataFrame(index=self.energy_data.index)
@@ -120,35 +125,53 @@ class AdditiveLMDI():
         """
         ASI.pop('lower_level_structure', None)
 
-        ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
 
 
         df = self.calculate_effect(ASI_df)
         df = df.reset_index()
+        if 'Year' not in df.columns:
+            df = df.rename(columns={'index': 'Year'})
 
         aggregated_df = self.aggregate_additive(df, self.base_year)
         aggregated_df["@filter|Measure|BaseYear"] = self.base_year
 
         return aggregated_df
     
-    def visualizations(self, data, base_year, end_year, loa, model, energy_type, *x_data):
+    def visualizations(self, data, base_year, end_year, loa, model, energy_type):
+
+        x_data = ["@filter|Measure|Activity", "@filter|Measure|Intensity",
+                  "@filter|Measure|Structure"]
 
         figure_labels = []
         loa = [l.replace("_", " ") for l in loa]
         final_year = max(data['@timeseries|Year'])
         title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
         # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
-        data = data[data['@timeseries|Year'] == self.end_year][list(x_data)]
+        data_base = data[data['@timeseries|Year'] == base_year][x_data]
+        data_base['intial_energy'] = self.energy_data.loc[base_year, self.total_label]
 
-        data['initial_energy'] = self.energy_data.loc[base_year, self.total_label]
+        data = data[data['@timeseries|Year'] == end_year][x_data]
         data['final_energy'] = self.energy_data.loc[end_year, self.total_label]
-        x_data = ['initial_energy'] + list(x_data) + ['final_energy']
+        x_data = ['intial_energy'] + x_data + ['final_energy']
+        y_data = pd.concat([data_base, data], ignore_index=True, axis=0).fillna(0)
+        y_data = y_data[x_data]
 
-        y_data = data
-        x_labels = [x.replace("_", " ").capitalize() for x in x_data]
+        y_data.loc[:, 'final_energy'] = 0
+        print('additive data to plot:\n', y_data)
+        y_data = y_data.sum(axis=0).values.tolist()
+
+        print('additive data to plot:\n', y_data)
+
+        x_labels = ['intial_energy', 'activity', 'intensity', 'structure', 'final_energy']
+        x_labels = [x.replace("_", " ").capitalize() for x in x_labels]
         
         # for example: ["relative", "relative", "total", "relative", "relative", "total"]
-        measure =  ['total'] * len(list(x_labels)) 
+        # measure =  ['total'] + ['relative'] * (len(list(x_labels)) - 2) + ['total']
+        # measure = ['total'] + ['relative'] * (len(list(x_labels)) - 2) + ['total']
+        measure = ['relative'] * 4 + ['total']
+
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
                                      textposition="outside", text=figure_labels, y=y_data, 
                                      connector={"line":{"color":"rgb(63, 63, 63)"}}))
