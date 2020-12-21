@@ -84,13 +84,14 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../LMDI/lmdi.html">Core LMDI Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Residential/residential.html">Residential Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results.html">Results</a></li>
 </ul>
 
             
@@ -160,64 +161,82 @@
 <span id="electric-power-sector-data-collection"></span><h1>Electric Power Sector Data Collection<a class="headerlink" href="#module-EnergyIntensityIndicators.electricity" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators">
-<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.electricity.</code><code class="sig-name descname">ElectricityIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], base_year=1985</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../EnergyIntensityIndicators.LMDI.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.electricity.</code><code class="sig-name descname">ElectricityIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory, output_directory, level_of_aggregation, end_year, lmdi_model=['multiplicative'], base_year=1985</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../LMDI/lmdi.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.coal_reconcile">
 <code class="sig-name descname">coal_reconcile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.coal_reconcile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reconcile coal data from physical units into Btu</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.collect_data">
 <code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.collect_data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect all data for use in the decomposition of energy use in the
+Electric Power sector</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_chp_fossil">
 <code class="sig-name descname">comm_sector_chp_fossil</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_chp_fossil" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Comm_Sector_CHP&gt;Fossil data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_chp_renew">
 <code class="sig-name descname">comm_sector_chp_renew</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_chp_renew" title="Permalink to this definition">¶</a></dt>
-<dd><p>As is, these are the same sources as ind sector, but should be different part of columns?</p>
+<dd><p>Collect Comm_Sector_CHP&gt;Renewable data
+As is, these are the same sources as ind sector, but should be different part of columns?</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_total">
 <code class="sig-name descname">comm_sector_total</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.comm_sector_total" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies</p>
+<dd><p>Collect Comm_Sector&gt;Total data
+Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_fossil">
 <code class="sig-name descname">elec_power_sector_chp_fossil</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_fossil" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Elec_Power_Sector_CHP&gt;Fossil data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_renew">
 <code class="sig-name descname">elec_power_sector_chp_renew</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_renew" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Elec_Power_Sector_CHP&gt;Renewable data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_total">
 <code class="sig-name descname">elec_power_sector_chp_total</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.elec_power_sector_chp_total" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Elec_Power_Sector_CHP&gt;Total data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_fossil">
 <code class="sig-name descname">electricity_only_fossil</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_fossil" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Eletricity-Only&gt;Fossil data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_renew">
 <code class="sig-name descname">electricity_only_renew</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_renew" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Eletricity-Only&gt;Renewable data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_total">
 <code class="sig-name descname">electricity_only_total</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.electricity_only_total" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Eletricity-Only&gt;Total data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.format_eii_table">
+<em class="property">static </em><code class="sig-name descname">format_eii_table</code><span class="sig-paren">(</span><em class="sig-param">table</em>, <em class="sig-param">factor</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.format_eii_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format EII input data (that isn’t from the API). The Month 13 represents annual data.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.get_eia_aer">
@@ -242,38 +261,45 @@ worksheets were developed for coal, petroleum, and other fuels.</p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_chp_fossil">
 <code class="sig-name descname">industrial_sector_chp_fossil</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_chp_fossil" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Industrial_Sector_CHP&gt;Fossil data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_chp_renew">
 <code class="sig-name descname">industrial_sector_chp_renew</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_chp_renew" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect Industrial_Sector_CHP&gt;Renew data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_total">
 <code class="sig-name descname">industrial_sector_total</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.industrial_sector_total" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies</p>
+<dd><p>Collect Industrial_Sector&gt;Total data
+Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.main">
-<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">save_breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate decomposition for the Electric Power sector</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.natgas_reconcile">
 <code class="sig-name descname">natgas_reconcile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.natgas_reconcile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reconcile natural gas data from physical units into Btu</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.othgas_reconcile">
 <code class="sig-name descname">othgas_reconcile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.othgas_reconcile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reconcile other gas data from physical units into Btu</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.petroleum_reconcile">
 <code class="sig-name descname">petroleum_reconcile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.petroleum_reconcile" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Reconcile petroleum data from physical units into Btu</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.process_utility_level_data">
@@ -284,7 +310,7 @@ are based entirely upon te EIA-923 survey</p>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.electricity.ElectricityIndicators.reconcile">
-<code class="sig-name descname">reconcile</code><span class="sig-paren">(</span><em class="sig-param">elec_gen</em>, <em class="sig-param">elec_only_plants</em>, <em class="sig-param">chp_elec</em>, <em class="sig-param">assumed_conv_factor</em>, <em class="sig-param">chp_heat</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.reconcile" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">reconcile</code><span class="sig-paren">(</span><em class="sig-param">total</em>, <em class="sig-param">elec_gen</em>, <em class="sig-param">elec_only_plants</em>, <em class="sig-param">chp_elec</em>, <em class="sig-param">assumed_conv_factor</em>, <em class="sig-param">chp_heat</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.electricity.ElectricityIndicators.reconcile" title="Permalink to this definition">¶</a></dt>
 <dd><p>total: df, Btu
 elec_gen: df, Btu
 elec_only_plants: df, Short tons

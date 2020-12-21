@@ -146,12 +146,9 @@ class CommercialIndicators(CalculateLMDI):
 
     @staticmethod
     def dod_compare_old():
-        """[summary]
-
+        """
         DODCompareOld Note from PNNL (David B. Belzer): "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
 
-        Returns:
-            [type]: [description]
         """        
         dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
 
@@ -167,13 +164,6 @@ class CommercialIndicators(CalculateLMDI):
     def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years, late):
         """(1985, 1990) or (1960, 1970)
 
-        Args:
-            dodge_dataframe ([type]): [description]
-            start_year ([type]): [description]
-            stop_year ([type]): [description]
-
-        Returns:
-            [type]: [description]
         """        
         year_indices = self.years_to_str(start_year, stop_year)
         revision_factor_commercial = dodge_dataframe.loc[year_indices, ['Commercial']].sum(axis=0).values
@@ -222,6 +212,8 @@ class CommercialIndicators(CalculateLMDI):
 
     @staticmethod
     def years_to_str(start_year, end_year):
+        """Create list of year strings from start_year and end_year range
+        """
         list_ = list(range(start_year, end_year + 1))
         return [str(l) for l in list_]
     
@@ -247,9 +239,6 @@ class CommercialIndicators(CalculateLMDI):
 
     def hist_stat_adj(self):
         """Adjust historical Dodge data to account for omission of data for the West Census Region prior to 1956
-
-        Returns:
-            [type]: [description]
         """        
         hist_data = self.hist_stat()
         west_inflation = self.west_inflation()
@@ -344,11 +333,7 @@ class CommercialIndicators(CalculateLMDI):
         return dodge_to_cbecs
 
     def nems_logistic(self, dataframe, params):
-        """[summary]
-
-        Args:
-            dataframe ([type]): [description]
-            params (list): gamma, lifetime, 
+        """
         
         PNNL errors found: 
             - Column S in spreadsheet has CO-StatePop2.xls are incorrectly aligned with years
@@ -501,6 +486,8 @@ class CommercialIndicators(CalculateLMDI):
         return energy_data
 
     def get_seds(self):
+        """Collect SEDS data
+        """
         seds = self.collect_input_data('SEDS_CensusRgn')
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
         total_fuels = seds[0].rename(columns=census_regions)
@@ -508,6 +495,8 @@ class CommercialIndicators(CalculateLMDI):
         return {'elec': elec, 'fuels': total_fuels}
 
     def collect_weather(self, comm_activity):
+        """Gather weather data for the Commercial sector
+        """
         seds = self.get_seds()
         res = ResidentialIndicators(directory=self.directory, output_directory=self.output_directory, base_year=self.base_year)
         residential_activity_data = res.get_floorspace()
@@ -518,6 +507,8 @@ class CommercialIndicators(CalculateLMDI):
         return weather_factors
 
     def collect_data(self):
+        """Gather decomposition input data for the Commercial sector
+        """
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
@@ -526,26 +517,28 @@ class CommercialIndicators(CalculateLMDI):
         energy_data = self.fuel_electricity_consumption()
         print('Energy data collected without issue')
 
-        weather_factors = self.collect_weather(comm_activity=activity_data) # need to integrate this into the data passed to LMDI
+        weather_factors = self.collect_weather(comm_activity=activity_data) 
         print('weather_factors', weather_factors)
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
         return data_dict
 
-    def main(self, breakout, save_breakout, calculate_lmdi):
+    def main(self, breakout, calculate_lmdi):
+        """Decompose energy use for the Commercial sector"""
         data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, save_breakout=save_breakout, 
+                                                               breakout=breakout,
                                                                calculate_lmdi=calculate_lmdi, raw_data=data_dict,
                                                                lmdi_type='LMDI-I')
-        print(formatted_results)
-        formatted_results.to_csv(f"{self.output_directory}/commercial_results2.csv")
 
-        return formatted_results
+        return results_dict
 
 if __name__ == '__main__':
-    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Commercial_Total', lmdi_model=['multiplicative', 'additive'])
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=True)
+    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020',
+                                      output_directory='./Results', 
+                                      level_of_aggregation='Commercial_Total', 
+                                      lmdi_model=['multiplicative', 'additive'])
+    indicators.main(breakout=False, calculate_lmdi=True)
 
 
 

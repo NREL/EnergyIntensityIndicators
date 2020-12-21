@@ -84,7 +84,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LMDI/lmdi.html">Core LMDI Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Industry/industry.html">Industrial Sector Data Collection</a></li>
@@ -100,6 +100,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">Results</a></li>
 </ul>
 
             
@@ -171,43 +172,28 @@
 <span id="weather-factors"></span><h1>Weather Factors<a class="headerlink" href="#module-EnergyIntensityIndicators.weather_factors" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors">
-<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.weather_factors.</code><code class="sig-name descname">WeatherFactors</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">directory</em>, <em class="sig-param">activity_data=None</em>, <em class="sig-param">residential_floorspace=None</em>, <em class="sig-param">nominal_energy_intensity=None</em>, <em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.weather_factors.</code><code class="sig-name descname">WeatherFactors</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">directory</em>, <em class="sig-param">activity_data=None</em>, <em class="sig-param">residential_floorspace=None</em>, <em class="sig-param">nominal_energy_intensity=None</em>, <em class="sig-param">end_year=2018</em>, <em class="sig-param">projections=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.adjust_data">
 <em class="property">static </em><code class="sig-name descname">adjust_data</code><span class="sig-paren">(</span><em class="sig-param">subregions</em>, <em class="sig-param">hdd_by_division</em>, <em class="sig-param">hdd_activity_weights</em>, <em class="sig-param">cooling=True</em>, <em class="sig-param">cdd_by_division=None</em>, <em class="sig-param">cdd_activity_weights=None</em>, <em class="sig-param">use_weights_1961_90=True</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.adjust_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate weights for adjusted weather factors prediction</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subregions</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>hdd_by_division</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>cdd_by_division</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.adjust_for_weather">
 <code class="sig-name descname">adjust_for_weather</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">energy_type</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.adjust_for_weather" title="Permalink to this definition">¶</a></dt>
-<dd><p>purpose
+<dd><p>Adjust data by weather factors
 :param data: dataset to adjust by weather
 :type data: dataframe
-:param weather_factors: description
-:type weather_factors: array?</p>
+:param energy_type:
+:type energy_type: str</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>weather_adjusted_data</strong></p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>dataframe ?</p>
+<dd class="field-even"><p>dataframe</p>
 </dd>
 </dl>
 </dd></dl>
@@ -215,12 +201,14 @@
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.cbecs_1995_shares">
 <em class="property">static </em><code class="sig-name descname">cbecs_1995_shares</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.cbecs_1995_shares" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate fuels and elec shares for the commercial sector from CBECS 1995 data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.commercial_estimate_regional_floorspace">
 <code class="sig-name descname">commercial_estimate_regional_floorspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.commercial_estimate_regional_floorspace" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Estimate regional floorspace for the commercial sector</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.commercial_regional_intensity_aggregate">
@@ -239,6 +227,13 @@ in calculating weather factors
 </dd></dl>
 
 <dl class="method">
+<dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.ensure_same_indices">
+<code class="sig-name descname">ensure_same_indices</code><span class="sig-paren">(</span><em class="sig-param">df1</em>, <em class="sig-param">df2</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.ensure_same_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns two dataframes with the same indices
+purpose: enable dataframe operations such as multiply and divide between the two dfs</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.estimate_regional_shares">
 <code class="sig-name descname">estimate_regional_shares</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.estimate_regional_shares" title="Permalink to this definition">¶</a></dt>
 <dd><p>Spreadsheet equivalent: Commercial –&gt; ‘Regional Shares’
@@ -254,11 +249,18 @@ assumed commercial floorspace in each region follows same trends as population o
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.get_weather">
 <code class="sig-name descname">get_weather</code><span class="sig-paren">(</span><em class="sig-param">energy_dict=None</em>, <em class="sig-param">energy_type=None</em>, <em class="sig-param">energy_df=None</em>, <em class="sig-param">weather_adjust=False</em>, <em class="sig-param">seds_data=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.get_weather" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Collect weather data by sector (commercial or residential)</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.heating_cooling_data">
 <code class="sig-name descname">heating_cooling_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.heating_cooling_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect heating and cooling data (HDD, CDD)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.heating_cooling_degree_days">
+<em class="property">static </em><code class="sig-name descname">heating_cooling_degree_days</code><span class="sig-paren">(</span><em class="sig-param">type_day</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.heating_cooling_degree_days" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -270,42 +272,25 @@ assumed commercial floorspace in each region follows same trends as population o
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.national_method2_regression_models">
 <code class="sig-name descname">national_method2_regression_models</code><span class="sig-paren">(</span><em class="sig-param">seds_data</em>, <em class="sig-param">weather_factors</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.national_method2_regression_models" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Second regression model</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.process_prices">
 <code class="sig-name descname">process_prices</code><span class="sig-paren">(</span><em class="sig-param">weather_factors_df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.process_prices" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Process price data</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.recs_1993_shares">
 <em class="property">static </em><code class="sig-name descname">recs_1993_shares</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.recs_1993_shares" title="Permalink to this definition">¶</a></dt>
-<dd><p>Need to fill this in</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>[description]</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>[type]</p>
-</dd>
-</dl>
+<dd><p>Calculate fuels and elec shares for the residential sector from RECS 1993 data</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.regional_shares">
 <code class="sig-name descname">regional_shares</code><span class="sig-paren">(</span><em class="sig-param">dataframe</em>, <em class="sig-param">cols</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.regional_shares" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calulate shares of regional totals by subregion</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dataframe</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="method">
@@ -324,18 +309,10 @@ i.e. {‘fuels’: fuels_regional, ‘electricity’: elec_regional}</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.sub_regions_dict">
-<code class="sig-name descname">sub_regions_dict</code><em class="property"> = None</em><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.sub_regions_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Table 5.2, RECS C&amp;E 1993 (Household Energy Consumption and Expenditures 1993)
-Table 5.14, RECS C&amp;E 1993, calculated from kWh converted to Btu
-Table 5.20, RECS C&amp;E 1993
-Table 5.2, RECS C&amp;E 1993; Major energy sources, column 1.
-Table 5.2, RECS C&amp;E 1993; Major energy sources, column 3.
-Table 5.11, RECS C&amp;E 1993
-Table 5.14, RECS C&amp;E 1993
-Table 5.20, RECS C&amp;E 1993</p>
-<p>EnergyPrices_by_Sector_010820_DBB.xlsx / LMDI-Prices’!EY123</p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.weather_factors.WeatherFactors.use_intersection">
+<em class="property">static </em><code class="sig-name descname">use_intersection</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">intersection_</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.weather_factors.WeatherFactors.use_intersection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return portion of dataframe with <a href="#id1"><span class="problematic" id="id2">intersection_</span></a> as index</p>
 </dd></dl>
 
 <dl class="method">

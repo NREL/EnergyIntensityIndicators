@@ -10,14 +10,7 @@ class GetEIAData:
         self.sector = sector
 
     def eia_api(self, id_, id_type='category'):
-        """[summary]
-
-        Args:
-            id_ ([type]): [description]
-            id_type (str, optional): [description]. Defaults to 'category'.
-
-        Returns:
-            [type]: [description]
+        """Collect data from EIA API by endpoint and type (category or series)
         """          
         api_key = os.environ.get("EIA_API_Key")
 
@@ -142,9 +135,6 @@ class GetEIAData:
 
     def national_calibration(self):
         """Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review
-
-        TODO: 
-        The whole point of this is to reconcile the AER and MER data, so they shouldn't be the same API endpoint
         """
         if self.sector == 'residential':
             AER11_table2_1b_update = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02', skiprows=10, header=0).drop(0, axis=0)
@@ -228,10 +218,7 @@ class GetEIAData:
         return national_calibration
 
     def conversion_factors(self, include_utility_sector_efficiency=False):
-        """Not sure if this is correct class method use
-
-        Returns:
-            [type]: [description]
+        """Calculate conversion factors by sector
         """        
                                               
         if self.sector == 'residential':

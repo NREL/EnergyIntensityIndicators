@@ -24,27 +24,14 @@ class NonManufacturing:
     """    
     def __init__(self):        
         self.currentYear = datetime.now().year
-        BEA_data = BEA_api(years=list(range(1949, 2018)))
-        self.BEA_go_nominal = BEA_data.get_data(table_name='go_nominal')
-        self.BEA_go_quant_index = BEA_data.get_data(table_name='go_quant_index')
-        self.BEA_va_nominal = BEA_data.get_data(table_name='va_nominal')
-        self.BEA_va_quant_index = BEA_data.get_data(table_name='va_quant_index')
-
+        self.BEA_data = BEA_api(years=list(range(1949, self.currentYear + 1)))
+        self.BEA_go_nominal = self.BEA_data.get_data(table_name='go_nominal')
+        self.BEA_go_quant_index = self.BEA_data.get_data(table_name='go_quant_index')
+        self.BEA_va_nominal = self.BEA_data.get_data(table_name='va_nominal')
+        self.BEA_va_quant_index = self.BEA_data.get_data(table_name='va_quant_index')
         self.ALLFOS_historical = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ALLFOS_historical.csv')
         self.ELECNEA_historical = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ELECNEA_historical.csv')
-
-    # def agriculture(self):
-    #     miranowski_data = [0] # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
-    #     nass_expenses_data = [0] # https://quickstats.nass.usda.gov/results/06763638-EB97-3879-AAF6-214CF147AED2
-
-    #     nass_average_prices_data = [0] # 
-    #     MER_fuel_price_data = [0] # 
-    #     eia_table33 = [0]  # Consumer Price estimates for Energy by Source, 1970-2009
-    #     eia_table34 = [0] # Consumer price estimates for energy by end-use sector, 1970-2009
-    #     eia_table523 = [0]  # All sellers sales prices for selected petroleum products, 1994-2010
-    #     eia_table524 = [0]  # Retail motor gasoline and on-highway diesel fuel prices, 1949-2010 
-        
-    #     pass
+        self.mapping = self.BEA_data.mapping_()
 
     def indicators_nonman_2018_bea(self):
         """Reformat value added and gross output chain quantity indexes from 
@@ -53,10 +40,12 @@ class NonManufacturing:
         """       
         va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
         # HERE: select columns 
-
+        print('va_quant_index:\n', va_quant_index.columns)
+        print('go_quant_index:\n', go_quant_index.columns)
         return va_quant_index, go_quant_index
     
     def get_econ_census(self):
+        """Collect economic census data"""
         economic_census = Econ_census()
         economic_census_years = list(range(1987, self.currentYear + 1, 5))       
         e_c_data = {str(y): economic_census.get_data(year=y) 
@@ -66,6 +55,7 @@ class NonManufacturing:
     
     @staticmethod
     def petroleum_prices(retail_gasoline, retail_diesel, excl_tax_gasoline, excl_tax_diesel):
+        """Get petroleum prices"""
         retail_gasoline.loc[2011] = 3.527
         retail_gasoline.loc[2012] = 3.644
         retail_gasoline.loc[2013] = 3.526
@@ -97,12 +87,22 @@ class NonManufacturing:
 
         stb0523 = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/stb0523.xlsx', sheet_name='stb0523')
         stb0524 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T09.04')
+        
+        construction_elec_fuels = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/construction_elec_fuels.csv').set_index('Year')
+        construction_elec_fuels = construction_elec_fuels.rename(columns={'  Electricity': 'Electricity'})
+        print('construction_elec_fuels:\n', construction_elec_fuels)
+        print('construction_elec_fuels columns:\n', construction_elec_fuels.columns)
 
+        construction_elec = construction_elec_fuels[['Electricity']]
+        construction_fuels = construction_elec_fuels[['Total Fuel']]
 
         return construction_elec, construction_fuels
 
     def construction(self):
-        """https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
+
+        """Build data dictionary for the construction sector
+
+        https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector-23.html
         https://www.census.gov/data/tables/2012/econ/census/construction.html
         http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2007_US_23I1&prodType=table
         http://factfinder2.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ECN_2002_US_23I04A&prodType=table
@@ -110,20 +110,37 @@ class NonManufacturing:
         http://www.census.gov/prod/www/abs/cciview.html
         """ 
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data / M, Y
-        value_added = value_added['Construction']
-        gross_output = gross_output['Construction']
+        value_added = value_added[['Construction']].rename(columns={'Construction': 'Value Added'})
+        print('value_added:\n', value_added)
+
+        gross_output = gross_output[['Construction']].rename(columns={'Construction': 'Gross Output'})
+        gross_output['Output*0.0001'] = gross_output['Gross Output'].multiply(0.0001)
+
+        print('gross_output:\n', gross_output)
         electricity, fuels = self.construction_raw_data()
+        print('fuels:\n', fuels)
+        print('electricity:\n', electricity)
 
-        elec_intensity = electricity.divide(gross_output * 0.0001)
-        elec_intensity = standard_interpolation(elec_intensity).fillna(method='bfill')
+        elec_intensity = electricity.merge(gross_output, how='outer', left_index=True, right_index=True)
+        elec_intensity['elec_intensity'] = elec_intensity['Electricity'].divide(elec_intensity['Output*0.0001'] .values)
+        elec_intensity = standard_interpolation(elec_intensity, name_to_interp='elec_intensity', axis=1).fillna(method='bfill')
+        print('elec_intensity after interp:\n', elec_intensity)
+        fuels_intensity = fuels.merge(gross_output, how='outer', left_index=True, right_index=True)
+        fuels_intensity['fuels_intensity'] = fuels_intensity['Total Fuel'].divide(fuels_intensity['Output*0.0001'] .values)
+        print('fuels intensity:\n', fuels_intensity)
+        print('fuels intensity index:\n', fuels_intensity.index)
+        print('fuels intensity columns:\n', fuels_intensity.columns)
 
-        fuels_intensity = fuels.divide(gross_output * 0.0001)
-        fuels_intensity.iloc[1982] = np.nan
-        fuels_intensity.iloc[2002] = np.nan
-        fuels_intensity = standard_interpolation(fuels_intensity).fillna(method='bfill')
+        fuels_intensity.loc[1982, 'fuels_intensity'] = np.nan
+        fuels_intensity.loc[2002, 'fuels_intensity'] = np.nan
+        fuels_intensity = standard_interpolation(fuels_intensity, name_to_interp='fuels_intensity', axis=1).fillna(method='bfill')
+        print('fuels_intensity after interp:\n', fuels_intensity)
 
-        final_electricity = elec_intensity.multiply(gross_output * 0.0001)
-        final_fuels = fuels_intensity.multiply(gross_output * 0.0001)
+        final_electricity = elec_intensity['elec_intensity'].multiply(elec_intensity['Output*0.0001'].values).to_frame(name='electricity')
+        print('final electricity:\n', final_electricity)
+        final_fuels = fuels_intensity['fuels_intensity'].multiply(fuels_intensity['Output*0.0001'].values).to_frame(name='fuels')
+        print('final fuels:\n', final_fuels)
+
         data_dict = {'energy': 
                         {'elec': final_electricity, 'fuels': final_fuels}, 
                      'activity': 
@@ -131,16 +148,20 @@ class NonManufacturing:
         return data_dict
 
     def agriculture(self):
-        miranowski_data =  pd.read_excel('./EnergyIntensityIndicators/Industry/Data/miranowski_data.xlsx', sheet_name='Ag Cons by Use', skiprows=9, usecols='F:G', index_col=0)  # , skipfooter= Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
-        
+        """Build data dictionary for the agricultural sector"""
+        miranowski_data =  pd.read_excel('./EnergyIntensityIndicators/Industry/Data/miranowski_data.xlsx', 
+                                         sheet_name='Ag Cons by Use', skiprows=4, skipfooter=3, usecols='A,F:G', 
+                                         index_col=0, names=['Year', 'Electricity', 'Direct Ag. Energy Use'])  
+                                         # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002
+        print('miranowski_data:\n', miranowski_data)
         adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data_010420.xlsx column G, S (value added and gross output chain qty indexes for farms)
         value_added = value_added['Farms']
         gross_output = gross_output['Farms']
 
-        elec_prm = miranowski_data['Elec-tricity']
+        elec_prm = miranowski_data[['Electricity']]
         elec_site = elec_prm.divide(adjustment_factor)
-        fuels = miranowski_data[['Direct Ag Enery Use']].subtract(elec_prm)
+        fuels = miranowski_data[['Direct Ag. Energy Use']].subtract(elec_prm.values)
 
         elec_intensity = elec_site.divide(gross_output * 0.001)
         fuels_intensity = fuels.divide(gross_output * 0.001)
@@ -154,9 +175,24 @@ class NonManufacturing:
                                     'value_added': value_added}
         return data_dict
 
-    @staticmethod
-    def aggregate_mining_data(mining_df):
+    def aggregate_mining_data(self, mining_df):
+        print('self.mapping:\n', self.mapping)
+        print('self.mapping indx:\n', self.mapping.index)
+        print('self.mapping info:\n', self.mapping.info())
+
+        mining_df = mining_df.drop(['Year', 'NEA Sector'], axis=1, errors='ignore').set_index('NAICS')
+        mining_df.index = mining_df.index.astype(str)
+        print('mining df:\n', mining_df)
+        mining_df = mining_df.groupby('NAICS').sum()
+
+        mining_df = mining_df.merge(self.mapping, how='outer', left_index=True, right_index=True)
+        mining_df = mining_df.reset_index().set_index('IndustrYDescription').drop('NAICS', axis=1)
+
+        print('mining df raw:\n', mining_df)
         mining_df = mining_df.transpose()
+        print('mining_df:\n', mining_df)
+        print("mining_df.columns", mining_df.columns.to_list())
+        exit()
         mining_df['Crude Petroleum and Natural Gas'] = mining_df[['Crude Petroleum', 'Natural Gas', 'Natural Gas Liquids']].sum(axis=1)
         mining_df['Coal Mining'] = mining_df[['Anthracite Coal', 'Bituminous Coal']].sum(axis=1)
         mining_df['Metal Ore Mining'] = mining_df[['Iron and Ferroalloy mining', 'Uranium - vanadium ores', 'Nonferrous metals']].sum(axis=1)
@@ -166,14 +202,62 @@ class NonManufacturing:
                                                                                                              'Support Activities'}) 
         return to_transfer
     
+# ['Agriculture, forestry, fishing, and hunting', 'Farms', 'Forestry, fishing, and related activities', 'Mining', 'Oil and gas extraction',
+#  'Mining, except oil and gas', 'Support activities for mining', 'Utilities', 'Construction', nan, 'Food and beverage and tobacco products', 
+#  nan, 'Textile mills and textile product mills', nan, 'Apparel and leather and allied products', 'Manufacturing', 'Nondurable goods', 'Wood products',
+#   'Paper products', 'Printing and related support activities', 'Petroleum and coal products', 'Chemical products', 'Plastics and rubber products', 
+#   'Nonmetallic mineral products', 'Primary metals', 'Fabricated metal products', 'Machinery', 'Computer and electronic products', 
+#   'Electrical equipment, appliances, and components', nan, 'Motor vehicles, bodies and trailers, and parts', 'Other transportation equipment', 
+#   'Furniture and related products', 'Miscellaneous manufacturing', 'Durable goods', nan, 'Wholesale trade', 'Motor vehicle and parts dealers',
+#    'Food and beverage stores', 'Retail trade', 'General merchandise stores', 'Air transportation', 'Rail transportation', 'Water transportation', 
+#    'Truck transportation', 'Transit and ground passenger transportation', 'Pipeline transportation', 'Other transportation and support activities', 
+#    'Transportation and warehousing', 'Warehousing and storage', 'Other retail', nan, 'Information', 'Publishing industries, except internet (includes software)',
+#     'Motion picture and sound recording industries', 'Broadcasting and telecommunications', 
+# 'Data processing, internet publishing, and other information services', 'Finance and insurance', 
+# 'Federal Reserve banks, credit intermediation, and related activities', 'Securities, commodity contracts, and investments', 
+# 'Insurance carriers and related activities', 'Funds, trusts, and other financial vehicles', 'Real estate and rental and leasing',
+#  'Real estate', 'Rental and leasing services and lessors of intangible assets', 'Professional, scientific, and technical services', 
+#  'Legal services', 'Miscellaneous professional, scientific, and technical services', 'Computer systems design and related services', 
+# 'Management of companies and enterprises', 'Administrative and waste management services', 'Administrative and support services', 
+# 'Waste management and remediation services', 'Educational services, health care, and social assistance', 'Educational services', 
+# 'Health care and social assistance', 'Ambulatory health care services', 'Hospitals', 'Nursing and residential care facilities',c
+#  'Social assistance', 'Arts, entertainment, recreation, accommodation, and food services', 'Arts, entertainment, and recreation',
+#   'Performing arts, spectator sports, museums, and related activities', 'Amusements, gambling, and recreation industries', 
+#   'Accommodation and food services', 'Accommodation', 'Food services and drinking places', 'Other services, except government', 
+#   'Finance, insurance, real estate, rental, and leasing', 'Government', 'Gross domestic product', 'Federal', 'Government enterprises',
+#    'General government', 'National defense', 'Nondefense', 'State and local', 'Government enterprises', 'General government', 'Housing', 
+#    'Information-communications-technology-producing industries<sup>3</sup>', 'Other real estate', 'Private goods-producing industries<sup>1</sup>',
+#     'Professional and business services', 'Private services-producing industries<sup>2</sup>', 'Private industries']
+
+
+
+
+    # ['Wood products', 'Paper products',
+    #    'Printing and related support activities',
+    #    'Petroleum and coal products', 'Chemical products',
+    #    'Plastics and rubber products', 'Nonmetallic mineral products',
+    #    'Primary metals', 'Fabricated metal products', 'Machinery',
+    #    'Computer and electronic products',
+    #    'Electrical equipment, appliances, and components',
+    #    'Furniture and related products', 'Miscellaneous manufacturing']
+
+
     @staticmethod
     def build_mining_output(factor, gross_output, elec, fuels):
+        """Build data dictionary for the mining subsector"""
+
         output_by_factor = gross_output.multiply(factor)
         elec_intensity = elec.divide(output_by_factor)
-        elec_intensity = standard_interpolation(elec_intensity).ffill()
+        print('elec_intensity:\n', elec_intensity)
+        print('elec_intensity cols:\n', elec_intensity.columns)
+
+        elec_intensity = standard_interpolation(elec_intensity, name_to_interp='Electricity', axis=1).ffill()
 
         fuels_intensity = fuels.divide(output_by_factor)
-        fuels_intensity = standard_interpolation(fuels_intensity).ffill()
+        print('fuels_intensity:\n', fuels_intensity)
+        print('fuels_intensity cols:\n', fuels_intensity.columns)
+
+        fuels_intensity = standard_interpolation(fuels_intensity, name_to_interp='Fuels', axis=1).ffill()
 
         electricity_final = elec_intensity.multiply(elec_intensity)
         fuels_final = fuels_intensity.multiply(fuels_intensity)
@@ -182,6 +266,8 @@ class NonManufacturing:
         return data_dict
 
     def crude_petroleum_natgas(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        """Collect crude petroleum and natural gas data for the mining subsector"""
+
         factor = 0.0001
         gross_output = bea_bls_output[['Oil & Gas']]
         elec = nea_elec[['Crude Pet']] 
@@ -190,6 +276,8 @@ class NonManufacturing:
         return data_dict
     
     def coal_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates): 
+        """Collect coal mining data for the mining subsector"""
+
         factor = 0.001
 
         col = ['Coal Mining']
@@ -200,6 +288,8 @@ class NonManufacturing:
         return data_dict
     
     def metal_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        """Collect metal mining data for the mining subsector"""
+
         factor = 0.01
         gross_output = bea_bls_output[['Metal Ore Mining']]
         elec = nea_elec[['Metal Mining']] 
@@ -208,6 +298,8 @@ class NonManufacturing:
         return data_dict
 
     def nonmetallic_mineral_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+        """Collect nonmetallic mineral mining data for the mining subsector"""
+
         factor = 0.01
         col = ['Nonmetallic Mineral Mining']
         gross_output = bea_bls_output[col]
@@ -248,19 +340,19 @@ class NonManufacturing:
         data_dict = self.build_mining_output(factor, gross_output, elec, fuels)
         return data_dict
     
-    def drilling_and_mining_support(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+    def drilling_and_mining_support(self, bea_bls_output, nea_elec, nea_fuels):
+        """Collect drilling and mining support data for the mining subsector"""
         factor = 0.001
         col = ['Support Activities']
         gross_output = bea_bls_output[col]
         elec = nea_elec[col] 
         fuels = nea_fuels[col] 
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels, sector_estimates)
+        data_dict = self.build_mining_output(factor, gross_output, elec, fuels)
         return data_dict
-    
+
     @staticmethod
     def mining_fuels_adjust(ec_df):
-        """[summary]
-
+        """
         Args:
             ec_df (dataframe): Economic Census data 
                                for NAICS code 21 (mining) 
@@ -287,7 +379,41 @@ class NonManufacturing:
         return calc
 
     @staticmethod
-    def mining_data_1987_2017():
+    def aggregate_sector_estimates(sector_estimates):
+        sector_estimates = sector_estimates[sector_estimates['NAICS'].notnull()].fillna(np.nan)
+        sector_estimates = sector_estimates.dropna(axis=0, how='all')
+        sector_estimates = sector_estimates.set_index('NAICS').drop('Description', axis=1)
+        print('sector_estimates:\n', sector_estimates)
+
+        sector_estimates.index = sector_estimates.index.astype(int)
+        print('sector_estimates:\n', sector_estimates)
+        print('sector_estimates index:\n', sector_estimates.index)
+
+        sector_estimates.loc['Oil and Gas', :] = sector_estimates.loc[[211111, 211112], :].sum(axis=0)
+        sector_estimates.loc['Coal Mining', :] = sector_estimates.loc[[212111, 212112, 212113]].sum(axis=0)
+        sector_estimates.loc['Metal Mining', :] = sector_estimates.loc[[212210, 212221, 212222, 212231, 212234, \
+                                                                                                            212291, 212299], :].sum(axis=0)
+        sector_estimates.loc['Nonmetallic Mining, excl Other Chem', :] = sector_estimates.loc[[212311, 212312, \
+                                                        212313, 212319, 212321, 212322, 212324, 212325, 212391, 212392, 212399], :].sum(axis=0)
+        sector_estimates.loc['Other Chemical and Fertilizer Minerals', :] = sector_estimates.loc[212393, :]
+        sector_estimates.loc['Drilling Oil and Gas Wells', :] = sector_estimates.loc[213111, :]
+        sector_estimates.loc['Support Activities for Oil and Gas', :] = sector_estimates.loc[213112, :]
+        sector_estimates.loc['Support Activities for Coal Mining', :] = sector_estimates.loc[213113, :]
+        sector_estimates.loc['Support Activities for Metal Mining', :] = sector_estimates.loc[213114, :]
+        sector_estimates.loc['Support Activities for Nonmetallic Minerals', :] = sector_estimates.loc[213115, :]
+        sector_estimates_T = sector_estimates.transpose()
+        cols = ['Oil and Gas', 'Coal Mining', 'Metal Mining', 'Nonmetallic Mining, excl Other Chem', 'Other Chemical and Fertilizer Minerals', \
+                'Drilling Oil and Gas Wells', 'Support Activities for Oil and Gas', 'Support Activities for Coal Mining', \
+                'Support Activities for Metal Mining', 'Support Activities for Nonmetallic Minerals']
+        sector_estimates_T = sector_estimates_T[cols]
+        print('sector_estimates_T :\n', sector_estimates_T)
+        return sector_estimates_T
+
+    @staticmethod
+    def preliminary_sector_estimates():
+        pass
+
+    def mining_data_1987_2017(self):
         """ For updating estimates, cost of purchased fuels from the Economic
         Census and aggregate (annual) fuel prices from EIA (Monthly Energy Review). Output data (gross output
         and value added) derived from the Bureau of Economic Analysis (through spreadsheet
@@ -300,13 +426,19 @@ class NonManufacturing:
         mining_1997 = 'http://www.census.gov/prod/www/abs/ec1997mining-ind.html'  # extract Table 3 and Table 7
         mining_1992 = 'http://www.census.gov/prod/1/manmin/92mmi/92minif.html'   # extract Table 3 and Table 7
         """ 
-        mining_2017 = pd.read_fwf('') # from economic census
-        mining_2017 = mining_2017.apply(lambda column: self.price_ratios(column))
+        mining_1987_2017 = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mining_sector_estimates_historical.csv') # from economic census
+        # mining_1987_2017 = mining_1987_2017.apply(lambda column: self.price_ratios(column))
 
-        return {'elec': None, 'fuels': None}
+        sector_estimates_elec = mining_1987_2017[mining_1987_2017['Energy Type'] == 'Electricity'].drop('Energy Type', axis=1)
+        sector_estimates_elec = self.aggregate_sector_estimates(sector_estimates_elec)
+
+        sector_estimates_fuels = mining_1987_2017[mining_1987_2017['Energy Type'] == 'Fuels'].drop('Energy Type', axis=1)
+        sector_estimates_fuels = self.aggregate_sector_estimates(sector_estimates_fuels)
+        # preliminary_sector_estimates should create this method to automatically update for future years 
+        return {'elec': sector_estimates_elec, 'fuels': sector_estimates_fuels}
     
     def mining_sector_estimates(self):
-
+        """Calculate electricity and fuels sector estimates for mining"""
         data_1987_2017 = self.mining_data_1987_2017()
         elec = data_1987_2017['elec']
         fuels = data_1987_2017['fuels']
@@ -314,34 +446,34 @@ class NonManufacturing:
         sector_estimates_elec = elec.transpose().multiply(0.000001 * 3412)
         sector_estimates_fuels = fuels.transpose()
         return sector_estimates_elec, sector_estimates_fuels
-
+    
     def mining(self):
-           
+        """Collect mining data"""
         # Mining energy_031020.xlsx/Compute_intensities (FF-FN, FQ-FS)
-
-        BLS_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/BLS_Data_011920.csv').transpose().rename(columns={'': 'year'})
-        BLS_output_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/BLS Output data 1972-2018.csv')
-        BEA_mining_data = self.BEA_data[['Oil and Gas Extraction', 'Mining, except oil and gas', 'Support Activities for Mining']]
         NEA_data_elec = self.aggregate_mining_data(self.ELECNEA_historical) 
+
         NEA_data_fuels = self.aggregate_mining_data(self.ALLFOS_historical) 
-        sector_estimates = []
+        va_quant_index, go_quant_index = self.BEA_data.chain_qty_indexes() # Historical and current data
+
+        sector_estimates = self.mining_sector_estimates()
+        BLS_data = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/BLS_BEA_Data.xlsx', sheet_name='BLS_Data_011920')
+        print('BLS_data:\n', BLS_data)
+        BLS_data = BLS_data.transpose()
+        print('BLS_data transpose:\n', BLS_data)
+        print('go_quant_index columns:\n', go_quant_index.columns)
+        BEA_mining_data = go_quant_index[['Oil and gas extraction', 'Mining, except oil and gas', 'Support activities for mining']]
+        bea_bls_output = BEA_mining_data.merge(BLS_data, how='outer', left_index=True, right_index=True)
+        print('bea_bls_output:\n', bea_bls_output)
+        print("BEA_mining_data:\n", BEA_mining_data)
+
+        exit()
 
         data_dict = {'crude_petroleum_natgas': self.crude_petroleum_natgas(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates),
                      'other_mining': self.other_mining(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates), 
-                     'drilling_and_mining_support': self.drilling_and_mining_support(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates)}
+                     'drilling_and_mining_support': self.drilling_and_mining_support(bea_bls_output, NEA_data_elec, NEA_data_fuels)}
         
         return data_dict
 
-    def propane(self):
-        """http://www.eia.gov/totalenergy/data/annual/index.cfm
-        """
-        pass
-
-    def bureau_labor_statistics_industry_output(self):
-        """https://www.bls.gov/emp/data/industry-out-and-emp.htm
-        """ 
-        pass
-    
     def nonmanufacturing_data(self):
         """Collect all nonmanufacturing data
         """        
@@ -349,11 +481,14 @@ class NonManufacturing:
         # Agriculutral_energy_010420.xlsx/Intensity_estimates (Y-AB)
         # Mining energy_031020.xlsx/Compute_intensities (FQ-FS)
         # Construction_energy_011920.xlsx/Intensity_estimates (W-Z)
-        data_dict = {'Agriculture': self.agriculture(), 'Mining': self.mining(), 
-                     'Construction': self.construction()}
+        data_dict = {'Mining': self.mining(), 'Agriculture': self.agriculture(), 'Construction': self.construction()}
         return data_dict              
 
 if __name__ == '__main__':
     print('main')
     data = NonManufacturing().get_econ_census()
     print(data)
+
+
+
+# 'Mining', 'Mining, except oil and gas', 'Support activities for mining', 'Nonmetallic mineral products', 'Oil and gas extraction','Petroleum and coal products', 'Primary metals'

@@ -56,12 +56,16 @@ class IndustrialIndicators(CalculateLMDI):
         pass
 
     def manufacturing(self):
+        """Gather manufacturing data
+        """
         manufacturing_data = Manufacturing().manufacturing()
         print('manufacturing_data: \n', manufacturing_data)
         return manufacturing_data
     
     def non_manufacturing(self):
-        """Primary Data Sources: Economic Census (previously the Census of Manufactures, Census of Agriculture, and Census of Mining)
+        """Gather non-manufacturing data
+        
+        Primary Data Sources: Economic Census (previously the Census of Manufactures, Census of Agriculture, and Census of Mining)
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
@@ -71,8 +75,13 @@ class IndustrialIndicators(CalculateLMDI):
         return non_manufacturing_data
         
     def collect_data(self):
+        """Gather all input data for decomposition of the energy use in the
+        Industrial sector
+        """
         man = self.manufacturing()
+
         non_man = self.non_manufacturing()
+
         data_dict = {'Manufacturing': man, 'Nonmanufacturing': non_man}
         return data_dict
 
@@ -80,17 +89,21 @@ class IndustrialIndicators(CalculateLMDI):
         util_adj_categories = ['Fuels', 'Delivered Electricity', 'Source Electricity', 'Total Source']  # This case is quite different from the others
         return util_adj_categories
 
-    def main(self, breakout, save_breakout, calculate_lmdi):
+    def main(self, breakout, calculate_lmdi):
+        """Calculate decomposition for the Industrial sector
+        """
+        
         unit_conversion_factor = 1
 
         data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, save_breakout=save_breakout, 
-                                                               calculate_lmdi=calculate_lmdi, raw_data=data_dict,
-                                                               lmdi_type='LMDI-I')
+                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
+                                                               raw_data=data_dict, lmdi_type='LMDI-I')
         return formatted_results
 
 if __name__ == '__main__': 
     print('os.getcwd()', os.getcwd())
-    indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='Manufacturing')
-    indicators.main(breakout=True, save_breakout=False, calculate_lmdi=True)  
+    indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+                                      output_directory='./Results',
+                                      level_of_aggregation='Manufacturing')
+    indicators.main(breakout=True, calculate_lmdi=True)  

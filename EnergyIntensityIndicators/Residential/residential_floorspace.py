@@ -85,47 +85,36 @@ class ResidentialFloorspace:
         return pivot_census_division        
 
     def get_ahs_tables(self):
-        #  historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
-        # #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
-        #  for year in list(historical_ahs['Years']):
-        #     print('AHS Year:', year)
-        #     df = historical_ahs[historical_ahs['Years'] == year]
-        #     regions = ['National', 'West', 'Northeast', 'South', 'Midwest']
-        #     for region in regions: 
-        #         print('AHS region:', region)
-        #         columns_ = [c for c in list(range(df.shape[1])) if df.iloc[1, [c]].values == region]
-        #         print('columns:', columns_)
-        #         # try: 
-        #         region_df = df[df.ix[:, columns_]] 
-        #         print(region_df)
-        #         # except Exception as e:
-        #         #     print('Error:', e)
-
-        #     #     try: 
-        #     #         regi
-        #     #         region_df = 
-        #     #         print(region_df)
-
-        #     #         # print(region_df)
-
-
+        """Collect AHS historical tables"""
+        historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
+        #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
+        for year in list(historical_ahs['Years']):
+            print('AHS Year:', year)
+            df = historical_ahs[historical_ahs['Years'] == year]
+            regions = ['National', 'West', 'Northeast', 'South', 'Midwest']
+            for region in regions: 
+                print('AHS region:', region)
+                columns_ = [c for c in list(range(df.shape[1])) if df.iloc[1, [c]].values == region]
+                print('columns:', columns_)
+                region_df = df[df.ix[:, columns_]] 
+                print(region_df)
         pass
 
     @staticmethod
     def get_percent_remaining_surviving(factor, lifetime, gamma):
+        """Calculate percent remaining surviving based (of a housing unit)
+        """
         return 1 / (1 + (factor / lifetime) ** gamma)   
 
     @staticmethod
     def interpolate_with_avg(dataframe, columns, even=True):
-        """[summary]
+        """Use average to interpolate dataframe
 
-        Args:
+        Parameters:
             dataframe (df): dataframe with year index 
             columns (list): names of columns to interpolate with average
             even (bool): whether the years to fill are even (or odd if False)
 
-        Returns:
-            [type]: [description]
         """ 
         if even:
             years_to_fill = [year for year in dataframe.index if year % 2 == 0]
@@ -142,24 +131,15 @@ class ResidentialFloorspace:
                      
     @staticmethod
     def get_place_nsa_all():
+        """Scrape placement data for manufactured homes"""
         years = list(range(1994, 2013 + 1))
         for year in years:
             url = f'http://www2.census.gov/programs-surveys/mhs/tables/{str(year)}/stplace{str(year)[-2:]}.xls'
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
-    
+        
     @staticmethod
     def housing_stock_model(year_array, new_comps_ann, pub_total_0, elasticity_of_retirements, coeffs, full_data=False, retirement=False):
-        """[summary]
-
-        Args:
-            year_array (array): [description]
-            new_comps_ann (array): New annual completed housing
-            actual_stock (array): [description]
-
-            coeffs (array): constant_adjustment, fraction_of_retirements, fixed_value
-
-        Returns:
-            [type]: [description]
+        """Calculate housing stock using provided coefficients
         """          
         for index_, year_ in enumerate(year_array):
             if index_ == 0: 
@@ -192,11 +172,15 @@ class ResidentialFloorspace:
             return predicted_total_stock_series_skip
 
     def residuals_avg_size_sf(self, coeffs, actual_size, input_data):
+        """Calculate residuals, for use in optimization of single-family housing avg size model"""
         residuals = actual_size - self.model_average_housing_unit_size_sf(coeffs, input_data).values
         return residuals
     
     @staticmethod
     def model_average_housing_unit_size_sf(coeffs, df):
+        """Model of single-family housing avg size
+        """
+
         # year_array = np.array(df.index)
         # for y in year_array:
         #     if y == 1985: 
@@ -214,16 +198,13 @@ class ResidentialFloorspace:
         df['total_sqft_pre_1985'] = df['BM'].multiply(df['BN'].values)  # BO
         df['total_sqft_post_1985'] = df['post_1984_units'].multiply(df['avg_size_post84_units']).multiply(coeffs[2]).multiply(1.15) # BQ
         df['predicted_avg_size'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divide(df['BL'].values)
-        return df[['predicted_avg_size']]
+        return df['predicted_avg_size']
 
     def get_housing_size_sf(self, df): 
-        """[summary]
+        """Optimize prediction of average housing stock for single-family homes
 
         Args:
             df (dataframe): Dataframe containing column 'occupied_predicted' (predicted number housing units)
-
-        Returns:
-            [type]: [description]
         """        
         # CSV for 3 average housing size columns
         if self.end_year > max(df.index) or not os.path.exists(f'./EnergyIntensityIndicators/Residential/resuts_{self.end_year}.csv'):
@@ -259,36 +240,51 @@ class ResidentialFloorspace:
                     df.loc[year, ['BI']] = df.loc[year - 1, ['BI']].add(df.loc[year, ['BH']].values)
                     df.loc[year, ['post_1984_units']] =  df.loc[year - 1, ['post_1984_units']].add(df.loc[year, ['new_comps_ann']].values)  # BJ
             
-            df['avg_size_post84_units'] = df['BI'].divide(df['post_1984_units'])  # BK
+            df['avg_size_post84_units'] = df['BI'].divide(df['post_1984_units'].values)  # BK
             
-            # saved_coeffs = pd.read_cs('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
-            #                                                 # each entry is list of saved coefficients
-            # if max(df.index) not in saved_coeffs['Years']:
-            # try:
-            #     x, flag = leastsq(self.residuals_avg_size_sf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
-            #     # save tp saved_coeffs
-            # except RuntimeWarning:
-            #     print('Warning, optimization timed out, using excel Solver historical coefficients') # should log
-            #     x = x0
-            # else:
-            # x = saved_coeffs.loc[max(df.index), ['sf']] # read coeffs from saved_coeffs
-            results = self.model_average_housing_unit_size_sf(x0, df)
+            if os.path.exists('./saved_coeffs.csv'):
+                saved_coeffs = pd.read_csv('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
+                                                                 # each entry is list of saved coefficients
+                print('saved_coeffs: \n', saved_coeffs)
 
-        else:
-            resuts = pd.read_csv(f'./EnergyIntensityIndicators/Residential/resuts_{self.end_year}.csv')
-        return results
+                try:
+                    x = saved_coeffs[(saved_coeffs['Years'] == max(df.index)) & (saved_coeffs['housing_type'] == 'sf')]
+                    x = x.drop(['Years', 'housing_type'], axis=1).drop_duplicates().values[0]
+                    print('sf x:', x)
+                except Exception as e:
+                    print('sf failed with error', e)
+                    try:
+                        x, flag = leastsq(self.residuals_avg_size_sf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
+                        print('flag sf:', flag)
+                    except RuntimeWarning:
+                        print('Warning, optimization timed out, using excel Solver historical coefficients') # should log
+                        x = x0
 
-    
+            else:
+                print("os.getcwd() in single-family:", os.getcwd())
+                x = x0
+
+            df_data = [[max(df.index), 'sf'] + list(x)]
+            print('df_data', df_data)
+            print("type(x):", type(x))
+            print('x:', x)
+
+            coeffs_df = pd.DataFrame(data=df_data, columns=['Years', 'housing_type', 'x1', 'x2', 'x3'], index=[0])
+            print('coeffs df:\n', coeffs_df)
+            coeffs_df.to_csv('./saved_coeffs.csv', mode='a', index=False, header=False)
+
+            results = self.model_average_housing_unit_size_sf(x, df)
+
+            return results
+
     def get_housing_size_mf(self, retirement_df, occupied_predicted_mf1):
-        """[summary]
+        """Optimize prediction of average housing stock for multi-family homes
 
-        Args:
+        Parameters:
             new_comps_ann (series): [description]
             coeffs (list): [CM$5, $CM$6, $CM$7]
             df (dataframe): Input data, df contains 'occupied_predicted_mf' and 'retirements' columns (from housing stock mf)
 
-        Returns:
-            [type]: [description]
         """        
     #     # just_adjustment = 0.75
         df = retirement_df.reindex(columns=list(retirement_df.columns) + ['BJ', 'BM', 'CB', 'final', 'Predicted-II'])
@@ -347,16 +343,46 @@ class ResidentialFloorspace:
         df['CB'] = df['CB'].ffill()
 
         x0 = [567.081097939713, -22.7744777937053, 2.44216497607253]
-        # x, flag = leastsq(self.residuals_avg_size_mf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
-        results = self.average_housing_unit_size_mf(x0, df)
+        print('df mf:\n', df)
+        
+        if os.path.exists('./saved_coeffs.csv'):
+            saved_coeffs = pd.read_csv('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
+                                                                # each entry is list of saved coefficients
+            try:
+                x = saved_coeffs[(saved_coeffs['Years'] == max(df.index)) & (saved_coeffs['housing_type'] == 'mf')]
+                x = x.drop(['Years', 'housing_type'], axis=1).drop_duplicates().values[0]
+                print('x:', x)
+            except Exception as e:
+                print(f'mf failed with error {e}')
+                try:
+                    x, flag = leastsq(self.residuals_avg_size_mf, x0, args=(df['actual_avg_size'], df), maxfev=1600)
+                    print('flag mf:', flag)
+                except RuntimeWarning:
+                    print('Warning, optimization timed out, using excel Solver historical coefficients') # should log
+                    x = x0
+
+        else:
+            print("os.getcwd() in multifamily:", os.getcwd())
+            x = x0
+
+        df_data = [[max(df.index), 'mf'] + list(x)]
+        print('df_data', df_data)
+        print(type(x))
+        coeffs_df = pd.DataFrame(data=df_data, columns=['Years', 'housing_type', 'x1', 'x2', 'x3'])
+        coeffs_df.to_csv('./saved_coeffs.csv', mode='a', index=False, header=False)
+
+        results = self.average_housing_unit_size_mf(x, df)
 
         return results
 
     def residuals_avg_size_mf(self, coeffs, actual_size, input_data):
+        """Residuals of avg housing size model for multi-family homes"""
         residuals = actual_size - self.average_housing_unit_size_mf(coeffs, input_data).values
         return residuals
 
     def average_housing_unit_size_mf(self, coeffs, df):
+        """Model of avg housing size model for multi-family homes"""
+
         year_1997_value = coeffs[0]
         index_year = 1997
 
@@ -376,11 +402,13 @@ class ResidentialFloorspace:
         df.loc[list(range(1985, 1999 + 1)), ['final']] = df.loc[list(range(1985, 1999 + 1)), ['Predicted-II']].values
         df.loc[list(range(2000, max(df.index) + 1)), ['final']] = df.loc[list(range(2000, max(df.index) + 1)), ['Ave Size Predicted']].values
 
-        return df[['final']]
+        return df['final']
 
     @staticmethod
     def model_average_housing_unit_size_mh():
-        """recs_data from  D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)
+        """Avg housing size model for manufactured homes
+
+        recs_data from  D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)
            ratio_80_70 from D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
            ratio_80_74 from D:\Supporting_Sheets_SRB\[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
            recs_data[2015] = 1191.2 from RECS_4_adj
@@ -415,15 +443,18 @@ class ResidentialFloorspace:
         return recs_based
     
     def residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
+        """"Calculate squared resiudals from the housing stock model"""
         residuals = actual_stock - self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, coeffs, full_data=False)
         return residuals
 
     def sum_squared_residuals(self, coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements):
+        """Calculate residuals for the housing stock model"""
         residuals_ = self.residuals(coeffs, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
         residuals_sq = [r**2 for r in residuals_]
         return sum(residuals_sq)
 
     def get_housing_stock_sf(self):
+        """Get housing stock for single family units"""
         factor = 0.95
         use_columns = "C"
         actual_stock = [60607+4514, 61775+5496, 63587+5703, 63646+6156, 64283+6079, 66189+6213, 68109+6778, 70355+8027, 73427+8428, 74916+7227, 
@@ -447,36 +478,7 @@ class ResidentialFloorspace:
 
         x, flag = leastsq(self.residuals, x0, args=(actual_stock, year_array, ca, pub_total, elasticity_of_retirements), maxfev=1600)
 
-        # result = least_squares(self.residuals, x0, meht)
-        # x =  result.x
-        # success = result.success
-        # residuals = result.fun
-
-        # = curve_fit(self.residuals, )
-
-        # print('X0:', x0)
-        # print('X: ', x)
-        # print('flag: ', flag)
-        # ssr_x0 = self.sum_squared_residuals(x0, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
-        # ssr_x = self.sum_squared_residuals(x, actual_stock, year_array, ca, pub_total, elasticity_of_retirements)
-        # print('ssr_x0:', ssr_x0)
-        # print('ssr_x:', ssr_x)
-        # print(ssr_x < ssr_x0)
-
-        # predicted_total_stock_pnnl = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x0, full_data=True)  
-
         predicted_total_stock = self.housing_stock_model(year_array, ca, pub_total, elasticity_of_retirements, x, full_data=True)  
-        # residuals = self.residuals(x0, actual_stock=actual_stock , year_array=year_array, ca=ca , pub_total=pub_total , elasticity_of_retirements=elasticity_of_retirements)
-        # plt.style.use('seaborn-darkgrid')
-        # palette = plt.get_cmap('Set1')
-        # plt.plot(year_array[0::2], predicted_total_stock[0::2], marker='', color=palette(1), linewidth=1, alpha=0.9, label='SciPy Prediction')
-        # plt.plot(year_array[0::2], predicted_total_stock_pnnl[0::2], marker='', color=palette(2), linewidth=1, alpha=0.9, label='Solver Prediction')
-        # plt.plot(year_array[0::2], actual_stock, marker='', color=palette(3), linewidth=1, alpha=0.9, label='Actual Stock')
-        # plt.title('A Comparison of Optimization Software Results', fontsize=12, fontweight=0)
-        # plt.xlabel('Year')
-        # plt.ylabel('Housing Stock')
-        # plt.legend(loc=2, ncol=2)
-        # plt.show()
 
         occupied_published = [55076+4102, 56559+4820, 58242+4962, 57485+5442, 58918+5375, 60826+5545, 67951, 71499, 74434, 74026, 
                               76147, 77491, 79052, 80526, 80942, 83272, 85790]  # different_sources
@@ -503,13 +505,10 @@ class ResidentialFloorspace:
         return actual_stock, occupied_published, occupied_predicted, occupied_predicted_df
 
     def get_housing_stock_mf(self, all_stock_sf, occupied_pub_sf):
-        """Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)
+        """Get housing stock for multi-family units
+        
+        Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)
 
-        Args:
-            all_stock_sf ([type]): [description]
-
-        Returns:
-            [type]: [description]
         """        
         factor = 0.96
         use_columns = "D:E"
@@ -580,6 +579,7 @@ class ResidentialFloorspace:
         return df[['occupied_predicted']], df[['predicted_retirement']]
 
     def get_housing_stock_mh(self, all_stock_sf, occupied_pub_sf):
+        """Get housing stock for manufactured housing units"""
 
         # new_comps_ann =   pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/placensa_all.xls', sheet_name='histplac', skiprows= , usecols=)# Added (place_nsa_all)
         # NEED TO PROCESS 
@@ -662,16 +662,18 @@ class ResidentialFloorspace:
         """
         actual_stock_sf, occupied_sf, occupied_predicted_sf, occupied_predicted_df_sf = self.get_housing_stock_sf()
         a = self.get_housing_size_sf(df=occupied_predicted_df_sf).rename(columns={'predicted_avg_size': 'avg_size_sqft_sf'})
+        a = a.to_frame(name='avg_size_sqft_sf')
 
         occupied_predicted, occupied_predicted_df = self.get_housing_stock_mh(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
         c = self.model_average_housing_unit_size_mh().rename(columns={'manh_size': 'avg_size_sqft_mh'})
+        # c = c.to_frame(name='avg_size_sqft_mh')
 
         occupied_predicted_mf, predicted_retirements = self.get_housing_stock_mf(all_stock_sf=actual_stock_sf, occupied_pub_sf=occupied_sf)
         occupied_predicted_mf1 = occupied_predicted_mf.loc[min(occupied_predicted_mf.index)]
         occupied_predicted_mf = occupied_predicted_mf.rename(columns={'occupied_predicted': 'occupied_units_mf'})
 
         b = self.get_housing_size_mf(retirement_df=predicted_retirements, occupied_predicted_mf1=occupied_predicted_mf1).rename(columns={'final': 'avg_size_sqft_mf'}) # NEED TO FILL IN AHS TABLES
-
+        b.name = 'avg_size_sqft_mf'
         occupied_predicted_df = occupied_predicted_df.rename(columns={'occupied_predicted_mh': 'occupied_units_mh'})
         occupied_predicted_df_sf = occupied_predicted_df_sf.rename(columns={'occupied_predicted': 'occupied_units_sf'})
 
@@ -679,11 +681,16 @@ class ResidentialFloorspace:
         number_occupied_units_national = number_occupied_units_national.merge(occupied_predicted_mf, left_index=True, right_index=True, how='outer')
 
         average_size_national = a.merge(c, left_index=True, right_index=True, how='outer')
+        print('average_size_national:\n', average_size_national)
+        print('type(average_size_national):\n', type(average_size_national))
+
         average_size_national = average_size_national.merge(b, left_index=True, right_index=True, how='outer')
         
         return number_occupied_units_national, average_size_national
 
     def final_floorspace_estimates(self):
+        """Collect final floorspace estimates for the residential sector"""
+
         try: 
             os.chdir('./EnergyIntensityIndicators/Residential') # 
             cwd_changed = True
@@ -792,149 +799,11 @@ class ResidentialFloorspace:
             os.chdir('..')
         return final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions
         
-
-    @staticmethod
-    def weighted_floorspace():
-        energy_types = ['Electricity', 'Fuels', 'Delivered', 'Source']
-        constant_electricity_factor = 3.2
-
-    @staticmethod
-    def get_census_bureau_manufactured_housing_survey():
-        """[summary]
-        Annual data for the most current years were not found on the Census Bureau website.
-        Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
-        worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
-        2014 through 2018 on these worksheets and the annual values appended to the existing data in the
-        place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
-        Bureau for the most recent years but was not found as part of the 2020 update work.)
-        """
-        pass    
-
     def main(self):
         data = ResidentialFloorspace()
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = data.final_floorspace_estimates()
-        # pivot_census_division = data.update_ahs_data()
-        # print(pivot_census_division)
 
 
 if __name__ == '__main__':
     ResidentialFloorspace().main()
 
-
-
-
-
-
-
-# for index_, year_ in enumerate(year_array):
-#             if index_ == 0: 
-#                 bi = column_bh[index_]
-#                 column_bi = np.array([bi])
-
-#                 post_1984_units = new_comps_ann[_index]
-#                 post_1984_units_series = np.array([post_1984_units])
-
-#                 pre_1985_stock = occupied_predicted[index_]
-#                 pre_85_stock_series = np.array([pre_1985_stock])
-
-#                 bl = pre_1985_stock
-#             else:
-#                 bi =  column_bh[index_] + column_bi[index_ - 1]
-#                 column_bi = np.vstack([column_bi, bi])
-
-#                 post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
-#                 post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
-
-#                 pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
-#                 pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
-
-#                 bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
-
-#             ave_size_post_84_units = bi / post_1984_units
-            
-#             if index_ == select_index:
-#                 predicted_size_pre_1985_stock = coeffs[0]
-#             else: 
-#                 predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
-
-#             total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
-#             bp = post_1984_units / (post_1984_units + pre_1985_stock)
-            
-#             total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
-
-#             predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
-
-#             if index_ == 0:
-#                 predicted_ave_size_series = np.array([predicted_ave_size])
-#             else:
-#                 predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
-
-#         predicted_ave_size_series = predicted_ave_size_series.flatten()
-#         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
-
-#         return predicted_ave_size_series_skip
-
-
-
-# ////////////////////////////////////////////////////////////////////////////
-#  @staticmethod
-#     def model_average_housing_unit_size_sf(year_array, new_comps_ann, predicted_retirement, coeffs, x):
-#         """[summary]
-
-#         Args:
-#             year_array ([type]): [description]
-#             new_comps_ann ([type]): [description]
-#             coeffs ([type]): [description]
-#         """                
-#         new_comps_ann_adj = new_comps_ann * x[2]  # here x is the coeffs from occupied units
-#         cnh_avg_size = [0] # SFTotalMedAvgSqFt column G
-#         column_bh = new_comps_ann.multiply(cnh_avg_size)
-#         select_index = 24
-#         for index_, year_ in enumerate(year_array):
-#             if index_ == 0: 
-#                 bi = column_bh[index_]
-#                 column_bi = np.array([bi])
-
-#                 post_1984_units = new_comps_ann[_index]
-#                 post_1984_units_series = np.array([post_1984_units])
-
-#                 pre_1985_stock = occupied_predicted[index_]
-#                 pre_85_stock_series = np.array([pre_1985_stock])
-
-#                 bl = pre_1985_stock
-#             else:
-#                 bi =  column_bh[index_] + column_bi[index_ - 1]
-#                 column_bi = np.vstack([column_bi, bi])
-
-#                 post_1984_units = new_comps_ann[_index] + post_1984_units_series[index_ - 1]
-#                 post_1984_units_series = np.vstack([post_1984_units_series, post_1984_units])
-
-#                 pre_1985_stock = pre_85_stock_series[0] + sum(predicted_retirement[0:index_:])
-#                 pre_85_stock_series = np.vstack([pre_85_stock_series, pre_1985_stock])
-
-#                 bl = (post_1984_units + post_1984_units_series[index_ - 1]) * 0.5 * coeffs[2] + pre_1985_stock
-
-#             ave_size_post_84_units = bi / post_1984_units
-            
-#             if index_ == select_index:
-#                 predicted_size_pre_1985_stock = coeffs[0]
-#             else: 
-#                 predicted_size_pre_1985_stock = coeffs[0] + coeffs[1] * (year_ - year_array[select_index])
-
-#             total_sq_feet_pre_1985 = pre_1985_stock *  predicted_size_pre_1985_stock
-#             bp = post_1984_units / (post_1984_units + pre_1985_stock)
-            
-#             total_sq_feet_post_1985 = post_1984_units * ave_size_post_84_units * coeffs[2] * coeffs[4]
-
-#             predicted_ave_size = (total_sq_feet_pre_1985 + total_sq_feet_post_1985) / bl 
-
-#             if index_ == 0:
-#                 predicted_ave_size_series = np.array([predicted_ave_size])
-#             else:
-#                 predicted_ave_size_series = np.vstack([predicted_ave_size_series, predicted_ave_size])
-
-#         predicted_ave_size_series = predicted_ave_size_series.flatten()
-#         predicted_ave_size_series_skip = predicted_ave_size_series # SLICE
-        
-#         df['predicted'] = (df['total_sqft_pre_1985'].add(df['total_sqft_post_1985'].values)).divde(df['BL'])
-#         return df['predicted']

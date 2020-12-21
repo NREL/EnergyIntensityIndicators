@@ -47,6 +47,7 @@ class ResidentialIndicators(CalculateLMDI):
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
     
     def get_seds(self):
+        """Collect SEDS data"""
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
         total_fuels = self.seds_census_region[0].rename(columns=census_regions)
         elec = self.seds_census_region[1].rename(columns=census_regions)
@@ -63,7 +64,7 @@ class ResidentialIndicators(CalculateLMDI):
         return energy_data
     
     def get_floorspace(self):
-
+        """Collect floorspace data for the Residential sector"""
         residential_data = ResidentialFloorspace(end_year=self.end_year)
         floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = residential_data.final_floorspace_estimates()
 
@@ -92,11 +93,15 @@ class ResidentialIndicators(CalculateLMDI):
         return all_activity
     
     def collect_weather(self, energy_dict, nominal_energy_intensity):
+        """Collect weather data for the Residential Sector"""
         weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
         weather_factors = weather.get_weather(energy_dict, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         return weather_factors
 
     def collect_data(self):
+        """Gather all input data for you in decomposition of 
+        energy use for the Residential sector
+        """
         total_fuels, elec = self.get_seds()
         floorspace = self.get_floorspace()
         activity = self.activity(floorspace)
@@ -134,18 +139,16 @@ class ResidentialIndicators(CalculateLMDI):
 
         return all_data
 
-    def main(self, breakout, save_breakout, calculate_lmdi):
+    def main(self, breakout, calculate_lmdi):
+        """Calculate decomposition for the Residential sector
+        """
         unit_conversion_factor = 1
-
         data_dict = self.collect_data()
 
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, save_breakout=save_breakout, 
-                                                               calculate_lmdi=calculate_lmdi, raw_data=data_dict, 
-                                                               lmdi_type='LMDI-I')
-        formatted_results.to_csv(f"{self.output_directory}/residential_results2.csv")
+                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
+                                                               raw_data=data_dict, lmdi_type='LMDI-I')
 
-        
         return results_dict
 
     # def residential_total_lmdi_utiladj(self, _base_year=None):
@@ -182,8 +185,9 @@ class ResidentialIndicators(CalculateLMDI):
 
 
 if __name__ == '__main__':
-    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='National')
-    indicators.main(breakout=True, save_breakout=False, calculate_lmdi=False)  
+    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+                                       output_directory='./Results', level_of_aggregation='National')
+    indicators.main(breakout=True, calculate_lmdi=False)  
 
 
 

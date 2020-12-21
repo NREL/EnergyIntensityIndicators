@@ -12,13 +12,16 @@ import plotly.express as px
 
 class AdditiveLMDI():
 
-    def __init__(self, energy_data, energy_shares, base_year, end_year, total_label, lmdi_type='LMDI-I'):
+    def __init__(self, output_directory, energy_data, energy_shares,
+                 base_year, end_year, total_label, lmdi_type='LMDI-I'):
+
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.total_label = total_label
         self.lmdi_type = lmdi_type
         self.end_year = end_year
         self.base_year = base_year
+        self.output_directory = output_directory
 
     def log_mean_divisia_weights(self):
         """Calculate log mean weights for the additive model where T=t, 0 = t - 1
@@ -108,6 +111,9 @@ class AdditiveLMDI():
         return L
 
     def calculate_effect(self, ASI):
+        """Calculate effect from changes to activity, structure, 
+        and intensity in the additive model
+        """
 
         ASI['effect'] = ASI.sum(axis=1)
 
@@ -115,17 +121,18 @@ class AdditiveLMDI():
 
     @staticmethod
     def aggregate_additive(additive, base_year):
+        """Aggregate additive data (allows for loop through every year as a base year, if desired)"""
         additive.loc[additive['Year'] <= base_year, ['activity', 'intensity', 'structure', 'effect']] = 0
         additive = additive.set_index('Year')
         df = additive.cumsum(axis=0)
         return df
 
     def decomposition(self, ASI):
-        """Loop through 
+        """Format component data, collect overall effect, return aggregated 
+        dataframe of the results for the additive LMDI model.
         """
         ASI.pop('lower_level_structure', None)
 
-        # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
 
 
@@ -139,15 +146,30 @@ class AdditiveLMDI():
 
         return aggregated_df
     
-    def visualizations(self, data, base_year, end_year, loa, model, energy_type):
+    def visualizations(self, data, base_year, end_year, loa, model, energy_type, rename_dict):
+        """Visualize additive LMDI results in a waterfall chart
+        """
 
-        x_data = ["@filter|Measure|Activity", "@filter|Measure|Intensity",
-                  "@filter|Measure|Structure"]
+        x_data = ["@filter|Measure|Activity"]
+        print('os.getcwd()', os.getcwd())
 
-        figure_labels = []
+        if '@filter|Measure|Structure' in data.columns:
+            x_data.append('@filter|Measure|Structure')
+        else: 
+            for c in data.columns: 
+                if c.endswith('Structure'):
+                    x_data.append(c)
+
+        if "@filter|Measure|Intensity" in data.columns:
+            x_data.append("@filter|Measure|Intensity")
+        else: 
+            for c in data.columns: 
+                if c.endswith('Intensity'):
+                    x_data.append(c)
+
         loa = [l.replace("_", " ") for l in loa]
         final_year = max(data['@timeseries|Year'])
-        title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()}"
+        title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()} {energy_type.capitalize()}"
         # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
         data_base = data[data['@timeseries|Year'] == base_year][x_data]
         data_base['intial_energy'] = self.energy_data.loc[base_year, self.total_label]
@@ -161,23 +183,34 @@ class AdditiveLMDI():
         y_data.loc[:, 'final_energy'] = 0
         print('additive data to plot:\n', y_data)
         y_data = y_data.sum(axis=0).values.tolist()
+        y_labels = [self.format_y_vals(y) for y in y_data]
 
         print('additive data to plot:\n', y_data)
 
         x_labels = ['intial_energy', 'activity', 'intensity', 'structure', 'final_energy']
         x_labels = [x.replace("_", " ").capitalize() for x in x_labels]
         
-        # for example: ["relative", "relative", "total", "relative", "relative", "total"]
-        # measure =  ['total'] + ['relative'] * (len(list(x_labels)) - 2) + ['total']
-        # measure = ['total'] + ['relative'] * (len(list(x_labels)) - 2) + ['total']
         measure = ['relative'] * 4 + ['total']
 
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
-                                     textposition="outside", text=figure_labels, y=y_data, 
+                                     textposition="outside", y=y_data, text=y_labels,
                                      connector={"line":{"color":"rgb(63, 63, 63)"}}))
-                                      #  color_discrete_sequence=px.colors.qualitative.Vivid,
 
         fig.update_layout(title=title, showlegend = True)
-
         fig.show()
-        # fig.save(f"{path}/{title}.png")
+        # fig.write_image(f"{self.output_directory}/{title}.png")
+
+    @staticmethod
+    def format_y_vals(y):
+        """Format y values into appropriate string 
+        labels for use in waterfall chart"""
+
+        if y > 0:
+            sign = "+"
+        elif y < 0:
+            sign = "-"
+        else:
+            return "Total"
+        
+        label = sign + str(round(y, 2))
+        return label

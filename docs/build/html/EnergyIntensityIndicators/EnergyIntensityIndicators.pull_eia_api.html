@@ -84,7 +84,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LMDI/lmdi.html">Core LMDI Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Industry/industry.html">Industrial Sector Data Collection</a></li>
@@ -99,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.weather_factors.html">Weather Factors</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">Results</a></li>
 </ul>
 
             
@@ -177,36 +178,14 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.conversion_factors">
-<code class="sig-name descname">conversion_factors</code><span class="sig-paren">(</span><em class="sig-param">include_utility_sector_efficiency_in_total_energy_intensity=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.conversion_factors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Not sure if this is correct class method use</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>[description]</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>[type]</p>
-</dd>
-</dl>
+<code class="sig-name descname">conversion_factors</code><span class="sig-paren">(</span><em class="sig-param">include_utility_sector_efficiency=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.conversion_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate conversion factors by sector</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.eia_api">
 <code class="sig-name descname">eia_api</code><span class="sig-paren">(</span><em class="sig-param">id_</em>, <em class="sig-param">id_type='category'</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.eia_api" title="Permalink to this definition">¶</a></dt>
-<dd><p>[summary]</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>id</strong> (<em>[</em><em>type</em><em>]</em>) – [description]</p></li>
-<li><p><strong>id_type</strong> (<em>str</em><em>, </em><em>optional</em>) – [description]. Defaults to ‘category’.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>[description]</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>[type]</p>
-</dd>
-</dl>
+<dd><p>Collect data from EIA API by endpoint and type (category or series)</p>
 </dd></dl>
 
 <dl class="method">
@@ -236,8 +215,6 @@ Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
 <dt id="EnergyIntensityIndicators.pull_eia_api.GetEIAData.national_calibration">
 <code class="sig-name descname">national_calibration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_eia_api.GetEIAData.national_calibration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review</p>
-<p>TODO:
-The whole point of this is to reconcile the AER and MER data, so they shouldn’t be the same API endpoint</p>
 </dd></dl>
 
 </dd></dl>

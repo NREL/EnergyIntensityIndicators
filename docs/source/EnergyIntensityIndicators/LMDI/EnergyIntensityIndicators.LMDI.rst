@@ -8,3 +8,9 @@ LMDI
 
    .. toctree::
    EnergyIntensityIndicators.LMDI.CalculateLMDI
+
+
+
+
+
+

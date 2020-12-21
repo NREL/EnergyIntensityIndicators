@@ -33,23 +33,28 @@ class EconomyWide(CalculateLMDI):
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
     def collect_data(self):
+        """Collect data from all sectors"""
         all_data = dict()
-        abbrevs = {'Residential': self.res, 'Commercial': self.comm, 'Industrial': self.ind, 'Transporation': self.trans, 'Elec Power': self.elec}
+        abbrevs = {'Residential': self.res, 'Commercial': self.comm, 'Transporation': self.trans, 'Elec Power': self.elec, 'Industrial': self.ind}
         for sector in self.sub_categories_list.keys():
             abbrev = abbrevs[sector]
             formatted_data = abbrev.collect_data()
             all_data[sector] = formatted_data
         return all_data
 
-    def main(self, breakout, save_breakout, calculate_lmdi):
+    def main(self, breakout, calculate_lmdi):
+        """Calculate decomposition of energy use for the US economy"""
         """TODO: allow for different sectors to have different types of energy and commercial and residential to have weather adjustment
 
         """        
         data_dict = self.collect_data()
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, breakout=breakout, save_breakout=save_breakout, calculate_lmdi=calculate_lmdi, raw_data=data_dict)
-        formatted_results.to_csv(self.output_directory + './economy_wide.csv', index=False)
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
+                                                               raw_data=data_dict)
+        print(formatted_results)
         return results_dict 
 
 if __name__ == '__main__':
-    indicators = EconomyWide(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', output_directory='C:/Users/irabidea/Desktop/LMDI_Results', level_of_aggregation='All_Residential')
-    indicators.main(breakout=False, save_breakout=False, calculate_lmdi=False)  
+    indicators = EconomyWide(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+                             output_directory='./Results', level_of_aggregation='All_Residential')
+    indicators.main(breakout=False, calculate_lmdi=False)  

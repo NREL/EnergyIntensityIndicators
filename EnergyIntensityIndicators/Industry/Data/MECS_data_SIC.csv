@@ -1,0 +1,142 @@
+﻿NAICS,Value,Year,Variable
+311,2472.091068,1985,Calc. Cost of Fuels
+312,176.6818195,1985,Calc. Cost of Fuels
+313,631.2240063,1985,Calc. Cost of Fuels
+314,0,1985,Calc. Cost of Fuels
+315,84.31280989,1985,Calc. Cost of Fuels
+316,40.07406947,1985,Calc. Cost of Fuels
+321,282.111318,1985,Calc. Cost of Fuels
+322,2919.999684,1985,Calc. Cost of Fuels
+323,180.4170339,1985,Calc. Cost of Fuels
+324,2413.492469,1985,Calc. Cost of Fuels
+325,4469.001297,1985,Calc. Cost of Fuels
+326,528.8538081,1985,Calc. Cost of Fuels
+327,2480.18628,1985,Calc. Cost of Fuels
+331,4826.030882,1985,Calc. Cost of Fuels
+332,1000.686037,1985,Calc. Cost of Fuels
+333,512.4736062,1985,Calc. Cost of Fuels
+334,218.3184369,1985,Calc. Cost of Fuels
+335,312.9734876,1985,Calc. Cost of Fuels
+336,921.855578,1985,Calc. Cost of Fuels
+337,120.877737,1985,Calc. Cost of Fuels
+339,129.1488065,1985,Calc. Cost of Fuels
+311,1912.234873,1988,Calc. Cost of Fuels
+312,159.1154415,1988,Calc. Cost of Fuels
+313,482.7311087,1988,Calc. Cost of Fuels
+314,0,1988,Calc. Cost of Fuels
+315,120.323448,1988,Calc. Cost of Fuels
+316,34.33703495,1988,Calc. Cost of Fuels
+321,265.3735261,1988,Calc. Cost of Fuels
+322,2108.123592,1988,Calc. Cost of Fuels
+323,217.2107244,1988,Calc. Cost of Fuels
+324,1780.662115,1988,Calc. Cost of Fuels
+325,3761.373629,1988,Calc. Cost of Fuels
+326,453.6025525,1988,Calc. Cost of Fuels
+327,1952.198135,1988,Calc. Cost of Fuels
+331,4319.214796,1988,Calc. Cost of Fuels
+332,867.8186616,1988,Calc. Cost of Fuels
+333,465.6908013,1988,Calc. Cost of Fuels
+334,187.7842319,1988,Calc. Cost of Fuels
+335,240.9814154,1988,Calc. Cost of Fuels
+336,745.4430846,1988,Calc. Cost of Fuels
+337,123.9363229,1988,Calc. Cost of Fuels
+339,156.5453829,1988,Calc. Cost of Fuels
+311,1726.965978,1991,Calc Fuels
+312,151.6993378,1991,Calc Fuels
+313,496.1498884,1991,Calc Fuels
+314,0,1991,Calc Fuels
+315,87.13083777,1991,Calc Fuels
+316,26.01090062,1991,Calc Fuels
+321,248.4480135,1991,Calc Fuels
+322,2265.140317,1991,Calc Fuels
+323,192.4948175,1991,Calc Fuels
+324,1914.523438,1991,Calc Fuels
+325,3618.218508,1991,Calc Fuels
+326,372.4401494,1991,Calc Fuels
+327,1577.172587,1991,Calc Fuels
+331,3447.205326,1991,Calc Fuels
+332,715.0879364,1991,Calc Fuels
+333,362.7549165,1991,Calc Fuels
+334,166.4533562,1991,Calc Fuels
+335,197.0846574,1991,Calc Fuels
+336,620.9213199,1991,Calc Fuels
+337,91.7783804,1991,Calc Fuels
+339,129.6993848,1991,Calc Fuels
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,0,,
+,,,
+,,,
+,,,
+,,,
+,Calc Fuels Cost (5 fuels),,
+311,2143.800299,1994,Calc Fuels Cost (5 fuels)
+312,165.9942302,1994,Calc Fuels Cost (5 fuels)
+313,574.0250102,1994,Calc Fuels Cost (5 fuels)
+314,0,1994,Calc Fuels Cost (5 fuels)
+315,116.4562955,1994,Calc Fuels Cost (5 fuels)
+316,22.27633192,1994,Calc Fuels Cost (5 fuels)
+321,328.366317,1994,Calc Fuels Cost (5 fuels)
+322,2515.794924,1994,Calc Fuels Cost (5 fuels)
+323,208.9921169,1994,Calc Fuels Cost (5 fuels)
+324,2002.652906,1994,Calc Fuels Cost (5 fuels)
+325,4778.574629,1994,Calc Fuels Cost (5 fuels)
+326,465.8156397,1994,Calc Fuels Cost (5 fuels)
+327,2169.042019,1994,Calc Fuels Cost (5 fuels)
+331,4708.197986,1994,Calc Fuels Cost (5 fuels)
+332,902.9938294,1994,Calc Fuels Cost (5 fuels)
+333,391.424814,1994,Calc Fuels Cost (5 fuels)
+334,188.1791356,1994,Calc Fuels Cost (5 fuels)
+335,220.9895339,1994,Calc Fuels Cost (5 fuels)
+336,715.6115888,1994,Calc Fuels Cost (5 fuels)
+337,111.1076392,1994,Calc Fuels Cost (5 fuels)
+339,156.5020627,1994,Calc Fuels Cost (5 fuels)
+,,,
+311,3.622728591,1998,calc price 1985
+312,3.321155187,1998,calc price 1986
+313,3.917061644,1998,calc price 1987
+314,3.917061644,1998,calc price 1988
+315,4.977073557,1998,calc price 1989
+316,4.433160388,1998,calc price 1990
+321,2.403391614,1998,calc price 1991
+322,2.531044077,1998,calc price 1992
+323,4.663047406,1998,calc price 1993
+324,3.030594019,1998,calc price 1994
+325,2.566317989,1998,calc price 1995
+326,4.26004209,1998,calc price 1996
+327,3.209727075,1998,calc price 1997
+331,4.588836334,1998,calc price 1998
+332,4.624220448,1998,calc price 1999
+333,4.298052724,1998,calc price 2000
+334,4.115116527,1998,calc price 2001
+335,4.49107185,1998,calc price 2002
+336,4.050605732,1998,calc price 2003
+337,4.456302597,1998,calc price 2004
+339,3.629552042,1998,calc price 2005

@@ -84,7 +84,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="EnergyIntensityIndicators.LMDI.html">LMDI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LMDI/lmdi.html">Core LMDI Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Industry/industry.html">Industrial Sector Data Collection</a></li>
@@ -99,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.weather_factors.html">Weather Factors</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">Results</a></li>
 </ul>
 
             
@@ -173,12 +174,18 @@
 <p>EnergyIntensityIndicators.pull_bea_api.BEA_api</p>
 <dl class="class">
 <dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api">
-<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.pull_bea_api.</code><code class="sig-name descname">BEA_api</code><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.pull_bea_api.</code><code class="sig-name descname">BEA_api</code><span class="sig-paren">(</span><em class="sig-param">years</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>class for calling gross output and quantity index values</p>
 <dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.adjust_transportation">
+<em class="property">static </em><code class="sig-name descname">adjust_transportation</code><span class="sig-paren">(</span><em class="sig-param">qty_index</em>, <em class="sig-param">nominal_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.adjust_transportation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to adjust transportation data in Industrial Sector</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.call_api">
-<code class="sig-name descname">call_api</code><span class="sig-paren">(</span><em class="sig-param">years</em>, <em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.call_api" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">call_api</code><span class="sig-paren">(</span><em class="sig-param">params</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.call_api" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method for calling BEA api for given range of years [min, max]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -198,6 +205,24 @@ BEA API.</p></li>
 </dd></dl>
 
 <dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.chain_qty_indexes">
+<code class="sig-name descname">chain_qty_indexes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.chain_qty_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge historical and api data, manipulate as in ChainQtyIndexes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.collect_go">
+<code class="sig-name descname">collect_go</code><span class="sig-paren">(</span><em class="sig-param">historical_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.collect_go" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to collect gross output data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.collect_va">
+<code class="sig-name descname">collect_va</code><span class="sig-paren">(</span><em class="sig-param">historical_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.collect_va" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to collect value added data</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.format_data">
 <code class="sig-name descname">format_data</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.format_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>format and pivot called data</p>
@@ -205,7 +230,7 @@ BEA API.</p></li>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.get_data">
-<code class="sig-name descname">get_data</code><span class="sig-paren">(</span><em class="sig-param">years</em>, <em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.get_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_data</code><span class="sig-paren">(</span><em class="sig-param">table_name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get data using the BEA API call.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -232,7 +257,39 @@ number to tableID_dict</p></li>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.import_historical">
 <code class="sig-name descname">import_historical</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.import_historical" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method for importing historical BEA data, saved as csv</p>
+<dd><p>Method for importing historical BEA data, saved as csv
+Footnotes: 1. Consists of agriculture, forestry, fishing, and hunting; mining; construction; and manufacturing.
+2. Consists of utilities; wholesale trade; retail trade; transportation and warehousing; information; finance, insurance, real estate, rental, and leasing; professional and business services; educational services, health care, and social assistance; arts, entertainment, recreation, accommodation, and food services; and other services, except government.
+3. Consists of computer and electronic product manufacturing (excluding navigational, measuring, electromedical, and control instruments manufacturing); software publishers; broadcasting and telecommunications; data processing, hosting and related services; internet publishing and broadcasting and web search portals; and computer systems design and related services.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.laspeyres_quantity">
+<em class="property">static </em><code class="sig-name descname">laspeyres_quantity</code><span class="sig-paren">(</span><em class="sig-param">nominal_data</em>, <em class="sig-param">quantity_index</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.laspeyres_quantity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Laspeyres quantity</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.mapping_">
+<code class="sig-name descname">mapping_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.mapping_" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.merge_historical">
+<em class="property">static </em><code class="sig-name descname">merge_historical</code><span class="sig-paren">(</span><em class="sig-param">api_data</em>, <em class="sig-param">historical</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.merge_historical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge all historical data into one dataframe</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.pasche_quantity">
+<em class="property">static </em><code class="sig-name descname">pasche_quantity</code><span class="sig-paren">(</span><em class="sig-param">nominal_data</em>, <em class="sig-param">quantity_index</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.pasche_quantity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Pasche quantity</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.pull_bea_api.BEA_api.transform_data">
+<code class="sig-name descname">transform_data</code><span class="sig-paren">(</span><em class="sig-param">nominal_historical</em>, <em class="sig-param">nominal_from_api</em>, <em class="sig-param">qty_index_historical</em>, <em class="sig-param">qty_index_from_api</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.pull_bea_api.BEA_api.transform_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format data</p>
 </dd></dl>
 
 </dd></dl>

@@ -135,20 +135,22 @@ class BEA_api:
     
     @staticmethod
     def laspeyres_quantity(nominal_data, quantity_index):
+        """Calculate Laspeyres quantity"""
         index = quantity_index.shift().divide(quantity_index).multiply(nominal_data)
         laspeyres = index.sum(axis=1).divide(nominal_data.sum(axis=1))
         return laspeyres
 
     @staticmethod
     def pasche_quantity(nominal_data, quantity_index):
+        """Calculate Pasche quantity"""
         index = (quantity_index.divide(quantity_index.shift())).multiply(nominal_data)
         pasche = nominal_data.sum(axis=1).divide(index.sum(axis=1))
         return pasche
 
     @staticmethod
     def adjust_transportation(qty_index, nominal_data):
-
-        nominal = nominal_data.loc[['Motor Vehicles', 'Other Transportation Equipment'], :].multiply(1000)
+        """Method to adjust transportation data in Industrial Sector"""
+        nominal = nominal_data.loc[:, ['Motor Vehicles', 'Other Transportation Equipment']].multiply(1000)
         nominal_T = nominal.transpose()
         quantity_index = qty_index.loc[['Motor Vehicles', 'Other Transportation Equipment'], :]
         quantity_index_T = quantity_index.transpose()
@@ -177,38 +179,65 @@ class BEA_api:
 
     @staticmethod
     def merge_historical(api_data, historical):
+        """Merge all historical data into one dataframe"""
         if len(api_data) == 1:
             api_data = api_data[0]
         else: 
             raise TypeError(f'list of go_nominal of len {len(api_data)}')
-
+        
+        print('api_data index:', api_data.index)
+        print('historical index:', historical.index)
+        api_data = api_data.set_index(['IndustrYDescription']).drop('Industry', axis=1)
+        print("api_data.columns", api_data.columns)
+        print('api data:\n', api_data)
         min_api_year = min([int(y) for y in api_data.columns])
-        api_data = api_data.loc[:, : min_api_year]
-        data = historical.merge(api_data, left_index=True, right_index=True, how='outer')
+        historical = historical.loc[:, : str(min_api_year - 1)]
+        print('historical:\n', historical)
+        data = historical.merge(api_data, left_index=True, right_index=True, how='inner')
+        data = data.transpose()
+        data.index.name = 'Year'
+        print('data:\n', data)
+        data.index =data.index.astype(int)
+        # data = data.merge(label_to_naics, left_index=True, right_index=True, how='inner')
         return data
     
     def transform_data(self, nominal_historical, nominal_from_api, 
-                      qty_index_historical, qty_index_from_api):
-        
+                       qty_index_historical, qty_index_from_api):
+        """Format data"""
+        print('nominal_from_api :\n', nominal_from_api)
+        print('len(nominal_from_api):', len(nominal_from_api))
+        print('qty_index_from_api :\n', qty_index_from_api)
+        print('len(qty_index_from_api):', len(qty_index_from_api))
+
+        print('nominal_historical:\n', nominal_historical)
+        print('nominal_historical:\n', qty_index_historical)
+
         nominal = self.merge_historical(nominal_from_api, nominal_historical)
+        print('final nominal:\n', nominal)
         qty_index = self.merge_historical(qty_index_from_api, qty_index_historical)
+        print('final qty_index:\n', qty_index)
 
-        nominal_12 = nominal[nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
-        transfrormed_quant_index = qty_index.multiply(nominal_12, index=1).multiply(.01)
+        # nominal_12 = nominal[nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
+        print('nominal index:', nominal.index)
+        cols = [q for q in qty_index.columns if q in nominal.columns]
+        nominal_12  = nominal.loc[2012, cols]
+        print('nominal_12:\n', nominal_12.values.transpose())
+        transformed_quant_index = qty_index.multiply(np.tile(nominal_12.values.transpose(), (len(qty_index), 1))).multiply(.01)
 
-        transfrormed_quant_index = transfrormed_quant_index.transpose()
+        # transformed_quant_index = transformed_quant_index.transpose()
 
-        transportation_qty_index = transfrormed_quant_index.loc['          Transportation equipment', :]
-        transfrormed_quant_index.loc['Transportation equipment', :] = self.adjust_transportation(transportation_qty_index, nominal)
+        # transportation_qty_index = transformed_quant_index.loc[:, 'Transportation equipment']
+        # transformed_quant_index.loc[:, 'Transportation equipment'] = self.adjust_transportation(transportation_qty_index, nominal)
 
-        return transfrormed_quant_index
+        return transformed_quant_index
 
     def collect_va(self, historical_data):
+        """Method to collect value added data"""
         va_nominal = self.get_data(table_name='va_nominal')
         historical_va = historical_data['historical_va'] 
 
         va_quant_index = self.get_data(table_name='va_quant_index')
-        historical_va_qty_index = historical_data['historical_va_qty_index'] 
+        historical_va_qty_index = historical_data['historical_va_quant_index'] 
         
         transformed_va_quant_index = self.transform_data(historical_va, va_nominal, 
                                                          historical_va_qty_index, va_quant_index)
@@ -216,27 +245,43 @@ class BEA_api:
         return transformed_va_quant_index
 
     def collect_go(self, historical_data):
+        """Method to collect gross output data"""
         go_nominal = self.get_data(table_name='go_nominal')
         historical_go = historical_data['historical_go'] 
 
         go_quant_index = self.get_data(table_name='go_quant_index')
-        historical_go_qty_index = historical_data['historical_go_qty_index']
+        historical_go_qty_index = historical_data['historical_go_quant_index']
 
         transformed_go_quant_index = self.transform_data(historical_go,
                                                          go_nominal,
                                                          historical_go_qty_index,
                                                          go_quant_index)
         return transformed_go_quant_index
+    
+    def mapping_(self):
+        api_data = self.get_data(table_name='va_quant_index')
+        api_data = api_data[0]
+        print('api_data:\n', api_data)
+        print('api_data cols', api_data.columns)
+        api_data['NAICS'] = api_data['Industry']
+        api_data = api_data.drop('Industry', axis=1)
+        # label_to_naics = api_data.rename(columns={'Industry': 'NAICS'})
+        print('api_data:\n', api_data)
+        print('api_data cols', api_data.columns)
+        label_to_naics = api_data[['IndustrYDescription', 'NAICS']].set_index('NAICS')
+        return label_to_naics
 
     def chain_qty_indexes(self):
         """Merge historical and api data, manipulate as in ChainQtyIndexes
         """
         historical_data = self.import_historical()
         print('historical_data: \n', historical_data)
-        exit()
 
         go_quant_index = self.collect_va(historical_data)
+        print('go_quant_index: \n', go_quant_index)
+
         va_quant_index = self.collect_go(historical_data)
+        print('va_quant_index: \n', va_quant_index)
 
         # go_over_va = go_quant_index.divide(va_quant_index)
         return va_quant_index, go_quant_index

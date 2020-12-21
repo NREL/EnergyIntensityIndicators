@@ -1,7 +1,7 @@
 NonManufacturing Module
 ========================
 
-.. automodule:: EnergyIntensityIndicators.Industry.nonmanufacturing
+.. automodule:: EnergyIntensityIndicators.Industry.nonmanufacuturing
    :members:
    :undoc-members:
    :show-inheritance:

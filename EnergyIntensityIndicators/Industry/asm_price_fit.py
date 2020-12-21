@@ -9,18 +9,18 @@ from EnergyIntensityIndicators.get_census_data import Econ_census
 
 
 class Mfg_prices:
-    # def __init__(self):
-    #     """
-    #     Class for importing and interpolating historical energy prices for
-    #     the manufacturing sector.
-    #
-    #     Historical Manufacturing Energy Consumption Survey (MECS) data are
-    #     based on prior work from the Pacific Northwest National Laboratory
-    #     (PNNL).
-    #     """
-    #     # Historical MECS data with missing observations estimated
-    #     # ad-hoc by PNNL.
-    #     self.mecs_historical_prices = pd.read_csv('mecs_historical_prices.csv')
+    def __init__(self):
+        """
+        Class for importing and interpolating historical energy prices for
+        the manufacturing sector.
+    
+        Historical Manufacturing Energy Consumption Survey (MECS) data are
+        based on prior work from the Pacific Northwest National Laboratory
+        (PNNL).
+        """
+        # Historical MECS data with missing observations estimated
+        # ad-hoc by PNNL.
+        self.mecs_historical_prices = pd.read_csv('mecs_historical_prices.csv')
 
     @staticmethod
     def import_mecs_historical(file_path):
@@ -107,39 +107,38 @@ class Mfg_prices:
             finally:
                 return
 
-    # @staticmethod
-    # def import_asm_historical(file_path):
-    #     """"
-    #     Prices in $/MMBtu
-    #     """
-    #
-    #
-    # @staticmethod
-    # def get_census_prices(latest_year, start_year=1983):
-    #     """
-    #     Get fuel prices from Census Bureau's Annual Survey of
-    #     Manufacturers and Economic Census (years ending in 2 and 7)
-    #
-    #     Parameters
-    #     ----------
-    #     latest_year : int
-    #         Most recent year of historical LMDI analysis.
-    #
-    #     start_year : int, default 1983
-    #         Beginning year of price data.
-    #
-    #     Returns
-    #     -------
-    #     asm_prices : pandas.Series
-    #         Pandas series of ASM price data from YYYY - latest_year
-    #     """
-    #     year_range = range(start_year, latest_year + 1)
-    #
-    #     asm_prices = pd.DataFrame()
-    #
-    #
-    #
-    #     return asm_prices
+    @staticmethod
+    def import_asm_historical(file_path):
+        """"
+        Prices in $/MMBtu
+        """
+    
+    @staticmethod
+    def get_census_prices(latest_year, start_year=1983):
+        """
+        Get fuel prices from Census Bureau's Annual Survey of
+        Manufacturers and Economic Census (years ending in 2 and 7)
+    
+        Parameters
+        ----------
+        latest_year : int
+            Most recent year of historical LMDI analysis.
+    
+        start_year : int, default 1983
+            Beginning year of price data.
+    
+        Returns
+        -------
+        asm_prices : pandas.Series
+            Pandas series of ASM price data from YYYY - latest_year
+        """
+        year_range = range(start_year, latest_year + 1)
+    
+        asm_prices = pd.DataFrame()
+    
+    
+    
+        return asm_prices
 
 
     @staticmethod
@@ -294,23 +293,21 @@ class Mfg_prices:
 
         return price_df
 
-    # @staticmethod
-    # def interpolate_residuals(predicted_prices, price_df):
-    #     """Interpolate residuals"""
-    #
-    #     price_df_updated = price_df.copy(deep=True)
-    #     price_df_updated['predicted_price'] = predicted_prices
-    #     price_df_updated['residual'] = price_df_updated.mecs.subtract(
-    #         price_df_updated.predicted_price
-    #         )
-    #
-    #     fill = price_df_updated.dropna(subset=['residual'], axis=0).year.diff()
-    #     # fill.fillna(0, inplace=True)
-    #
-    #     price_df_updated['fill'] = fill
-    #
-    #
-    #     return interpolated_resid
-    #
+    def interpolate_residuals(self, predicted_prices, price_df):
+        """Interpolate residuals"""
+    
+        price_df_updated = price_df.copy(deep=True)
+        price_df_updated['predicted_price'] = predicted_prices
+        price_df_updated['residual'] = price_df_updated.mecs.subtract(
+            price_df_updated.predicted_price
+            )
+    
+        fill = price_df_updated.dropna(subset=['residual'], axis=0).year.diff()
+        # fill.fillna(0, inplace=True)
+    
+        price_df_updated['fill'] = fill
+    
+        interpolated_resid = self.resid_filler(price_df)
+        return interpolated_resid
+    
 
-    # Predicted prices are use where? Check documentation to figure out [Search NAICS]

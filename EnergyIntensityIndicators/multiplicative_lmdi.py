@@ -12,13 +12,16 @@ import plotly.express as px
 
 class MultiplicativeLMDI():
 
-    def __init__(self, energy_data=None, energy_shares=None, base_year=None, end_year=None, total_label=None, lmdi_type=None):
+    def __init__(self, output_directory, energy_data=None, energy_shares=None, 
+                 base_year=None, end_year=None, total_label=None, lmdi_type=None):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
         self.base_year = base_year
         self.end_year = end_year
         self.total_label = total_label
         self.lmdi_type = lmdi_type
+        self.output_directory = output_directory
+
 
     def log_mean_divisia_weights(self):
         """Calculate log mean weights where T = t, 0 = t-1
@@ -27,16 +30,19 @@ class MultiplicativeLMDI():
         desirable property in index construction.' (Ang, B.W., 2015. LMDI decomposition approach: A guide for 
                                         implementation. Energy Policy 86, 233-238.).
         """
-
-        log_mean_weights = pd.DataFrame(index=self.energy_data.index)
-        for col in self.energy_shares.columns: 
-            self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-            # apply generally not preferred for row-wise operations but?
-            log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
-                                                          self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
-        sum_log_mean_shares = log_mean_weights.sum(axis=1)
-        log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
-        return log_mean_weights_normalized
+        if self.energy_shares.shape[1] == 1:
+            return self.energy_shares
+        else:
+            log_mean_weights = pd.DataFrame(index=self.energy_data.index)
+            for col in self.energy_shares.columns: 
+                self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
+                print('self.energy_shares[f"{col}_shift"]:\n', self.energy_shares[f"{col}_shift"])
+                # apply generally not preferred for row-wise operations but?
+                log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
+                                                            self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
+            sum_log_mean_shares = log_mean_weights.sum(axis=1)
+            log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
+            return log_mean_weights_normalized
 
     @staticmethod
     def logarithmic_average(x, y):
@@ -62,7 +68,8 @@ class MultiplicativeLMDI():
         return L
     
     def compute_index(self, component, base_year_):
-        """
+        """Compute index of components (indexing to chosen base_year_), 
+        replicating methodology in PNNL spreadsheets for the multiplicative model
         """         
         index = pd.DataFrame(index=component.index, columns=['index'])
         for y in component.index:
@@ -80,6 +87,10 @@ class MultiplicativeLMDI():
         return index_normalized 
 
     def decomposition(self, ASI):
+        """Format component data, collect overall effect, return indexed 
+        dataframe of the results for the multiplicative LMDI model.
+        """
+
         print('ASI:\n', ASI)
         # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
@@ -96,12 +107,28 @@ class MultiplicativeLMDI():
         results["@filter|Measure|BaseYear"] = self.base_year
         return results
 
-    @staticmethod
-    def visualizations(data, base_year, end_year, loa, model, energy_type): # path
+    def visualizations(self, data, base_year, end_year, loa, model, energy_type, rename_dict): 
+        """Visualize multiplicative LMDI results in a line plot 
+        """
+        data = data[data['@timeseries|Year'] >=  base_year]
 
-        lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Intensity",
-                          "@filter|Measure|Structure", "@filter|Measure|Effect"]
+        lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Effect"]  
+        print('os.getcwd()', os.getcwd())
 
+        if '@filter|Measure|Structure' in data.columns:
+            lines_to_plot.append('@filter|Measure|Structure')
+        else: 
+            for c in data.columns: 
+                if c.endswith('Structure'):
+                    lines_to_plot.append(c)
+
+        if "@filter|Measure|Intensity" in data.columns:
+            lines_to_plot.append("@filter|Measure|Intensity")
+        else: 
+            for c in data.columns: 
+                if c.endswith('Intensity'):
+                    lines_to_plot.append(c)
+                          
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
 
@@ -109,12 +136,16 @@ class MultiplicativeLMDI():
             label_ = l.replace("_", " ").capitalize()
             plt.plot(data['@timeseries|Year'], data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
         
-        loa = [l_.replace("_", " ") for l_ in loa]
-        loa = " /".join(loa)
-        title = loa + f" {model.capitalize()}" + f" {energy_type.capitalize()} {base_year}" 
+        loa_ = [l_.replace("_", " ") for l_ in loa]
+        title = " ".join(loa_) + f" {model.capitalize()}" + f" {energy_type.capitalize()} {base_year}" 
+        fig_name = "_".join(loa) + f"{model}_{energy_type}_{base_year}" 
+
         plt.title(title, fontsize=12, fontweight=0)
         plt.xlabel('Year')
         # plt.ylabel('')
         plt.legend(loc=2, ncol=2)
-        plt.show()
-        # plt.save(f"{path}/{title}.png")
+        print(os.getcwd())
+        try:
+            plt.savefig(f"{self.output_directory}/{fig_name}.png")
+        except FileNotFoundError:
+            plt.savefig(f".{self.output_directory}/{fig_name}.png")

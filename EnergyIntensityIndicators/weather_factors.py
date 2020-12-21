@@ -12,7 +12,7 @@ from EnergyIntensityIndicators.Residential.residential_floorspace import Residen
 
 class WeatherFactors: 
     def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, \
-                 end_year=2018):
+                 end_year=2018, projections=False):
         self.end_year = end_year
         self.directory = directory
         self.sector = sector
@@ -20,6 +20,7 @@ class WeatherFactors:
         self.nominal_energy_intensity = nominal_energy_intensity
         self.residential_floorspace = residential_floorspace
         self.eia_data = GetEIAData(self.sector)
+        self.projections = projections
         self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', 
                                          sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 
@@ -85,12 +86,9 @@ class WeatherFactors:
         return weights_dict
 
     def process_prices(self, weather_factors_df):
-        """TODO: Are distributed lag and time cubed ever the desired variable? 
-        Does this method need to exist?
+        """Process price data
         """        
         lmdi_prices = self.lmdi_prices
-        # distributed_lag = 
-        # time_cubed = 
         selected_variable = [1] * len(weather_factors_df)
         return selected_variable
     
@@ -208,13 +206,36 @@ class WeatherFactors:
         weights_df['fuels'] = weights_df['all_energy'].subtract(weights_df['electricity'])
         return weights_df
     
+    @staticmethod
+    def heating_cooling_degree_days(type_day):
+        regions = ['ENC', 'ESC', 'MATL', 'MTN', 'NENGL', 'PCF', 'SATL', 'WNC', 'WSC', 'USA']
+        regions_abbrev_dict = {'ENC': 'east_north_central', 'ESC': 'east_south_central', 'MATL': 'middle_atlantic',
+                               'MTN': 'mountain', 'NENGL': 'new_england', 'PCF': 'pacific', 'SATL': 'south_atlantic',
+                               'WNC': 'west_north_central', 'WSC': 'west_south_central', 'USA': 'National'}
+        dd_data = []
+        for region in regions: 
+            if self.sector == 'residential':
+                standard_id = f'AEO.2020.AEO2019REF.KEI_{t}_RESD_NA_NA_NA_{region}_{type_day}.A'
+            elif self.sector == 'commercial':
+                standard_id = f'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_{region}_{type_day}.A'
+            r_df = self.eia_data.eia_api(id_=standard_id, id_type='series')
+            dd_data.append(r_df)
+        data_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), dd_data)
+        return data_df
+
     def heating_cooling_data(self):
-        try: 
-            hdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_hdd_census_division.csv').set_index('Year')
-            cdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_cdd_census_division.csv').set_index('Year')
-        except FileNotFoundError:
-            hdd_by_division_historical = pd.read_csv('./Data/historical_hdd_census_division.csv').set_index('Year')
-            cdd_by_division_historical = pd.read_csv('./Data/historical_cdd_census_division.csv').set_index('Year')
+        """Collect heating and cooling data (HDD, CDD)"""
+        if not self.projections:
+            try: 
+                hdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_hdd_census_division.csv').set_index('Year')
+                cdd_by_division_historical = pd.read_csv('./EnergyIntensityIndicators/Data/historical_cdd_census_division.csv').set_index('Year')
+            except FileNotFoundError:
+                hdd_by_division_historical = pd.read_csv('./Data/historical_hdd_census_division.csv').set_index('Year')
+                cdd_by_division_historical = pd.read_csv('./Data/historical_cdd_census_division.csv').set_index('Year')
+        else:
+            hdd_by_division_historical = self.heating_cooling_degree_days(type_day='HDD')
+            cdd_by_division_historical = self.heating_cooling_degree_days(type_day='CDD')
+
 
         hdd_by_division = self.eia_data.eia_api(id_='1566347', id_type='category')
         hdd_to_drop = [c for c in list(hdd_by_division.columns) if 'Monthly' in c]
@@ -249,7 +270,7 @@ class WeatherFactors:
     
     @staticmethod
     def use_intersection(data, intersection_):
-        
+        """Return portion of dataframe with intersection_ as index"""
         if isinstance(data, pd.Series): 
             data_new = data.loc[intersection_]
         else:
@@ -322,6 +343,7 @@ class WeatherFactors:
         return normalized_shares
     
     def commercial_estimate_regional_floorspace(self):
+        """Estimate regional floorspace for the commercial sector"""
         regional_shares = self.estimate_regional_shares()
         commercial_floorspace = self.activity_data 
 
@@ -517,6 +539,7 @@ class WeatherFactors:
 
 
     def national_method2_regression_models(self, seds_data, weather_factors):
+        """Second regression model"""
         seds_data, weather_factors = self.ensure_same_indices(seds_data, weather_factors)
         
         weather_adjusted_consumption = seds_data.drop('National', axis=1).multiply(weather_factors.values)
@@ -532,10 +555,11 @@ class WeatherFactors:
             ----------
             data: dataframe
                 dataset to adjust by weather
-            weather_factors: array?
+            energy_type: str
+
             Returns
             -------
-            weather_adjusted_data: dataframe ?
+            weather_adjusted_data: dataframe 
         """
         weather_factors = self.national_method1_fixed_end_use_share_weights(energy_type)
         weather_adjusted_data = data / weather_factors[energy_type]
@@ -543,46 +567,52 @@ class WeatherFactors:
         return weather_adjusted_data
 
     def get_weather(self, energy_dict=None, energy_type=None, energy_df=None, weather_adjust=False, seds_data=None):
+        """Collect weather data by sector (commercial or residential)"""
         if self.sector == 'residential':
             if weather_adjust: 
-                for type, energy_dataframe in energy_dict.items():
-                    weather_adj_energy = self.adjust_for_weather(energy_dataframe, type)
-                    energy_dict[f'{type}_weather_adj'] = weather_adj_energy
+                for type_, energy_dataframe in energy_dict.items():
+                    weather_adj_energy = self.adjust_for_weather(energy_dataframe, type_)
+                    energy_dict[f'{type_}_weather_adj'] = weather_adj_energy
                     return energy_dict
             else: 
                 weather_factors = dict()
-                for type in energy_dict.keys():
-                    weather_factors_t = self.national_method1_fixed_end_use_share_weights(energy_type_=type)
-                    if type == 'electricity': 
-                        type = 'elec'
-                    weather_factors[type] = weather_factors_t
+                for type_ in energy_dict.keys():
+                    weather_factors_t = self.national_method1_fixed_end_use_share_weights(energy_type_=type_)
+                    if type_ == 'electricity': 
+                        type_ = 'elec'
+                    weather_factors[type_] = weather_factors_t
                 return weather_factors
 
         elif self.sector == 'commercial':
             weather_factors = dict()
-            for type in ['electricity', 'fuels']:
-                weather_factors_method1 = self.national_method1_fixed_end_use_share_weights(type)
-                                
+            weather_factors_1 = dict()
+            for type_ in ['electricity', 'fuels']:
+                weather_factors_method1 = self.national_method1_fixed_end_use_share_weights(type_)
+                if not seds_data:
+                    weather_factors_1[type_] = weather_factors_method1
+                    continue               
 
                 early_years = range(min(weather_factors_method1.index), 1969 + 1)
 
-                weather_factors_early = weather_factors_method1.loc[early_years, [f'{type}_weather_factor']]
-                weather = weather_factors_method1.drop(f'{type}_weather_factor', axis=1)
+                weather_factors_early = weather_factors_method1.loc[early_years, [f'{type_}_weather_factor']]
+                weather = weather_factors_method1.drop(f'{type_}_weather_factor', axis=1)
 
-                if type == 'electricity': 
-                    type = 'elec'
+                if type_ == 'electricity': 
+                    type_ = 'elec'
 
-                type_seds = seds_data[type]
+                type_seds = seds_data[type_]
                 weather_factors_method2 = self.national_method2_regression_models(seds_data=type_seds, weather_factors=weather)
-                weather_factors_method2 = weather_factors_method2.rename(columns={'National': f'{type}_weather_factor'})
+                weather_factors_method2 = weather_factors_method2.rename(columns={'National': f'{type_}_weather_factor'})
                 late_years = range(1970, max(weather_factors_method2.index) + 1)
                 weather_factors_late = weather_factors_method2.loc[late_years]
 
                 weather_factors_t = pd.concat([weather_factors_early, weather_factors_late], sort=True)
 
-                weather_factors[type] = weather_factors_t
-
-            return weather_factors
+                weather_factors[type_] = weather_factors_t
+            if not seds_data:
+                return weather_factors_1
+            else:
+                return weather_factors
 
 if __name__ == '__main__':
     pass
