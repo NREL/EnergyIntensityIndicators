@@ -5,7 +5,7 @@
 # from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
-SPHINXPROJ	  = EnergyIntensityIndicators
+SPHINXPROJ	= EnergyIntensityIndicators
 SOURCEDIR     = source
 BUILDDIR      = build
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
