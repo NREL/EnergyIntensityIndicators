@@ -3,7 +3,8 @@ import json
 import requests
 import pandas as pd
 import numpy as np
-from functools import reduce 
+from functools import reduce
+
 
 class GetEIAData:
     def __init__(self, sector):
@@ -11,7 +12,7 @@ class GetEIAData:
 
     def eia_api(self, id_, id_type='category'):
         """Collect data from EIA API by endpoint and type (category or series)
-        """          
+        """
         api_key = os.environ.get("EIA_API_Key")
 
         if id_type == 'category':
@@ -21,15 +22,15 @@ class GetEIAData:
         else:
             eia_data = None
             print('Error: neither series nor category given')
-        
+
         eia_data['Year'] = eia_data['Year'].apply(lambda y: y.strftime('%Y'))
         eia_data = eia_data.set_index('Year').sort_index(ascending=True)
         eia_data = eia_data.replace('NA', np.nan)
         return eia_data
-    
+
     def get_category(self, api_key, id_):
         """Collect categorical data from EIA API by merging data for all child series
-        """        
+        """
         api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
         r = requests.get(api_call)
         data = r.json()
@@ -42,7 +43,7 @@ class GetEIAData:
     @staticmethod
     def get_series(api_key, id_):
         """Collect series data from EIA API, format in dataframe with year as index
-        """        
+        """
         api_call = f'http://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()
@@ -71,9 +72,9 @@ class GetEIAData:
         Used for commercial (ESCCB and TNCCB) and residential (ESCRB and TNRCB)
         './EnergyIntensityIndicators/use_all_btu.csv'
            https://www.eia.gov/state/seds/seds-data-complete.php?sid=US
-        """    
+        """
 
-        consumption_all_btu = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # Commercial: '40210 , residential : '40209 
+        consumption_all_btu = pd.read_csv('https://www.eia.gov/state/seds/sep_use/total/csv/use_all_btu.csv')  # Commercial: '40210 , residential : '40209
                                                                                           # 1960 through 2017 SEDS Data, MSN refers to fuel type
         try:
             state_to_census_region = pd.read_csv('./EnergyIntensityIndicators/Data/state_to_census_region.csv')
@@ -87,7 +88,7 @@ class GetEIAData:
 
         years = list(range(1960, 2018))
         years = [str(year) for year in years]
-        
+
         consumption_census_region = consumption_census_region[['Census Region', 'MSN'] + years]
 
         if self.sector == 'residential':
@@ -96,11 +97,11 @@ class GetEIAData:
 
             consumption_census_region = consumption_census_region.stack().reset_index().rename(columns={'level_2': 'year', 0: 'value'})
 
-            ESRCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'ESRCB'].drop('MSN', axis=1) 
-            ESRCB_by_region = pd.pivot_table(ESRCB_by_region, index='year', columns='Census Region', values='value') 
+            ESRCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'ESRCB'].drop('MSN', axis=1)
+            ESRCB_by_region = pd.pivot_table(ESRCB_by_region, index='year', columns='Census Region', values='value')
 
             TNRCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'TNRCB'].drop('MSN', axis=1)
-            TNRCB_by_region = pd.pivot_table(TNRCB_by_region, index='year', columns='Census Region', values='value')  
+            TNRCB_by_region = pd.pivot_table(TNRCB_by_region, index='year', columns='Census Region', values='value')
 
             elec_to_indicators = ESRCB_by_region[[1, 2, 3, 4]].multiply(0.001)
             elec_to_indicators['National'] = elec_to_indicators.sum(1)
@@ -115,8 +116,8 @@ class GetEIAData:
 
             consumption_census_region = consumption_census_region.stack().reset_index().rename(columns={'level_2': 'year', 0: 'value'})
 
-            ESCCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'ESCCB'].drop('MSN', axis=1) 
-            ESCCB_by_region = pd.pivot_table(ESCCB_by_region, index='year', columns='Census Region', values='value') 
+            ESCCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'ESCCB'].drop('MSN', axis=1)
+            ESCCB_by_region = pd.pivot_table(ESCCB_by_region, index='year', columns='Census Region', values='value')
 
             TNCCB_by_region = consumption_census_region[consumption_census_region['MSN'] == 'TNCCB'].drop('MSN', axis=1)
             TNCCB_by_region = pd.pivot_table(TNCCB_by_region, index='year', columns='Census Region', values='value')
@@ -130,7 +131,7 @@ class GetEIAData:
 
         else:
             return None
-        
+
         return total_fuels_to_indicators, elec_to_indicators
 
     def national_calibration(self):
@@ -143,12 +144,12 @@ class GetEIAData:
             AER11_table2_1b_update['Year'] = pd.DatetimeIndex(AER11_table2_1b_update['Month']).year
             AER11_table2_1b_update = AER11_table2_1b_update.groupby(by=['Year']).sum()  # add groupby(dropna=False) when that feature is released #  self.eia_api(id_='711250')
             AnnualData_MER_22_Dec2019 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.02') # self.eia_api(id_='711250')
-            
+
               # .eia_api(id_=, id_type='category')
             electricity_retail_sales_residential_sector = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
             total_primary_energy_consumed_residential_sector = self.eia_api(id_='TOTAL.TXRCBUS.A', id_type='series')
 
-            fuels_census_region, electricity_census_region = self.get_seds()  
+            fuels_census_region, electricity_census_region = self.get_seds()
             electricity_df = pd.DataFrame()
             electricity_df['AER 11 (Billion Btu)'] = AER11_table2_1b_update['Electricity Retail Sales to the Residential Sector']  # Column S Electricity Retail Sales
             electricity_df['MER, 12/19 (Trillion Btu)'] =  electricity_retail_sales_residential_sector # AnnualData_MER_22_Dec2019['Electricity Retail Sales to the Residential Sector'] # Column K
@@ -170,7 +171,7 @@ class GetEIAData:
             # recs_btu_hh = electricity_df['SEDS (10/18) (Trillion Btu)'].add(fuels_df['SEDS (10/18) (Trillion Btu)']).div(recs_millions)  # How do order of operations work here ?? (should be add and then divide)
             # # calibrated_hh = [0] # National column N
             # aer_btu_hh =  electricity_df['MER, 12/19 (Trillion Btu)'].add(fuels_df['MER, 12/19 (Trillion Btu)']).div(calibrated_hh)  # How do order of operations work here ?? (should be add and then divide)
-        
+
         elif self.sector == 'commercial':
             electricity_retail_sales_commercial_sector = self.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')
             total_primary_energy_consumed_commercial_sector = self.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series')
@@ -211,7 +212,7 @@ class GetEIAData:
             # If SEDS is 0, replace with MER
             # fuels_df['Final Est. (Trillion Btu)'] = fuels_df['Final Est. (Trillion Btu)'].fillna(fuels_df['MER, 12/19 (Trillion Btu)'], inplace=True)
 
-        else: 
+        else:
             pass
 
         national_calibration = electricity_df.merge(fuels_df, left_index=True, right_index=True, how='outer', suffixes=['_elec','_fuels'])
@@ -219,37 +220,35 @@ class GetEIAData:
 
     def conversion_factors(self, include_utility_sector_efficiency=False):
         """Calculate conversion factors by sector
-        """        
-                                              
+        """
+
         if self.sector == 'residential':
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series') # electricity retail sales to the residential sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LORCBUS.A', id_type='series')  # Residential Sector Electrical System Energy Losses
 
-        elif self.sector == 'commercial': 
+        elif self.sector == 'commercial':
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series') # electricity retail sales to the commercial sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOCCBUS.A', id_type='series')  # Commercial Sector Electrical System Energy Losses
-                                  
-        elif self.sector == 'industrial': 
+
+        elif self.sector == 'industrial':
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESICBUS.A', id_type='series') # electricity retail sales to the industrial sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOICBUS.A', id_type='series') # Industrial Sector Electrical System Energy Losses
 
         else: # Electricity and Tranportation don't use conversion factors
             return None
-        
+
         sector_name = self.sector.capitalize()
         col_rename = {f'Electricity Retail Sales to the {sector_name} Sector, Annual, Trillion Btu': 'electricity_retail_sales', f'{sector_name} Sector Electrical System Energy Losses, Annual, Trillion Btu': 'electrical_system_energy_losses'}
         conversion_factors_df = electricity_retail_sales.merge(electrical_system_energy_losses, how='outer', on='Year').rename(columns=col_rename)
-        conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])  
+        conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])
         conversion_factors_df['source-site conversion factor'] = conversion_factors_df['Losses/Sales'].add(1)
         base_year_source_site_conversion_factor = conversion_factors_df.loc['1985', ['source-site conversion factor']].values[0]
         conversion_factors_df['conversion factor index'] = conversion_factors_df['source-site conversion factor'].div(base_year_source_site_conversion_factor)
         if include_utility_sector_efficiency:
             conversion_factors_df['utility efficiency adjustment factor'] = conversion_factors_df['conversion factor index']
             conversion_factors_df['selected site-source conversion factor'] = conversion_factors_df['source-site conversion factor']
-        else: 
+        else:
             conversion_factors_df['utility efficiency adjustment factor'] = 1
             conversion_factors_df['selected site-source conversion factor'] = base_year_source_site_conversion_factor
 
         return conversion_factors_df[['selected site-source conversion factor']]
-
-

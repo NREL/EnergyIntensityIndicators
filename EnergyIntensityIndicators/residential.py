@@ -20,11 +20,11 @@ from EnergyIntensityIndicators.Residential.residential_floorspace import Residen
 from EnergyIntensityIndicators.weather_factors import WeatherFactors
 
 
-class ResidentialIndicators(CalculateLMDI): 
- 
+class ResidentialIndicators(CalculateLMDI):
+
     def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
         self.eia_res = GetEIAData('residential')
-        self.sub_categories_list = {'National': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}, 
+        self.sub_categories_list = {'National': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
                                                  'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
                                                  'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
                                                  'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}}}
@@ -37,7 +37,7 @@ class ResidentialIndicators(CalculateLMDI):
         self.directory = directory
         self.end_year = end_year
         self.energy_types = ['elec', 'fuels', 'deliv', 'source']
-        super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
+        super().__init__(sector='residential', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list,
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, primary_activity='occupied_housing_units',
                          base_year=base_year, end_year=end_year)
 
@@ -45,7 +45,7 @@ class ResidentialIndicators(CalculateLMDI):
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
-    
+
     def get_seds(self):
         """Collect SEDS data"""
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
@@ -62,20 +62,20 @@ class ResidentialIndicators(CalculateLMDI):
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
-    
+
     def get_floorspace(self):
         """Collect floorspace data for the Residential sector"""
         residential_data = ResidentialFloorspace(end_year=self.end_year)
         floorspace_square_feet, occupied_housing_units, household_size_square_feet_per_hu = residential_data.final_floorspace_estimates()
 
-        final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
+        final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet,
                                     'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
         return final_floorspace_results
 
 
     def activity(self, floorspace):
         """Combine Energy datasets into one Energy Consumption Occupied Housing Units
-        """ 
+        """
         all_activity = dict()
         for region in self.sub_categories_list['National'].keys():
             region_activity = dict()
@@ -85,13 +85,13 @@ class ResidentialIndicators(CalculateLMDI):
                     df = df.rename(columns={'avg_size_sqft_mf': 'Multi-Family', 'avg_size_sqft_mh': 'Manufactured-Homes', 'avg_size_sqft_sf': 'Single-Family'})
                 else:
                     df = df.rename(columns={'occupied_units_mf': 'Multi-Family', 'occupied_units_mh': 'Manufactured-Homes', 'occupied_units_sf': 'Single-Family'})
-                
+
                 print(variable, df.columns)
                 region_activity[variable] = df
             all_activity[region] = region_activity
 
         return all_activity
-    
+
     def collect_weather(self, energy_dict, nominal_energy_intensity):
         """Collect weather data for the Residential Sector"""
         weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
@@ -99,7 +99,7 @@ class ResidentialIndicators(CalculateLMDI):
         return weather_factors
 
     def collect_data(self):
-        """Gather all input data for you in decomposition of 
+        """Gather all input data for you in decomposition of
         energy use for the Residential sector
         """
         total_fuels, elec = self.get_seds()
@@ -107,9 +107,9 @@ class ResidentialIndicators(CalculateLMDI):
         activity = self.activity(floorspace)
         all_data = dict()
         nominal_energy_intensity_by_r = dict()
-        for r in self.sub_categories_list['National'].keys(): 
+        for r in self.sub_categories_list['National'].keys():
             region_activity = activity[r]
-    
+
             energy_data = self.fuel_electricity_consumption(total_fuels, elec, region=r)
 
             nominal_energy_intensity_by_e = dict()
@@ -118,15 +118,15 @@ class ResidentialIndicators(CalculateLMDI):
                 e_df = e_df.rename_axis(columns=None)
                 floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
-                nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data=e_df, activity_input_data=total_floorspace) 
+                nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data=e_df, activity_input_data=total_floorspace)
 
-                nominal_energy_intensity_by_e[e] = nominal_energy_intensity 
+                nominal_energy_intensity_by_e[e] = nominal_energy_intensity
 
             region_data = {'energy': energy_data, 'activity': region_activity}
 
             nominal_energy_intensity_by_r[r] = nominal_energy_intensity_by_e
             all_data[r] = region_data
-                
+
         weather_factors = self.collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity_by_r) # need to integrate this into the data passed to LMDI
         for region, r_dict_ in all_data.items():
             weather_factors_by_e_type = dict()
@@ -145,8 +145,8 @@ class ResidentialIndicators(CalculateLMDI):
         unit_conversion_factor = 1
         data_dict = self.collect_data()
 
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation,
+                                                               breakout=breakout, calculate_lmdi=calculate_lmdi,
                                                                raw_data=data_dict, lmdi_type='LMDI-I')
 
         return results_dict
@@ -155,27 +155,27 @@ class ResidentialIndicators(CalculateLMDI):
     # """purpose
     #     Parameters
     #     ----------
-        
+
     #     Returns
     #     -------
-        
+
     # """
     #     if not base_year:
     #         _base_year = self.base_year
     #     else:
     #         _base_year = _base_year
-        
+
 
     #     for key in self.sub_categories_list['National'].keys():
     #         energy_input_data = self.fuel_electricity_consumption(key)
     #         activity_input_data = self.activity(key)
 
-         
-    #         energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] = 
-    #         nominal_energy_intensity_kbtu_per_sf = 
-    #         nominal_energy_intensity_kbtu_per_sf_weather_adjusted = 
-    #         weather_factors_actual_by_30_year_normal = 
-    #         energy_intensity_btu_per_sf_weather_adjusted_index = 
+
+    #         energy_activity_data['nominal_energy_intensity_mmbtu_per_hu'] =
+    #         nominal_energy_intensity_kbtu_per_sf =
+    #         nominal_energy_intensity_kbtu_per_sf_weather_adjusted =
+    #         weather_factors_actual_by_30_year_normal =
+    #         energy_intensity_btu_per_sf_weather_adjusted_index =
 
 
     #         energy_calc = super().lmdi_multiplicative(activity_input_data, energy_input_data, _base_year)
@@ -185,9 +185,9 @@ class ResidentialIndicators(CalculateLMDI):
 
 
 if __name__ == '__main__':
-    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020',
                                        output_directory='./Results', level_of_aggregation='National')
-    indicators.main(breakout=True, calculate_lmdi=False)  
+    indicators.main(breakout=True, calculate_lmdi=False)
 
 
 
@@ -210,34 +210,34 @@ if __name__ == '__main__':
 #         pass
 
 #     def estimate_floorspace_occupied_housing_units_regional(self, ):
-        
+
 #         estimated_survival_curve = [0] # Estimate from vintage data over the 1999 through 2009 AHS surveys
 #         new_housing = [0] # From Characteristics of New Housing reports from the Census Bureau
-#         stock_adjustment_model = 
+#         stock_adjustment_model =
 #         estimated_occupied_housing_units = [0] # from stock adjustment level
 #         return estimated_occupied_housing_units
 
 #     def estimate_floorspace_housing_unit_size_national(self, housing_type='single_family'):
 #         """Single family and multi-family units use AHS data, combined with adjusted Characteristics of New Housing Data. Manufactured homes use RECS data
-#         Data Sources: 
+#         Data Sources:
 #             - American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate
 #               floor space for three types of housing units: single-family (attached and detached), multi-family, and
-#               manufactured homes. 
-#             - RECS 
+#               manufactured homes.
+#             - RECS
 #             - Characteristics of New Housing
-#         Spreadsheet Equivalents: 
+#         Spreadsheet Equivalents:
 #             - AHS_summary_results_date \Total_Stock_SF.xlsx (single family) – estimates for housing unit size are
 #               to be found in this worksheet to the right of the estimates for the number of “single family” units.
 #             - AHS_summary_results_date \Total_Stock_MF.xlsx (multifamily) - estimates for housing unit size are
 #               to be found in this worksheet to the right of the estimates for the number of “multifamily” units.
 #             - AHS_summary_results_date \Total_Stock_MH.xlsx (manufactured homes) - estimates for housing
 #               unit size are to be found in this worksheet to the right of the estimates for the number of
-#               “manufactured homes” units. 
-#         Methodology: 
+#               “manufactured homes” units.
+#         Methodology:
 #         - Single family
 #             1. Estimate the average size for existing units after 1985.
 #             2. Estimates of the stock for units constructed prior to 1985, and for 1985 and subsequent
-#                years, were made separately. 
+#                years, were made separately.
 #             3. The average size of new single-family homes to the existing housing stock was based upon
 #                data from the Characteristics of New Housing (with a 15% upward adjustment to better
 #                match the AHS data).
@@ -248,47 +248,47 @@ if __name__ == '__main__':
 #                inclusion in the time series estimates of residential floor space.
 #             2. Instead, the size estimates for mobile homes from the various RECS were employed. While
 #                the RECS had inconsistent methods of estimating square footage for single- and multi-family
-#                housing units, that does not appear to be the case for mobile homes. 
+#                housing units, that does not appear to be the case for mobile homes.
 #                 """
 #         if housing_type == 'manufactured_homes':
-#             size_estimates = 
-#         else: 
-#             average_size_post_1985 = 
-#             stock_units_pre_1985 = 
+#             size_estimates =
+#         else:
+#             average_size_post_1985 =
+#             stock_units_pre_1985 =
 #             stock_units_post_1985 = [0] # including 1985
 
 #         housing_stock = ResidentialFloorspace.get_housing_stock(housing_type)
 
-        
+
 
 #     def estimate_floorspace_regional_shares_national_level_housing_units(self, ):
 #         """Smooth out some of the implausible changes in the reported number of housing from one AHS to the next. The overall methodology is described more
 #            generally in the comprehensive documentation report, Section A.1.2. The regional shares for the non-AHS years are computed via a simple average of the preceding (odd) year and subsequent (odd) year.
 #         Data Source: AHS
-#         Spreadsheet Equivalent: 
+#         Spreadsheet Equivalent:
 #             - AHS_Summary_Results.xlsx
-#         Methodology: 
+#         Methodology:
 #             - The regional shares for the non-AHS years are computed via a simple average of the preceding (odd)
 #               year and subsequent (odd) year."""
-        
+
 
 #         return final_floorspace_estimates
 
 #     def estimate_final_floorspace_by_housing_type(self, ):
 #         """Data Source: AHS
 #         Spreadsheet Equivalent: AHS_Summary_Results_date \Final Floorspace Estimates.xlsx
-#         Methodology:  
+#         Methodology:
 #             - The estimates of floor space are calculated by multiplying the number of housing
 #               units times the average size per unit
-#             - Use regional based estimates of floor space (as explained in the sections above) as control 
-#               totals to which the regional estimates are calibrated. 
+#             - Use regional based estimates of floor space (as explained in the sections above) as control
+#               totals to which the regional estimates are calibrated.
 #             - """
 
-#                     ahs_tables = 
+#                     ahs_tables =
 
 #         national_calibration = self.national_calibration
 #         comps_ann_2015 =  housing_units_completed
-#         total_stock = 
+#         total_stock =
 
-#         weighted_floorspace = 
+#         weighted_floorspace =
 #         pass

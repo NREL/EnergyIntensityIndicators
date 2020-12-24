@@ -6,7 +6,6 @@ import numpy as np
 import json
 import re
 
-
 class Census_api:
     """
     Class for querying Census API for a specified year.
