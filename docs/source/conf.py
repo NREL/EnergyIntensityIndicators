@@ -20,15 +20,12 @@ import sphinx_rtd_theme
 # sys.path.insert(0, os.path.abspath('../calculations/EnergyIntensityIndicators'))
 
 pkg = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-print('pkg', pkg)
-# pkg = os.path.dirname(pkg) #+ '\EnergyIntensityIndicators'
-# print('pkg', pkg)
 sys.path.append(pkg)
 
 # -- Project information -----------------------------------------------------
 
 project = 'EnergyIntensityIndicators'
-copyright = '2020, NREL'
+copyright = '2020, Alliance for Sustainable Energy'
 author = 'Isabelle Rabideau'
 
 

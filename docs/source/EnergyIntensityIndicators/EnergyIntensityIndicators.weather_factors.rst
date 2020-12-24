@@ -5,7 +5,6 @@ Weather Factors
    :members:
    :undoc-members:
    :show-inheritance:
-   
-.. toctree::
-   EnergyIntensityIndicators.weather_factors.Weather
-   EnergyIntensityIndicators.lmdi_prices
+
+   .. toctree::
+   EnergyIntensityIndicators.weather_factors.WeatherFactors

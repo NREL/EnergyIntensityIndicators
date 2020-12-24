@@ -5,8 +5,8 @@ Core LMDI Model
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 .. toctree::
-   EnergyIntensityIndicators.lmdi
+   EnergyIntensityIndicators.LMDI
    EnergyIntensityIndicators.multiplicative_lmdi
    EnergyIntensityIndicators.additive_lmdi

@@ -1,6 +1,5 @@
-
-AdditiveLMDI
-============
+Additive LMDI
+=============
 
 .. automodule:: EnergyIntensityIndicators.additive_lmdi
    :members:

@@ -5,7 +5,8 @@ Residential Sector Data Collection
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 .. toctree::
 
    EnergyIntensityIndicators.Residential.residential_floorspace
+   EnergyIntensityIndicators.residential

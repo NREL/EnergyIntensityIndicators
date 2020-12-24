@@ -1,4 +1,3 @@
-
 Industrial Sector Data Collection
 ==================================
 
@@ -6,8 +5,9 @@ Industrial Sector Data Collection
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 .. toctree::
    EnergyIntensityIndicators.Industry.asm_price_fit
    EnergyIntensityIndicators.Industry.manufacturing
    EnergyIntensityIndicators.Industry.nonmanufacturing
+   EnergyIntensityIndicators.industry.rst

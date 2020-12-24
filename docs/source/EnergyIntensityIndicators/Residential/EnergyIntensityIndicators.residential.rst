@@ -5,7 +5,3 @@ Residential Sector
    :members:
    :undoc-members:
    :show-inheritance:
-   
-.. toctree::
-
-   EnergyIntensityIndicators.residential.ResidentialIndicators

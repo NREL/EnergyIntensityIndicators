@@ -5,7 +5,7 @@ Supporting Files
    :members:
    :undoc-members:
    :show-inheritance:
-   
+
 .. toctree::
 
    EnergyIntensityIndicators.pull_eia_api
