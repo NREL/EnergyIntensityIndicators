@@ -110,24 +110,25 @@ class MultiplicativeLMDI():
     def visualizations(self, data, base_year, end_year, loa, model, energy_type, rename_dict): 
         """Visualize multiplicative LMDI results in a line plot 
         """
-        data = data[data['@timeseries|Year'] >=  base_year]
+        data = data[(data['@timeseries|Year'] >=  base_year) & (data['@filter|Model'] == model.capitalize())]
+        print('DATA TO PLOT:\n', data)
 
         lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Effect"]  
         print('os.getcwd()', os.getcwd())
 
         if '@filter|Measure|Structure' in data.columns:
             lines_to_plot.append('@filter|Measure|Structure')
-        else: 
-            for c in data.columns: 
-                if c.endswith('Structure'):
-                    lines_to_plot.append(c)
+        # else: 
+        #     for c in data.columns: 
+        #         if c.endswith('Structure'):
+        #             lines_to_plot.append(c)
 
         if "@filter|Measure|Intensity" in data.columns:
             lines_to_plot.append("@filter|Measure|Intensity")
-        else: 
-            for c in data.columns: 
-                if c.endswith('Intensity'):
-                    lines_to_plot.append(c)
+        # else: 
+        #     for c in data.columns: 
+        #         if c.endswith('Intensity'):
+        #             lines_to_plot.append(c)
                           
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
@@ -137,10 +138,13 @@ class MultiplicativeLMDI():
             plt.plot(data['@timeseries|Year'], data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
         
         loa_ = [l_.replace("_", " ") for l_ in loa]
-        title = " ".join(loa_) + f" {model.capitalize()}" + f" {energy_type.capitalize()} {base_year}" 
+        loa = [loa[0], loa[-1]]
+
+        title = f"Change in {energy_type.capitalize()} Energy Use (Trillion British thermal units [TBtu]) {' '.join(loa)}"
+
         fig_name = "_".join(loa) + f"{model}_{energy_type}_{base_year}" 
 
-        plt.title(title, fontsize=12, fontweight=0)
+        plt.title(title, fontsize=8, fontweight=0)
         plt.xlabel('Year')
         # plt.ylabel('')
         plt.legend(loc=2, ncol=2)

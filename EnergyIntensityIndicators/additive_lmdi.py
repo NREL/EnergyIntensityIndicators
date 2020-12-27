@@ -122,7 +122,9 @@ class AdditiveLMDI():
     @staticmethod
     def aggregate_additive(additive, base_year):
         """Aggregate additive data (allows for loop through every year as a base year, if desired)"""
-        additive.loc[additive['Year'] <= base_year, ['activity', 'intensity', 'structure', 'effect']] = 0
+        print('additive:\n', additive)
+        cols = [c for c in list(additive.columns) if c != 'Year']
+        additive.loc[additive['Year'] <= base_year, cols] = 0
         additive = additive.set_index('Year')
         df = additive.cumsum(axis=0)
         return df
@@ -147,8 +149,10 @@ class AdditiveLMDI():
         return aggregated_df
     
     def visualizations(self, data, base_year, end_year, loa, model, energy_type, rename_dict):
-        """Visualize additive LMDI results in a waterfall chart
+        """Visualize additive LMDI results in a waterfall chart, opens in internet browsers and
+        user must save manually (from plotly save button)
         """
+        data = data[data['@filter|Model'] == model.capitalize()]
 
         x_data = ["@filter|Measure|Activity"]
         print('os.getcwd()', os.getcwd())
@@ -168,14 +172,18 @@ class AdditiveLMDI():
                     x_data.append(c)
 
         loa = [l.replace("_", " ") for l in loa]
+        loa = [loa[0], loa[-1]]
         final_year = max(data['@timeseries|Year'])
-        title = f"Change {base_year}-{final_year} {' '.join(loa)} {model.capitalize()} {energy_type.capitalize()}"
-        # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
+
         data_base = data[data['@timeseries|Year'] == base_year][x_data]
         data_base['intial_energy'] = self.energy_data.loc[base_year, self.total_label]
 
         data = data[data['@timeseries|Year'] == end_year][x_data]
-        data['final_energy'] = self.energy_data.loc[end_year, self.total_label]
+        if self.end_year in self.energy_data.index:
+            data['final_energy'] = self.energy_data.loc[end_year, self.total_label]
+        else:
+            data['final_energy'] = self.energy_data.loc[max(self.energy_data.index), self.total_label]
+
         x_data = ['intial_energy'] + x_data + ['final_energy']
         y_data = pd.concat([data_base, data], ignore_index=True, axis=0).fillna(0)
         y_data = y_data[x_data]
@@ -195,7 +203,9 @@ class AdditiveLMDI():
         fig = go.Figure(go.Waterfall(name="Change", orientation="v", measure=measure, x=x_labels, 
                                      textposition="outside", y=y_data, text=y_labels,
                                      connector={"line":{"color":"rgb(63, 63, 63)"}}))
-
+        
+        title = f"Change in {energy_type.capitalize()} Energy Use (Trillion British thermal units [TBtu]) {base_year}-{final_year} {' '.join(loa)}"
+        # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
         fig.update_layout(title=title, showlegend = True)
         fig.show()
         # fig.write_image(f"{self.output_directory}/{title}.png")

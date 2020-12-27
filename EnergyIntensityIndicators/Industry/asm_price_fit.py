@@ -3,6 +3,8 @@ import numpy as np
 import requests
 from scipy.optimize import leastsq
 from bs4 import BeautifulSoup
+import datetime
+from functools import reduce
 
 from EnergyIntensityIndicators.get_census_data import Asm
 from EnergyIntensityIndicators.get_census_data import Econ_census
@@ -20,10 +22,10 @@ class Mfg_prices:
         """
         # Historical MECS data with missing observations estimated
         # ad-hoc by PNNL.
-        self.mecs_historical_prices = pd.read_csv('mecs_historical_prices.csv')
+        self.mecs_historical_prices = './EnergyIntensityIndicators/Industry/Data/mecs_prices.csv'
 
     @staticmethod
-    def import_mecs_historical(file_path):
+    def import_mecs_historical(file_path, fuel_type, naics):
         """
         Import and format csv of historical fuel prices from Manufacturing
         Energy Consumption Survey (MECS). MECS was conducted every three
@@ -42,8 +44,13 @@ class Mfg_prices:
 
         mecs_prices = pd.read_csv(file_path)
 
-        mecs_prices = pd.melt(mecs_prices, id_vars=['NAICS', 'fuel'],
-                              var_name='year', value_name='mecs_price')
+        mecs_prices = mecs_prices[mecs_prices['fuel_type'] == fuel_type]
+
+        mecs_prices =  mecs_prices[mecs_prices['NAICS'].astype(int) == naics]
+        mecs_prices = mecs_prices.set_index('NAICS').drop(['Industry', 'fuel_type'], axis=1)
+        mecs_prices = mecs_prices.transpose().rename(columns={naics: 'MECS_price'})
+        mecs_prices.index.name = 'Year'
+        mecs_prices.index = mecs_prices.index.astype(int)
 
         return mecs_prices
 
@@ -108,10 +115,16 @@ class Mfg_prices:
                 return
 
     @staticmethod
-    def import_asm_historical(file_path):
+    def import_asm_historical(fuel_type, naics, asm_map):
         """"
         Prices in $/MMBtu
         """
+        asm_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/asm_data_mer_table_97.csv').set_index('Year')
+        col = asm_map[fuel_type]
+        asm_data = asm_data[[col]]
+        asm_data = asm_data.rename(columns={col: 'asm_price'})
+        asm_data.index = asm_data.index.astype(int)
+        return asm_data
     
     @staticmethod
     def get_census_prices(latest_year, start_year=1983):
@@ -133,22 +146,23 @@ class Mfg_prices:
             Pandas series of ASM price data from YYYY - latest_year
         """
         year_range = range(start_year, latest_year + 1)
-    
-        asm_prices = pd.DataFrame()
-    
-    
-    
+        
+        asm_prices = dict()
+        for year in year_range:
+            asm = Asm().get_data(year) 
+            asm_prices[year] = asm
         return asm_prices
 
-
     @staticmethod
-    def price_func(asm_prices, *params):
+    def price_func(asm_prices, mecs_prices_, *params):
         """
         Calculates predicted fuel price in terms of current and lagged fuel
         prices.
         """
         a, b = params
-
+        asm_prices = asm_prices.values
+        mecs_prices_ = mecs_prices_.fillna(np.nan)
+        mecs_prices = mecs_prices_.values
         for index_, price in enumerate(asm_prices):
             if index_ == 0:
                 predicted_price_series = np.array([0])
@@ -157,17 +171,20 @@ class Mfg_prices:
                 predicted_price_series = np.vstack([predicted_price_series,
                                                     predicted_price])
 
-        early_mecs = predicted_price_series.flatten()[2:12:3]
+        early_mecs = predicted_price_series.flatten()[2:11:3]
         later_mecs = predicted_price_series.flatten()[15:len(asm_prices):4]
         final_mecs = np.append(early_mecs, later_mecs)
+
         # Align with available MECS
-        final_mecs = final_mecs[[x[0] for x in enumerate(mecs_prices)]]
+        # mecs_ind = mecs_prices_.dropna().index
+        # final_mecs_df = pd.DataFrame(final_mecs, columns=['final_mecs'])
+        # final_mecs = final_mecs_df['final_mecs'].values
         return final_mecs
 
     @staticmethod
     def residuals(params, asm_prices, mecs_prices, price_func):
-
-        return mecs_prices - price_func(asm_prices, *params)
+        mecs_calc = price_func(asm_prices, mecs_prices, *params)
+        return mecs_prices.dropna().subtract(mecs_calc, axis='index')
 
     @staticmethod
     def calc_predicted_coeffs(asm_prices, mecs_prices, start_params):
@@ -223,7 +240,7 @@ class Mfg_prices:
         return Mfg_prices.price_func(asm_prices, *coeff)
 
     @staticmethod
-    def resid_filler(price_df):
+    def resid_filler(price_df, coeff, asm_prices):
         """
         Apply to a dataframe that includes year and residual.
 
@@ -245,7 +262,7 @@ class Mfg_prices:
                                         index=increment_years)
 
         price_df.set_index('year', inplace=True)
-        price_df = pd.concat([price_df, predicted_prices], axis=1)
+        price_df = pd.concat([price_df, predicted_prices], axis=0)
         price_df['residual'] = price_df.MECS_price - price_df.predicted
 
         price_df['interp_resid'] = np.nan
@@ -275,25 +292,20 @@ class Mfg_prices:
 
         return price_df
 
-
-    def calc_calibrated_predicted_price(self, latest_year, fuel_type, naics):
+    @staticmethod
+    def calc_calibrated_predicted_price(price_df):
         """
         Return the calibrated prediced prices, which is calculated as the
 
         """
         # Get asm prices from separate method?
 
-        mecs_prices = self.mecs_historical_prices(fuel_type, naics)
-
-        fit_coeffs = self.calc_predicted_coeffs()
-        predicted = self.calc_predicted_prices()
-
         price_df['calibrated_prediction'] = \
             price_df.interp_resid + price_df.predicted
 
         return price_df
 
-    def interpolate_residuals(self, predicted_prices, price_df):
+    def interpolate_residuals(self, predicted_prices, price_df, coeff, asm_prices):
         """Interpolate residuals"""
     
         price_df_updated = price_df.copy(deep=True)
@@ -307,7 +319,29 @@ class Mfg_prices:
     
         price_df_updated['fill'] = fill
     
-        interpolated_resid = self.resid_filler(price_df)
+        interpolated_resid = self.resid_filler(price_df, coeff, asm_prices)
         return interpolated_resid
     
+    def main(self, latest_year, fuel_type, naics, asm_col_map):
+        n_dfs = []
+        for n in naics:
+            mecs_data = self.import_mecs_historical(self.mecs_historical_prices, fuel_type, n)
+
+            self.check_recent_mecs(latest_year=latest_year, last_historical_year=max(mecs_data.index))
+
+            asm_data = self.import_asm_historical(fuel_type, n, asm_col_map)
+
+            price_df = asm_data.merge(mecs_data, how='outer', left_index=True, right_index=True)
+            start_params = [0.646744966,	0.411641841]
+            fit_coeffs = self.calc_predicted_coeffs(price_df[['asm_price']],price_df[['MECS_price']], start_params)
+            price_df['predicted'] = self.calc_predicted_prices(fit_coeffs, price_df['asm_price'])
+
+            calibrated_prediction = self.calc_calibrated_predicted_price(price_df)
+            price_df = self.interpolate_residuals(calibrated_prediction, price_df, fit_coeffs, price_df['asm_price'])
+            
+            n_dfs.append(calibrated_prediction)
+
+        calibrated_prediction = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), n_dfs)
+
+        return calibrated_prediction
 

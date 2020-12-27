@@ -3,6 +3,7 @@ import datetime as dt
 from sklearn import linear_model
 import numpy as np
 import math
+import os
 import statsmodels.api as sm
 from scipy.optimize import curve_fit
 from sklearn.linear_model import LinearRegression
@@ -54,8 +55,8 @@ class CommercialIndicators(CalculateLMDI):
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
 
     def collect_input_data(self, dataset_name):
-        datasets = {'national_calibration': self.eia_comm.national_calibration(), 'conversion_factors': self.eia_comm.conversion_factors(include_utility_sector_efficiency=True), 
-                    'SEDS_CensusRgn': self.eia_comm.get_seds(), 'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
+        datasets = {'national_calibration': self.eia_comm.national_calibration(), 'SEDS_CensusRgn': self.eia_comm.get_seds(), 
+                    'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
         return datasets[dataset_name]
 
     def adjusted_supplier_data(self):
@@ -127,7 +128,13 @@ class CommercialIndicators(CalculateLMDI):
     def get_saus():
         """Get Data from the Statistical Abstract of the United States (SAUS)
         """        
-        saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+        print('os.getcwd():', os.getcwd())
+        try:
+            saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+        except FileNotFoundError:
+            os.chdir('..')
+            saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+
         saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
                     1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
         saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
@@ -152,9 +159,6 @@ class CommercialIndicators(CalculateLMDI):
         """        
         dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
 
-        # dod_old['Misc'] = dod_old['Soc/Misc'].subtract(dod_old['Soc/Amuse'])
-        # dod_old = dod_old.drop(columns='Soc/Misc')
-        # dod_old['Total'] = dod_old.sum(axis=1)
         cols_list = ['Retail', 'Auto R', 'Office', 'Warehouse']
         dod_old['Commercial'] = dod_old[cols_list].sum(axis=1)
         dod_old_subset = dod_old.loc[list(range(1960, 1982)), cols_list]
@@ -504,7 +508,15 @@ class CommercialIndicators(CalculateLMDI):
         weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
         weather_factors = weather.get_weather(seds_data=seds)
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
-        return weather_factors
+        
+        weather_data = dict()
+        for key, value in weather_factors.items():
+            print('value:\n', value)
+            value = value.drop('electricity_weather_factor', axis=1, errors='ignore')
+            weather_data[key] = value
+            print('weather_data:\n', weather_data)
+
+        return weather_data
 
     def collect_data(self):
         """Gather decomposition input data for the Commercial sector
@@ -539,98 +551,3 @@ if __name__ == '__main__':
                                       level_of_aggregation='Commercial_Total', 
                                       lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=False, calculate_lmdi=True)
-
-
-
-
-
-   
-
-
-
-
-#     @staticmethod
-#     def floorspace_estimates():
-#         previous_year_stock = pd.read_excel('./')
-#         new_construction = pd.read_excel('./')  # Floor space reported in million square feet
-#         additions_completed_same_year = .4  # Fraction of new construction completed the same year construction began
-#         additions_with_lagged_completion = .6  # Fraction of new construction completed the following year'
-#         dodge_adjustment = 1.2  # Account for underreporting by Dodge (column AD in spreadsheet)
-
-#         def survival_function():
-#             """Non-linear regression model applied to the vintage data from the 1989 and 1999 CBECS
-#             """
-#             recessional_reductions_level_of_removals = [0] # 30 to 40% 
-#             demolitions_before_2008 = 
-#             demolitions_after_2008 =             
-#             pass
-
-#         pass
-
-#     @staticmethod
-#     def reclassification_electricity_sales():
-#         """[summary]
-#         """
-
-
-#     def estimate_intensity_indexes_regional(self, parameter_list):
-#         """Data Sources: Fuel Consumption and electricity consumption from SEDS, Shares of regional floorspace from CBECs
-#         Purpose: used to produce weather adjustment facotrs"""
-#                 """[summary]
-#         -Regional etsimates of floorspace are derived by applying regional shares to the total national floor space that were 
-#         estimatedwithin the spreadsheet historical_floorspace.xlsx
-#         -The time series of regional shares are estimated in the worksheet "Regional Shares" (key data for this process are the 
-#         shares of regional floor space reported in the various Commercial Building Energy Consumption Surveys (CBECS) or NBECS for 
-#         years prior to 1986)
-#         -To provide annual estimates of the shares, the assumption was made that commercial floor space in each region would 
-#         generally follow the same trends as population or housing units. Here residential estimates of residential housing units
-#         were used to reflect these overall trends. 
-#         -For each region, a simple regression model was estimated between the regional housing unit share and the regional commmercial
-#         building floor space share from the NBECS/CBECS. The regression employed both shares in log form. Based on the estimated 
-#         coefficients from this regression, the annual housing unit values are used to predict the share of commercial floor space 
-#         in each region. The normalized shares of floorspace by census region (normalized to sum to 1) are contained in Regional_Floorspace
-#         columns E through H. 
-#         -Regional floor space levels are calculated by multiplying the regional shares times the national estimate of floorspace  (taken 
-#         from sheet called Commercial_Total)
-
-#         """
-        
-#         total_national_floorspace = 
-
-#         X = regional_housing_unit_share
-#         Y = regional_commercial_building_floorspace_shares  # from historical CBECS
-
-#         X = sm.add_constant(x)  # Add constant
-
-#         model = sm.OLS(X, Y).fit
-#         predictions = model.predict(x)
-
-#         print(model.summary())
-
-#         # reg = linear_model.LinearRegression()
-#         # reg.fit(X, Y)
-#         # coefficients = reg.coef_
-#         # regional_shares_floorspace = dict()  # assumed commercial floorspace in each region follows same trends as population or housing units
-#         # regional_floorspace = dict()
-#         # regional_intensity_index = dict()
-#         # for region in regions: 
-#         #     regional_energy_consumption = [0] # consumption of electricity and fuels
-#         #     predicted_share = reg.predict(annual_housing_unit_values)
-#         #     regional_shares_floorspace[region] = predicted_share
-#         #     region_floorspace =  predicted_share * total_national_floorspace
-#         #     regional_floorspace[region] = region_floorspace
-#         #     regional_intensity_index[region] = regional_energy_consumption / region_floorspace  
-
-#         return None
-          
-#     def estimate_reclassification_electricity_sector_sales(self,):
-#         """Data Source: Commercial electricity sales from EIA SEDS
-#         Assumption: The significant changes (same magnitude but opposite directions in the same year) in state-level electricity slaes, typically
-#                     showing up in the commercial and industrial sectors reflect reclassification of some customers form the industrial rate class
-#                     to the commercial rate class or vice versa. 
-#         Strategy: adjust the more recent data by adding or subtracting a constant vlaue, determined from the year in which the reclassification was 
-#                   judged to have occured."""
-#         state_level_adjustment = 
-#         pass
-
-

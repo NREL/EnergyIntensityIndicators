@@ -318,7 +318,7 @@ class TestLMDI:
         # assert log_ratio_df.equals(comparison_df)
         assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference, sector='transportation')
 
-    def test_calc_component(self, sector='transportation'):
+    def test_calc_sum_product(self, sector='transportation'):
         eii = self.eii_output_factory(sector)
 
         log_ratio_component = [[np.nan, np.nan],
@@ -340,7 +340,7 @@ class TestLMDI:
                                index=[1970, 1971, 1972, 1973, 1974], 
                                columns=['All_Passenger', 'All_Freight'])
 
-        component = eii.calc_component(log_ratio_component, weights)
+        component = eii.sum_product(log_ratio_component, weights, name='Intensity Index')
         component = component.apply(lambda col: np.exp(col), axis=1)
 
         comparison_output = [[np.nan], 
@@ -357,7 +357,7 @@ class TestLMDI:
 
     def test_compute_index1(self):
         """Data is from Total_Transportation 1983-1987"""
-        eii = MultiplicativeLMDI()
+        eii = MultiplicativeLMDI(output_directory='./Results')
         
         results = [[0.9705, 1.0386, 1.0037], 
                    [0.9957, 1.0329, 1.0054],
@@ -389,7 +389,7 @@ class TestLMDI:
 
     def test_compute_index2(self):
         """Data is from Total_Transportation 1970-1975"""
-        eii = MultiplicativeLMDI()
+        eii = MultiplicativeLMDI(output_directory=None)
         
         results = [[np.nan, 1.1301, np.nan],
                    [0.9904, 1.0460, 1.0107],
@@ -451,7 +451,7 @@ class TestLMDI:
         assert self.pct_diff(comparison_output, results, acceptable_pct_difference=0.05, sector='transportation')
 
     def test_multiplicative_decomposition(self, sector='transportation'):
-        mult = MultiplicativeLMDI()
+        mult = MultiplicativeLMDI(output_directory='./Results')
         eii = self.eii_output_factory(sector)
 
         test_weights = [[0.7258, 0.2742],
@@ -516,9 +516,8 @@ class TestLMDI:
                                 index=[1983, 1984, 1985, 1986, 1987], 
                                 columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
 
-        weather_data = None
         model = 'multiplicative'
-        components = eii.calc_ASI(model, weather_data, test_weights, test_log_ratios)
+        components = eii.calc_ASI(model, test_weights, test_log_ratios)
         print('test_asi:\n', test_asi)
         print('components:\n', components)
         results = mult.decomposition(components)
@@ -767,7 +766,7 @@ class TestLMDI:
 
                 print("log_mean_divisia_weights_normalized type: \n", type(log_mean_divisia_weights_normalized))
 
-                eii_output = eii.calc_ASI(model, weather_data, log_mean_divisia_weights_normalized, 
+                eii_output = eii.calc_ASI(model, log_mean_divisia_weights_normalized, 
                                           log_ratios)
 
                 print('eii_output calc asi:\n', eii_output)

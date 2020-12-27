@@ -105,10 +105,6 @@ class BEA_api:
                       'tableID': self.tableID_dict[table_name]}
 
         data = self.call_api(params=api_params)
-        print('data: \n', data)
-        print('data: \n', data[0])
-        print('data: \n', type(data[0]))
-
 
         if data:
             data = [self.format_data(data[i]) for i in range(len(data))]
@@ -185,18 +181,14 @@ class BEA_api:
         else: 
             raise TypeError(f'list of go_nominal of len {len(api_data)}')
         
-        print('api_data index:', api_data.index)
-        print('historical index:', historical.index)
+
         api_data = api_data.set_index(['IndustrYDescription']).drop('Industry', axis=1)
-        print("api_data.columns", api_data.columns)
-        print('api data:\n', api_data)
+
         min_api_year = min([int(y) for y in api_data.columns])
         historical = historical.loc[:, : str(min_api_year - 1)]
-        print('historical:\n', historical)
         data = historical.merge(api_data, left_index=True, right_index=True, how='inner')
         data = data.transpose()
         data.index.name = 'Year'
-        print('data:\n', data)
         data.index =data.index.astype(int)
         # data = data.merge(label_to_naics, left_index=True, right_index=True, how='inner')
         return data
@@ -204,24 +196,14 @@ class BEA_api:
     def transform_data(self, nominal_historical, nominal_from_api, 
                        qty_index_historical, qty_index_from_api):
         """Format data"""
-        print('nominal_from_api :\n', nominal_from_api)
-        print('len(nominal_from_api):', len(nominal_from_api))
-        print('qty_index_from_api :\n', qty_index_from_api)
-        print('len(qty_index_from_api):', len(qty_index_from_api))
 
-        print('nominal_historical:\n', nominal_historical)
-        print('nominal_historical:\n', qty_index_historical)
 
         nominal = self.merge_historical(nominal_from_api, nominal_historical)
-        print('final nominal:\n', nominal)
         qty_index = self.merge_historical(qty_index_from_api, qty_index_historical)
-        print('final qty_index:\n', qty_index)
 
         # nominal_12 = nominal[nominal["Year"] == 2012][['DataValue', 'IndustrYDescription', 'Industry']].transpose()
-        print('nominal index:', nominal.index)
         cols = [q for q in qty_index.columns if q in nominal.columns]
         nominal_12  = nominal.loc[2012, cols]
-        print('nominal_12:\n', nominal_12.values.transpose())
         transformed_quant_index = qty_index.multiply(np.tile(nominal_12.values.transpose(), (len(qty_index), 1))).multiply(.01)
 
         # transformed_quant_index = transformed_quant_index.transpose()
@@ -258,36 +240,19 @@ class BEA_api:
                                                          go_quant_index)
         return transformed_go_quant_index
     
-    def mapping_(self):
-        api_data = self.get_data(table_name='va_quant_index')
-        api_data = api_data[0]
-        print('api_data:\n', api_data)
-        print('api_data cols', api_data.columns)
-        api_data['NAICS'] = api_data['Industry']
-        api_data = api_data.drop('Industry', axis=1)
-        # label_to_naics = api_data.rename(columns={'Industry': 'NAICS'})
-        print('api_data:\n', api_data)
-        print('api_data cols', api_data.columns)
-        label_to_naics = api_data[['IndustrYDescription', 'NAICS']].set_index('NAICS')
-        return label_to_naics
 
     def chain_qty_indexes(self):
         """Merge historical and api data, manipulate as in ChainQtyIndexes
         """
         historical_data = self.import_historical()
-        print('historical_data: \n', historical_data)
 
         go_quant_index = self.collect_va(historical_data)
-        print('go_quant_index: \n', go_quant_index)
 
         va_quant_index = self.collect_go(historical_data)
-        print('va_quant_index: \n', va_quant_index)
 
-        # go_over_va = go_quant_index.divide(va_quant_index)
         return va_quant_index, go_quant_index
 
 
 if __name__ == '__main__':
     data = BEA_api(years=list(range(1949, 2018))).get_data(table_name='go_nominal')
-    print(data)
 

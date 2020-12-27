@@ -97,6 +97,7 @@ class Census_api:
 
         return census_df
 
+    @staticmethod
     def dl_naics_titles(year, n_digits):
         """
         Download titles of manufacturing NAICS codes. Specify naics hierarchy

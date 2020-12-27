@@ -21,66 +21,57 @@ class MakeProjections(CalculateLMDI):
         self.lmdi_model = lmdi_model 
         self.base_year = base_year
         self.end_year = end_year
-        self.sub_categories_list = {'Transportation': {'All_Passenger':
-                                                            {'Highway':  
-                                                                {'Passenger Cars and Trucks': 
-                                                                    {'Light Trucks – LWB Vehicles': 
-                                                                        {'Light Trucks': None,
-                                                                        'Light-Duty Vehicles': None}}, 
-                                                                'Buses': None, 
-                                                            'Rail': None,
+        self.sub_categories_list = {'Economy_Wide': {'Transportation': {'All_Passenger':
+                                                                            {'Highway':  
+                                                                                {'Passenger Cars and Trucks': 
+                                                                                    {'Light Trucks – LWB Vehicles': 
+                                                                                        {'Light Trucks': None,
+                                                                                        'Light-Duty Vehicles': None}}, 
+                                                                                'Buses': None, 
+                                                                            'Rail': None,
 
-                                                            'Air': None}}, 
-                                                        'All_Freight': 
-                                                            {'Highway': 
-                                                                {'Freight-Trucks': None}, 
-                                                            'Rail': None, 
-                                                            'Air': None}},
-                                     'Residential': None, 
-                                     'Commercial': None, 
-                                     'Industrial': {'Manufacturing': {'Food, Beverages, & Tobacco': 
-                                                                        {'Food Products': None}, 
-                                                
-                                                                     'Wood Products': None,  
-                                                                     'Paper': None,
-                                                                     'Petroleum & Coal Products': None, 
-                                                                     'Chemicals': None,
-                                                                     'Plastics & Rubber Products': None, 
-                                                                     'Primary Metals': None,
-                                                                     'Fabricated Metal Products': None, 
-                                                                     'Machinery': None, 
-                                                                     'Computer & Electronic Products': None, 
-                                                                     'Electrical Equipment': None,
-                                                                     'Transportation Equipment': None, 
-                                                                     'Miscellaneous': None},
-                                                     'Nonmanufacturing': {'Agriculture/Forestry/Fishing/Hunting': None,
-                                                                          'Mining': None,
-                                                                          'Construction': None}}, 
-                                     'Elec Power Sector': 
-                                        {'Electricity Only':
-                                            {'Fossil Fuels': 
-                                                {'Coal':  None, 
-                                                'Petroleum':  None, 
-                                                'Natural Gas':  None,
-                                            'Nuclear':  None, 
-                                            'Hydro Electric': None, 
-                                            'Renewable': 
-                                                {'Wood':  None, # This is wood and other biomass
-                                                'Waste': None, # This is Biogenic Municipal Waste
-                                                'Wind':  None}}}}}
+                                                                            'Air': None}}, 
+                                                                        'All_Freight': 
+                                                                            {'Highway': 
+                                                                                {'Freight-Trucks': None}, 
+                                                                            'Rail': None, 
+                                                                            'Air': None}},
+                                                    'Residential': None, 
+                                                    'Commercial': None, 
+                                                    'Industrial': {'Manufacturing': {'Food, Beverages, & Tobacco': 
+                                                                                        {'Food Products': None}, 
+                                                                
+                                                                                    'Wood Products': None,  
+                                                                                    'Paper': None,
+                                                                                    'Petroleum & Coal Products': None, 
+                                                                                    'Chemicals': None,
+                                                                                    'Plastics & Rubber Products': None, 
+                                                                                    'Primary Metals': None,
+                                                                                    'Fabricated Metal Products': None, 
+                                                                                    'Machinery': None, 
+                                                                                    'Computer & Electronic Products': None, 
+                                                                                    'Electrical Equipment': None,
+                                                                                    'Transportation Equipment': None, 
+                                                                                    'Miscellaneous': None},
+                                                                    'Nonmanufacturing': {'Agriculture/Forestry/Fishing/Hunting': None,
+                                                                                        'Mining': None,
+                                                                                        'Construction': None}}, 
+                                                    'Electricity': 
+                                                        {'Electricity Only':
+                                                            {'Fossil Fuels': 
+                                                                {'Coal':  None, 
+                                                                'Petroleum':  None, 
+                                                                'Natural Gas':  None,
+                                                            'Nuclear':  None, 
+                                                            'Hydro Electric': None, 
+                                                            'Renewable': 
+                                                                {'Wood':  None, # This is wood and other biomass
+                                                                'Waste': None, # This is Biogenic Municipal Waste
+                                                                'Wind':  None}}}}}}
 
         self.energy_types = []
         super().__init__(sector='Projections', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
-
-    def commercial_collect_weather(self, comm_activity, residential_floorspace):
-        """Gather weather data for the Commercial sector
-        """
-
-        weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
-        weather_factors = weather.get_weather()
-        # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
-        return weather_factors
 
     def commercial_projections(self):
         """Gather Commercial projections data
@@ -96,21 +87,15 @@ class MakeProjections(CalculateLMDI):
         commercial_categories = {'Commercial_Total': None, 'Total_Commercial_LMDI_UtilAdj': None}
 
         commercial_eia = GetEIAData('commercial')
-        residential_eia = GetEIAData('residential')
-
 
         energy_use_commercial_electricity_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_ELC_NA_NA_QBTU.A', id_type='series')
         energy_use_commercial_total_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_TOT_NA_NA_QBTU.A', id_type='series')
         energy_use_commercial_delivered_energy_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_DELE_NA_NA_QBTU.A', id_type='series')
         
         commercial_total_floorspace = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A', id_type='series')
-        res_housholds= residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_TEN_NA_NA_USA_MILL.A', id_type='series')
-        res_avg_size = residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_NA_NA_NA_USA_SQFT.A', id_type='series')
-        residential_floorspace = res_avg_size.multiply(res_housholds.values)
-        weather_factors = self.commercial_collect_weather(comm_activity=commercial_total_floorspace, residential_floorspace=residential_floorspace)
+     
         data_dict = {'Commercial_Total': {'energy': {'elec': energy_use_commercial_electricity_us, 'deliv': energy_use_commercial_delivered_energy_us}, 
-                                          'activity': commercial_total_floorspace, 
-                                          'weather_factors': weather_factors}}
+                                          'activity': commercial_total_floorspace}}
         
         return data_dict
     
@@ -254,13 +239,7 @@ class MakeProjections(CalculateLMDI):
                                     'Rail': {'energy': transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', id_type='series'), 
                                              'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_RAIL_NA_NA_BLNTNMLS.A', id_type='series')}, 
                                     'Air': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series'), 
-                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series')} #, 
-                                    # 'Waterborne': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_WTR_DMT_NA_NA_TRLBTU.A', id_type='series'), 
-                                    #                'activity': ''}, # This is only domestic-- is that correct?
-                                    # 'Pipeline': {'Natural Gas Pipeline': 
-                                    #                 {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_PIPL_NG_NA_NA_TRLBTU.A', id_type='series'), 
-                                    #                  'activity': ''}
-                                                     }}
+                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series')}}}
 
         energy_use_transportation_electricity_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_ELC_NA_NA_QBTU.A', id_type='series')
         energy_use_transportation_total_us = transportation_eia.eia_api(id_='YOUR_API_KEY_HERE&series_id=AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_TOT_NA_NA_QBTU.A', id_type='series')
@@ -268,12 +247,6 @@ class MakeProjections(CalculateLMDI):
 
         data_dict = transportation_categories
         return data_dict
-
-    def residential_collect_weather(self, energy_dict, nominal_energy_intensity):
-        """Collect weather data for the Residential Sector"""
-        weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
-        weather_factors = weather.get_weather(energy_dict, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
-        return weather_factors
 
     def residential_projections(self):
         """Gather Residential projections data
@@ -309,14 +282,7 @@ class MakeProjections(CalculateLMDI):
         energy_data =  {'elec': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_ELC_NA_NEENGL_QBTU.A', id_type='series'),
                         'deliv': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_DELE_NA_NEENGL_QBTU.A', id_type='series')}
 
-        # weather_factors_by_e = dict()
-        # for e_type, e_df in energy_data.items():
-        #     nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data=e_df, activity_input_data=residential_floorspace) 
-
-        #     weather_factors = self.residential_collect_weather(energy_dict=energy_data, nominal_energy_intensity=nominal_energy_intensity) # need to integrate this into the data passed to LMDI
-        #     weather_factors_by_e[e_type] = weather_factors
-
-        data_dict = {'energy': energy_data, 'activity': activity_data} #, 'weather_factors': weather_factors_by_e}
+        data_dict = {'energy': energy_data, 'activity': activity_data} 
         
         return data_dict
 
@@ -362,11 +328,11 @@ class MakeProjections(CalculateLMDI):
         """Calculate decomposition of projected energy use for selected sectors
         """
         
-        data_dict = {'economy_wide': {'residential': self.residential_projections(), 
-                                      'industrial': self.industrial_projections(),
-                                      'transportation': self.transportation_projections()},
-                                      'electricity': self.electricity_projections(),
-                                      'commercial': self.commercial_projections()}
+        data_dict = {'Economy_Wide': {'Residential': self.residential_projections(), 
+                                      'Industrial': self.industrial_projections(),
+                                      'Transportation': self.transportation_projections()},
+                                      'Electricity': self.electricity_projections(),
+                                      'Commerical': self.commercial_projections()}
         return data_dict
         
 
@@ -378,7 +344,7 @@ class MakeProjections(CalculateLMDI):
 if __name__ == '__main__': 
     indicators = MakeProjections(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                  output_directory='./Results', 
-                                 level_of_aggregation='economy_wide', lmdi_model=['multiplicative', 'additive']) 
+                                 level_of_aggregation='Economy_Wide', lmdi_model=['multiplicative', 'additive']) 
     indicators.main(breakout=False, calculate_lmdi=True)
 
 

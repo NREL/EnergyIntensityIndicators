@@ -54,18 +54,6 @@ class ElectricityIndicators(CalculateLMDI):
                                                     {'Wood': None, 'Waste': None},
                                                 'Other': None}}}}
         self.elec_power_eia = GetEIAData(sector='electricity')
-        # self.Table21f = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.06') #self.elec_power_eia.eia_api(id_='711254') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711254'
-        # self.Table82a = self.elec_power_eia.eia_api(id_='3') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=3'
-        # self.Table82b = self.elec_power_eia.eia_api(id_='21')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
-        # self.Table82c = self.elec_power_eia.eia_api(id_='1736765') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1736765' ?
-        # self.Table82d = self.elec_power_eia.eia_api(id_='711282') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711282'
-        # # self.Table82d_2012_and_later = self.elec_power_eia.eia_api(id_='1017') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=1017'
-        # self.Table83d_03 = self.elec_power_eia.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
-        # self.Table84b = self.elec_power_eia.eia_api(id_='711284') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711284' ?
-        # self.Table85c = self.elec_power_eia.eia_api(id_='379')  # ?
-        # self.Table86b = self.elec_power_eia.eia_api(id_='463') # ?
-        # self.MER_T72b_1013_AnnualData = self.elec_power_eia.eia_api(id_='21')  #'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=21'
-        # self.MER_T72c_1013_AnnualData = self.elec_power_eia.eia_api(id_='2') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=2'
         self.energy_types = ['primary']
         self.Table84c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03C') # Consumption of combustible fuels for electricity generation: Commercial and industrial sectors (selected fuels) # elec_power_eia.eia_api(id_='456') 
         self.Table85c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03B') # Consumption of combustible fuels for electricity generation: Electric power sector
@@ -606,5 +594,6 @@ class ElectricityIndicators(CalculateLMDI):
 if __name__ == '__main__':
     indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                        output_directory='./Results', 
-                                       level_of_aggregation='All CHP.Elec Power Sector', end_year=2018)
+                                       level_of_aggregation='All CHP.Elec Power Sector', end_year=2018,
+                                       lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)

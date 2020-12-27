@@ -18,6 +18,8 @@ class GetEIAData:
             eia_data = self.get_category(api_key, id_)
         elif id_type == 'series':
             eia_data = self.get_series(api_key, id_)
+            if isinstance(eia_data, pd.Series):
+                eia_data = eia_data.to_frame()
         else:
             eia_data = None
             print('Error: neither series nor category given')
@@ -137,14 +139,13 @@ class GetEIAData:
         """Calibrate SEDS energy consumption data to most recent data from the Annual or Monthly Energy Review
         """
         if self.sector == 'residential':
-            AER11_table2_1b_update = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02', skiprows=10, header=0).drop(0, axis=0)
+            AER11_table2_1b_update = pd.read_excel('https://www.eia.gov/totalenergy/data/browser/xls.php?tbl=T02.02', skiprows=10, header=0).drop(0, axis=0, errors='ignore')
             AER11_table2_1b_update = AER11_table2_1b_update.replace({'Not Available': np.nan})
             AER11_table2_1b_update['Month'] = pd.to_datetime(AER11_table2_1b_update['Month'], format='%Y-%m-%d')
             AER11_table2_1b_update['Year'] = pd.DatetimeIndex(AER11_table2_1b_update['Month']).year
             AER11_table2_1b_update = AER11_table2_1b_update.groupby(by=['Year']).sum()  # add groupby(dropna=False) when that feature is released #  self.eia_api(id_='711250')
             AnnualData_MER_22_Dec2019 = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T02.02') # self.eia_api(id_='711250')
             
-              # .eia_api(id_=, id_type='category')
             electricity_retail_sales_residential_sector = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series')
             total_primary_energy_consumed_residential_sector = self.eia_api(id_='TOTAL.TXRCBUS.A', id_type='series')
 

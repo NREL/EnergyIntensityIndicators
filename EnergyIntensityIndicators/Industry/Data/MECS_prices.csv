@@ -1,0 +1,149 @@
+﻿NAICS,Industry,1985,1988,1991,1994,1998,2002,2006,2010,2014,fuel_type
+311,Food,4.21,2.91,2.697,2.85,2.95,4.38,7.54,5.85,5.48,Gas
+312,Beverage and Tobacco Products,4.33,3.42,3.2709,3.378,3.22,4.39,9.24,6.48,5.35,Gas
+313,Textile Mills,4.54,3.4,3.317,3.46,3.33,4.61,8.78,6.95,6.55,Gas
+314,Textile Product Mills,4.54,3.4,3.317,3.46,3.5,4.46,8.9,6.77,6.76,Gas
+315,Apparel,5.17,4.18,3.741,4.01,3.81,5.2,9.08,8.62,7.28,Gas
+316,Leather and Allied Products,4.75,3.5,2.863,3.57,3.64,4.57,10.25,7.57,6.79,Gas
+321,Wood Products,4.56,3.58,3.134,3.24,2.97,4.74,8.31,6.57,6.23,Gas
+322,Paper,3.88,2.48,2.292,2.53,2.7,4.15,8.42,5.55,5.36,Gas
+323,Printing and Related Support,4.95,4.01,3.6,4.08,3.87,4.98,7.61,7.01,6.77,Gas
+324,Petroleum and Coal Products,3.24,2.09,1.967,2.2,2.47,3.42,6.69,4.87,5.1,Gas
+325,Chemicals,3.02,1.97,1.811,2.15,2.38,3.37,7.47,4.86,4.82,Gas
+326,Plastics and Rubber Products,4.34,3.15,3.135,3.52,3.48,4.98,9.02,6.45,6.79,Gas
+327,Nonmetallic Mineral Products,4.18,2.75,2.527,3.57,2.95,4.2,8.26,5.9,5.36,Gas
+331,Primary Metals,4.12,2.78,2.532,2.72,2.89,4.08,8.39,5.37,5.11,Gas
+332,Fabricated Metal Products,4.69,3.6,3.373,3.49,3.49,4.92,8.87,6.73,6.3,Gas
+333,Machinery,4.67,3.6,3.45,3.71,3.66,5.28,12.09,7.06,6.98,Gas
+334,Computer and Electronic Products,4.684,3.523,3.3839,3.623,3.71,5.47,9.78,6.56,6.65,Gas
+335,"Electrical Equip., Appliances, and Components",4.72,3.43,3.32,3.56,3.4,4.9,9.46,6.78,6.18,Gas
+336,Transportation Equipment,4.64,3.48,3.095,3.31,3.24,4.26,7.04,6.63,6.45,Gas
+337,Furniture and Related Products,5.03,3.9,3.651,3.88,4.19,5.15,10.33,8.61,7.74,Gas
+339,Miscellaneous,3.72,3.74,3.878,4.42,3.89,5.07,9.78,8.32,7.44,Gas
+,,1985,1988,1991,1994,1998,2002,2006,2010,2014,LPG
+311,Food,6.73,6.72,7.596,7.15,7.47,8.31,17.13,19.04,19.31,LPG
+312,Beverage and Tobacco Products,7.264,6.804,8.2176,7.066,6.77,9.15,18.39,20.32,21.12,LPG
+313,Textile Mills,6.79,4.59,7.251,5.77,5.93,9.35,20.01,17.9,18.58,LPG
+314,Textile Product Mills,6.79,4.59,6.154,5.77,8.35,9.1,19,18.53,18.16,LPG
+315,Apparel,7.68,6.77,7.86,8.01,6.62,12.07,17.74,23.11,21.17,LPG
+316,Leather and Allied Products,7.43,6.79,8.292,8.36,8.25,10.65,14.99,22.2,19.13,LPG
+321,Wood Products,6.92,5.38,6.399,6.56,7.18,8.71,13.22,19.46,21,LPG
+322,Paper,7.54,5.98,7.064,7.18,7.28,8.97,17.56,20.43,19.97,LPG
+323,Printing and Related Support,9.95,6.62,9.549,8.46,8.6,11.68,19.01,19.21,19.92,LPG
+324,Petroleum and Coal Products,5.08,3.92,4.603,5.45,4.29,6.68,20.13,19.82,18.49,LPG
+325,Chemicals,5.18,5.25,4.829,4.71,4.44,5.77,13.06,13.98,12.04,LPG
+326,Plastics and Rubber Products,8.2,7,7.959,8.61,9.06,11.26,17.63,18.12,22.05,LPG
+327,Nonmetallic Mineral Products,6.92,5.01,8.065,7.4,8.57,10.21,15.13,18.91,22.63,LPG
+331,Primary Metals,6.47,4.87,5.23,7,7.5,8.98,14.6,16.53,18.48,LPG
+332,Fabricated Metal Products,8.85,6.37,8.192,9.45,8.83,12.66,16.66,22.17,20.14,LPG
+333,Machinery,8.87,6.67,7.713,10.02,7.65,10.7,16.73,20.82,22.19,LPG
+334,Computer and Electronic Products,6.658,5.189,7.6522,5.527,7.9,9.47,18.06,24.93,23.38,LPG
+335,"Electrical Equip., Appliances, and Components",7.54,5.81,7.279,6.28,8,10.87,20.58,18.22,14.34,LPG
+336,Transportation Equipment,7.06,5.5,7.111,8.67,8.05,9.44,13.57,20.86,24.24,LPG
+337,Furniture and Related Products,7.35,6.19,8.548,9.42,7.82,10.22,17.87,20.91,22.97,LPG
+339,Miscellaneous,10,7.65,10.033,7.38,12.94,12.17,18.76,23.65,24.95,LPG
+311,Food,6.58,4.9862,6.064,5.47,4.1,7.04,17.17,18.62,16.98,Distillate
+312,Beverage and Tobacco Products,6.514,5.766,5.7907,5.08,5.38,9.75,19.59,13,10.87,Distillate
+313,Textile Mills,6.02,4.01,4.468,4.32,3.64,6.73,18.44,16.94,14.13,Distillate
+314,Textile Product Mills,6.02,4.01,4.468,4.32,4.5,6.73,15.42,14.42,15.16,Distillate
+315,Apparel,6.48,5.13,6.667,5.15,5.14,6.74,14.46,15.3,0,Distillate
+316,Leather and Allied Products,6.44,4.59,4.864,3.57,4.63,5.87,13.64,21.02,20.03,Distillate
+321,Wood Products,6.23,5.22,6.421,6.14,4.6,7.02,16.75,16.05,18.12,Distillate
+322,Paper,5.95,3.96,4.566,4.59,4.29,5.13,10.93,16.11,14.9,Distillate
+323,Printing and Related Support,5.99,4.56,6.002,5.57,4.27,6.28,15,20.54,15,Distillate
+324,Petroleum and Coal Products,5.34,4.56,5.164,4.44,3.85,6.08,13.03,16.37,13.2,Distillate
+325,Chemicals,5.83,4.3,5.284,4.84,4.68,6.1,13.34,17.05,13.9,Distillate
+326,Plastics and Rubber Products,6.16,7.46,5.372,4.56,5.59,6.66,13.94,22.73,0,Distillate
+327,Nonmetallic Mineral Products,6.44,5.04,6.01,5.49,4.77,7.5,18.33,16.7,11.01,Distillate
+331,Primary Metals,6.06,4.18,5.835,4.57,5.1,4.73,15.44,15.01,15.64,Distillate
+332,Fabricated Metal Products,6.54,4.77,5.706,5.44,5.06,6.77,20.4,21.39,0,Distillate
+333,Machinery,6.23,4.36,5.799,5.24,5.13,8.69,18.73,19.73,22.65,Distillate
+334,Computer and Electronic Products,6.109,4.181,5.128,5.235,4.69,6.88,14.38,19.8,23.1,Distillate
+335,"Electrical Equip., Appliances, and Components",6.1,4.37,5.245,5.25,5.49,6.73,12.52,18.37,0,Distillate
+336,Transportation Equipment,6.17,4.4,5.378,4.12,4.84,7.73,16.58,21.58,15.5,Distillate
+337,Furniture and Related Products,6.59,5.22,5.821,5.57,5.41,8.22,16.94,20.07,0,Distillate
+339,Miscellaneous,6.61,4.98,6.118,3.88,4.3,7.07,17.32,18.23,18.71,Distillate
+311,Food,4.29,2.65,2.854,2.79,2.7,4.29,8,11.16,22.71,Residual
+312,Beverage and Tobacco Products,4.332,2.638,2.7709,2.829,2.68,4.59,8.45,11.02,19.99,Residual
+313,Textile Mills,4.77,2.78,2.809,2.94,2.82,4.89,8.49,13.84,24.22,Residual
+314,Textile Product Mills,4.77,2.78,2.809,2.94,2.8,5,8.5,17.64,23.75,Residual
+315,Apparel,4.97,3.13,3.121,3.14,2.77,5,8.5,19,20,Residual
+316,Leather and Allied Products,4.38,2.48,2.626,2.23,2.6,3.87,8.57,16.05,23.28,Residual
+321,Wood Products,4.65,2.65,2.68,2.61,2.6,4,8.33,11.44,21.81,Residual
+322,Paper,4.24,2.36,2.522,2.49,2.37,3.71,7.82,11.46,20.44,Residual
+323,Printing and Related Support,4.64,3.11,3.717,3.39,2.6,5,8.5,9.82,20,Residual
+324,Petroleum and Coal Products,4,3.03,3,2.99,2.3,3.23,5,8.37,16.34,Residual
+325,Chemicals,4.33,2.49,2.358,3.39,2.67,3.64,7.57,10.61,21.41,Residual
+326,Plastics and Rubber Products,4.56,2.6,2.494,2.68,2.55,3.86,8.67,12.8,12,Residual
+327,Nonmetallic Mineral Products,4.34,2.7,3.141,2.81,2.92,3.99,8.4,11.6,18.9,Residual
+331,Primary Metals,4.18,2.29,2.172,2.62,2.22,4.25,6.04,10.37,22.24,Residual
+332,Fabricated Metal Products,4.69,3.17,3.159,3.75,2.85,4.25,8,6.36,18,Residual
+333,Machinery,4.64,3.02,3.079,3.18,2.36,4.15,8,7.7,35.5,Residual
+334,Computer and Electronic Products,4.666,2.647,3.377,3.333,2.5,4.97,9.19,14.32,24.52,Residual
+335,"Electrical Equip., Appliances, and Components",4.75,2.71,3.47,3.48,2.93,4.6,9,12.64,26,Residual
+336,Transportation Equipment,4.84,2.88,3.035,2.68,2.79,4.24,7.56,9.23,17.96,Residual
+337,Furniture and Related Products,4.88,3.14,3.312,3.48,2.6,4,8,19,19,Residual
+339,Miscellaneous,4.95,2.87,2.953,3,2.6,4,8,19.88,30.56,Residual
+311,Food,1.74,1.54,1.433,1.46,1.43,1.46,1.93,2.41,2.56,Coal
+312,Beverage and Tobacco Products,1.896,1.69,1.6322,1.622,1.71,2.32,3.19,4.29,4.47,Coal
+313,Textile Mills,2.29,1.94,1.952,1.88,2.06,2.28,3.63,4.67,4.53,Coal
+314,Textile Product Mills,2.29,1.94,1.952,1.88,2,2,3.5,3.65,5.61,Coal
+315,Apparel,2.46,2.28,2.4,2.4,2,2.5,3.5,3.5,5,Coal
+316,Leather and Allied Products,1.87,1.96,1.775,1.75,1.56,1.87,2.97,3.85,5,Coal
+321,Wood Products,3,2.5,2.5,2.5,2,2,2.2,5.81,4.6,Coal
+322,Paper,1.98,1.78,1.87,1.83,1.75,1.97,2.87,3.61,3.99,Coal
+323,Printing and Related Support,1.9525,1.925,1.716,2.057,2,2.057,3.267,4.235,5,Coal
+324,Petroleum and Coal Products,1.82,2.03,2.01,1.22,2,2,3.73,4.79,4.48,Coal
+325,Chemicals,1.86,1.63,1.681,1.65,1.66,1.99,2.7,3.28,2.76,Coal
+326,Plastics and Rubber Products,2.11,2.26,2.154,2.28,2.5,2,3,6.1,7.09,Coal
+327,Nonmetallic Mineral Products,1.87,1.53,1.583,1.66,1.6,1.75,2.57,3.07,3.48,Coal
+331,Primary Metals,2.46,1.78,1.878,1.81,1.42,1.95,3.56,4.79,4.82,Coal
+332,Fabricated Metal Products,2.29,1.94,1.993,2.08,2.61,5.03,4,4.85,9.44,Coal
+333,Machinery,1.83,1.58,1.544,1.65,1.57,1.49,2.67,3.5,3.5,Coal
+334,Computer and Electronic Products,1.435,1.176,2,1.491,2,3.11,4,5,5,Coal
+335,"Electrical Equip., Appliances, and Components",2.05,1.68,2,2.13,2,2.5,3.5,5,5,Coal
+336,Transportation Equipment,2.33,2.05,2.06,1.87,1.79,2.26,3.09,5.06,5.44,Coal
+337,Furniture and Related Products,2.46,2.18,1.983,2.27,2,2.6,1.87,2.64,3.8,Coal
+339,Miscellaneous,2.26,1.82,2,2,2,2,3,3.63,5,Coal
+311,Food,,,,,6.6,5.18,10.37,15.96,18.91,Coke
+312,Beverage and Tobacco Products,,,,,,,,,0,Coke
+313,Textile Mills,,,,,,,,,0,Coke
+314,Textile Product Mills,,,,,,,,,0,Coke
+315,Apparel,,,,,,,,,0,Coke
+316,Leather and Allied Products,,,,,,,,,0,Coke
+321,Wood Products,,,,,,,,,0,Coke
+322,Paper,,,,,3,5,5,5.49,0,Coke
+323,Printing and Related Support,,,,,,,,,0,Coke
+324,Petroleum and Coal Products,,,,,,,,,5,Coke
+325,Chemicals,,,,,4.51,5,8.77,8.08,6.4,Coke
+326,Plastics and Rubber Products,,,,,,,,,0,Coke
+327,Nonmetallic Mineral Products,,,,,2.48,1.96,3.05,8.7,2.73,Coke
+331,Primary Metals,,,,,4.93,4.66,7.72,10.4,9.91,Coke
+332,Fabricated Metal Products,,,,,7.35,4.5,7.5,8.06,0,Coke
+333,Machinery,,,,,,,,,0,Coke
+334,Computer and Electronic Products,,,,,,,,,0,Coke
+335,"Electrical Equip., Appliances, and Components",,,,,,,,,20.16,Coke
+336,Transportation Equipment,,,,,,,,,19.96,Coke
+337,Furniture and Related Products,,,,,,,,,0,Coke
+339,Miscellaneous,,,,,,,,,0,Coke
+311,Food,,,,,2.488372093,4.375,3.081967213,5,6.604651163,Other 
+312,Beverage and Tobacco Products,,,,,2,2.777777778,4,7,6.5,Other 
+313,Textile Mills,,,,,2.333333333,3.388888889,4.916666667,5.428571429,1.666666667,Other 
+314,Textile Product Mills,,,,,2.33,3.3,5,5,6.666666667,Other 
+315,Apparel,,,,,2,3.3,5,5,5,Other 
+316,Leather and Allied Products,,,,,2.5,3.3,5,5,5,Other 
+321,Wood Products,,,,,2.129032258,1.349127182,2.574074074,2.087719298,5.019607843,Other 
+322,Paper,,,,,2.129746835,2.697115385,5,3.107594937,3.316151203,Other 
+323,Printing and Related Support,,,,,2.5,2.5,5,5,3.333333333,Other 
+324,Petroleum and Coal Products,,,,,2.922077922,3.563218391,5.635179153,4.264423077,11.46613995,Other 
+325,Chemicals,,,,,3.508442777,3.402040816,7.891812865,6.5775,5.740310078,Other 
+326,Plastics and Rubber Products,,,,,4.2,4,8,5,7,Other 
+327,Nonmetallic Mineral Products,,,,,1.357142857,1.288,1.534722222,2.256410256,1.936842105,Other 
+331,Primary Metals,,,,,5.341772152,2.039325843,2.992481203,3.725490196,2.678832117,Other 
+332,Fabricated Metal Products,,,,,12.92592593,15.33333333,10,5.333333333,8,Other 
+333,Machinery,,,,,7.857142857,7.4,6.66,13.5,15,Other 
+334,Computer and Electronic Products,,,,,5.5,5,6.5,14,18,Other 
+335,"Electrical Equip., Appliances, and Components",,,,,0.415143603,2.5,6,7.56,6.8,Other 
+336,Transportation Equipment,,,,,3.851851852,3.516129032,7.4,11.66666667,10,Other 
+337,Furniture and Related Products,,,,,4.666666667,2,3.5,2,20,Other 
+339,Miscellaneous,,,,,3.6,2,4,5,13,Other 

@@ -26,9 +26,9 @@ class EconomyWide(CalculateLMDI):
         self.elec_cat = self.elec.sub_categories_list
         self.trans_cat = self.trans.sub_categories_list
 
-        self.sub_categories_list = {'Residential': self.res_cat, 'Commercial': self.comm_cat, 
-                                    'Industrial': self.ind_cat, 'Transporation': self.trans_cat, 
-                                    'Elec Power': self.elec_cat}
+        self.sub_categories_list = {'Economy Wide': {'Residential': self.res_cat, 'Commercial': self.comm_cat, 
+                                                     'Industrial': self.ind_cat, 'Transporation': self.trans_cat, 
+                                                     'Elec Power': self.elec_cat}}
         super().__init__(sector='economy_wide', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
 
@@ -36,7 +36,7 @@ class EconomyWide(CalculateLMDI):
         """Collect data from all sectors"""
         all_data = dict()
         abbrevs = {'Residential': self.res, 'Commercial': self.comm, 'Transporation': self.trans, 'Elec Power': self.elec, 'Industrial': self.ind}
-        for sector in self.sub_categories_list.keys():
+        for sector in self.sub_categories_list['Economy Wide'].keys():
             abbrev = abbrevs[sector]
             formatted_data = abbrev.collect_data()
             all_data[sector] = formatted_data
@@ -50,11 +50,11 @@ class EconomyWide(CalculateLMDI):
         data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
                                                                breakout=breakout, calculate_lmdi=calculate_lmdi, 
-                                                               raw_data=data_dict)
+                                                               raw_data=data_dict, lmdi_type=['multiplicative', 'additive'])
         print(formatted_results)
         return results_dict 
 
 if __name__ == '__main__':
     indicators = EconomyWide(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
-                             output_directory='./Results', level_of_aggregation='All_Residential')
+                             output_directory='./Results', level_of_aggregation='Economy Wide')
     indicators.main(breakout=False, calculate_lmdi=False)  

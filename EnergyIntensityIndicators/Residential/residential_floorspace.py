@@ -49,8 +49,6 @@ class ResidentialFloorspace:
         extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
 
         vals_list = ["'04'", "'05'", "'06'", "'07'", "'08'", "'09'"]
-        print(vals_list)
-        print(extract_ahs['BLD'].unique())
 
         extract_ahs= extract_ahs[extract_ahs['BLD'].isin(vals_list)]
         housing_types = ['single_family', 'multifamily', 'manufactured_homes']
@@ -89,15 +87,11 @@ class ResidentialFloorspace:
         historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
         #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
         for year in list(historical_ahs['Years']):
-            print('AHS Year:', year)
             df = historical_ahs[historical_ahs['Years'] == year]
             regions = ['National', 'West', 'Northeast', 'South', 'Midwest']
             for region in regions: 
-                print('AHS region:', region)
                 columns_ = [c for c in list(range(df.shape[1])) if df.iloc[1, [c]].values == region]
-                print('columns:', columns_)
                 region_df = df[df.ix[:, columns_]] 
-                print(region_df)
         pass
 
     @staticmethod
@@ -245,8 +239,6 @@ class ResidentialFloorspace:
             if os.path.exists('./saved_coeffs.csv'):
                 saved_coeffs = pd.read_csv('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
                                                                  # each entry is list of saved coefficients
-                print('saved_coeffs: \n', saved_coeffs)
-
                 try:
                     x = saved_coeffs[(saved_coeffs['Years'] == max(df.index)) & (saved_coeffs['housing_type'] == 'sf')]
                     x = x.drop(['Years', 'housing_type'], axis=1).drop_duplicates().values[0]
@@ -261,16 +253,12 @@ class ResidentialFloorspace:
                         x = x0
 
             else:
-                print("os.getcwd() in single-family:", os.getcwd())
                 x = x0
 
             df_data = [[max(df.index), 'sf'] + list(x)]
-            print('df_data', df_data)
-            print("type(x):", type(x))
-            print('x:', x)
+
 
             coeffs_df = pd.DataFrame(data=df_data, columns=['Years', 'housing_type', 'x1', 'x2', 'x3'], index=[0])
-            print('coeffs df:\n', coeffs_df)
             coeffs_df.to_csv('./saved_coeffs.csv', mode='a', index=False, header=False)
 
             results = self.model_average_housing_unit_size_sf(x, df)
@@ -343,7 +331,6 @@ class ResidentialFloorspace:
         df['CB'] = df['CB'].ffill()
 
         x0 = [567.081097939713, -22.7744777937053, 2.44216497607253]
-        print('df mf:\n', df)
         
         if os.path.exists('./saved_coeffs.csv'):
             saved_coeffs = pd.read_csv('./saved_coeffs.csv') # structure: row for most recent year, cols are housing unit types
@@ -351,7 +338,6 @@ class ResidentialFloorspace:
             try:
                 x = saved_coeffs[(saved_coeffs['Years'] == max(df.index)) & (saved_coeffs['housing_type'] == 'mf')]
                 x = x.drop(['Years', 'housing_type'], axis=1).drop_duplicates().values[0]
-                print('x:', x)
             except Exception as e:
                 print(f'mf failed with error {e}')
                 try:
@@ -362,12 +348,10 @@ class ResidentialFloorspace:
                     x = x0
 
         else:
-            print("os.getcwd() in multifamily:", os.getcwd())
             x = x0
 
         df_data = [[max(df.index), 'mf'] + list(x)]
-        print('df_data', df_data)
-        print(type(x))
+
         coeffs_df = pd.DataFrame(data=df_data, columns=['Years', 'housing_type', 'x1', 'x2', 'x3'])
         coeffs_df.to_csv('./saved_coeffs.csv', mode='a', index=False, header=False)
 
@@ -681,8 +665,6 @@ class ResidentialFloorspace:
         number_occupied_units_national = number_occupied_units_national.merge(occupied_predicted_mf, left_index=True, right_index=True, how='outer')
 
         average_size_national = a.merge(c, left_index=True, right_index=True, how='outer')
-        print('average_size_national:\n', average_size_national)
-        print('type(average_size_national):\n', type(average_size_national))
 
         average_size_national = average_size_national.merge(b, left_index=True, right_index=True, how='outer')
         
@@ -701,8 +683,6 @@ class ResidentialFloorspace:
             except FileNotFoundError:
                 cwd_changed = False
         
-        print('final floorspace directory:', os.getcwd())
-
         number_occupied_units_national, average_size_national = self.get_housing_stock()
         number_occupied_units_national = number_occupied_units_national[['occupied_units_sf', 'occupied_units_mf', 'occupied_units_mh']]
         average_size_national  = average_size_national[['avg_size_sqft_sf', 'avg_size_sqft_mf', 'avg_size_sqft_mh']]
@@ -733,7 +713,6 @@ class ResidentialFloorspace:
             if abbrev:
 
                 # Number of Units
-                print(region)
                 col_names = [f'{h_type}_{abbrev}' for h_type in housing_types]
                 region_shares = calculated_shares[col_names]
             

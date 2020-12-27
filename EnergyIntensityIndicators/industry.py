@@ -39,7 +39,6 @@ class IndustrialIndicators(CalculateLMDI):
                                                          'Construction': None}}
 
         self.ind_eia = GetEIAData('industry')
-        self.conversion_factors = self.ind_eia.conversion_factors()
         self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
         self.AER10_Table21d = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
         self.AER11_Table21d_MER0816 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
@@ -79,8 +78,8 @@ class IndustrialIndicators(CalculateLMDI):
         Industrial sector
         """
         man = self.manufacturing()
-
         non_man = self.non_manufacturing()
+
 
         data_dict = {'Manufacturing': man, 'Nonmanufacturing': non_man}
         return data_dict
@@ -105,5 +104,5 @@ if __name__ == '__main__':
     print('os.getcwd()', os.getcwd())
     indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
                                       output_directory='./Results',
-                                      level_of_aggregation='Manufacturing')
+                                      level_of_aggregation='Manufacturing', lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)  
