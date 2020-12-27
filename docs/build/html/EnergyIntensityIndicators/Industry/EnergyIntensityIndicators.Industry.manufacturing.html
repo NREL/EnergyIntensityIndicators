@@ -172,6 +172,11 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class to collect and process manufacturing data for the industrial sector</p>
 <dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.aggregate_naics">
+<em class="property">static </em><code class="sig-name descname">aggregate_naics</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">values</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.aggregate_naics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.calc_quantity_shares">
 <em class="property">static </em><code class="sig-name descname">calc_quantity_shares</code><span class="sig-paren">(</span><em class="sig-param">mecs42_df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.calc_quantity_shares" title="Permalink to this definition">¶</a></dt>
 <dd><p>For a given MECS year, take 3-digit NAICS by fuel (TBtu),
@@ -194,18 +199,23 @@ with 2 and 7).</p>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expend_ratios_revised_85_97">
-<code class="sig-name descname">expend_ratios_revised_85_97</code><span class="sig-paren">(</span><em class="sig-param">NAICS3D</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expend_ratios_revised_85_97" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">expend_ratios_revised_85_97</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expend_ratios_revised_85_97" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expenditure_ratios_revised">
-<em class="property">static </em><code class="sig-name descname">expenditure_ratios_revised</code><span class="sig-paren">(</span><em class="sig-param">NAICS3D</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expenditure_ratios_revised" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">expenditure_ratios_revised</code><span class="sig-paren">(</span><em class="sig-param">asm_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.expenditure_ratios_revised" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.final_quantities_asm_85">
 <code class="sig-name descname">final_quantities_asm_85</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.final_quantities_asm_85" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Between-MECS-year interpolations are made in MECS_Annual_Fuel1
+and MECS_Annual_Fuel2 tabs in Ind_hap3 spreadsheet.
+Interpolations are also based on estimates developed in
+ASMdata_010220.xlsx[3DNAICS], which ultimately tie back to MECS fuel data
+from Table 4.2 and Table 3.2</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.get_historical_mecs">
@@ -234,6 +244,11 @@ Table 3.2 and added to csv.</p>
 these values will need to be manually downloaded from Table 3.2
 and added to csv.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.interpolate_mecs">
+<em class="property">static </em><code class="sig-name descname">interpolate_mecs</code><span class="sig-paren">(</span><em class="sig-param">mecs_data</em>, <em class="sig-param">col_name</em>, <em class="sig-param">reindex=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.interpolate_mecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.manufacturing">
@@ -277,8 +292,23 @@ from Table 4.2 and Table 3.2</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.mecs_data_sic">
+<em class="property">static </em><code class="sig-name descname">mecs_data_sic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.mecs_data_sic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.mecs_fuel">
 <em class="property">static </em><code class="sig-name descname">mecs_fuel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.mecs_fuel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.pre_1998_quantities">
+<code class="sig-name descname">pre_1998_quantities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.pre_1998_quantities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.quantities_1998_forward">
+<code class="sig-name descname">quantities_1998_forward</code><span class="sig-paren">(</span><em class="sig-param">NAICS3D</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.quantities_1998_forward" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -288,6 +318,11 @@ from Table 4.2 and Table 3.2</p>
 prices (calcualted using asm_price_fit.py), by 3-digit NAICS for a
 given MECS year.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.quantity_shares_1998_forward">
+<code class="sig-name descname">quantity_shares_1998_forward</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.manufacturing.Manufacturing.quantity_shares_1998_forward" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

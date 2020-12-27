@@ -162,7 +162,7 @@
 <p>EnergyIntensityIndicators.LMDI.CalculateLMDI</p>
 <dl class="class">
 <dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI">
-<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.LMDI.</code><code class="sig-name descname">CalculateLMDI</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">level_of_aggregation</em>, <em class="sig-param">lmdi_models</em>, <em class="sig-param">categories_dict</em>, <em class="sig-param">energy_types</em>, <em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">primary_activity=None</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2017</em>, <em class="sig-param">unit_conversion_factor=1</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.LMDI.</code><code class="sig-name descname">CalculateLMDI</code><span class="sig-paren">(</span><em class="sig-param">sector</em>, <em class="sig-param">level_of_aggregation</em>, <em class="sig-param">lmdi_models</em>, <em class="sig-param">categories_dict</em>, <em class="sig-param">energy_types</em>, <em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">primary_activity=None</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2017</em>, <em class="sig-param">unit_conversion_factor=1</em>, <em class="sig-param">weather_activity=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="lmdi.html#EnergyIntensityIndicators.LMDI.LMDI" title="EnergyIntensityIndicators.LMDI.LMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.LMDI</span></code></a></p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.build_col_list">
@@ -352,7 +352,7 @@ This ordering ensures that lower level structure is passed to higher level.</p>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.CalculateLMDI.prepare_lmdi_inputs">
-<code class="sig-name descname">prepare_lmdi_inputs</code><span class="sig-paren">(</span><em class="sig-param">energy_input_data</em>, <em class="sig-param">activity_input_data</em>, <em class="sig-param">lower_level_intensity_df</em>, <em class="sig-param">total_label</em>, <em class="sig-param">weather_data</em>, <em class="sig-param">unit_conversion_factor=1</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.prepare_lmdi_inputs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">prepare_lmdi_inputs</code><span class="sig-paren">(</span><em class="sig-param">energy_type</em>, <em class="sig-param">energy_input_data</em>, <em class="sig-param">activity_input_data</em>, <em class="sig-param">lower_level_intensity_df</em>, <em class="sig-param">total_label</em>, <em class="sig-param">weather_data</em>, <em class="sig-param">unit_conversion_factor=1</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.CalculateLMDI.prepare_lmdi_inputs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the LMDI inputs (collect log ratio components)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -419,7 +419,7 @@ Parameters:
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.LMDI.data_visualization">
-<code class="sig-name descname">data_visualization</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loa</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.data_visualization" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">data_visualization</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">loa</em>, <em class="sig-param">energy_type</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.data_visualization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Format data for proper visualization</p>
 <p>The following data types have been proposed (an ellipsis … indicates an optional parameter):</p>
 <blockquote>

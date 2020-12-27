@@ -83,11 +83,16 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../LMDI/lmdi.html">Core LMDI Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
-<li class="toctree-l1"><a class="reference internal" href="industry.html">Industrial Sector Data Collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="industry.html">Industrial Sector Data Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Industry.asm_price_fit.html">ASM Price Fit Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EnergyIntensityIndicators.Industry.manufacturing.html">Manufacturing Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">NonManufacturing Module</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../Residential/residential.html">Residential Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
@@ -176,7 +181,7 @@ purposes. As a result, a preliminary effort was undertaken in mid-2012 to estima
 from the user side for these sectors.</p>
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.aggregate_mining_data">
-<code class="sig-name descname">aggregate_mining_data</code><span class="sig-paren">(</span><em class="sig-param">mining_df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.aggregate_mining_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">aggregate_mining_data</code><span class="sig-paren">(</span><em class="sig-param">mining_df</em>, <em class="sig-param">allfos=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.aggregate_mining_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -192,7 +197,7 @@ from the user side for these sectors.</p>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.build_mining_output">
-<em class="property">static </em><code class="sig-name descname">build_mining_output</code><span class="sig-paren">(</span><em class="sig-param">factor</em>, <em class="sig-param">gross_output</em>, <em class="sig-param">elec</em>, <em class="sig-param">fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.build_mining_output" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">build_mining_output</code><span class="sig-paren">(</span><em class="sig-param">factor</em>, <em class="sig-param">gross_output</em>, <em class="sig-param">elec</em>, <em class="sig-param">fuels</em>, <em class="sig-param">sector_estimates_elec</em>, <em class="sig-param">sector_estimates_fuels</em>, <em class="sig-param">col_name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.build_mining_output" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build data dictionary for the mining subsector</p>
 </dd></dl>
 
@@ -233,7 +238,7 @@ from the user side for these sectors.</p>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.drilling_and_mining_support">
-<code class="sig-name descname">drilling_and_mining_support</code><span class="sig-paren">(</span><em class="sig-param">bea_bls_output</em>, <em class="sig-param">nea_elec</em>, <em class="sig-param">nea_fuels</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.drilling_and_mining_support" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">drilling_and_mining_support</code><span class="sig-paren">(</span><em class="sig-param">bea_bls_output</em>, <em class="sig-param">nea_elec</em>, <em class="sig-param">nea_fuels</em>, <em class="sig-param">sector_estimates</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Industry.nonmanufacuturing.NonManufacturing.drilling_and_mining_support" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collect drilling and mining support data for the mining subsector</p>
 </dd></dl>
 
