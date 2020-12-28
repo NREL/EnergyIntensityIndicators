@@ -533,9 +533,9 @@ class NonManufacturing:
         print('bea_bls_output:\n', bea_bls_output)
         print("BEA_mining_data:\n", BEA_mining_data)
 
-        data_dict = {'crude_petroleum_natgas': self.crude_petroleum_natgas(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates),
-                     'other_mining': self.other_mining(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates), 
-                     'drilling_and_mining_support': self.drilling_and_mining_support(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates)}
+        data_dict = {'Petroleum and Natural Gas': self.crude_petroleum_natgas(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates),
+                     'Other Mining': self.other_mining(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates), 
+                     'Petroleum drilling and Mining Services': self.drilling_and_mining_support(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates)}
         
         return data_dict
 
@@ -546,7 +546,7 @@ class NonManufacturing:
         # Agriculutral_energy_010420.xlsx/Intensity_estimates (Y-AB)
         # Mining energy_031020.xlsx/Compute_intensities (FQ-FS)
         # Construction_energy_011920.xlsx/Intensity_estimates (W-Z)
-        data_dict = {'Mining': self.mining(), 'Agriculture': self.agriculture(), 'Construction': self.construction()}
+        data_dict = {'Mining': self.mining(), 'Agriculture, Forestry & Fishing': self.agriculture(), 'Construction': self.construction()}
         print('data_dict:', data_dict)
         return data_dict              
 

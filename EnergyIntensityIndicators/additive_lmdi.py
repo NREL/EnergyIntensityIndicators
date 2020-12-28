@@ -133,8 +133,8 @@ class AdditiveLMDI():
         """Format component data, collect overall effect, return aggregated 
         dataframe of the results for the additive LMDI model.
         """
-        ASI.pop('lower_level_structure', None)
-
+        # ASI.pop('lower_level_structure', None)
+        print('columns additive decomposition df', [l.columns for l in list(ASI.values())])
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
 
 
@@ -153,6 +153,20 @@ class AdditiveLMDI():
         user must save manually (from plotly save button)
         """
         data = data[data['@filter|Model'] == model.capitalize()]
+
+        structure_cols = []
+        for column in data.columns: 
+            if column.endswith('Structure'):
+                structure_cols.append(column)
+
+        if len(structure_cols) == 1:
+            data = data.rename(columns={structure_cols[0]: '@filter|Measure|Structure'})
+        elif len(structure_cols) > 1:
+            data['@filter|Measure|Structure'] = data[structure_cols].sum(axis=1)  # Current level total structure
+            to_drop = [s for s in structure_cols if s != '@filter|Measure|Structure']
+            data = data.drop(to_drop, axis=1)
+        print('ADDITIVE DATA TO PRINT:\n', data)
+        print('data columns', data.columns)
 
         x_data = ["@filter|Measure|Activity"]
         print('os.getcwd()', os.getcwd())
@@ -185,8 +199,11 @@ class AdditiveLMDI():
             data['final_energy'] = self.energy_data.loc[max(self.energy_data.index), self.total_label]
 
         x_data = ['intial_energy'] + x_data + ['final_energy']
-        y_data = pd.concat([data_base, data], ignore_index=True, axis=0).fillna(0)
+        print('x_data:', x_data)
+        y_data = pd.concat([data_base, data], ignore_index=True, axis=0, sort=False).fillna(0)
+        print('y_data:', y_data)
         y_data = y_data[x_data]
+        print('y_data:', y_data)
 
         y_data.loc[:, 'final_energy'] = 0
         print('additive data to plot:\n', y_data)
@@ -195,8 +212,10 @@ class AdditiveLMDI():
 
         print('additive data to plot:\n', y_data)
 
-        x_labels = ['intial_energy', 'activity', 'intensity', 'structure', 'final_energy']
-        x_labels = [x.replace("_", " ").capitalize() for x in x_labels]
+        # x_labels = ['intial_energy', 'activity', 'intensity', 'structure', 'final_energy']
+        x_labels = [x_.replace('@filter|Measure|', '') for x_ in x_data]
+        print('x_labels:', x_labels)
+        x_labels = [x.replace("_", " ").title() for x in x_labels]
         
         measure = ['relative'] * 4 + ['total']
 

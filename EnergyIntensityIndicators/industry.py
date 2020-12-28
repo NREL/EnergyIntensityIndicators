@@ -25,13 +25,13 @@ class IndustrialIndicators(CalculateLMDI):
     """    
 
     def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
-        self.sub_categories_list = {'Manufacturing': {'Food, Beverages, & Tobacco': None, 'Textile Mills and Products': None, 
-                                               'Apparel & Leather': None, 'Wood Products': None, 'Paper': None,
-                                               'Printing & Allied Support': None, 'Petroleum & Coal Products': None, 'Chemicals': None,
-                                               'Plastics & Rubber Products': None, 'Nonmetallic Mineral Products': None, 'Primary Metals': None,
-                                               'Fabricated Metal Products': None, 'Machinery': None, 'Computer & Electronic Products': None,
-                                               'Electical Equip. & Appliances': None, 'Transportation Equipment': None,
-                                               'Furniture & Related Products': None, 'Miscellaneous': None},
+        self.sub_categories_list = {'Manufacturing': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
+                                               'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
+                                               'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
+                                               'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
+                                               'Fabricated metal products': None, 'Machinery': None, 'Computer and electronic products': None,
+                                               'Electrical equipment, appliances, and components': None, 'Motor vehicles, bodies and trailers, and parts': None,
+                                               'Furniture and related products': None, 'Miscellaneous manufacturing': None},
                                     'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
                                                          'Mining': {'Petroleum and Natural Gas': None, 
                                                                     'Other Mining': None, 
@@ -47,7 +47,7 @@ class IndustrialIndicators(CalculateLMDI):
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
 
         super().__init__(sector='industry', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year)
+                    energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, primary_activity='value_added')
 
     def reconcile_physical_units(self, ):
         """Convert physical units to Btu. (Prior to 2005, the data on energy consumption fuels to produce electricity were supplied in physical units (e.g. mcf of natural gas, tons of coal, etc))
@@ -79,7 +79,6 @@ class IndustrialIndicators(CalculateLMDI):
         """
         man = self.manufacturing()
         non_man = self.non_manufacturing()
-
 
         data_dict = {'Manufacturing': man, 'Nonmanufacturing': non_man}
         return data_dict

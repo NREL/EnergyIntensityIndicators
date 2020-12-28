@@ -69,7 +69,7 @@ class MakeProjections(CalculateLMDI):
                                                                 'Waste': None, # This is Biogenic Municipal Waste
                                                                 'Wind':  None}}}}}}
 
-        self.energy_types = []
+        self.energy_types = ['elec', 'deliv', 'total_energy', 'purchased_energy', 'primary', ]
         super().__init__(sector='Projections', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
                          energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
 
@@ -88,11 +88,11 @@ class MakeProjections(CalculateLMDI):
 
         commercial_eia = GetEIAData('commercial')
 
-        energy_use_commercial_electricity_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_ELC_NA_NA_QBTU.A', id_type='series')
-        energy_use_commercial_total_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_TOT_NA_NA_QBTU.A', id_type='series')
-        energy_use_commercial_delivered_energy_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_DELE_NA_NA_QBTU.A', id_type='series')
+        energy_use_commercial_electricity_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_ELC_NA_NA_QBTU.A', id_type='series', new_name='Commercial')
+        energy_use_commercial_total_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_TOT_NA_NA_QBTU.A', id_type='series', new_name='Commercial')
+        energy_use_commercial_delivered_energy_us = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_COMM_NA_DELE_NA_NA_QBTU.A', id_type='series', new_name='Commercial')
         
-        commercial_total_floorspace = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A', id_type='series')
+        commercial_total_floorspace = commercial_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_NA_COMM_NA_TFP_TOT_USA_BLNSQFT.A', id_type='series', new_name='Commercial')
      
         data_dict = {'Commercial_Total': {'energy': {'elec': energy_use_commercial_electricity_us, 'deliv': energy_use_commercial_delivered_energy_us}, 
                                           'activity': commercial_total_floorspace}}
@@ -131,38 +131,38 @@ class MakeProjections(CalculateLMDI):
                                                   'Mining': None,
                                                   'Construction': None}}
 
-        data_dict = {'Manufacturing': {'Food, Beverages, & Tobacco': {'Food Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_FDP_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                                               'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_FDP_PRC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                                                                    'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_FDP_NA_NA_NA_BLNY09DLR.A', id_type='series')}},
+        data_dict = {'Manufacturing': {'Food, Beverages, & Tobacco': {'Food Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_FDP_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Food Products'), 
+                                                                                                               'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_FDP_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Food Products')}, 
+                                                                                                    'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_FDP_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Food Products')}},
                                                                                 #   'Beverages and Tobacco Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                                                 #                                      'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_BVTP_NA_NA_NA_BLNY09DLR.A'}}
                                                                                   }, 
                                                     # 'Textile Mills and Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                     #                                 'activity': {'shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_TMP_NA_NA_NA_BLNY09DLR.A'}}, 
-                                                    'Wood Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_WDP_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                 'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_WDP_ELC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                                      'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_SHP_IDAL_WDP_NA_NA_NA_BLNY09DLR.A', id_type='series')}},  
-                                                    'Paper': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PPM_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                         'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PPM_PRC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                              'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A', id_type='series')}} ,
+                                                    'Wood Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_WDP_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Wood Products'), 
+                                                                                 'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_WDP_ELC_NA_NA_TRLBTU.A', id_type='series', new_name='Wood Products')}, 
+                                                                      'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_SHP_IDAL_WDP_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Wood Products')}},  
+                                                    'Paper': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PPM_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Paper'), 
+                                                                         'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PPM_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Paper')}, 
+                                                              'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_PPM_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Paper')}} ,
                                                     # 'Printing': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                     #              'activity': {'value_of_shipments': 'AEO.2020.REF2020.ECI_VOS_MANF_PRN_NA_NA_NA_BLNY09DLR.A'}}, 
                                                     # 'Petroleum & Coal Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='', id_type='series'), 
                                                     #                                          'purchased_electricity': industrial_eia.eia_api(id_='', id_type='series')}, 
                                                     #                               'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_PCL_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, 
-                                                    'Chemicals': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BCH_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                             'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BCH_HAP_PRC_NA_TRLBTU.A', id_type='series')}, 
-                                                                  'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_CHE_NA_NA_NA_BLNY09DLR.A', id_type='series')}},
-                                                    'Plastics & Rubber Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PLI_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                              'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PLI_ELC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                                                   'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_PRP_NA_NA_NA_BLNY09DLR.A', id_type='series')}},
+                                                    'Chemicals': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BCH_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Chemicals'), 
+                                                                             'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BCH_HAP_PRC_NA_TRLBTU.A', id_type='series', new_name='Chemicals')}, 
+                                                                  'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_CHE_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Chemicals')}},
+                                                    'Plastics & Rubber Products': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PLI_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Plastics & Rubber Products'), 
+                                                                                              'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_PLI_ELC_NA_NA_TRLBTU.A', id_type='series', new_name='Plastics & Rubber Products')}, 
+                                                                                   'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_PRP_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Plastics & Rubber Products')}},
                                                     # 'Nonmetallic Mineral Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                                                     #  'activity': {'shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_SCG_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, , 
-                                                    'Primary Metals': {'energy': {'total_energy': {'iron_and_steel': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_ISM_TOT_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                                   'aluminum': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AAP_TOT_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                                                  'purchased_electricity': {'iron_and_steel': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_ISM_PRC_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                                            'aluminum': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AAP_PRC_NA_NA_TRLBTU.A', id_type='series')}}, 
-                                                                       'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_PMM_NA_NA_NA_BLNY09DLR.A', id_type='series')}},
+                                                    'Primary Metals': {'energy': {'total_energy': {'iron_and_steel': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_ISM_TOT_NA_NA_TRLBTU.A', id_type='series', new_name='Primary Metals'), 
+                                                                                                   'aluminum': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AAP_TOT_NA_NA_TRLBTU.A', id_type='series', new_name='Primary Metals')}, 
+                                                                                  'purchased_electricity': {'iron_and_steel': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_ISM_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Primary Metals'), 
+                                                                                                            'aluminum': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AAP_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Primary Metals')}}, 
+                                                                       'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_PMM_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Primary Metals')}},
                                                     # 'Fabricated Metal Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                     #                               'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_FABM_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, , 
                                                     # 'Machinery': {'energy': {'total_energy': , 'purchased_electricity': }, 
@@ -175,25 +175,25 @@ class MakeProjections(CalculateLMDI):
                                                     #                              'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_IDAL_TEQ_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, 
                                                     # 'Furniture & Related Products': {'energy': {'total_energy': , 'purchased_electricity': }, 
                                                                                     #  'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_FRP_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, 
-                                                    'Miscellaneous': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BMF_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                 'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BMF_ELC_NA_NA_TRLBTU.A', id_type='series')}, # Energy data from "Balance of Manufacturing"
-                                                                      'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_MISC_NA_NA_NA_BLNY09DLR.A', id_type='series')}}},
-                     'Nonmanufacturing': {'Agriculture/Forestry/Fishing/Hunting': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AGG_NA_NA_NA_TRLBTU.A', id_type='series'),
-                                                                                                'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AGG_PRC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                                                    'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_AFF_NA_NA_NA_BLNY09DLR.A', id_type='series')}}, # here elec is purchased electricity, Note: try to find total elec
-                                            'Mining': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_NA_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                    'purchased_electricity': {'excluding_oil_shale': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_PEO_NA_NA_TRLBTU.A', id_type='series'), 
-                                                                                            'including_oil_shale': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_PES_NA_NA_TRLBTU.A', id_type='series')}}, 
-                                                        'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_MING_NA_NA_NA_BLNY09DLR.A', id_type='series')}},
-                                            'Construction': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_CNS_NA_NA_NA_TRLBTU.A', id_type='series'),
-                                                                        'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_CNS_PRC_NA_NA_TRLBTU.A', id_type='series')}, 
-                                                            'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_CNS_NA_NA_NA_BLNY09DLR.A', id_type='series')}}}}
+                                                    'Miscellaneous': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BMF_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Miscellaneous'), 
+                                                                                 'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_BMF_ELC_NA_NA_TRLBTU.A', id_type='series', new_name='Miscellaneous')}, # Energy data from "Balance of Manufacturing"
+                                                                      'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_MANF_MISC_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Miscellaneous')}}},
+                     'Nonmanufacturing': {'Agriculture/Forestry/Fishing/Hunting': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AGG_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Agriculture/Forestry/Fishing/Hunting'),
+                                                                                                'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_AGG_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Agriculture/Forestry/Fishing/Hunting')}, 
+                                                                                    'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_AFF_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Agriculture/Forestry/Fishing/Hunting')}}, # here elec is purchased electricity, Note: try to find total elec
+                                            'Mining': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Mining'), 
+                                                                    'purchased_electricity': {'excluding_oil_shale': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_PEO_NA_NA_TRLBTU.A', id_type='series', new_name='Mining'), 
+                                                                                            'including_oil_shale': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_MING_PES_NA_NA_TRLBTU.A', id_type='series', new_name='Mining')}}, 
+                                                        'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_MING_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Mining')}},
+                                            'Construction': {'energy': {'total_energy': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_CNS_NA_NA_NA_TRLBTU.A', id_type='series', new_name='Construction'),
+                                                                        'purchased_electricity': industrial_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_IDAL_CNS_PRC_NA_NA_TRLBTU.A', id_type='series', new_name='Construction')}, 
+                                                            'activity': {'value_of_shipments': industrial_eia.eia_api(id_='AEO.2020.REF2020.ECI_VOS_NMFG_CNS_NA_NA_NA_BLNY09DLR.A', id_type='series', new_name='Construction')}}}}
 
 
 
-        energy_use_industrial_electricity_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_ELC_NA_NA_QBTU.A', id_type='series')
-        energy_use_industrial_total_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_TOT_NA_NA_QBTU.A', id_type='series')
-        energy_use_industrial_delivered_energy_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_DELE_NA_NA_QBTU.A', id_type='series')
+        energy_use_industrial_electricity_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_ELC_NA_NA_QBTU.A', id_type='series', new_name='Industry')
+        energy_use_industrial_total_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_TOT_NA_NA_QBTU.A', id_type='series', new_name='Industry')
+        energy_use_industrial_delivered_energy_us = industrial_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_IDAL_NA_DELE_NA_NA_QBTU.A', id_type='series', new_name='Industry')
         
         return data_dict
 
@@ -221,29 +221,29 @@ class MakeProjections(CalculateLMDI):
                                     {'Highway':  
                                         {'Passenger Cars and Trucks': 
                                             {'Light Trucks – LWB Vehicles': 
-                                                {'Light Trucks': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', id_type='series'), 
-                                                                  'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_CML_NA_NA_BLNVEHMLS.A', id_type='series')},
-                                                'Light-Duty Vehicles': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', id_type='series'), 
-                                                                        'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_LDV_NA_NA_BLNVEHMLS.A', id_type='series')}}}, 
-                                        'Buses': {'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020._TRV_TRN_NA_BST_NA_NA_BPM.A', id_type='series'),
-                                                 'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_NA_NA_TRLBTU.A', id_type='series')}}, 
-                                    'Rail': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_RAIL_PSG_PSG_NA_TRLBTU.A', id_type='series'), 
-                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020._TRV_TRN_NA_RLP_NA_NA_BPM.A', id_type='series')}},
+                                                {'Light Trucks': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', id_type='series', new_name='Light Trucks')}, 
+                                                                  'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_CML_NA_NA_BLNVEHMLS.A', id_type='series', new_name='Light Trucks')},
+                                                'Light-Duty Vehicles': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_LDV_LTRT_NA_TRLBTU.A', id_type='series', new_name='Light-Duty Vehicles')}, 
+                                                                        'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_LDV_NA_NA_BLNVEHMLS.A', id_type='series', new_name='Light-Duty Vehicles')}}}, 
+                                        'Buses': {'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020._TRV_TRN_NA_BST_NA_NA_BPM.A', id_type='series', new_name='Buses'),
+                                                 'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_HWY_BUS_NA_NA_TRLBTU.A', id_type='series', new_name='Buses')}}}, 
+                                    'Rail': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_RAIL_PSG_PSG_NA_TRLBTU.A', id_type='series', new_name='Rail')}, 
+                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020._TRV_TRN_NA_RLP_NA_NA_BPM.A', id_type='series', new_name='Rail')}},
 
-                                    'Air': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A', id_type='series'), 
-                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_AIR_NA_NA_BLNSEATMLS.A', id_type='series')}, 
+                                    'Air': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_IAC_NA_NA_TRLBTU.A', id_type='series', new_name='Air')}, 
+                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_AIR_NA_NA_BLNSEATMLS.A', id_type='series', new_name='Air')}, 
                                 'All_Freight': 
                                     {'Highway': 
-                                        {'Freight-Trucks': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_FGHT_USE_NA_NA_QBTU.A', id_type='series'),
-                                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_FGHT_NA_NA_BLNVEHMLS.A', id_type='series')}}, 
-                                    'Rail': {'energy': transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', id_type='series'), 
-                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_RAIL_NA_NA_BLNTNMLS.A', id_type='series')}, 
-                                    'Air': {'energy': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series'), 
-                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series')}}}
+                                        {'Freight-Trucks': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_FGHT_USE_NA_NA_QBTU.A', id_type='series', new_name='Freight-Trucks')},
+                                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_FGHT_NA_NA_BLNVEHMLS.A', id_type='series', new_name='Freight-Trucks')}}, 
+                                    'Rail': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_NA_TRN_RAIL_FGT_NA_NA_TRLBTU.A', id_type='series', new_name='Rail')}, 
+                                             'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.KEI_TRV_TRN_NA_RAIL_NA_NA_BLNTNMLS.A', id_type='series', new_name='Rail')}, 
+                                    'Air': {'energy': {'primary': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series', new_name='Air')}, 
+                                            'activity': transportation_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_TRN_AIR_FTC_NA_NA_TRLBTU.A', id_type='series', new_name='Air')}}}
 
-        energy_use_transportation_electricity_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_ELC_NA_NA_QBTU.A', id_type='series')
-        energy_use_transportation_total_us = transportation_eia.eia_api(id_='YOUR_API_KEY_HERE&series_id=AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_TOT_NA_NA_QBTU.A', id_type='series')
-        energy_use_transportation_delivered_energy_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_DELE_NA_NA_QBTU.A', id_type='series')
+        energy_use_transportation_electricity_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_ELC_NA_NA_QBTU.A', id_type='series', new_name='Transportation')
+        energy_use_transportation_total_us = transportation_eia.eia_api(id_='YOUR_API_KEY_HERE&series_id=AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_TOT_NA_NA_QBTU.A', id_type='series', new_name='Transportation')
+        energy_use_transportation_delivered_energy_us = transportation_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_TRN_NA_DELE_NA_NA_QBTU.A', id_type='series', new_name='Transportation')
 
         data_dict = transportation_categories
         return data_dict
@@ -271,16 +271,16 @@ class MakeProjections(CalculateLMDI):
         energy_use_residential_delivered_energy_us = residential_eia.eia_api(id_='AEO.2020.AEO2019REF.CNSM_ENU_RESD_NA_DELE_NA_NA_QBTU.A', id_type='series')
 
 
-        res_housholds= residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_TEN_NA_NA_USA_MILL.A', id_type='series')
-        res_avg_size = residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_NA_NA_NA_USA_SQFT.A', id_type='series')
+        res_housholds= residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_TEN_NA_NA_USA_MILL.A', id_type='series', new_name='Residential')
+        res_avg_size = residential_eia.eia_api(id_='AEO.2020.AEO2019REF.KEI_HHD_RESD_NA_NA_NA_USA_SQFT.A', id_type='series', new_name='Residential')
         residential_floorspace = res_avg_size.multiply(res_housholds.values)
 
         activity_data = {'households': res_housholds, 
                          'average_size': res_avg_size, 
                          'total_floorspace': residential_floorspace}
 
-        energy_data =  {'elec': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_ELC_NA_NEENGL_QBTU.A', id_type='series'),
-                        'deliv': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_DELE_NA_NEENGL_QBTU.A', id_type='series')}
+        energy_data =  {'elec': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_ELC_NA_NEENGL_QBTU.A', id_type='series', new_name='Residential'),
+                        'deliv': residential_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_RESD_NA_DELE_NA_NEENGL_QBTU.A', id_type='series', new_name='Residential')}
 
         data_dict = {'energy': energy_data, 'activity': activity_data} 
         
@@ -292,34 +292,33 @@ class MakeProjections(CalculateLMDI):
         activity: Million kWh
         energy: Energy Consumption Trillion Btu 
         """        
-
         electricity_eia = GetEIAData('electricity')
 
         data_dict = {'Elec Generation Total': 
                         {'Elec Power Sector': 
                             {'Electricity Only':
                                 {'Fossil Fuels': 
-                                    {'Coal':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_STC_NA_NA_QBTU.A', id_type='series'), 
-                                                'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_CL_NA_USA_BLNKWH.A', id_type='series')}, 
-                                    'Petroleum':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_LFL_NA_NA_QBTU.A', id_type='series'), 
-                                                    'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_PET_NA_USA_BLNKWH.A', id_type='series')}, 
-                                    'Natural Gas':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NG_NA_NA_QBTU.A', id_type='series'), 
-                                                        'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A', id_type='series')}},
-                                'Nuclear':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NUC_NA_NA_QBTU.A', id_type='series'), 
-                                                'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A', id_type='series')}, 
-                                'Hydro Electric':  {'energy': '', 
-                                                    'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_HYD_CNV_NA_BLNKWH.A', id_type='series')}, 
+                                    {'Coal':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_STC_NA_NA_QBTU.A', id_type='series', new_name='Coal')}, 
+                                                'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_CL_NA_USA_BLNKWH.A', id_type='series', new_name='Coal')}, 
+                                    'Petroleum':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_LFL_NA_NA_QBTU.A', id_type='series', new_name='Petroleum')}, 
+                                                    'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_PET_NA_USA_BLNKWH.A', id_type='series', new_name='Petroleum')}, 
+                                    'Natural Gas':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NG_NA_NA_QBTU.A', id_type='series', new_name='Natural Gas')}, 
+                                                        'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NG_NA_USA_BLNKWH.A', id_type='series', new_name='Natural Gas')}},
+                                'Nuclear':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NUC_NA_NA_QBTU.A', id_type='series', new_name='Nuclear')}, 
+                                                'activity': electricity_eia.eia_api(id_='AEO.2020.AEO2019REF.GEN_NA_ELEP_POW_NUP_NA_USA_BLNKWH.A', id_type='series', new_name='Nuclear')}, 
+                                # 'Hydro Electric':  {'energy': '', 
+                                #                     'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_HYD_CNV_NA_BLNKWH.A', id_type='series')}, 
                                 'Renewable': 
-                                    {'Wood':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_ELEP_NA_WBM_NA_NA_QBTU.A', id_type='series'), 
-                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_WBM_NA_NA_BLNKWH.A', id_type='series')}, # This is wood and other biomass
-                                    'Waste':  {'energy': {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NBMSW_NA_NA_QBTU.A', id_type='series'), 
-                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_BGM_NA_NA_BLNKWH.A', id_type='series')}, # This is Biogenic Municipal Waste
+                                    {'Wood':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_ELEP_NA_WBM_NA_NA_QBTU.A', id_type='series', new_name='Wood')}, 
+                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_WBM_NA_NA_BLNKWH.A', id_type='series', new_name='Wood')}, # This is wood and other biomass
+                                    'Waste':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_ENU_ELEP_NA_NBMSW_NA_NA_QBTU.A', id_type='series', new_name='Waste'), 
+                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_BGM_NA_NA_BLNKWH.A', id_type='series', new_name='Waste')}, # This is Biogenic Municipal Waste
                                     # 'Solar':  {'Solar Photovoltaic': {'energy': electricity_eia.eia_api(id_='', id_type='series'), 
                                     #                                     'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_PHTVL_NA_BLNKWH.A', id_type='series')}, 
                                     #             'Solar Thermal': {'energy': electricity_eia.eia_api(id_='', id_type='series'), 
                                     #                                 'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_SLR_THERM_NA_BLNKWH.A', id_type='series')}}, 
-                                    'Wind':  {'energy': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_ELEP_NA_OFW_NA_NA_QBTU.A', id_type='series'), 
-                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_WND_NA_NA_BLNKWH.A', id_type='series')}}}}}}}
+                                    'Wind':  {'energy': {'primary': electricity_eia.eia_api(id_='AEO.2020.REF2020.CNSM_NA_ELEP_NA_OFW_NA_NA_QBTU.A', id_type='series', new_name='Wind')}, 
+                                                'activity': electricity_eia.eia_api(id_='AEO.2020.REF2020.GEN_NA_ELEP_NA_WND_NA_NA_BLNKWH.A', id_type='series', new_name='Wind')}}}}}}}
                                                     
         
         return data_dict 
@@ -330,9 +329,9 @@ class MakeProjections(CalculateLMDI):
         
         data_dict = {'Economy_Wide': {'Residential': self.residential_projections(), 
                                       'Industrial': self.industrial_projections(),
-                                      'Transportation': self.transportation_projections()},
+                                      'Transportation': self.transportation_projections(),
                                       'Electricity': self.electricity_projections(),
-                                      'Commerical': self.commercial_projections()}
+                                      'Commerical': self.commercial_projections()}}
         return data_dict
         
 

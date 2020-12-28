@@ -72,18 +72,26 @@ class MultiplicativeLMDI():
         replicating methodology in PNNL spreadsheets for the multiplicative model
         """         
         index = pd.DataFrame(index=component.index, columns=['index'])
+        component = component.fillna(1)
+
         for y in component.index:
             if y == min(component.index):
                 index.loc[y, 'index'] = 1
+                print('final_index', y, index.loc[y, 'index'])
             else:
                 if component.loc[y] == np.nan:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index']
+                    print('final_index', y, index.loc[y, 'index'])
 
                 else:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index'] * component.loc[y]
+                    print('index:', y, index.loc[y - 1, 'index'])
+                    print('component:', y, component.loc[y])
+                    print('final_index', y,  index.loc[y, 'index'])
 
-        index = index.fillna(1)    
+        print('index:\n', index)
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
+        print('index_normalized:\n', index_normalized)
         return index_normalized 
 
     def decomposition(self, ASI):
@@ -93,6 +101,8 @@ class MultiplicativeLMDI():
 
         print('ASI:\n', ASI)
         # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
+        print('columns multiplicative decomposition df', [l.columns for l in list(ASI.values())])
+
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
         print('ASI_df:\n', ASI_df)
         results = ASI_df.apply(lambda col: np.exp(col), axis=1)
@@ -100,6 +110,7 @@ class MultiplicativeLMDI():
 
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)
+
         print('indexed log ASI df:\n', results)
         results['effect'] = results.product(axis=1)
         print("results['effect']:\n", results['effect'])
@@ -113,6 +124,21 @@ class MultiplicativeLMDI():
         data = data[(data['@timeseries|Year'] >=  base_year) & (data['@filter|Model'] == model.capitalize())]
         print('DATA TO PLOT:\n', data)
 
+        structure_cols = []
+        for column in data.columns: 
+            if 'Structure' in column or 'structure' in column:
+                structure_cols.append(column)
+
+        print('structure_cols:', structure_cols)
+        if len(structure_cols) == 1:
+            data = data.rename(columns={structure_cols[0]: '@filter|Measure|Structure'})
+        elif len(structure_cols) > 1:
+            data['@filter|Measure|Structure'] = data[structure_cols].product(axis=1)  # Current level total structure
+            to_drop = [s for s in structure_cols if s != '@filter|Measure|Structure']
+            data = data.drop(to_drop, axis=1)
+        print('Multiplicative DATA TO PRINT:\n', data)
+        print('data columns', data.columns)
+        
         lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Effect"]  
         print('os.getcwd()', os.getcwd())
 
@@ -134,22 +160,22 @@ class MultiplicativeLMDI():
         palette = plt.get_cmap('Set2')
 
         for i, l in enumerate(lines_to_plot):
-            label_ = l.replace("_", " ").capitalize()
+            label_ = l.replace('@filter|Measure|', '').replace("_", " ").title()
             plt.plot(data['@timeseries|Year'], data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
         
         loa_ = [l_.replace("_", " ") for l_ in loa]
         loa = [loa[0], loa[-1]]
 
-        title = f"Change in {energy_type.capitalize()} Energy Use (Trillion British thermal units [TBtu]) {' '.join(loa)}"
+        title = f"Change in {energy_type.capitalize()} Energy Use {' '.join(loa)}"
 
         fig_name = "_".join(loa) + f"{model}_{energy_type}_{base_year}" 
 
-        plt.title(title, fontsize=8, fontweight=0)
+        plt.title(title, fontsize=12, fontweight=0)
         plt.xlabel('Year')
-        # plt.ylabel('')
+        plt.ylabel('Trillion British thermal units [TBtu]')
         plt.legend(loc=2, ncol=2)
-        print(os.getcwd())
         try:
             plt.savefig(f"{self.output_directory}/{fig_name}.png")
         except FileNotFoundError:
             plt.savefig(f".{self.output_directory}/{fig_name}.png")
+        plt.show()

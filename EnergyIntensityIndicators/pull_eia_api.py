@@ -9,7 +9,7 @@ class GetEIAData:
     def __init__(self, sector):
         self.sector = sector
 
-    def eia_api(self, id_, id_type='category'):
+    def eia_api(self, id_, id_type='category', new_name=None):
         """Collect data from EIA API by endpoint and type (category or series)
         """          
         api_key = os.environ.get("EIA_API_Key")
@@ -19,7 +19,9 @@ class GetEIAData:
         elif id_type == 'series':
             eia_data = self.get_series(api_key, id_)
             if isinstance(eia_data, pd.Series):
-                eia_data = eia_data.to_frame()
+                eia_data = eia_data.to_frame(name=new_name)
+                print('eia_data:\n', eia_data)
+                exit()
         else:
             eia_data = None
             print('Error: neither series nor category given')
@@ -225,19 +227,21 @@ class GetEIAData:
         if self.sector == 'residential':
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESRCBUS.A', id_type='series') # electricity retail sales to the residential sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LORCBUS.A', id_type='series')  # Residential Sector Electrical System Energy Losses
+            sector_name = self.sector.capitalize()
 
         elif self.sector == 'commercial': 
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series') # electricity retail sales to the commercial sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOCCBUS.A', id_type='series')  # Commercial Sector Electrical System Energy Losses
-                                  
-        elif self.sector == 'industrial': 
+            sector_name = self.sector.capitalize()
+                         
+        elif self.sector == 'industry': 
             electricity_retail_sales = self.eia_api(id_='TOTAL.ESICBUS.A', id_type='series') # electricity retail sales to the industrial sector
             electrical_system_energy_losses = self.eia_api(id_='TOTAL.LOICBUS.A', id_type='series') # Industrial Sector Electrical System Energy Losses
+            sector_name = 'Industrial'
 
         else: # Electricity and Tranportation don't use conversion factors
             return None
         
-        sector_name = self.sector.capitalize()
         col_rename = {f'Electricity Retail Sales to the {sector_name} Sector, Annual, Trillion Btu': 'electricity_retail_sales', f'{sector_name} Sector Electrical System Energy Losses, Annual, Trillion Btu': 'electrical_system_energy_losses'}
         conversion_factors_df = electricity_retail_sales.merge(electrical_system_energy_losses, how='outer', on='Year').rename(columns=col_rename)
         conversion_factors_df['Losses/Sales'] = conversion_factors_df['electrical_system_energy_losses'].div(conversion_factors_df['electricity_retail_sales'])  
