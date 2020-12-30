@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn
 import plotly.graph_objects as go
 import plotly.express as px
+import math
 
 
 class MultiplicativeLMDI():
@@ -36,7 +37,6 @@ class MultiplicativeLMDI():
             log_mean_weights = pd.DataFrame(index=self.energy_data.index)
             for col in self.energy_shares.columns: 
                 self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
-                print('self.energy_shares[f"{col}_shift"]:\n', self.energy_shares[f"{col}_shift"])
                 # apply generally not preferred for row-wise operations but?
                 log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
                                                             self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
@@ -72,49 +72,33 @@ class MultiplicativeLMDI():
         replicating methodology in PNNL spreadsheets for the multiplicative model
         """         
         index = pd.DataFrame(index=component.index, columns=['index'])
+        component = component.replace([np.inf, -np.inf], np.nan)
         component = component.fillna(1)
 
         for y in component.index:
             if y == min(component.index):
                 index.loc[y, 'index'] = 1
-                print('final_index', y, index.loc[y, 'index'])
             else:
                 if component.loc[y] == np.nan:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index']
-                    print('final_index', y, index.loc[y, 'index'])
 
                 else:
                     index.loc[y, 'index'] = index.loc[y - 1, 'index'] * component.loc[y]
-                    print('index:', y, index.loc[y - 1, 'index'])
-                    print('component:', y, component.loc[y])
-                    print('final_index', y,  index.loc[y, 'index'])
 
-        print('index:\n', index)
         index_normalized = index.divide(index.loc[base_year_]) # 1985=1
-        print('index_normalized:\n', index_normalized)
         return index_normalized 
 
     def decomposition(self, ASI):
         """Format component data, collect overall effect, return indexed 
         dataframe of the results for the multiplicative LMDI model.
         """
-
-        print('ASI:\n', ASI)
-        # ASI_df = pd.DataFrame.from_dict(data=ASI, orient='columns')
-        print('columns multiplicative decomposition df', [l.columns for l in list(ASI.values())])
-
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
-        print('ASI_df:\n', ASI_df)
         results = ASI_df.apply(lambda col: np.exp(col), axis=1)
-        print(' log ASI_df:\n', results)
-
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)
 
-        print('indexed log ASI df:\n', results)
         results['effect'] = results.product(axis=1)
-        print("results['effect']:\n", results['effect'])
-        print('all results df:\n', results)
+
         results["@filter|Measure|BaseYear"] = self.base_year
         return results
 
@@ -122,39 +106,41 @@ class MultiplicativeLMDI():
         """Visualize multiplicative LMDI results in a line plot 
         """
         data = data[(data['@timeseries|Year'] >=  base_year) & (data['@filter|Model'] == model.capitalize())]
-        print('DATA TO PLOT:\n', data)
 
         structure_cols = []
         for column in data.columns: 
             if 'Structure' in column or 'structure' in column:
                 structure_cols.append(column)
 
-        print('structure_cols:', structure_cols)
         if len(structure_cols) == 1:
             data = data.rename(columns={structure_cols[0]: '@filter|Measure|Structure'})
         elif len(structure_cols) > 1:
             data['@filter|Measure|Structure'] = data[structure_cols].product(axis=1)  # Current level total structure
             to_drop = [s for s in structure_cols if s != '@filter|Measure|Structure']
             data = data.drop(to_drop, axis=1)
-        print('Multiplicative DATA TO PRINT:\n', data)
-        print('data columns', data.columns)
-        
-        lines_to_plot = ["@filter|Measure|Activity", "@filter|Measure|Effect"]  
-        print('os.getcwd()', os.getcwd())
+
+        lines_to_plot = ["@filter|Measure|Effect"]  
 
         if '@filter|Measure|Structure' in data.columns:
             lines_to_plot.append('@filter|Measure|Structure')
-        # else: 
-        #     for c in data.columns: 
-        #         if c.endswith('Structure'):
-        #             lines_to_plot.append(c)
+        else: 
+            for c in data.columns: 
+                if c.endswith('Structure'):
+                    lines_to_plot.append(c)
 
         if "@filter|Measure|Intensity" in data.columns:
             lines_to_plot.append("@filter|Measure|Intensity")
-        # else: 
-        #     for c in data.columns: 
-        #         if c.endswith('Intensity'):
-        #             lines_to_plot.append(c)
+        else: 
+            for c in data.columns: 
+                if c.endswith('Intensity'):
+                    lines_to_plot.append(c)
+
+        if "@filter|Measure|Activity" in data.columns:
+            lines_to_plot.append("@filter|Measure|Activity")
+        else: 
+            for c in data.columns: 
+                if c.endswith('Activity'):
+                    lines_to_plot.append(c)
                           
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
@@ -164,9 +150,12 @@ class MultiplicativeLMDI():
             plt.plot(data['@timeseries|Year'], data[l], marker='', color=palette(i), linewidth=1, alpha=0.9, label=label_)
         
         loa_ = [l_.replace("_", " ") for l_ in loa]
-        loa = [loa[0], loa[-1]]
+        if loa_[0] == loa_[-1]:
+            loa_ = [loa_[0]]
+        else:
+            loa_ = [loa_[0], loa_[-1]]
 
-        title = f"Change in {energy_type.capitalize()} Energy Use {' '.join(loa)}"
+        title = f"Change in {energy_type.capitalize()} Energy Use {' '.join([l.title() for l in loa_])}"
 
         fig_name = "_".join(loa) + f"{model}_{energy_type}_{base_year}" 
 

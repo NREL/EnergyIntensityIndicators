@@ -284,9 +284,6 @@ class ElectricityIndicators(CalculateLMDI):
         """Collect Industrial_Sector_CHP>Renew data
         """
 
-        print('wood energy:\n', self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'])
-        print('wood energy columns:\n', self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector'].columns)
-
         wood_energy = self.Table84c[self.Table84c['Description'] == 'Wood Consumption for Electricity Generation, Industrial Sector']
         wood_energy = self.format_eii_table(wood_energy, factor=0.001, name='Wood')
         waste_energy = self.Table84c[self.Table84c['Description'] == 'Waste Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column R # TBtu
@@ -384,8 +381,7 @@ class ElectricityIndicators(CalculateLMDI):
         othgas_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,H,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other Gas', 'sector'])# Table 8.4c column H # TBtu
         othgas_energy = othgas_energy[othgas_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001) 
         othgas_energy.index = othgas_energy.index.astype(int)
-        print(othgas_energy.dtypes)
-        print('other gas energy:\n', othgas_energy)
+
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column F
@@ -449,7 +445,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         coal_energy, elec_only_fuel = self.coal_reconcile() 
         petroleum_energy, elec_only_petroleum = self.petroleum_reconcile()
-        natgas_energy, elec_only_fuel = self.natgas_reconcile() 
+        natgas_energy, elec_only_fuel_nat_gas = self.natgas_reconcile() 
         othgas_energy = self.othgas_reconcile()
         
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column B
@@ -506,7 +502,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         chp_plants_fuel, coal_energy = self.coal_reconcile() 
         chp_plants_petroleum, petroleum_energy = self.petroleum_reconcile()
-        natgas_energy = self.natgas_reconcile()
+        natgas_energy, elec_only_fuel_nat_gas = self.natgas_reconcile()
         othgas_energy = self.othgas_reconcile()
         
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLEGPUS.A', id_type='series').multiply(0.001)  # 8.2b B, 8.2c B
@@ -557,43 +553,40 @@ class ElectricityIndicators(CalculateLMDI):
         elec_power_sector_chp_total['Fossil Fuels'] = elec_power_sector_chp_fossil
         elec_power_sector_chp_total['Renewable'] = elec_power_sector_chp_renew
 
-        all_chp = dict()
-        all_chp['Industrial Sector'] = {'Combined Heat & Power': industrial_sector_total}
-        all_chp['Commercial Sector'] = {'Combined Heat & Power': comm_sector_total}
-        all_chp['Elec Power Sector'] = {'Combined Heat & Power': elec_power_sector_chp_total}
-
         electricity_only_renew = self.electricity_only_renew()
         electricity_only_fossil = self.electricity_only_fossil()
         electricity_only_total = self.electricity_only_total()
         electricity_only_total['Fossil Fuels'] = electricity_only_fossil
         electricity_only_total['Renewable'] = electricity_only_renew
+        print('electricity_only_total keys', electricity_only_total.keys())
 
-        elec_power_sector = dict()
-        elec_power_sector['Electricity Only']  = electricity_only_total
-        elec_power_sector['Combined Heat & Power'] = elec_power_sector_chp_total
-
-        elec_generation_total = dict() # Need to build this from commerical and industrial_totals
-        elec_generation_total['Elec Power Sector'] = {'Electricity Only': elec_power_sector}
-        elec_generation_total['Commercial Sector'] = comm_sector_total
-        elec_generation_total['Industrial Sector'] = industrial_sector_total
-
-        data_dict = {'Elec Generation Total': elec_generation_total, 'All CHP': all_chp}
+        data_dict = {'Elec Generation Total': 
+                        {'Elec Power Sector': 
+                            {'Electricity Only': electricity_only_total,
+                            'Combined Heat & Power': elec_power_sector_chp_total}, 
+                        'Commercial Sector': comm_sector_total, 
+                        'Industrial Sector': industrial_sector_total},
+                    'All CHP':
+                        {'Elec Power Sector': 
+                            {'Combined Heat & Power': elec_power_sector_chp_total},
+                        'Commercial Sector':
+                            {'Combined Heat & Power': comm_sector_total}, 
+                        'Industrial Sector':
+                            {'Combined Heat & Power': industrial_sector_total}}}
         return data_dict   
 
     def main(self, breakout, calculate_lmdi): 
         """Calculate decomposition for the Electric Power sector
         """
-
         data_dict = self.collect_data()
-        print(data_dict)
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
                                                                breakout=breakout, calculate_lmdi=calculate_lmdi, 
                                                                raw_data=data_dict, lmdi_type='LMDI-I')
         return results_dict, formatted_results
 
 if __name__ == '__main__':
-    indicators = ElectricityIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+    indicators = ElectricityIndicators(directory='./EnergyIntensityIndicators/Data', 
                                        output_directory='./Results', 
-                                       level_of_aggregation='All CHP.Elec Power Sector', end_year=2018,
+                                       level_of_aggregation='Elec Generation Total', end_year=2018,
                                        lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)

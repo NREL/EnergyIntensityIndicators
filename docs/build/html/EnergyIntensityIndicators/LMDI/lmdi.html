@@ -1,7 +1,8 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -11,18 +12,12 @@
   
 
   
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-
-  
   
   
   
 
   
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -34,6 +29,10 @@
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
     
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Multiplicative LMDI" href="EnergyIntensityIndicators.multiplicative_lmdi.html" />
@@ -51,7 +50,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> EnergyIntensityIndicators
+            <a href="../../index.html" class="icon icon-home"> EnergyIntensityIndicators
           
 
           
@@ -74,7 +73,6 @@
           
         </div>
 
-        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,7 +99,6 @@
             
           
         </div>
-        
       </div>
     </nav>
 
@@ -140,7 +137,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
         
       <li>Core LMDI Model</li>
     
@@ -390,13 +387,13 @@ E.g. If categories are “Northeast”, “South”, etc, the total_label is “
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.LMDI.calc_ASI">
-<code class="sig-name descname">calc_ASI</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">log_mean_divisia_weights_normalized</em>, <em class="sig-param">log_ratios</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.calc_ASI" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_ASI</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">log_mean_divisia_weights_normalized</em>, <em class="sig-param">log_ratios</em>, <em class="sig-param">total_label</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.calc_ASI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collect activity, structure, and intensity components</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.LMDI.calc_component">
-<code class="sig-name descname">calc_component</code><span class="sig-paren">(</span><em class="sig-param">log_ratio_component</em>, <em class="sig-param">weights</em>, <em class="sig-param">type_</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.calc_component" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_component</code><span class="sig-paren">(</span><em class="sig-param">log_ratio_component</em>, <em class="sig-param">weights</em>, <em class="sig-param">type_</em>, <em class="sig-param">primary_activity</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.calc_component" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the component values from log_ratio components and log mean divisia weights</p>
 </dd></dl>
 
@@ -519,7 +516,7 @@ purpose: enable dataframe operations such as multiply and divide between the two
 
 <dl class="method">
 <dt id="EnergyIntensityIndicators.LMDI.LMDI.sum_product">
-<em class="property">static </em><code class="sig-name descname">sum_product</code><span class="sig-paren">(</span><em class="sig-param">component_</em>, <em class="sig-param">weights</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.sum_product" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sum_product</code><span class="sig-paren">(</span><em class="sig-param">component_</em>, <em class="sig-param">weights</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.LMDI.LMDI.sum_product" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the sum product of a log-ratio component and
 log mean divisia weights, rename column in the resulting dataframe</p>
 </dd></dl>
@@ -564,19 +561,11 @@ log mean divisia weights, rename column in the resulting dataframe</p>
 
   <div role="contentinfo">
     <p>
-        
         &copy; Copyright 2020, NREL
 
     </p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -587,6 +576,7 @@ log mean divisia weights, rename column in the resulting dataframe</p>
 
   </div>
   
+
 
   <script type="text/javascript">
       jQuery(function () {

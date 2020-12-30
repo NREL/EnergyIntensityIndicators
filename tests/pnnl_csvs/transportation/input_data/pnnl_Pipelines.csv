@@ -1,0 +1,97 @@
+﻿Sector,Nest level,Unit,Data Type,Energy Type,Year,Oil Pipeline,Natural Gas Pipeline,Pipelines
+transportation,Pipelines,Tbtu,Energy,Deliv,1970,0.000000431,778.3916879,778.3916883
+transportation,Pipelines,Tbtu,Energy,Deliv,1971,0.000000444,800.4079953,800.4079957
+transportation,Pipelines,Tbtu,Energy,Deliv,1972,0.000000476,825.8066179,825.8066184
+transportation,Pipelines,Tbtu,Energy,Deliv,1973,0.000000507,784.8706864,784.8706869
+transportation,Pipelines,Tbtu,Energy,Deliv,1974,0.000000506,720.8621477,720.8621482
+transportation,Pipelines,Tbtu,Energy,Deliv,1975,0.000000507,628.3507581,628.3507586
+transportation,Pipelines,Tbtu,Energy,Deliv,1976,0.000000515,591.0137911,591.0137917
+transportation,Pipelines,Tbtu,Energy,Deliv,1977,0.000000546,574.1410175,574.141018
+transportation,Pipelines,Tbtu,Energy,Deliv,1978,0.000000586,571.7503306,571.7503312
+transportation,Pipelines,Tbtu,Energy,Deliv,1979,0.000000608,647.7532622,647.7532628
+transportation,Pipelines,Tbtu,Energy,Deliv,1980,0.000000588,684.0317735,684.0317741
+transportation,Pipelines,Tbtu,Energy,Deliv,1981,0.000000564,692.3345061,692.3345067
+transportation,Pipelines,Tbtu,Energy,Deliv,1982,0.000000566,642.8457792,642.8457798
+transportation,Pipelines,Tbtu,Energy,Deliv,1983,0.000000556,528.1952065,528.1952071
+transportation,Pipelines,Tbtu,Energy,Deliv,1984,0.000000568,569.9212072,569.9212078
+transportation,Pipelines,Tbtu,Energy,Deliv,1985,0.000000564,542.9877162,542.9877168
+transportation,Pipelines,Tbtu,Energy,Deliv,1986,0.000000578,522.8048436,522.8048442
+transportation,Pipelines,Tbtu,Energy,Deliv,1987,0.000000587,559.5910256,559.5910262
+transportation,Pipelines,Tbtu,Energy,Deliv,1988,0.000000601,661.7093548,661.7093554
+transportation,Pipelines,Tbtu,Energy,Deliv,1989,0.000000584,678.3040414,678.304042
+transportation,Pipelines,Tbtu,Energy,Deliv,1990,0.000000584,711.1873031,711.1873037
+transportation,Pipelines,Tbtu,Energy,Deliv,1991,0.000000579,648.1208114,648.120812
+transportation,Pipelines,Tbtu,Energy,Deliv,1992,0.000000589,633.4673453,633.4673459
+transportation,Pipelines,Tbtu,Energy,Deliv,1993,0.000000593,672.9147563,672.9147569
+transportation,Pipelines,Tbtu,Energy,Deliv,1994,0.000000591,738.7222384,738.722239
+transportation,Pipelines,Tbtu,Energy,Deliv,1995,0.000000601,754.8609915,754.8609921
+transportation,Pipelines,Tbtu,Energy,Deliv,1996,6.19E-07,766.8370607,766.8370614
+transportation,Pipelines,Tbtu,Energy,Deliv,1997,6.17E-07,809.9772098,809.9772105
+transportation,Pipelines,Tbtu,Energy,Deliv,1998,6.20E-07,684.9533413,684.9533419
+transportation,Pipelines,Tbtu,Energy,Deliv,1999,6.18E-07,695.56161,695.5616106
+transportation,Pipelines,Tbtu,Energy,Deliv,2000,5.77E-07,692.2105526,692.2105531
+transportation,Pipelines,Tbtu,Energy,Deliv,2001,5.76E-07,673.6218305,673.6218311
+transportation,Pipelines,Tbtu,Energy,Deliv,2002,5.86E-07,718.8443994,718.8443999
+transportation,Pipelines,Tbtu,Energy,Deliv,2003,5.90E-07,637.5438006,637.5438011
+transportation,Pipelines,Tbtu,Energy,Deliv,2004,6.00E-07,610.2686288,610.2686294
+transportation,Pipelines,Tbtu,Energy,Deliv,2005,6.08E-07,629.4965201,629.4965207
+transportation,Pipelines,Tbtu,Energy,Deliv,2006,5.81E-07,629.6980794,629.6980799
+transportation,Pipelines,Tbtu,Energy,Deliv,2007,5.58E-07,669.7415453,669.7415458
+transportation,Pipelines,Tbtu,Energy,Deliv,2008,6.06E-07,698.403919,698.4039196
+transportation,Pipelines,Tbtu,Energy,Deliv,2009,5.68E-07,722.3517461,722.3517466
+transportation,Pipelines,Tbtu,Energy,Deliv,2010,0.00000055,726.6092813,726.6092818
+transportation,Pipelines,Tbtu,Energy,Deliv,2011,0.00000055,741.3328081,741.3328086
+transportation,Pipelines,Tbtu,Energy,Deliv,2012,0.00000055,787.6871268,787.6871274
+transportation,Pipelines,Tbtu,Energy,Deliv,2013,0.00000055,897.9206414,897.920642
+transportation,Pipelines,Tbtu,Energy,Deliv,2014,0.00000055,754.6615879,754.6615885
+transportation,Pipelines,Tbtu,Energy,Deliv,2015,0.00000055,730.9843029,730.9843034
+transportation,Pipelines,Tbtu,Energy,Deliv,2016,0.00000055,740.1989025,740.1989031
+transportation,Pipelines,Tbtu,Energy,Deliv,2017,0.00000055,777.6932366,777.6932371
+transportation,Pipelines,Million T-M,Activity,Deliv,1970,0.431,264069.443,264069.874
+transportation,Pipelines,Million T-M,Activity,Deliv,1971,0.444,272660.7249,272661.1689
+transportation,Pipelines,Million T-M,Activity,Deliv,1972,0.476,276028.0908,276028.5668
+transportation,Pipelines,Million T-M,Activity,Deliv,1973,0.507,275271.9053,275272.4123
+transportation,Pipelines,Million T-M,Activity,Deliv,1974,0.506,264881.6125,264882.1185
+transportation,Pipelines,Million T-M,Activity,Deliv,1975,0.507,243795.9756,243796.4826
+transportation,Pipelines,Million T-M,Activity,Deliv,1976,0.515,246648.8365,246649.3515
+transportation,Pipelines,Million T-M,Activity,Deliv,1977,0.546,240608.1969,240608.7429
+transportation,Pipelines,Million T-M,Activity,Deliv,1978,0.586,242279.2307,242279.8167
+transportation,Pipelines,Million T-M,Activity,Deliv,1979,0.608,251889.6782,251890.2862
+transportation,Pipelines,Million T-M,Activity,Deliv,1980,0.588,252930.5736,252931.1616
+transportation,Pipelines,Million T-M,Activity,Deliv,1981,0.564,247622.5013,247623.0653
+transportation,Pipelines,Million T-M,Activity,Deliv,1982,0.566,226257.8612,226258.4272
+transportation,Pipelines,Million T-M,Activity,Deliv,1983,0.556,213363.9959,213364.5519
+transportation,Pipelines,Million T-M,Activity,Deliv,1984,0.568,226947.1909,226947.7589
+transportation,Pipelines,Million T-M,Activity,Deliv,1985,0.564,219535.9589,219536.5229
+transportation,Pipelines,Million T-M,Activity,Deliv,1986,0.578,205687.1736,205687.7516
+transportation,Pipelines,Million T-M,Activity,Deliv,1987,0.587,215802.6703,215803.2573
+transportation,Pipelines,Million T-M,Activity,Deliv,1988,0.601,226598.6522,226599.2532
+transportation,Pipelines,Million T-M,Activity,Deliv,1989,0.584,241872.0005,241872.5845
+transportation,Pipelines,Million T-M,Activity,Deliv,1990,0.584,239894.2492,239894.8332
+transportation,Pipelines,Million T-M,Activity,Deliv,1991,0.579,247588.511,247589.09
+transportation,Pipelines,Million T-M,Activity,Deliv,1992,0.589,256449.8959,256450.4849
+transportation,Pipelines,Million T-M,Activity,Deliv,1993,0.593,263724.1533,263724.7463
+transportation,Pipelines,Million T-M,Activity,Deliv,1994,0.591,269894.9084,269895.4994
+transportation,Pipelines,Million T-M,Activity,Deliv,1995,0.601,281674.441,281675.042
+transportation,Pipelines,Million T-M,Activity,Deliv,1996,0.6192,286695.0264,286695.6456
+transportation,Pipelines,Million T-M,Activity,Deliv,1997,0.6165,288565.6279,288566.2444
+transportation,Pipelines,Million T-M,Activity,Deliv,1998,0.6198,283776.7953,283777.4151
+transportation,Pipelines,Million T-M,Activity,Deliv,1999,0.6177,287151.4231,287152.0408
+transportation,Pipelines,Million T-M,Activity,Deliv,2000,0.5773,299080.2461,299080.8234
+transportation,Pipelines,Million T-M,Activity,Deliv,2001,0.5761,284572.5251,284573.1012
+transportation,Pipelines,Million T-M,Activity,Deliv,2002,0.5862,294734.9806,294735.5668
+transportation,Pipelines,Million T-M,Activity,Deliv,2003,0.5902,285511.3942,285511.9844
+transportation,Pipelines,Million T-M,Activity,Deliv,2004,0.5996,287762.928,287763.5276
+transportation,Pipelines,Million T-M,Activity,Deliv,2005,0.6075,282072.4933,282073.1008
+transportation,Pipelines,Million T-M,Activity,Deliv,2006,0.5813,277121.0963,277121.6776
+transportation,Pipelines,Million T-M,Activity,Deliv,2007,0.5577,295045.6552,295046.2129
+transportation,Pipelines,Million T-M,Activity,Deliv,2008,0.6057,297142.3723,297142.978
+transportation,Pipelines,Million T-M,Activity,Deliv,2009,0.5684,291092.2771,291092.8455
+transportation,Pipelines,Million T-M,Activity,Deliv,2010,0.55,307231.821,307232.371
+transportation,Pipelines,Million T-M,Activity,Deliv,2011,0.55,311952.7842,311953.3342
+transportation,Pipelines,Million T-M,Activity,Deliv,2012,0.55,325065.2672,325065.8172
+transportation,Pipelines,Million T-M,Activity,Deliv,2013,0.55,331001.0897,331001.6397
+transportation,Pipelines,Million T-M,Activity,Deliv,2014,0.55,338528.8855,338529.4355
+transportation,Pipelines,Million T-M,Activity,Deliv,2015,0.55,346973.7233,346974.2733
+transportation,Pipelines,Million T-M,Activity,Deliv,2016,0.55,350068.2926,350068.8426
+transportation,Pipelines,Million T-M,Activity,Deliv,2017,0.55,344900.5689,344901.1189

@@ -1,0 +1,97 @@
+﻿Sector,Nest level,Unit,Data Type,Energy Type,Year,Urban Bus,Intercity Bus,School Bus,Buses
+transportation,Buses,Tbtu,Energy,Deliv,1970,42.18222,26.61719048,41.1825204,109.9819309
+transportation,Buses,Tbtu,Energy,Deliv,1971,39.29316,27.10852033,42.99858998,109.4002703
+transportation,Buses,Tbtu,Energy,Deliv,1972,37.575775,27.3239,45.45753513,110.3572101
+transportation,Buses,Tbtu,Energy,Deliv,1973,40.736894,27.23143333,46.07834844,114.0466758
+transportation,Buses,Tbtu,Energy,Deliv,1974,44.816632,26.31785642,46.40444574,117.5389342
+transportation,Buses,Tbtu,Energy,Deliv,1975,51.258822,24.79824797,46.9503804,123.0074504
+transportation,Buses,Tbtu,Energy,Deliv,1976,54.6302369,25.04512096,48.43196605,128.1073239
+transportation,Buses,Tbtu,Energy,Deliv,1977,56.8866854,25.03075889,49.74091454,131.6583588
+transportation,Buses,Tbtu,Energy,Deliv,1978,59.6962579,26.97832542,50.14292121,136.8175045
+transportation,Buses,Tbtu,Energy,Deliv,1979,59.8245044,28.10013333,51.98678308,139.9114208
+transportation,Buses,Tbtu,Energy,Deliv,1980,61.26018,29.3,52.1414544,142.7016344
+transportation,Buses,Tbtu,Energy,Deliv,1981,63.603265,28.56104097,53.67698911,145.8412951
+transportation,Buses,Tbtu,Energy,Deliv,1982,64.652833,28.05019642,54.55051525,147.2535447
+transportation,Buses,Tbtu,Energy,Deliv,1983,63.638562,28.14360316,57.78102038,149.5631855
+transportation,Buses,Tbtu,Energy,Deliv,1984,71.0502963,24.56726703,57.57633436,153.1938977
+transportation,Buses,Tbtu,Energy,Deliv,1985,72.6156019,23.39086657,58.3707432,154.3772117
+transportation,Buses,Tbtu,Energy,Deliv,1986,76.3539204,23.65456479,58.78592402,158.7944092
+transportation,Buses,Tbtu,Energy,Deliv,1987,75.6076518,23.91765972,60.31504347,159.840355
+transportation,Buses,Tbtu,Energy,Deliv,1988,76.9036646,24.18015342,62.42470974,163.5085278
+transportation,Buses,Tbtu,Energy,Deliv,1989,76.6953372,24.44204796,64.13199609,165.2693812
+transportation,Buses,Tbtu,Energy,Deliv,1990,78.3590437,24.70334538,64.8307464,167.8931355
+transportation,Buses,Tbtu,Energy,Deliv,1991,79.7058207,26.04467775,66.66425103,172.4147495
+transportation,Buses,Tbtu,Energy,Deliv,1992,82.6256032,27.38295886,69.53118606,179.5397481
+transportation,Buses,Tbtu,Energy,Deliv,1993,80.6857255,28.71819909,71.97501254,181.3789371
+transportation,Buses,Tbtu,Energy,Deliv,1994,79.9751015,30.05040881,74.98218,185.0076903
+transportation,Buses,Tbtu,Energy,Deliv,1995,80.8182644,29.59497661,78.26707139,188.6803124
+transportation,Buses,Tbtu,Energy,Deliv,1996,82.9453253,30.2051847,80.39602389,193.5465339
+transportation,Buses,Tbtu,Energy,Deliv,1997,86.941996,31.55592296,78.88487464,197.3827936
+transportation,Buses,Tbtu,Energy,Deliv,1998,89.5784933,32.80974021,79.12773602,201.5159695
+transportation,Buses,Tbtu,Energy,Deliv,1999,92.1329409,34.06072781,79.37059739,205.5642661
+transportation,Buses,Tbtu,Energy,Deliv,2000,96.262862,35.30889532,81.82270316,213.3944605
+transportation,Buses,Tbtu,Energy,Deliv,2001,91.2249268,36.55425225,84.36676021,212.1459393
+transportation,Buses,Tbtu,Energy,Deliv,2002,90.1902491,37.79680811,85.01060552,212.9976627
+transportation,Buses,Tbtu,Energy,Deliv,2003,89.1312257,39.03657231,87.16936409,215.3371621
+transportation,Buses,Tbtu,Energy,Deliv,2004,93.39752356,40.27355427,86.29669489,219.9677727
+transportation,Buses,Tbtu,Energy,Deliv,2005,93.07429005,41.50776334,85.21671429,219.7987677
+transportation,Buses,Tbtu,Energy,Deliv,2006,98.39205762,42.73920882,86.31364909,227.4449155
+transportation,Buses,Tbtu,Energy,Deliv,2007,91.67811714,43.9679,84.17091041,219.8169276
+transportation,Buses,Tbtu,Energy,Deliv,2008,94.59910095,44.23262173,80.96307053,219.7947932
+transportation,Buses,Tbtu,Energy,Deliv,2009,91.27581667,44.40973887,83.21641961,218.9019751
+transportation,Buses,Tbtu,Energy,Deliv,2010,86.63331286,44.5666374,80.99794628,212.1978965
+transportation,Buses,Tbtu,Energy,Deliv,2011,91.02217667,42.93533981,75.47035763,209.4278741
+transportation,Buses,Tbtu,Energy,Deliv,2012,89.23792095,42.11893483,75.47035763,206.8272134
+transportation,Buses,Tbtu,Energy,Deliv,2013,90.15769476,37.44001568,75.47035763,203.0680681
+transportation,Buses,Tbtu,Energy,Deliv,2014,85.88989857,38.65914041,75.47035763,200.0193966
+transportation,Buses,Tbtu,Energy,Deliv,2015,88.34126676,39.58175112,75.47035763,203.3933755
+transportation,Buses,Tbtu,Energy,Deliv,2016,91.65167529,33.74902737,75.47035763,200.8710603
+transportation,Buses,Tbtu,Energy,Deliv,2017,91.47216776,28.12704536,75.47035763,195.0695707
+transportation,Buses,Million P-M,Activity,Deliv,1970,18210,25300,48300,91810
+transportation,Buses,Million P-M,Activity,Deliv,1971,16810,25500,50876,93186
+transportation,Buses,Million P-M,Activity,Deliv,1972,16180,25600,54257,96037
+transportation,Buses,Million P-M,Activity,Deliv,1973,16170,26400,55476,98046
+transportation,Buses,Million P-M,Activity,Deliv,1974,17910,27700,56350,101960
+transportation,Buses,Million P-M,Activity,Deliv,1975,18300,25400,57500,101200
+transportation,Buses,Million P-M,Activity,Deliv,1976,18890,25100,60269.8246,104259.8246
+transportation,Buses,Million P-M,Activity,Deliv,1977,19730,26000,62879.85952,108609.8595
+transportation,Buses,Million P-M,Activity,Deliv,1978,20708,25600,64377.13505,110685.1351
+transportation,Buses,Million P-M,Activity,Deliv,1979,21393,27700,67769.86954,116862.8695
+transportation,Buses,Million P-M,Activity,Deliv,1980,21790,27400,69000,118190
+transportation,Buses,Million P-M,Activity,Deliv,1981,21012,27100,71410.99594,119522.9959
+transportation,Buses,Million P-M,Activity,Deliv,1982,19987,26900,72958.27561,119845.2756
+transportation,Buses,Million P-M,Activity,Deliv,1983,20047,26500,77686.85997,124233.86
+transportation,Buses,Million P-M,Activity,Deliv,1984,21595,24600,77818.17712,124013.1771
+transportation,Buses,Million P-M,Activity,Deliv,1985,21161,23800,79304,124265
+transportation,Buses,Million P-M,Activity,Deliv,1986,21395,23700,79744.62415,124839.6241
+transportation,Buses,Million P-M,Activity,Deliv,1987,20970,23000,81692.25175,125662.2517
+transportation,Buses,Million P-M,Activity,Deliv,1988,20753,23100,84418.54546,128271.5455
+transportation,Buses,Million P-M,Activity,Deliv,1989,20768,24000,86592.67477,131360.6748
+transportation,Buses,Million P-M,Activity,Deliv,1990,20981,23000,87400,131381
+transportation,Buses,Million P-M,Activity,Deliv,1991,21090,23100,89897.26459,134087.2646
+transportation,Buses,Million P-M,Activity,Deliv,1992,20336,22600,93789.914,136725.914
+transportation,Buses,Million P-M,Activity,Deliv,1993,20247,24700,97113.8656,142060.8656
+transportation,Buses,Million P-M,Activity,Deliv,1994,18832,28100,101200,148132
+transportation,Buses,Million P-M,Activity,Deliv,1995,18818,28100,105633.4668,152551.4668
+transportation,Buses,Million P-M,Activity,Deliv,1996,19096,28800,108506.8161,156402.8161
+transportation,Buses,Million P-M,Activity,Deliv,1997,19604,30600,106467.2875,156671.2875
+transportation,Buses,Million P-M,Activity,Deliv,1998,20360,33638.96987,106795.0663,160794.0362
+transportation,Buses,Million P-M,Activity,Deliv,1999,21205,36818.41455,107122.8451,165146.2597
+transportation,Buses,Million P-M,Activity,Deliv,2000,21241,40138.33403,110432.3395,171811.6735
+transportation,Buses,Million P-M,Activity,Deliv,2001,22022,43598.72831,113865.9363,179486.6646
+transportation,Buses,Million P-M,Activity,Deliv,2002,21841,47199.5974,114734.9047,183775.5021
+transportation,Buses,Million P-M,Activity,Deliv,2003,21262,50940.9413,117648.4819,189851.4232
+transportation,Buses,Million P-M,Activity,Deliv,2004,21376.973,54822.76,116470.6804,192670.4134
+transportation,Buses,Million P-M,Activity,Deliv,2005,21824.943,57582.4,115013.0803,194420.4233
+transportation,Buses,Million P-M,Activity,Deliv,2006,22821,61103,116493.5627,200417.5627
+transportation,Buses,Million P-M,Activity,Deliv,2007,20976,65496,113601.6069,200073.6069
+transportation,Buses,Million P-M,Activity,Deliv,2008,21757,64750,109272.1329,195779.1329
+transportation,Buses,Million P-M,Activity,Deliv,2009,21477,64600,112313.3745,198390.3745
+transportation,Buses,Million P-M,Activity,Deliv,2010,21013,62795.41133,109319.2031,193127.6144
+transportation,Buses,Million P-M,Activity,Deliv,2011,21414,68371.3759,101858.8709,191644.2468
+transportation,Buses,Million P-M,Activity,Deliv,2012,22089,67571.33335,101858.8709,191519.2042
+transportation,Buses,Million P-M,Activity,Deliv,2013,22150,56096.91415,101858.8709,180105.785
+transportation,Buses,Million P-M,Activity,Deliv,2014,22456,55573.30025,101858.8709,179888.1711
+transportation,Buses,Million P-M,Activity,Deliv,2015,21675.607,62740.74458,101858.8709,186275.2225
+transportation,Buses,Million P-M,Activity,Deliv,2016,21298.012,59772.44152,101858.8709,182929.3244
+transportation,Buses,Million P-M,Activity,Deliv,2017,20068.897,56804.13847,101858.8709,178731.9064

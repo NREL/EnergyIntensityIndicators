@@ -1,0 +1,59 @@
+﻿Sector,Nest level,Energy Type,Unit,Data Type,Year,Coal,Petroleum,Natural Gas,Other Gases,Total
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1989,229.229,51.986,455.774,82.57,819.559
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1990,233.273,78.568,529.936,104.461,946.238
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1991,228.066,73.62,537.349,117.802,956.837
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1992,246.436,83.572,558.713,128.313,1017.034
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1993,256.328,77.068,562.313,123.098,1018.807
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1994,261.208,75.004,584.009,123.185,1043.406
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1995,258.94,66.406,617.3,114.353,1056.999
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1996,261.002,74.468,625.839,142.995,1104.304
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1997,259.532,62.724,636.56,104.974,1063.79
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1998,244.512,67.015,642.593,102.183,1056.303
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,1999,241.551,67.805,660.046,112.064,1081.466
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2000,245.178,61.496,660.406,107.149,1074.229
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2001,227.35,61.806,673.985,87.864,1051.005
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2002,254.821,55.402,697.315,105.737,1113.275
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2003,217.066,61.498,687.286,126.739,1092.589
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2004,150.581,41.555,585.132,107.995,885.263
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2005,144.889,38.705,534.498,85.492,803.584
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2006,142.807,30.712,553.687,87.084,814.29
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2007,110.727,29.987,571.697,87.892,800.303
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2008,109.296,20.853,536.899,73.407,740.455
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2009,98.829,19.531,535.111,62.269,715.74
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2010,146.318,14.28,570.279,70.454,801.331
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2011,116.475,12.439,585.584,73.555,788.053
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2012,97.775,27.023,649.122,84.351,858.271
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2013,97.27,22.438,658.74,74.42,852.868
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2014,95.89821,15.338468,642.495422,81.112818,834.844918
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2015,82.656117,11.026843,644.614649,76.557509,814.855118
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2016,61.889303,9.701655,550.28809,53.339356,675.218404
+Electricity,Industrial Sector CHP Fossil,primary,Tbtu,Energy,2017,55.819765,8.698395,556.005613,49.409618,669.933391
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1989,20676.682,4795.907,53178.643,7297.124,85948.356
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1990,21106.875,7007.57,60006.633,9640.731,97761.809
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1991,21001.912,6540.015,60566.634,10500.865,98609.426
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1992,22743.402,7614.718,65933.032,11952.702,108243.854
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1993,23742.233,7028.473,68233.827,11889.738,110894.271
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1994,23568.143,6807.762,69599.974,12112.481,112088.36
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1995,22372.407,6029.641,71717.179,11943.119,112062.346
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1996,22171.701,6259.574,71049.259,13014.669,112495.203
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1997,23214.152,5648.645,75077.847,11814.154,115754.798
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1998,22336.919,6206.334,77085.312,11169.911,116798.476
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,1999,21474.219,6088.114,78793.14,12518.998,118874.471
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2000,22055.972,5596.85,78798.437,11926.758,118378.017
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2001,20134.647,5293.001,79755.122,8453.676,113636.446
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2002,21525.308,4402.817,79012.939,9492.821,114433.885
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2003,19817.123,5284.95,78705.341,12952.927,116760.341
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2004,19772.837,5967.3,78959.12,11684.198,116383.455
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2005,19466.106,5368.36,72882.307,9686.987,107403.76
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2006,19463.843,4223.217,77669.287,9923.239,111279.586
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2007,16694.157,4243.309,77580.498,9411.223,107929.187
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2008,15702.543,3219.167,76421.301,8507.173,103850.184
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2009,13685.701,2962.917,75747.924,7574.301,99970.843
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2010,18441.387,2258.29,81582.683,8342.537,110624.897
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2011,14490.13,1891.095,81911.329,8623.657,106916.211
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2012,12603.109,2921.57,86500.209,8913.213,110938.101
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2013,12553.664,2531.075,88732.511,8530.69,112347.94
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2014,12340.71353,1933.638737,86209.46408,8663.685351,109147.5017
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2015,10896.10437,1552.438546,88355.05356,9401.265278,110204.8618
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2016,9102.521399,1412.226373,91197.3308,8894.999943,110607.0785
+Electricity,Industrial Sector CHP Fossil,primary,Million kWh,Activity,2017,7668.726981,1238.728978,91619.19496,8342.528965,108869.1799

@@ -23,8 +23,8 @@ class TestLMDI:
                       'industrial': IndustrialIndicators,
                       'electricity': ElectricityIndicators}
 
-    pnnl_directory = 'C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020'
-    output_directory = 'C:/Users/irabidea/Desktop/LMDI_Results'
+    pnnl_directory = './tests/Indicators_Spreadsheets_2020'
+    output_directory = './Results'
 
     def eii_output_factory(self, sector):
         """Method to call the sector module
@@ -61,12 +61,12 @@ class TestLMDI:
         Returns:
             df : all PNNL data for dtype
         """        
-        files = os.listdir(f'C:/Users/irabidea/Desktop/pnnl_csvs/{sector}/{dtype}/')
+        files = os.listdir(f'./tests/pnnl_csvs/{sector}/{dtype}/')
         files = [f for f in files if f.endswith('.csv')]
         dfs = []
         for f in files: 
             try:    
-                df = pd.read_csv(f'C:/Users/irabidea/Desktop/pnnl_csvs/{sector}/{dtype}/{f}')
+                df = pd.read_csv(f'./tests/pnnl_csvs/{sector}/{dtype}/{f}')
                 df = self.pnnl_melt(df)
                 df = df.dropna(axis=1, how='all')
                 dfs.append(df)
@@ -800,7 +800,7 @@ class TestLMDI:
         for p, e in pnnl_eii_match.items():
             pnnl_output = pnnl_output.replace(p, e)
 
-        output_directory = 'C:/Users/irabidea/Desktop/LMDI_Results/'
+        output_directory = './tests/Results/'
         eii_results_data = pd.read_csv(f'{output_directory}transportation_results2.csv').rename(columns={'@timeseries|Year': 'Year'}).set_index('Year')
         eii_results_data = eii_results_data.replace('Highway', 'Freight Trucks')
         levels = eii_results_data['lower_level'].unique()

@@ -21,7 +21,8 @@ class WeatherFactors:
         self.residential_floorspace = residential_floorspace
         self.eia_data = GetEIAData(self.sector)
         self.projections = projections
-        self.lmdi_prices = pd.read_excel(f'{self.directory}/EnergyPrices_by_Sector_010820_DBB.xlsx', 
+        print("os.getcwd()", os.getcwd())
+        self.lmdi_prices = pd.read_excel(f'../Indicators_Spreadsheets_2020/EnergyPrices_by_Sector_010820_DBB.xlsx', 
                                          sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 
                                    'east_north_central', 'west_north_central', 'south', 
@@ -453,7 +454,8 @@ class WeatherFactors:
         else:
             raise KeyError(f'Missing valid energy type. Type given: {energy_type}')
 
-        actual_intensity.index = actual_intensity.index.astype(int)  
+        actual_intensity.index = actual_intensity.index.astype(int) 
+
         data = X_data.merge(actual_intensity, left_index=True, right_index=True, how='inner').dropna()
         X = data.drop(region.capitalize(), axis=1)
         Y = data[[region.capitalize()]]
@@ -511,14 +513,13 @@ class WeatherFactors:
         regional_weather_factors = []
         weights_df = self.gather_weights_data()
         regional_weights = self.regional_shares(dataframe=weights_df, cols=['heating_activity', 'cooling_activity', 'fuels'])
-
         for region in self.sub_regions_dict.keys():
             region_cap = region.capitalize()
             if self.sector == 'residential':
                 regional_intensity = intensity_df[region_cap][energy_type_]
             elif self.sector == 'commercial':
                 regional_intensity = intensity_df[energy_type_][region_cap]
-
+            
             weather_factors, weather_normalized_intensity = self.weather_factors(region, energy_type_, actual_intensity=regional_intensity, weights_df=weights_df, regional_weights=regional_weights)
             regional_weather_factors.append(weather_factors)
         

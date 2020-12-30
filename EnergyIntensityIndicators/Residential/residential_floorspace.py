@@ -29,19 +29,21 @@ class ResidentialFloorspace:
         ? https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html 
         """    
         ahs_url_folder = 'http://www2.census.gov/programs-surveys/ahs/2017/AHS%202017%20National%20PUF%20v3.0%20CSV.zip?#' 
-
-        if os.path.exists('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/household.csv'):
+        print('os.getcwd()', os.getcwd())
+        if os.path.exists('../../Indicators_Spreadsheets_2020/household.csv'):
             print('AHS data already ready')
             pass
         else: 
             r = requests.get(ahs_url_folder, stream=True)
             print('AHS data get successful:', r.ok)
             z = ZipFile(io.BytesIO(r.content))
-            z.extract('household.csv', path='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/')
+            z.extract('household.csv', path='../../Indicators_Spreadsheets_2020/')
 
-        ahs_household_data = pd.read_csv('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/household.csv')
+        ahs_household_data = pd.read_csv('../../Indicators_Spreadsheets_2020/household.csv')
+
         columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
         extract_ahs = ahs_household_data[columns]
+        os.remove('../../Indicators_Spreadsheets_2020/household.csv')
         extract_ahs = extract_ahs.replace(to_replace={"'": ""})
         extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
         extract_ahs['DIVISION'] = extract_ahs['DIVISION'].replace(to_replace="'", value='')
@@ -200,6 +202,7 @@ class ResidentialFloorspace:
         Args:
             df (dataframe): Dataframe containing column 'occupied_predicted' (predicted number housing units)
         """        
+        print('os.getcwd()', os.getcwd())
         # CSV for 3 average housing size columns
         if self.end_year > max(df.index) or not os.path.exists(f'./EnergyIntensityIndicators/Residential/resuts_{self.end_year}.csv'):
 
@@ -207,18 +210,18 @@ class ResidentialFloorspace:
             
             x0 = [1901.39732722429, 7.49900783768688, 1] # Top to bottom, skipping SSRD
 
-            new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', usecols='A, C').rename(columns={'New Privately Owned Housing Units Completed': 'Years', 'Unnamed: 2': 'new_comps_ann'}).set_index('Years') #  skiprows=26, index_col=0, 
+            new_comps_ann = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', usecols='A, C').rename(columns={'New Privately Owned Housing Units Completed': 'Years', 'Unnamed: 2': 'new_comps_ann'}).set_index('Years') #  skiprows=26, index_col=0, 
             new_comps_ann = new_comps_ann.loc[list(range(1968, self.end_year + 1)), :]
             new_comps_ann = new_comps_ann.rename(columns={0: 'new_comps_ann'}) # Comps Ann column C
             df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
 
-            cnh_avg_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/SFTotalMedAvgSqFt.xlsx', sheet_name='data', index_col=0) #) #, usecols='G') , skipfooter=54, skiprows=7, header=8
+            cnh_avg_size = pd.read_excel('../../Indicators_Spreadsheets_2020/SFTotalMedAvgSqFt.xlsx', sheet_name='data', index_col=0) #) #, usecols='G') , skipfooter=54, skiprows=7, header=8
             cnh_avg_size = cnh_avg_size.loc[list(range(1973, self.end_year + 1)), ['Unnamed: 6']].reset_index().rename(columns={'Median and Average Square Feet of Floor Area in New Single-Family Houses Completed1': 'Years', 
                                                                         'Unnamed: 6': 'cnh_avg_size'})
             cnh_avg_size = cnh_avg_size.set_index('Years')                                                                                                           
             df = df.merge(cnh_avg_size, left_index=True, right_index=True, how='left')
 
-            actual_avg_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_SF', usecols='AW, BD').rename(columns={'Unnamed: 48': 'Years', 'Size Calc1': 'actual_avg_size'}).set_index('Years')  # from AHS Tables pd.read(csv?)
+            actual_avg_size = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_SF', usecols='AW, BD').rename(columns={'Unnamed: 48': 'Years', 'Size Calc1': 'actual_avg_size'}).set_index('Years')  # from AHS Tables pd.read(csv?)
             df = df[df.index.notnull()]
             df = df.merge(actual_avg_size, left_index=True, right_index=True, how='left')
 
@@ -275,14 +278,16 @@ class ResidentialFloorspace:
 
         """        
     #     # just_adjustment = 0.75
+        print('os.getcwd()', os.getcwd())
+
         df = retirement_df.reindex(columns=list(retirement_df.columns) + ['BJ', 'BM', 'CB', 'final', 'Predicted-II'])
         
-        new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann_2015', skiprows=10, 
+        new_comps_ann = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann_2015', skiprows=10, 
                                       usecols='C, E', header=None).dropna().rename(columns={2: 'Years', 4: 'new_comps_ann'}).set_index('Years') # Comps Ann column C
 
         df = df.merge(new_comps_ann, left_index=True, right_index=True, how='left')
 
-        ahs_table = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=32, 
+        ahs_table = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=32, 
                                    usecols='BZ:CI', header=1)[:3] # skipfooter=40,  .rename(columns={'2': 'Years', '4': ''})  # from ahs tables
 
         ahs_table = ahs_table.rename(columns={'Unnamed: 77': 'Years', '1970-1979': '1975', '1980-1989': '1985', '1990-1999': '1995', '2000 & later': '2005'})
@@ -290,7 +295,7 @@ class ResidentialFloorspace:
         ahs_table = ahs_table.reindex(list(ahs_table.index) + [2011])
         ahs_table.loc[2011, :] = ahs_table.mean(axis=0)
 
-        actual_size = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=15, 
+        actual_size = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Total_stock_MF', skiprows=15, 
                                     usecols='AW, BC', header=None).rename(columns={48: 'Years', 54: 'actual_avg_size'}).set_index('Years')  # from ahs tables
         actual_size = actual_size[actual_size.index.notnull()]
 
@@ -448,8 +453,9 @@ class ResidentialFloorspace:
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
-        
-        new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
+        print('os.getcwd()', os.getcwd())
+        current_dir = os.getcwd()
+        new_comps_ann = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
                                 usecols=use_columns, header=None).dropna()
 
         year_array = list(range(1985, 2019))
@@ -518,8 +524,8 @@ class ResidentialFloorspace:
 
         # url_ = 'https://www.census.gov/construction/nrc/xls/co_cust.xls'
         # new_comps_ann = pd.read_excel(url_) # completed
-        
-        new_comps_ann_df = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
+        print('os.getcwd()', os.getcwd())
+        new_comps_ann_df = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='Comps Ann', skiprows=26, 
                                 usecols=use_columns, header=None).dropna()
         new_comps_ann_df['New'] = new_comps_ann_df.sum(axis=1)
         new_comps_ann = new_comps_ann_df['New']
@@ -565,9 +571,10 @@ class ResidentialFloorspace:
     def get_housing_stock_mh(self, all_stock_sf, occupied_pub_sf):
         """Get housing stock for manufactured housing units"""
 
-        # new_comps_ann =   pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/placensa_all.xls', sheet_name='histplac', skiprows= , usecols=)# Added (place_nsa_all)
+        # new_comps_ann =   pd.read_excel('../../Indicators_Spreadsheets_2020/placensa_all.xls', sheet_name='histplac', skiprows= , usecols=)# Added (place_nsa_all)
         # NEED TO PROCESS 
-        new_comps_ann = pd.read_excel('C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='place_nsa_all', skiprows=8, usecols="C", header=None).dropna()
+        print('os.getcwd()', os.getcwd())
+        new_comps_ann = pd.read_excel('../../Indicators_Spreadsheets_2020/AHS_summary_results_051720.xlsx', sheet_name='place_nsa_all', skiprows=8, usecols="C", header=None).dropna()
         factor = 0.96
         elasticity_of_retirements = 0.5
 

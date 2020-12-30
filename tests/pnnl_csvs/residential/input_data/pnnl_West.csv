@@ -1,0 +1,778 @@
+﻿Sector,Nest level,Unit,Energy Type,Data Type,Year,Single-Family,Multi-Family,Manufactured Homes,Total
+Residential,West,Tbtu,source,Energy,1970,,,,2050.126909
+Residential,West,Tbtu,source,Energy,1971,,,,2246.513723
+Residential,West,Tbtu,source,Energy,1972,,,,2345.437101
+Residential,West,Tbtu,source,Energy,1973,,,,2353.429432
+Residential,West,Tbtu,source,Energy,1974,,,,2310.934934
+Residential,West,Tbtu,source,Energy,1975,,,,2424.762424
+Residential,West,Tbtu,source,Energy,1976,,,,2456.290629
+Residential,West,Tbtu,source,Energy,1977,,,,2384.190219
+Residential,West,Tbtu,source,Energy,1978,,,,2489.203502
+Residential,West,Tbtu,source,Energy,1979,,,,2660.642318
+Residential,West,Tbtu,source,Energy,1980,,,,2582.725489
+Residential,West,Tbtu,source,Energy,1981,,,,2649.625489
+Residential,West,Tbtu,source,Energy,1982,,,,2540.29244
+Residential,West,Tbtu,source,Energy,1983,,,,2653.438787
+Residential,West,Tbtu,source,Energy,1984,,,,2674.197791
+Residential,West,Tbtu,source,Energy,1985,,,,2803.931724
+Residential,West,Tbtu,source,Energy,1986,,,,2630.351182
+Residential,West,Tbtu,source,Energy,1987,,,,2703.593907
+Residential,West,Tbtu,source,Energy,1988,,,,2823.420469
+Residential,West,Tbtu,source,Energy,1989,,,,2981.231589
+Residential,West,Tbtu,source,Energy,1990,,,,2949.670941
+Residential,West,Tbtu,source,Energy,1991,,,,3006.758785
+Residential,West,Tbtu,source,Energy,1992,,,,2946.712236
+Residential,West,Tbtu,source,Energy,1993,,,,3073.247435
+Residential,West,Tbtu,source,Energy,1994,,,,3079.025064
+Residential,West,Tbtu,source,Energy,1995,,,,3051.837758
+Residential,West,Tbtu,source,Energy,1996,,,,3215.657538
+Residential,West,Tbtu,source,Energy,1997,,,,3229.154043
+Residential,West,Tbtu,source,Energy,1998,,,,3362.586219
+Residential,West,Tbtu,source,Energy,1999,,,,3453.591326
+Residential,West,Tbtu,source,Energy,2000,,,,3486.853117
+Residential,West,Tbtu,source,Energy,2001,,,,3476.575948
+Residential,West,Tbtu,source,Energy,2002,,,,3512.682435
+Residential,West,Tbtu,source,Energy,2003,,,,3565.473269
+Residential,West,Tbtu,source,Energy,2004,,,,3642.613001
+Residential,West,Tbtu,source,Energy,2005,,,,3673.15125
+Residential,West,Tbtu,source,Energy,2006,,,,3768.500835
+Residential,West,Tbtu,source,Energy,2007,,,,3855.964215
+Residential,West,Tbtu,source,Energy,2008,,,,3924.822212
+Residential,West,Tbtu,source,Energy,2009,,,,3852.47092
+Residential,West,Tbtu,source,Energy,2010,,,,3795.96288
+Residential,West,Tbtu,source,Energy,2011,,,,3869.576122
+Residential,West,Tbtu,source,Energy,2012,,,,3716.393557
+Residential,West,Tbtu,source,Energy,2013,,,,3830.140769
+Residential,West,Tbtu,source,Energy,2014,,,,3659.112209
+Residential,West,Tbtu,source,Energy,2015,,,,3623.877037
+Residential,West,Tbtu,source,Energy,2016,,,,3676.33852
+Residential,West,Tbtu,source,Energy,2017,,,,3826.285789
+Residential,West,Tbtu,source,Energy,2018,,,,0
+Residential,West,Thousand Occupied Housing Units,source,Activity,1970,7856,2848,465,11169
+Residential,West,Thousand Occupied Housing Units,source,Activity,1971,8056.7,3016.3,537,11610
+Residential,West,Thousand Occupied Housing Units,source,Activity,1972,8290.85,3212.65,621,12124.5
+Residential,West,Thousand Occupied Housing Units,source,Activity,1973,8418.537085,3382.579228,679.3953498,12480.51166
+Residential,West,Thousand Occupied Housing Units,source,Activity,1974,8637.690038,3430.502358,818.9222081,12887.1146
+Residential,West,Thousand Occupied Housing Units,source,Activity,1975,9000.073081,3535.807015,776.6111048,13312.4912
+Residential,West,Thousand Occupied Housing Units,source,Activity,1976,9229.684975,3619.164374,913.7215356,13762.57089
+Residential,West,Thousand Occupied Housing Units,source,Activity,1977,9371.240986,3839.87867,937.7640395,14148.8837
+Residential,West,Thousand Occupied Housing Units,source,Activity,1978,9596.796368,4130.417245,936.0668007,14663.28041
+Residential,West,Thousand Occupied Housing Units,source,Activity,1979,9858.988026,4262.479529,869.3646136,14990.83217
+Residential,West,Thousand Occupied Housing Units,source,Activity,1980,10061.75415,4359.790597,922.3078994,15343.85264
+Residential,West,Thousand Occupied Housing Units,source,Activity,1981,10388.11595,4627.530116,943.9726893,15959.61876
+Residential,West,Thousand Occupied Housing Units,source,Activity,1982,10511.81205,4683.910821,949.7592208,16145.48209
+Residential,West,Thousand Occupied Housing Units,source,Activity,1983,10725.25699,4756.116602,961.6751142,16443.04871
+Residential,West,Thousand Occupied Housing Units,source,Activity,1984,11010.58845,4833.55001,1003.148568,16847.28703
+Residential,West,Thousand Occupied Housing Units,source,Activity,1985,11266.55635,4858.038238,1065.521265,17190.11585
+Residential,West,Thousand Occupied Housing Units,source,Activity,1986,11579.91798,4972.082535,1108.21558,17660.2161
+Residential,West,Thousand Occupied Housing Units,source,Activity,1987,11901.98446,5080.728977,1148.055527,18130.76896
+Residential,West,Thousand Occupied Housing Units,source,Activity,1988,12041.91321,5213.775153,1130.923044,18386.61141
+Residential,West,Thousand Occupied Housing Units,source,Activity,1989,12172.23098,5340.095702,1109.570879,18621.89756
+Residential,West,Thousand Occupied Housing Units,source,Activity,1990,12548.07943,5357.300856,1174.535524,19079.91581
+Residential,West,Thousand Occupied Housing Units,source,Activity,1991,12909.61502,5365.37956,1239.554806,19514.54939
+Residential,West,Thousand Occupied Housing Units,source,Activity,1992,13169.79659,5428.642689,1195.173958,19793.61324
+Residential,West,Thousand Occupied Housing Units,source,Activity,1993,13450.32989,5486.471699,1153.635121,20090.4367
+Residential,West,Thousand Occupied Housing Units,source,Activity,1994,13597.37978,5655.842554,1190.872873,20444.09521
+Residential,West,Thousand Occupied Housing Units,source,Activity,1995,13745.1184,5832.628554,1233.325748,20811.0727
+Residential,West,Thousand Occupied Housing Units,source,Activity,1996,13949.2386,5967.763375,1218.872935,21135.87491
+Residential,West,Thousand Occupied Housing Units,source,Activity,1997,14157.12718,6106.350003,1203.35477,21466.83195
+Residential,West,Thousand Occupied Housing Units,source,Activity,1998,14532.52463,6049.568116,1262.33446,21844.4272
+Residential,West,Thousand Occupied Housing Units,source,Activity,1999,14927.13648,5995.220051,1322.490549,22244.84708
+Residential,West,Thousand Occupied Housing Units,source,Activity,2000,15190.78796,6082.903276,1325.452177,22599.14341
+Residential,West,Thousand Occupied Housing Units,source,Activity,2001,15453.89189,6169.640286,1318.528264,22942.06044
+Residential,West,Thousand Occupied Housing Units,source,Activity,2002,15640.65416,6251.442263,1307.064879,23199.16131
+Residential,West,Thousand Occupied Housing Units,source,Activity,2003,15837.36055,6332.436306,1291.129206,23460.92606
+Residential,West,Thousand Occupied Housing Units,source,Activity,2004,16103.52123,6337.502299,1281.27966,23722.30319
+Residential,West,Thousand Occupied Housing Units,source,Activity,2005,16391.95939,6342.280094,1268.098173,24002.33765
+Residential,West,Thousand Occupied Housing Units,source,Activity,2006,16620.57998,6398.664327,1268.290627,24287.53494
+Residential,West,Thousand Occupied Housing Units,source,Activity,2007,16808.55926,6454.314743,1267.212819,24530.08682
+Residential,West,Thousand Occupied Housing Units,source,Activity,2008,16860.21378,6425.747181,1320.097475,24606.05844
+Residential,West,Thousand Occupied Housing Units,source,Activity,2009,16849.19338,6396.049649,1370.218736,24615.46176
+Residential,West,Thousand Occupied Housing Units,source,Activity,2010,17124.18681,6529.573393,1380.534781,25034.29498
+Residential,West,Thousand Occupied Housing Units,source,Activity,2011,17395.36466,6656.570183,1390.627471,25442.56231
+Residential,West,Thousand Occupied Housing Units,source,Activity,2012,17480.07216,6743.205788,1393.499513,25616.77746
+Residential,West,Thousand Occupied Housing Units,source,Activity,2013,17575.38718,6833.972541,1396.59822,25805.95794
+Residential,West,Thousand Occupied Housing Units,source,Activity,2014,17878.83095,6720.399279,1434.837673,26034.06791
+Residential,West,Thousand Occupied Housing Units,source,Activity,2015,18192.47297,6611.806685,1472.052978,26276.33264
+Residential,West,Thousand Occupied Housing Units,source,Activity,2016,18344.15532,6693.265824,1494.383175,26531.80432
+Residential,West,Thousand Occupied Housing Units,source,Activity,2017,18508.8462,6777.489813,1517.056897,26803.39291
+Residential,West,Thousand Occupied Housing Units,source,Activity,2018,18650.41042,6817.072474,1514.527638,26982.01053
+Residential,West,"Floorspace, Billion SF",source,Activity,1970,12.57278672,2.195830924,0.322120781,15.09073843
+Residential,West,"Floorspace, Billion SF",source,Activity,1971,12.93742004,2.329727886,0.383402777,15.6505507
+Residential,West,"Floorspace, Billion SF",source,Activity,1972,13.35881951,2.486010101,0.456602007,16.30143162
+Residential,West,"Floorspace, Billion SF",source,Activity,1973,13.59712685,2.622060739,0.514064209,16.7332518
+Residential,West,"Floorspace, Billion SF",source,Activity,1974,13.98692031,2.662599076,0.637215114,17.2867345
+Residential,West,"Floorspace, Billion SF",source,Activity,1975,14.62601289,2.747563376,0.610466007,17.98404227
+Residential,West,"Floorspace, Billion SF",source,Activity,1976,15.0491713,2.816373486,0.724545099,18.59008989
+Residential,West,"Floorspace, Billion SF",source,Activity,1977,15.33383807,2.993269636,0.751087397,19.0781951
+Residential,West,"Floorspace, Billion SF",source,Activity,1978,15.75768415,3.225676408,0.756582105,19.73994266
+Residential,West,"Floorspace, Billion SF",source,Activity,1979,16.23685035,3.334594262,0.709198443,20.28064305
+Residential,West,"Floorspace, Billion SF",source,Activity,1980,16.62221583,3.415948233,0.758912266,20.79707632
+Residential,West,"Floorspace, Billion SF",source,Activity,1981,17.16919893,3.627966114,0.780901341,21.57806638
+Residential,West,"Floorspace, Billion SF",source,Activity,1982,17.38999872,3.672839945,0.789580433,21.85241909
+Residential,West,"Floorspace, Billion SF",source,Activity,1983,17.76198027,3.730449142,0.803389751,22.29581917
+Residential,West,"Floorspace, Billion SF",source,Activity,1984,18.26492313,3.792827389,0.842302229,22.90005275
+Residential,West,"Floorspace, Billion SF",source,Activity,1985,19.22684115,3.799017533,0.912432248,23.93829094
+Residential,West,"Floorspace, Billion SF",source,Activity,1986,19.73132801,3.976145088,0.955980634,24.66345373
+Residential,West,"Floorspace, Billion SF",source,Activity,1987,20.43971222,4.133042452,0.989346704,25.56210138
+Residential,West,"Floorspace, Billion SF",source,Activity,1988,20.83176383,4.291366897,1.003550434,26.12668116
+Residential,West,"Floorspace, Billion SF",source,Activity,1989,21.20603153,4.436831133,1.013013424,26.65587609
+Residential,West,"Floorspace, Billion SF",source,Activity,1990,22.02463216,4.480961995,1.102984269,27.60857842
+Residential,West,"Floorspace, Billion SF",source,Activity,1991,22.79885325,4.498318552,1.18372781,28.48089962
+Residential,West,"Floorspace, Billion SF",source,Activity,1992,23.45935033,4.548540819,1.158663468,29.16655462
+Residential,West,"Floorspace, Billion SF",source,Activity,1993,24.15646667,4.585387218,1.135073001,29.87692689
+Residential,West,"Floorspace, Billion SF",source,Activity,1994,24.6275805,4.726566974,1.182434573,30.53658204
+Residential,West,"Floorspace, Billion SF",source,Activity,1995,25.04931981,4.891573645,1.235690509,31.17658396
+Residential,West,"Floorspace, Billion SF",source,Activity,1996,25.60647787,5.035162714,1.231719845,31.87336043
+Residential,West,"Floorspace, Billion SF",source,Activity,1997,26.16277579,5.184978029,1.226405112,32.57415893
+Residential,West,"Floorspace, Billion SF",source,Activity,1998,27.05672412,5.15760547,1.297702637,33.51203223
+Residential,West,"Floorspace, Billion SF",source,Activity,1999,28.02363938,5.139655309,1.371261017,34.53455571
+Residential,West,"Floorspace, Billion SF",source,Activity,2000,28.83434149,5.254589095,1.3860893,35.47501988
+Residential,West,"Floorspace, Billion SF",source,Activity,2001,29.67467471,5.366290886,1.390540571,36.43150616
+Residential,West,"Floorspace, Billion SF",source,Activity,2002,30.38937715,5.478675475,1.378273893,37.24632652
+Residential,West,"Floorspace, Billion SF",source,Activity,2003,31.13356693,5.582350163,1.361295038,38.07721213
+Residential,West,"Floorspace, Billion SF",source,Activity,2004,32.06266489,5.628204364,1.351094576,39.04196383
+Residential,West,"Floorspace, Billion SF",source,Activity,2005,33.07476919,5.670806401,1.337377355,40.08295295
+Residential,West,"Floorspace, Billion SF",source,Activity,2006,33.9631999,5.775594331,1.345262616,41.08405684
+Residential,West,"Floorspace, Billion SF",source,Activity,2007,34.63086846,5.867811888,1.351793031,41.85047338
+Residential,West,"Floorspace, Billion SF",source,Activity,2008,34.95907296,5.854076985,1.415966107,42.22911605
+Residential,West,"Floorspace, Billion SF",source,Activity,2009,35.12579019,5.829680591,1.477775617,42.43324639
+Residential,West,"Floorspace, Billion SF",source,Activity,2010,35.85761916,5.961931344,1.512683784,43.33223429
+Residential,West,"Floorspace, Billion SF",source,Activity,2011,36.59374664,6.097384018,1.547698794,44.23882945
+Residential,West,"Floorspace, Billion SF",source,Activity,2012,36.9883621,6.165888686,1.575187861,44.72943864
+Residential,West,"Floorspace, Billion SF",source,Activity,2013,37.44023057,6.238087672,1.603046105,45.28136435
+Residential,West,"Floorspace, Billion SF",source,Activity,2014,38.34042169,6.119395186,1.670882467,46.13069935
+Residential,West,"Floorspace, Billion SF",source,Activity,2015,39.24840363,6.007903671,1.738762384,46.99506969
+Residential,West,"Floorspace, Billion SF",source,Activity,2016,39.81703799,6.078479191,1.772919336,47.66843652
+Residential,West,"Floorspace, Billion SF",source,Activity,2017,40.40822544,6.152814081,1.807989474,48.36902899
+Residential,West,"Floorspace, Billion SF",source,Activity,2018,40.93993559,6.185783137,1.804975168,48.93069389
+Residential,West,Actual/30-year Normal,source,Weather,1970,,,,1.00722087
+Residential,West,Actual/30-year Normal,source,Weather,1971,,,,1.040226763
+Residential,West,Actual/30-year Normal,source,Weather,1972,,,,1.011523393
+Residential,West,Actual/30-year Normal,source,Weather,1973,,,,1.016346386
+Residential,West,Actual/30-year Normal,source,Weather,1974,,,,1.001432162
+Residential,West,Actual/30-year Normal,source,Weather,1975,,,,1.02470862
+Residential,West,Actual/30-year Normal,source,Weather,1976,,,,0.997739471
+Residential,West,Actual/30-year Normal,source,Weather,1977,,,,0.994327206
+Residential,West,Actual/30-year Normal,source,Weather,1978,,,,0.999668442
+Residential,West,Actual/30-year Normal,source,Weather,1979,,,,1.002185644
+Residential,West,Actual/30-year Normal,source,Weather,1980,,,,0.996372957
+Residential,West,Actual/30-year Normal,source,Weather,1981,,,,1.008662395
+Residential,West,Actual/30-year Normal,source,Weather,1982,,,,0.991372749
+Residential,West,Actual/30-year Normal,source,Weather,1983,,,,1.006593356
+Residential,West,Actual/30-year Normal,source,Weather,1984,,,,1.025137824
+Residential,West,Actual/30-year Normal,source,Weather,1985,,,,1.049779478
+Residential,West,Actual/30-year Normal,source,Weather,1986,,,,0.975011926
+Residential,West,Actual/30-year Normal,source,Weather,1987,,,,0.995600174
+Residential,West,Actual/30-year Normal,source,Weather,1988,,,,0.995299153
+Residential,West,Actual/30-year Normal,source,Weather,1989,,,,0.998130648
+Residential,West,Actual/30-year Normal,source,Weather,1990,,,,1.010128408
+Residential,West,Actual/30-year Normal,source,Weather,1991,,,,1.002110858
+Residential,West,Actual/30-year Normal,source,Weather,1992,,,,0.977961589
+Residential,West,Actual/30-year Normal,source,Weather,1993,,,,1.004281004
+Residential,West,Actual/30-year Normal,source,Weather,1994,,,,1.008719141
+Residential,West,Actual/30-year Normal,source,Weather,1995,,,,0.975863427
+Residential,West,Actual/30-year Normal,source,Weather,1996,,,,0.988761571
+Residential,West,Actual/30-year Normal,source,Weather,1997,,,,0.986728049
+Residential,West,Actual/30-year Normal,source,Weather,1998,,,,1.0169937
+Residential,West,Actual/30-year Normal,source,Weather,1999,,,,0.991616798
+Residential,West,Actual/30-year Normal,source,Weather,2000,,,,0.990533041
+Residential,West,Actual/30-year Normal,source,Weather,2001,,,,1.001835649
+Residential,West,Actual/30-year Normal,source,Weather,2002,,,,1.000375078
+Residential,West,Actual/30-year Normal,source,Weather,2003,,,,0.989713487
+Residential,West,Actual/30-year Normal,source,Weather,2004,,,,0.982338527
+Residential,West,Actual/30-year Normal,source,Weather,2005,,,,0.980994375
+Residential,West,Actual/30-year Normal,source,Weather,2006,,,,1.003848704
+Residential,West,Actual/30-year Normal,source,Weather,2007,,,,0.998235542
+Residential,West,Actual/30-year Normal,source,Weather,2008,,,,1.011083786
+Residential,West,Actual/30-year Normal,source,Weather,2009,,,,1.005716597
+Residential,West,Actual/30-year Normal,source,Weather,2010,,,,0.997805089
+Residential,West,Actual/30-year Normal,source,Weather,2011,,,,1.023084816
+Residential,West,Actual/30-year Normal,source,Weather,2012,,,,0.988449496
+Residential,West,Actual/30-year Normal,source,Weather,2013,,,,0.998707776
+Residential,West,Actual/30-year Normal,source,Weather,2014,,,,0.953506962
+Residential,West,Actual/30-year Normal,source,Weather,2015,,,,0.960545052
+Residential,West,Actual/30-year Normal,source,Weather,2016,,,,0.962930395
+Residential,West,Actual/30-year Normal,source,Weather,2017,,,,0.981872175
+Residential,West,Actual/30-year Normal,source,Weather,2018,,,,
+Residential,West,Tbtu,deliv,Energy,1970,1384.028,,,
+Residential,West,Tbtu,deliv,Energy,1971,1519.784,,,
+Residential,West,Tbtu,deliv,Energy,1972,1564.851,,,
+Residential,West,Tbtu,deliv,Energy,1973,1532.118,,,
+Residential,West,Tbtu,deliv,Energy,1974,1468.552,,,
+Residential,West,Tbtu,deliv,Energy,1975,1568.393,,,
+Residential,West,Tbtu,deliv,Energy,1976,1570.777,,,
+Residential,West,Tbtu,deliv,Energy,1977,1473.878,,,
+Residential,West,Tbtu,deliv,Energy,1978,1512.954,,,
+Residential,West,Tbtu,deliv,Energy,1979,1621.659,,,
+Residential,West,Tbtu,deliv,Energy,1980,1482.174,,,
+Residential,West,Tbtu,deliv,Energy,1981,1557.368,,,
+Residential,West,Tbtu,deliv,Energy,1982,1507.607,,,
+Residential,West,Tbtu,deliv,Energy,1983,1547.866,,,
+Residential,West,Tbtu,deliv,Energy,1984,1563.405,,,
+Residential,West,Tbtu,deliv,Energy,1985,1658.585,,,
+Residential,West,Tbtu,deliv,Energy,1986,1524.936,,,
+Residential,West,Tbtu,deliv,Energy,1987,1580.725,,,
+Residential,West,Tbtu,deliv,Energy,1988,1638.395,,,
+Residential,West,Tbtu,deliv,Energy,1989,1717.643,,,
+Residential,West,Tbtu,deliv,Energy,1990,1665.761,,,
+Residential,West,Tbtu,deliv,Energy,1991,1712.837,,,
+Residential,West,Tbtu,deliv,Energy,1992,1656.495,,,
+Residential,West,Tbtu,deliv,Energy,1993,1737.434,,,
+Residential,West,Tbtu,deliv,Energy,1994,1736.547,,,
+Residential,West,Tbtu,deliv,Energy,1995,1693.086,,,
+Residential,West,Tbtu,deliv,Energy,1996,1777.842,,,
+Residential,West,Tbtu,deliv,Energy,1997,1772.086,,,
+Residential,West,Tbtu,deliv,Energy,1998,1875.538,,,
+Residential,West,Tbtu,deliv,Energy,1999,1917.578,,,
+Residential,West,Tbtu,deliv,Energy,2000,1883.762,,,
+Residential,West,Tbtu,deliv,Energy,2001,1925.646,,,
+Residential,West,Tbtu,deliv,Energy,2002,1935.418,,,
+Residential,West,Tbtu,deliv,Energy,2003,1940.645,,,
+Residential,West,Tbtu,deliv,Energy,2004,1987.522,,,
+Residential,West,Tbtu,deliv,Energy,2005,1982.685,,,
+Residential,West,Tbtu,deliv,Energy,2006,2016.912,,,
+Residential,West,Tbtu,deliv,Energy,2007,2069.603,,,
+Residential,West,Tbtu,deliv,Energy,2008,2125.083,,,
+Residential,West,Tbtu,deliv,Energy,2009,2095.485,,,
+Residential,West,Tbtu,deliv,Energy,2010,2086.479,,,
+Residential,West,Tbtu,deliv,Energy,2011,2145.054,,,
+Residential,West,Tbtu,deliv,Energy,2012,2028.98,,,
+Residential,West,Tbtu,deliv,Energy,2013,2138.923,,,
+Residential,West,Tbtu,deliv,Energy,2014,2005.251,,,
+Residential,West,Tbtu,deliv,Energy,2015,2012.826,,,
+Residential,West,Tbtu,deliv,Energy,2016,2070.726,,,
+Residential,West,Tbtu,deliv,Energy,2017,2174.184,,,
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1970,7856,2848,465,11169
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1971,8056.7,3016.3,537,11610
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1972,8290.85,3212.65,621,12124.5
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1973,8418.537085,3382.579228,679.3953498,12480.51166
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1974,8637.690038,3430.502358,818.9222081,12887.1146
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1975,9000.073081,3535.807015,776.6111048,13312.4912
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1976,9229.684975,3619.164374,913.7215356,13762.57089
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1977,9371.240986,3839.87867,937.7640395,14148.8837
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1978,9596.796368,4130.417245,936.0668007,14663.28041
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1979,9858.988026,4262.479529,869.3646136,14990.83217
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1980,10061.75415,4359.790597,922.3078994,15343.85264
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1981,10388.11595,4627.530116,943.9726893,15959.61876
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1982,10511.81205,4683.910821,949.7592208,16145.48209
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1983,10725.25699,4756.116602,961.6751142,16443.04871
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1984,11010.58845,4833.55001,1003.148568,16847.28703
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1985,11266.55635,4858.038238,1065.521265,17190.11585
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1986,11579.91798,4972.082535,1108.21558,17660.2161
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1987,11901.98446,5080.728977,1148.055527,18130.76896
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1988,12041.91321,5213.775153,1130.923044,18386.61141
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1989,12172.23098,5340.095702,1109.570879,18621.89756
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1990,12548.07943,5357.300856,1174.535524,19079.91581
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1991,12909.61502,5365.37956,1239.554806,19514.54939
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1992,13169.79659,5428.642689,1195.173958,19793.61324
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1993,13450.32989,5486.471699,1153.635121,20090.4367
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1994,13597.37978,5655.842554,1190.872873,20444.09521
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1995,13745.1184,5832.628554,1233.325748,20811.0727
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1996,13949.2386,5967.763375,1218.872935,21135.87491
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1997,14157.12718,6106.350003,1203.35477,21466.83195
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1998,14532.52463,6049.568116,1262.33446,21844.4272
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,1999,14927.13648,5995.220051,1322.490549,22244.84708
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2000,15190.78796,6082.903276,1325.452177,22599.14341
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2001,15453.89189,6169.640286,1318.528264,22942.06044
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2002,15640.65416,6251.442263,1307.064879,23199.16131
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2003,15837.36055,6332.436306,1291.129206,23460.92606
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2004,16103.52123,6337.502299,1281.27966,23722.30319
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2005,16391.95939,6342.280094,1268.098173,24002.33765
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2006,16620.57998,6398.664327,1268.290627,24287.53494
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2007,16808.55926,6454.314743,1267.212819,24530.08682
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2008,16860.21378,6425.747181,1320.097475,24606.05844
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2009,16849.19338,6396.049649,1370.218736,24615.46176
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2010,17124.18681,6529.573393,1380.534781,25034.29498
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2011,17395.36466,6656.570183,1390.627471,25442.56231
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2012,17480.07216,6743.205788,1393.499513,25616.77746
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2013,17575.38718,6833.972541,1396.59822,25805.95794
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2014,17878.83095,6720.399279,1434.837673,26034.06791
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2015,18192.47297,6611.806685,1472.052978,26276.33264
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2016,18344.15532,6693.265824,1494.383175,26531.80432
+Residential,West,Thousand Occupied Housing Units,deliv,Activity,2017,18508.8462,6777.489813,1517.056897,26803.39291
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1970,12.57278672,2.195830924,0.322120781,15.09073843
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1971,12.93742004,2.329727886,0.383402777,15.6505507
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1972,13.35881951,2.486010101,0.456602007,16.30143162
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1973,13.59712685,2.622060739,0.514064209,16.7332518
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1974,13.98692031,2.662599076,0.637215114,17.2867345
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1975,14.62601289,2.747563376,0.610466007,17.98404227
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1976,15.0491713,2.816373486,0.724545099,18.59008989
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1977,15.33383807,2.993269636,0.751087397,19.0781951
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1978,15.75768415,3.225676408,0.756582105,19.73994266
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1979,16.23685035,3.334594262,0.709198443,20.28064305
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1980,16.62221583,3.415948233,0.758912266,20.79707632
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1981,17.16919893,3.627966114,0.780901341,21.57806638
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1982,17.38999872,3.672839945,0.789580433,21.85241909
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1983,17.76198027,3.730449142,0.803389751,22.29581917
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1984,18.26492313,3.792827389,0.842302229,22.90005275
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1985,19.22684115,3.799017533,0.912432248,23.93829094
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1986,19.73132801,3.976145088,0.955980634,24.66345373
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1987,20.43971222,4.133042452,0.989346704,25.56210138
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1988,20.83176383,4.291366897,1.003550434,26.12668116
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1989,21.20603153,4.436831133,1.013013424,26.65587609
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1990,22.02463216,4.480961995,1.102984269,27.60857842
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1991,22.79885325,4.498318552,1.18372781,28.48089962
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1992,23.45935033,4.548540819,1.158663468,29.16655462
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1993,24.15646667,4.585387218,1.135073001,29.87692689
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1994,24.6275805,4.726566974,1.182434573,30.53658204
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1995,25.04931981,4.891573645,1.235690509,31.17658396
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1996,25.60647787,5.035162714,1.231719845,31.87336043
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1997,26.16277579,5.184978029,1.226405112,32.57415893
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1998,27.05672412,5.15760547,1.297702637,33.51203223
+Residential,West,"Floorspace, Billion SF",deliv,Activity,1999,28.02363938,5.139655309,1.371261017,34.53455571
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2000,28.83434149,5.254589095,1.3860893,35.47501988
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2001,29.67467471,5.366290886,1.390540571,36.43150616
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2002,30.38937715,5.478675475,1.378273893,37.24632652
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2003,31.13356693,5.582350163,1.361295038,38.07721213
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2004,32.06266489,5.628204364,1.351094576,39.04196383
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2005,33.07476919,5.670806401,1.337377355,40.08295295
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2006,33.9631999,5.775594331,1.345262616,41.08405684
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2007,34.63086846,5.867811888,1.351793031,41.85047338
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2008,34.95907296,5.854076985,1.415966107,42.22911605
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2009,35.12579019,5.829680591,1.477775617,42.43324639
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2010,35.85761916,5.961931344,1.512683784,43.33223429
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2011,36.59374664,6.097384018,1.547698794,44.23882945
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2012,36.9883621,6.165888686,1.575187861,44.72943864
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2013,37.44023057,6.238087672,1.603046105,45.28136435
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2014,38.34042169,6.119395186,1.670882467,46.13069935
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2015,39.24840363,6.007903671,1.738762384,46.99506969
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2016,39.81703799,6.078479191,1.772919336,47.66843652
+Residential,West,"Floorspace, Billion SF",deliv,Activity,2017,40.40822544,6.152814081,1.807989474,48.36902899
+Residential,West,Actual/30-year Normal,deliv,Weather,1970,,,,1.011872287
+Residential,West,Actual/30-year Normal,deliv,Weather,1971,,,,1.067226292
+Residential,West,Actual/30-year Normal,deliv,Weather,1972,,,,1.019135536
+Residential,West,Actual/30-year Normal,deliv,Weather,1973,,,,1.026472234
+Residential,West,Actual/30-year Normal,deliv,Weather,1974,,,,1.004245467
+Residential,West,Actual/30-year Normal,deliv,Weather,1975,,,,1.04435529
+Residential,West,Actual/30-year Normal,deliv,Weather,1976,,,,0.99363353
+Residential,West,Actual/30-year Normal,deliv,Weather,1977,,,,0.987222115
+Residential,West,Actual/30-year Normal,deliv,Weather,1978,,,,0.998585728
+Residential,West,Actual/30-year Normal,deliv,Weather,1979,,,,1.003486488
+Residential,West,Actual/30-year Normal,deliv,Weather,1980,,,,0.989575844
+Residential,West,Actual/30-year Normal,deliv,Weather,1981,,,,0.990573351
+Residential,West,Actual/30-year Normal,deliv,Weather,1982,,,,1.000200137
+Residential,West,Actual/30-year Normal,deliv,Weather,1983,,,,1.00246396
+Residential,West,Actual/30-year Normal,deliv,Weather,1984,,,,1.012918887
+Residential,West,Actual/30-year Normal,deliv,Weather,1985,,,,1.069385318
+Residential,West,Actual/30-year Normal,deliv,Weather,1986,,,,0.971351673
+Residential,West,Actual/30-year Normal,deliv,Weather,1987,,,,0.998076722
+Residential,West,Actual/30-year Normal,deliv,Weather,1988,,,,0.995075196
+Residential,West,Actual/30-year Normal,deliv,Weather,1989,,,,1.000269137
+Residential,West,Actual/30-year Normal,deliv,Weather,1990,,,,1.013317364
+Residential,West,Actual/30-year Normal,deliv,Weather,1991,,,,1.006902112
+Residential,West,Actual/30-year Normal,deliv,Weather,1992,,,,0.969407917
+Residential,West,Actual/30-year Normal,deliv,Weather,1993,,,,1.011813317
+Residential,West,Actual/30-year Normal,deliv,Weather,1994,,,,1.00893374
+Residential,West,Actual/30-year Normal,deliv,Weather,1995,,,,0.968805222
+Residential,West,Actual/30-year Normal,deliv,Weather,1996,,,,0.981184907
+Residential,West,Actual/30-year Normal,deliv,Weather,1997,,,,0.979215025
+Residential,West,Actual/30-year Normal,deliv,Weather,1998,,,,1.024396002
+Residential,West,Actual/30-year Normal,deliv,Weather,1999,,,,0.993333536
+Residential,West,Actual/30-year Normal,deliv,Weather,2000,,,,0.985062029
+Residential,West,Actual/30-year Normal,deliv,Weather,2001,,,,0.996783448
+Residential,West,Actual/30-year Normal,deliv,Weather,2002,,,,0.998305942
+Residential,West,Actual/30-year Normal,deliv,Weather,2003,,,,0.975602961
+Residential,West,Actual/30-year Normal,deliv,Weather,2004,,,,0.975118847
+Residential,West,Actual/30-year Normal,deliv,Weather,2005,,,,0.973720864
+Residential,West,Actual/30-year Normal,deliv,Weather,2006,,,,0.997131399
+Residential,West,Actual/30-year Normal,deliv,Weather,2007,,,,0.991684391
+Residential,West,Actual/30-year Normal,deliv,Weather,2008,,,,1.008366862
+Residential,West,Actual/30-year Normal,deliv,Weather,2009,,,,1.001893115
+Residential,West,Actual/30-year Normal,deliv,Weather,2010,,,,1.000419217
+Residential,West,Actual/30-year Normal,deliv,Weather,2011,,,,1.029498669
+Residential,West,Actual/30-year Normal,deliv,Weather,2012,,,,0.975037345
+Residential,West,Actual/30-year Normal,deliv,Weather,2013,,,,0.99194961
+Residential,West,Actual/30-year Normal,deliv,Weather,2014,,,,0.928088258
+Residential,West,Actual/30-year Normal,deliv,Weather,2015,,,,0.936730918
+Residential,West,Actual/30-year Normal,deliv,Weather,2016,,,,0.945319025
+Residential,West,Actual/30-year Normal,deliv,Weather,2017,,,,0.962946593
+Residential,West,Tbtu,elec,Energy,1970,275.091,,,
+Residential,West,Tbtu,elec,Energy,1971,301.054,,,
+Residential,West,Tbtu,elec,Energy,1972,326.624,,,
+Residential,West,Tbtu,elec,Energy,1973,345.675,,,
+Residential,West,Tbtu,elec,Energy,1974,348.123,,,
+Residential,West,Tbtu,elec,Energy,1975,356.756,,,
+Residential,West,Tbtu,elec,Energy,1976,370.172,,,
+Residential,West,Tbtu,elec,Energy,1977,380.535,,,
+Residential,West,Tbtu,elec,Energy,1978,403.266,,,
+Residential,West,Tbtu,elec,Energy,1979,435.044,,,
+Residential,West,Tbtu,elec,Energy,1980,459.309,,,
+Residential,West,Tbtu,elec,Energy,1981,467.972,,,
+Residential,West,Tbtu,elec,Energy,1982,436.027,,,
+Residential,West,Tbtu,elec,Energy,1983,469.699,,,
+Residential,West,Tbtu,elec,Energy,1984,485.719,,,
+Residential,West,Tbtu,elec,Energy,1985,501.702,,,
+Residential,West,Tbtu,elec,Energy,1986,492.388,,,
+Residential,West,Tbtu,elec,Energy,1987,506.057,,,
+Residential,West,Tbtu,elec,Energy,1988,536.474,,,
+Residential,West,Tbtu,elec,Energy,1989,547.618,,,
+Residential,West,Tbtu,elec,Energy,1990,559.463,,,
+Residential,West,Tbtu,elec,Energy,1991,568.954,,,
+Residential,West,Tbtu,elec,Energy,1992,571.281,,,
+Residential,West,Tbtu,elec,Energy,1993,590.568,,,
+Residential,West,Tbtu,elec,Energy,1994,600.459,,,
+Residential,West,Tbtu,elec,Energy,1995,602.211,,,
+Residential,West,Tbtu,elec,Energy,1996,636.436,,,
+Residential,West,Tbtu,elec,Energy,1997,647.462,,,
+Residential,West,Tbtu,elec,Energy,1998,660.171,,,
+Residential,West,Tbtu,elec,Energy,1999,676.083,,,
+Residential,West,Tbtu,elec,Energy,2000,709.199,,,
+Residential,West,Tbtu,elec,Energy,2001,700.757,,,
+Residential,West,Tbtu,elec,Energy,2002,712.044,,,
+Residential,West,Tbtu,elec,Energy,2003,741.888,,,
+Residential,West,Tbtu,elec,Energy,2004,753.212,,,
+Residential,West,Tbtu,elec,Energy,2005,778.203,,,
+Residential,West,Tbtu,elec,Energy,2006,815.51,,,
+Residential,West,Tbtu,elec,Energy,2007,833.587,,,
+Residential,West,Tbtu,elec,Energy,2008,842.088,,,
+Residential,West,Tbtu,elec,Energy,2009,835.859,,,
+Residential,West,Tbtu,elec,Energy,2010,816.981,,,
+Residential,West,Tbtu,elec,Energy,2011,832.671,,,
+Residential,West,Tbtu,elec,Energy,2012,833.372,,,
+Residential,West,Tbtu,elec,Energy,2013,838.064,,,
+Residential,West,Tbtu,elec,Energy,2014,823.918,,,
+Residential,West,Tbtu,elec,Energy,2015,824.406,,,
+Residential,West,Tbtu,elec,Energy,2016,828.159,,,
+Residential,West,Tbtu,elec,Energy,2017,855.38,,,
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1970,7856,2848,465,11169
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1971,8056.7,3016.3,537,11610
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1972,8290.85,3212.65,621,12124.5
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1973,8418.537085,3382.579228,679.3953498,12480.51166
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1974,8637.690038,3430.502358,818.9222081,12887.1146
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1975,9000.073081,3535.807015,776.6111048,13312.4912
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1976,9229.684975,3619.164374,913.7215356,13762.57089
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1977,9371.240986,3839.87867,937.7640395,14148.8837
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1978,9596.796368,4130.417245,936.0668007,14663.28041
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1979,9858.988026,4262.479529,869.3646136,14990.83217
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1980,10061.75415,4359.790597,922.3078994,15343.85264
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1981,10388.11595,4627.530116,943.9726893,15959.61876
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1982,10511.81205,4683.910821,949.7592208,16145.48209
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1983,10725.25699,4756.116602,961.6751142,16443.04871
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1984,11010.58845,4833.55001,1003.148568,16847.28703
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1985,11266.55635,4858.038238,1065.521265,17190.11585
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1986,11579.91798,4972.082535,1108.21558,17660.2161
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1987,11901.98446,5080.728977,1148.055527,18130.76896
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1988,12041.91321,5213.775153,1130.923044,18386.61141
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1989,12172.23098,5340.095702,1109.570879,18621.89756
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1990,12548.07943,5357.300856,1174.535524,19079.91581
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1991,12909.61502,5365.37956,1239.554806,19514.54939
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1992,13169.79659,5428.642689,1195.173958,19793.61324
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1993,13450.32989,5486.471699,1153.635121,20090.4367
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1994,13597.37978,5655.842554,1190.872873,20444.09521
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1995,13745.1184,5832.628554,1233.325748,20811.0727
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1996,13949.2386,5967.763375,1218.872935,21135.87491
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1997,14157.12718,6106.350003,1203.35477,21466.83195
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1998,14532.52463,6049.568116,1262.33446,21844.4272
+Residential,West,Thousand Occupied Housing Units,elec,Activity,1999,14927.13648,5995.220051,1322.490549,22244.84708
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2000,15190.78796,6082.903276,1325.452177,22599.14341
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2001,15453.89189,6169.640286,1318.528264,22942.06044
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2002,15640.65416,6251.442263,1307.064879,23199.16131
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2003,15837.36055,6332.436306,1291.129206,23460.92606
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2004,16103.52123,6337.502299,1281.27966,23722.30319
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2005,16391.95939,6342.280094,1268.098173,24002.33765
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2006,16620.57998,6398.664327,1268.290627,24287.53494
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2007,16808.55926,6454.314743,1267.212819,24530.08682
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2008,16860.21378,6425.747181,1320.097475,24606.05844
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2009,16849.19338,6396.049649,1370.218736,24615.46176
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2010,17124.18681,6529.573393,1380.534781,25034.29498
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2011,17395.36466,6656.570183,1390.627471,25442.56231
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2012,17480.07216,6743.205788,1393.499513,25616.77746
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2013,17575.38718,6833.972541,1396.59822,25805.95794
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2014,17878.83095,6720.399279,1434.837673,26034.06791
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2015,18192.47297,6611.806685,1472.052978,26276.33264
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2016,18344.15532,6693.265824,1494.383175,26531.80432
+Residential,West,Thousand Occupied Housing Units,elec,Activity,2017,18508.8462,6777.489813,1517.056897,26803.39291
+Residential,West,"Floorspace, Billion SF",elec,Activity,1970,12.57278672,2.195830924,0.322120781,15.09073843
+Residential,West,"Floorspace, Billion SF",elec,Activity,1971,12.93742004,2.329727886,0.383402777,15.6505507
+Residential,West,"Floorspace, Billion SF",elec,Activity,1972,13.35881951,2.486010101,0.456602007,16.30143162
+Residential,West,"Floorspace, Billion SF",elec,Activity,1973,13.59712685,2.622060739,0.514064209,16.7332518
+Residential,West,"Floorspace, Billion SF",elec,Activity,1974,13.98692031,2.662599076,0.637215114,17.2867345
+Residential,West,"Floorspace, Billion SF",elec,Activity,1975,14.62601289,2.747563376,0.610466007,17.98404227
+Residential,West,"Floorspace, Billion SF",elec,Activity,1976,15.0491713,2.816373486,0.724545099,18.59008989
+Residential,West,"Floorspace, Billion SF",elec,Activity,1977,15.33383807,2.993269636,0.751087397,19.0781951
+Residential,West,"Floorspace, Billion SF",elec,Activity,1978,15.75768415,3.225676408,0.756582105,19.73994266
+Residential,West,"Floorspace, Billion SF",elec,Activity,1979,16.23685035,3.334594262,0.709198443,20.28064305
+Residential,West,"Floorspace, Billion SF",elec,Activity,1980,16.62221583,3.415948233,0.758912266,20.79707632
+Residential,West,"Floorspace, Billion SF",elec,Activity,1981,17.16919893,3.627966114,0.780901341,21.57806638
+Residential,West,"Floorspace, Billion SF",elec,Activity,1982,17.38999872,3.672839945,0.789580433,21.85241909
+Residential,West,"Floorspace, Billion SF",elec,Activity,1983,17.76198027,3.730449142,0.803389751,22.29581917
+Residential,West,"Floorspace, Billion SF",elec,Activity,1984,18.26492313,3.792827389,0.842302229,22.90005275
+Residential,West,"Floorspace, Billion SF",elec,Activity,1985,19.22684115,3.799017533,0.912432248,23.93829094
+Residential,West,"Floorspace, Billion SF",elec,Activity,1986,19.73132801,3.976145088,0.955980634,24.66345373
+Residential,West,"Floorspace, Billion SF",elec,Activity,1987,20.43971222,4.133042452,0.989346704,25.56210138
+Residential,West,"Floorspace, Billion SF",elec,Activity,1988,20.83176383,4.291366897,1.003550434,26.12668116
+Residential,West,"Floorspace, Billion SF",elec,Activity,1989,21.20603153,4.436831133,1.013013424,26.65587609
+Residential,West,"Floorspace, Billion SF",elec,Activity,1990,22.02463216,4.480961995,1.102984269,27.60857842
+Residential,West,"Floorspace, Billion SF",elec,Activity,1991,22.79885325,4.498318552,1.18372781,28.48089962
+Residential,West,"Floorspace, Billion SF",elec,Activity,1992,23.45935033,4.548540819,1.158663468,29.16655462
+Residential,West,"Floorspace, Billion SF",elec,Activity,1993,24.15646667,4.585387218,1.135073001,29.87692689
+Residential,West,"Floorspace, Billion SF",elec,Activity,1994,24.6275805,4.726566974,1.182434573,30.53658204
+Residential,West,"Floorspace, Billion SF",elec,Activity,1995,25.04931981,4.891573645,1.235690509,31.17658396
+Residential,West,"Floorspace, Billion SF",elec,Activity,1996,25.60647787,5.035162714,1.231719845,31.87336043
+Residential,West,"Floorspace, Billion SF",elec,Activity,1997,26.16277579,5.184978029,1.226405112,32.57415893
+Residential,West,"Floorspace, Billion SF",elec,Activity,1998,27.05672412,5.15760547,1.297702637,33.51203223
+Residential,West,"Floorspace, Billion SF",elec,Activity,1999,28.02363938,5.139655309,1.371261017,34.53455571
+Residential,West,"Floorspace, Billion SF",elec,Activity,2000,28.83434149,5.254589095,1.3860893,35.47501988
+Residential,West,"Floorspace, Billion SF",elec,Activity,2001,29.67467471,5.366290886,1.390540571,36.43150616
+Residential,West,"Floorspace, Billion SF",elec,Activity,2002,30.38937715,5.478675475,1.378273893,37.24632652
+Residential,West,"Floorspace, Billion SF",elec,Activity,2003,31.13356693,5.582350163,1.361295038,38.07721213
+Residential,West,"Floorspace, Billion SF",elec,Activity,2004,32.06266489,5.628204364,1.351094576,39.04196383
+Residential,West,"Floorspace, Billion SF",elec,Activity,2005,33.07476919,5.670806401,1.337377355,40.08295295
+Residential,West,"Floorspace, Billion SF",elec,Activity,2006,33.9631999,5.775594331,1.345262616,41.08405684
+Residential,West,"Floorspace, Billion SF",elec,Activity,2007,34.63086846,5.867811888,1.351793031,41.85047338
+Residential,West,"Floorspace, Billion SF",elec,Activity,2008,34.95907296,5.854076985,1.415966107,42.22911605
+Residential,West,"Floorspace, Billion SF",elec,Activity,2009,35.12579019,5.829680591,1.477775617,42.43324639
+Residential,West,"Floorspace, Billion SF",elec,Activity,2010,35.85761916,5.961931344,1.512683784,43.33223429
+Residential,West,"Floorspace, Billion SF",elec,Activity,2011,36.59374664,6.097384018,1.547698794,44.23882945
+Residential,West,"Floorspace, Billion SF",elec,Activity,2012,36.9883621,6.165888686,1.575187861,44.72943864
+Residential,West,"Floorspace, Billion SF",elec,Activity,2013,37.44023057,6.238087672,1.603046105,45.28136435
+Residential,West,"Floorspace, Billion SF",elec,Activity,2014,38.34042169,6.119395186,1.670882467,46.13069935
+Residential,West,"Floorspace, Billion SF",elec,Activity,2015,39.24840363,6.007903671,1.738762384,46.99506969
+Residential,West,"Floorspace, Billion SF",elec,Activity,2016,39.81703799,6.078479191,1.772919336,47.66843652
+Residential,West,"Floorspace, Billion SF",elec,Activity,2017,40.40822544,6.152814081,1.807989474,48.36902899
+Residential,West,Actual/30-year Normal,elec,Weather,1970,,,,0.997691548
+Residential,West,Actual/30-year Normal,elec,Weather,1971,,,,0.987957442
+Residential,West,Actual/30-year Normal,elec,Weather,1972,,,,0.99660066
+Residential,West,Actual/30-year Normal,elec,Weather,1973,,,,0.997981383
+Residential,West,Actual/30-year Normal,elec,Weather,1974,,,,0.99656515
+Residential,West,Actual/30-year Normal,elec,Weather,1975,,,,0.990579602
+Residential,West,Actual/30-year Normal,elec,Weather,1976,,,,1.005106934
+Residential,West,Actual/30-year Normal,elec,Weather,1977,,,,1.006050393
+Residential,West,Actual/30-year Normal,elec,Weather,1978,,,,1.001351038
+Residential,West,Actual/30-year Normal,elec,Weather,1979,,,,1.000161994
+Residential,West,Actual/30-year Normal,elec,Weather,1980,,,,1.005675941
+Residential,West,Actual/30-year Normal,elec,Weather,1981,,,,1.035627286
+Residential,West,Actual/30-year Normal,elec,Weather,1982,,,,0.978761954
+Residential,West,Actual/30-year Normal,elec,Weather,1983,,,,1.012432239
+Residential,West,Actual/30-year Normal,elec,Weather,1984,,,,1.042843658
+Residential,West,Actual/30-year Normal,elec,Weather,1985,,,,1.02262945
+Residential,West,Actual/30-year Normal,elec,Weather,1986,,,,0.980106807
+Residential,West,Actual/30-year Normal,elec,Weather,1987,,,,0.992134557
+Residential,West,Actual/30-year Normal,elec,Weather,1988,,,,0.995608959
+Residential,West,Actual/30-year Normal,elec,Weather,1989,,,,0.99523834
+Residential,West,Actual/30-year Normal,elec,Weather,1990,,,,1.006020808
+Residential,West,Actual/30-year Normal,elec,Weather,1991,,,,0.995838098
+Residential,West,Actual/30-year Normal,elec,Weather,1992,,,,0.989167394
+Residential,West,Actual/30-year Normal,elec,Weather,1993,,,,0.994650238
+Residential,West,Actual/30-year Normal,elec,Weather,1994,,,,1.008441684
+Residential,West,Actual/30-year Normal,elec,Weather,1995,,,,0.984803609
+Residential,West,Actual/30-year Normal,elec,Weather,1996,,,,0.99829338
+Residential,West,Actual/30-year Normal,elec,Weather,1997,,,,0.99602222
+Residential,West,Actual/30-year Normal,elec,Weather,1998,,,,1.007808727
+Residential,West,Actual/30-year Normal,elec,Weather,1999,,,,0.989481912
+Residential,West,Actual/30-year Normal,elec,Weather,2000,,,,0.997040097
+Residential,West,Actual/30-year Normal,elec,Weather,2001,,,,1.008180219
+Residential,West,Actual/30-year Normal,elec,Weather,2002,,,,1.002925808
+Residential,West,Actual/30-year Normal,elec,Weather,2003,,,,1.007110954
+Residential,West,Actual/30-year Normal,elec,Weather,2004,,,,0.991150847
+Residential,West,Actual/30-year Normal,elec,Weather,2005,,,,0.989664892
+Residential,West,Actual/30-year Normal,elec,Weather,2006,,,,1.011696499
+Residential,West,Actual/30-year Normal,elec,Weather,2007,,,,1.005934494
+Residential,West,Actual/30-year Normal,elec,Weather,2008,,,,1.014310767
+Residential,West,Actual/30-year Normal,elec,Weather,2009,,,,1.010315039
+Residential,West,Actual/30-year Normal,elec,Weather,2010,,,,0.994632918
+Residential,West,Actual/30-year Normal,elec,Weather,2011,,,,1.015217586
+Residential,West,Actual/30-year Normal,elec,Weather,2012,,,,1.00507333
+Residential,West,Actual/30-year Normal,elec,Weather,2013,,,,1.007388014
+Residential,West,Actual/30-year Normal,elec,Weather,2014,,,,0.986257944
+Residential,West,Actual/30-year Normal,elec,Weather,2015,,,,0.992055369
+Residential,West,Actual/30-year Normal,elec,Weather,2016,,,,0.986636143
+Residential,West,Actual/30-year Normal,elec,Weather,2017,,,,1.007942245
+Residential,West,Actual/30-year Normal,elec,Weather,2018,,,,1.00778732
+Residential,West,Tbtu,fuels,Energy,1970,,,,1108.937
+Residential,West,Tbtu,fuels,Energy,1971,,,,1218.73
+Residential,West,Tbtu,fuels,Energy,1972,,,,1238.227
+Residential,West,Tbtu,fuels,Energy,1973,,,,1186.443
+Residential,West,Tbtu,fuels,Energy,1974,,,,1120.429
+Residential,West,Tbtu,fuels,Energy,1975,,,,1211.637
+Residential,West,Tbtu,fuels,Energy,1976,,,,1200.605
+Residential,West,Tbtu,fuels,Energy,1977,,,,1093.343
+Residential,West,Tbtu,fuels,Energy,1978,,,,1109.688
+Residential,West,Tbtu,fuels,Energy,1979,,,,1186.615
+Residential,West,Tbtu,fuels,Energy,1980,,,,1022.865
+Residential,West,Tbtu,fuels,Energy,1981,,,,1089.396
+Residential,West,Tbtu,fuels,Energy,1982,,,,1071.58
+Residential,West,Tbtu,fuels,Energy,1983,,,,1078.167
+Residential,West,Tbtu,fuels,Energy,1984,,,,1077.686
+Residential,West,Tbtu,fuels,Energy,1985,,,,1156.883
+Residential,West,Tbtu,fuels,Energy,1986,,,,1032.548
+Residential,West,Tbtu,fuels,Energy,1987,,,,1074.668
+Residential,West,Tbtu,fuels,Energy,1988,,,,1101.921
+Residential,West,Tbtu,fuels,Energy,1989,,,,1170.025
+Residential,West,Tbtu,fuels,Energy,1990,,,,1106.298
+Residential,West,Tbtu,fuels,Energy,1991,,,,1143.883
+Residential,West,Tbtu,fuels,Energy,1992,,,,1085.214
+Residential,West,Tbtu,fuels,Energy,1993,,,,1146.866
+Residential,West,Tbtu,fuels,Energy,1994,,,,1136.088
+Residential,West,Tbtu,fuels,Energy,1995,,,,1090.875
+Residential,West,Tbtu,fuels,Energy,1996,,,,1141.406
+Residential,West,Tbtu,fuels,Energy,1997,,,,1124.624
+Residential,West,Tbtu,fuels,Energy,1998,,,,1215.367
+Residential,West,Tbtu,fuels,Energy,1999,,,,1241.495
+Residential,West,Tbtu,fuels,Energy,2000,,,,1174.563
+Residential,West,Tbtu,fuels,Energy,2001,,,,1224.889
+Residential,West,Tbtu,fuels,Energy,2002,,,,1223.374
+Residential,West,Tbtu,fuels,Energy,2003,,,,1198.757
+Residential,West,Tbtu,fuels,Energy,2004,,,,1234.31
+Residential,West,Tbtu,fuels,Energy,2005,,,,1204.482
+Residential,West,Tbtu,fuels,Energy,2006,,,,1201.402
+Residential,West,Tbtu,fuels,Energy,2007,,,,1236.016
+Residential,West,Tbtu,fuels,Energy,2008,,,,1282.995
+Residential,West,Tbtu,fuels,Energy,2009,,,,1259.626
+Residential,West,Tbtu,fuels,Energy,2010,,,,1269.498
+Residential,West,Tbtu,fuels,Energy,2011,,,,1312.383
+Residential,West,Tbtu,fuels,Energy,2012,,,,1195.608
+Residential,West,Tbtu,fuels,Energy,2013,,,,1300.859
+Residential,West,Tbtu,fuels,Energy,2014,,,,1181.333
+Residential,West,Tbtu,fuels,Energy,2015,,,,1188.42
+Residential,West,Tbtu,fuels,Energy,2016,,,,1242.567
+Residential,West,Tbtu,fuels,Energy,2017,,,,1318.804
+Residential,West,Tbtu,fuels,Energy,2018,,,,
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1970,7856,2848,465,11169
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1971,8056.7,3016.3,537,11610
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1972,8290.85,3212.65,621,12124.5
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1973,8418.537085,3382.579228,679.3953498,12480.51166
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1974,8637.690038,3430.502358,818.9222081,12887.1146
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1975,9000.073081,3535.807015,776.6111048,13312.4912
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1976,9229.684975,3619.164374,913.7215356,13762.57089
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1977,9371.240986,3839.87867,937.7640395,14148.8837
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1978,9596.796368,4130.417245,936.0668007,14663.28041
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1979,9858.988026,4262.479529,869.3646136,14990.83217
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1980,10061.75415,4359.790597,922.3078994,15343.85264
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1981,10388.11595,4627.530116,943.9726893,15959.61876
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1982,10511.81205,4683.910821,949.7592208,16145.48209
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1983,10725.25699,4756.116602,961.6751142,16443.04871
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1984,11010.58845,4833.55001,1003.148568,16847.28703
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1985,11266.55635,4858.038238,1065.521265,17190.11585
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1986,11579.91798,4972.082535,1108.21558,17660.2161
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1987,11901.98446,5080.728977,1148.055527,18130.76896
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1988,12041.91321,5213.775153,1130.923044,18386.61141
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1989,12172.23098,5340.095702,1109.570879,18621.89756
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1990,12548.07943,5357.300856,1174.535524,19079.91581
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1991,12909.61502,5365.37956,1239.554806,19514.54939
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1992,13169.79659,5428.642689,1195.173958,19793.61324
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1993,13450.32989,5486.471699,1153.635121,20090.4367
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1994,13597.37978,5655.842554,1190.872873,20444.09521
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1995,13745.1184,5832.628554,1233.325748,20811.0727
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1996,13949.2386,5967.763375,1218.872935,21135.87491
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1997,14157.12718,6106.350003,1203.35477,21466.83195
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1998,14532.52463,6049.568116,1262.33446,21844.4272
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,1999,14927.13648,5995.220051,1322.490549,22244.84708
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2000,15190.78796,6082.903276,1325.452177,22599.14341
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2001,15453.89189,6169.640286,1318.528264,22942.06044
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2002,15640.65416,6251.442263,1307.064879,23199.16131
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2003,15837.36055,6332.436306,1291.129206,23460.92606
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2004,16103.52123,6337.502299,1281.27966,23722.30319
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2005,16391.95939,6342.280094,1268.098173,24002.33765
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2006,16620.57998,6398.664327,1268.290627,24287.53494
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2007,16808.55926,6454.314743,1267.212819,24530.08682
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2008,16860.21378,6425.747181,1320.097475,24606.05844
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2009,16849.19338,6396.049649,1370.218736,24615.46176
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2010,17124.18681,6529.573393,1380.534781,25034.29498
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2011,17395.36466,6656.570183,1390.627471,25442.56231
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2012,17480.07216,6743.205788,1393.499513,25616.77746
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2013,17575.38718,6833.972541,1396.59822,25805.95794
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2014,17878.83095,6720.399279,1434.837673,26034.06791
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2015,18192.47297,6611.806685,1472.052978,26276.33264
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2016,18344.15532,6693.265824,1494.383175,26531.80432
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2017,18508.8462,6777.489813,1517.056897,26803.39291
+Residential,West,Thousand Occupied Housing Units,fuels,Activity,2018,,,,
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1970,12.57278672,2.195830924,0.322120781,15.09073843
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1971,12.93742004,2.329727886,0.383402777,15.6505507
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1972,13.35881951,2.486010101,0.456602007,16.30143162
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1973,13.59712685,2.622060739,0.514064209,16.7332518
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1974,13.98692031,2.662599076,0.637215114,17.2867345
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1975,14.62601289,2.747563376,0.610466007,17.98404227
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1976,15.0491713,2.816373486,0.724545099,18.59008989
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1977,15.33383807,2.993269636,0.751087397,19.0781951
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1978,15.75768415,3.225676408,0.756582105,19.73994266
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1979,16.23685035,3.334594262,0.709198443,20.28064305
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1980,16.62221583,3.415948233,0.758912266,20.79707632
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1981,17.16919893,3.627966114,0.780901341,21.57806638
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1982,17.38999872,3.672839945,0.789580433,21.85241909
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1983,17.76198027,3.730449142,0.803389751,22.29581917
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1984,18.26492313,3.792827389,0.842302229,22.90005275
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1985,19.22684115,3.799017533,0.912432248,23.93829094
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1986,19.73132801,3.976145088,0.955980634,24.66345373
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1987,20.43971222,4.133042452,0.989346704,25.56210138
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1988,20.83176383,4.291366897,1.003550434,26.12668116
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1989,21.20603153,4.436831133,1.013013424,26.65587609
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1990,22.02463216,4.480961995,1.102984269,27.60857842
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1991,22.79885325,4.498318552,1.18372781,28.48089962
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1992,23.45935033,4.548540819,1.158663468,29.16655462
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1993,24.15646667,4.585387218,1.135073001,29.87692689
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1994,24.6275805,4.726566974,1.182434573,30.53658204
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1995,25.04931981,4.891573645,1.235690509,31.17658396
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1996,25.60647787,5.035162714,1.231719845,31.87336043
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1997,26.16277579,5.184978029,1.226405112,32.57415893
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1998,27.05672412,5.15760547,1.297702637,33.51203223
+Residential,West,"Floorspace, Billion SF",fuels,Activity,1999,28.02363938,5.139655309,1.371261017,34.53455571
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2000,28.83434149,5.254589095,1.3860893,35.47501988
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2001,29.67467471,5.366290886,1.390540571,36.43150616
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2002,30.38937715,5.478675475,1.378273893,37.24632652
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2003,31.13356693,5.582350163,1.361295038,38.07721213
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2004,32.06266489,5.628204364,1.351094576,39.04196383
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2005,33.07476919,5.670806401,1.337377355,40.08295295
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2006,33.9631999,5.775594331,1.345262616,41.08405684
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2007,34.63086846,5.867811888,1.351793031,41.85047338
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2008,34.95907296,5.854076985,1.415966107,42.22911605
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2009,35.12579019,5.829680591,1.477775617,42.43324639
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2010,35.85761916,5.961931344,1.512683784,43.33223429
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2011,36.59374664,6.097384018,1.547698794,44.23882945
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2012,36.9883621,6.165888686,1.575187861,44.72943864
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2013,37.44023057,6.238087672,1.603046105,45.28136435
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2014,38.34042169,6.119395186,1.670882467,46.13069935
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2015,39.24840363,6.007903671,1.738762384,46.99506969
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2016,39.81703799,6.078479191,1.772919336,47.66843652
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2017,40.40822544,6.152814081,1.807989474,48.36902899
+Residential,West,"Floorspace, Billion SF",fuels,Activity,2018,,,,
+Residential,West,Actual/30-year Normal,fuels,Weather,1970,,,,1.015452689
+Residential,West,Actual/30-year Normal,fuels,Weather,1971,,,,1.088806313
+Residential,West,Actual/30-year Normal,fuels,Weather,1972,,,,1.025250754
+Residential,West,Actual/30-year Normal,fuels,Weather,1973,,,,1.03508175
+Residential,West,Actual/30-year Normal,fuels,Weather,1974,,,,1.006655943
+Residential,West,Actual/30-year Normal,fuels,Weather,1975,,,,1.061319812
+Residential,West,Actual/30-year Normal,fuels,Weather,1976,,,,0.990148682
+Residential,West,Actual/30-year Normal,fuels,Weather,1977,,,,0.980833242
+Residential,West,Actual/30-year Normal,fuels,Weather,1978,,,,0.99758458
+Residential,West,Actual/30-year Normal,fuels,Weather,1979,,,,1.004710878
+Residential,West,Actual/30-year Normal,fuels,Weather,1980,,,,0.982512745
+Residential,West,Actual/30-year Normal,fuels,Weather,1981,,,,0.972401098
+Residential,West,Actual/30-year Normal,fuels,Weather,1982,,,,1.009194587
+Residential,West,Actual/30-year Normal,fuels,Weather,1983,,,,0.998182442
+Residential,West,Actual/30-year Normal,fuels,Weather,1984,,,,0.999985914
+Residential,West,Actual/30-year Normal,fuels,Weather,1985,,,,1.091017785
+Residential,West,Actual/30-year Normal,fuels,Weather,1986,,,,0.967231485
+Residential,West,Actual/30-year Normal,fuels,Weather,1987,,,,1.000899585
+Residential,West,Actual/30-year Normal,fuels,Weather,1988,,,,0.994815538
+Residential,West,Actual/30-year Normal,fuels,Weather,1989,,,,1.002641264
+Residential,West,Actual/30-year Normal,fuels,Weather,1990,,,,1.01704773
+Residential,West,Actual/30-year Normal,fuels,Weather,1991,,,,1.012497284
+Residential,West,Actual/30-year Normal,fuels,Weather,1992,,,,0.959319953
+Residential,West,Actual/30-year Normal,fuels,Weather,1993,,,,1.020884388
+Residential,West,Actual/30-year Normal,fuels,Weather,1994,,,,1.009194001
+Residential,West,Actual/30-year Normal,fuels,Weather,1995,,,,0.960194109
+Residential,West,Actual/30-year Normal,fuels,Weather,1996,,,,0.971897635
+Residential,West,Actual/30-year Normal,fuels,Weather,1997,,,,0.969793689
+Residential,West,Actual/30-year Normal,fuels,Weather,1998,,,,1.033636894
+Residential,West,Actual/30-year Normal,fuels,Weather,1999,,,,0.995443658
+Residential,West,Actual/30-year Normal,fuels,Weather,2000,,,,0.977968039
+Residential,West,Actual/30-year Normal,fuels,Weather,2001,,,,0.990378501
+Residential,West,Actual/30-year Normal,fuels,Weather,2002,,,,0.99563657
+Residential,West,Actual/30-year Normal,fuels,Weather,2003,,,,0.957072114
+Residential,West,Actual/30-year Normal,fuels,Weather,2004,,,,0.965587972
+Residential,West,Actual/30-year Normal,fuels,Weather,2005,,,,0.963689966
+Residential,West,Actual/30-year Normal,fuels,Weather,2006,,,,0.987481272
+Residential,West,Actual/30-year Normal,fuels,Weather,2007,,,,0.982299718
+Residential,West,Actual/30-year Normal,fuels,Weather,2008,,,,1.004503328
+Residential,West,Actual/30-year Normal,fuels,Weather,2009,,,,0.996381592
+Residential,West,Actual/30-year Normal,fuels,Weather,2010,,,,1.004178707
+Residential,West,Actual/30-year Normal,fuels,Weather,2011,,,,1.038769831
+Residential,West,Actual/30-year Normal,fuels,Weather,2012,,,,0.955141521
+Residential,West,Actual/30-year Normal,fuels,Weather,2013,,,,0.982251761
+Residential,West,Actual/30-year Normal,fuels,Weather,2014,,,,0.891419193
+Residential,West,Actual/30-year Normal,fuels,Weather,2015,,,,0.90184236
+Residential,West,Actual/30-year Normal,fuels,Weather,2016,,,,0.919651143
+Residential,West,Actual/30-year Normal,fuels,Weather,2017,,,,0.935849679
+Residential,West,Actual/30-year Normal,fuels,Weather,2018,,,,

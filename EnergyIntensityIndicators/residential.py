@@ -85,7 +85,6 @@ class ResidentialIndicators(CalculateLMDI):
                 else:
                     df = df.rename(columns={'occupied_units_mf': 'Multi-Family', 'occupied_units_mh': 'Manufactured-Homes', 'occupied_units_sf': 'Single-Family'})
                 
-                print(variable, df.columns)
                 region_activity[variable] = df
             all_activity[region] = region_activity
 
@@ -117,8 +116,8 @@ class ResidentialIndicators(CalculateLMDI):
                 e_df = e_df.rename_axis(columns=None)
                 floorspace = region_activity['floorspace_square_feet']
                 total_floorspace = floorspace.sum(axis=1)
+ 
                 nominal_energy_intensity = self.nominal_energy_intensity(energy_input_data=e_df, activity_input_data=total_floorspace) 
-
                 nominal_energy_intensity_by_e[e] = nominal_energy_intensity 
 
             region_data = {'energy': energy_data, 'activity': region_activity}
@@ -142,9 +141,8 @@ class ResidentialIndicators(CalculateLMDI):
             all_data[region] = r_dict_
             
         # all_data['National'] = national_weather_dict
-        print('all_data:\n', all_data)
-        print('all_data:\n', all_data.keys())
 
+        all_data = {'National': all_data}
         return all_data
 
     def main(self, breakout, calculate_lmdi):
@@ -161,8 +159,8 @@ class ResidentialIndicators(CalculateLMDI):
 
 
 if __name__ == '__main__':
-    indicators = ResidentialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+    indicators = ResidentialIndicators(directory='./EnergyIntensityIndicators/Data', 
                                        output_directory='../Results', level_of_aggregation='National', 
                                        lmdi_model=['multiplicative', 'additive'], end_year=2017)
-    indicators.main(breakout=True, calculate_lmdi=False)  
+    indicators.main(breakout=True, calculate_lmdi=True)  
 

@@ -1,0 +1,97 @@
+﻿Sector,Nest level,Unit,Data Type,Energy Type,Year,Commuter Rail,Heavy Rail,Light Rail,Urban Rail
+transportation,Urban Rail,Tbtu,Energy,Deliv,1970,17.19941685,23.376479,1.623223,42.19911885
+transportation,Urban Rail,Tbtu,Energy,Deliv,1971,16.5141122,23.386818,1.581867,41.4827972
+transportation,Urban Rail,Tbtu,Energy,Deliv,1972,15.82880754,22.218511,1.509494,39.55681254
+transportation,Urban Rail,Tbtu,Energy,Deliv,1973,15.14350289,21.691222,1.44746,38.28218489
+transportation,Urban Rail,Tbtu,Energy,Deliv,1974,14.45819823,25.71786485,1.473705154,41.64976823
+transportation,Urban Rail,Tbtu,Energy,Deliv,1975,14.32835824,25.85704369,1.499950308,41.68535224
+transportation,Urban Rail,Tbtu,Energy,Deliv,1976,13.47791627,25.10706854,1.526195462,40.11118027
+transportation,Urban Rail,Tbtu,Energy,Deliv,1977,14.8869119,22.25827638,1.552440615,38.6976289
+transportation,Urban Rail,Tbtu,Energy,Deliv,1978,15.3739152,21.40491123,1.578685769,38.3575122
+transportation,Urban Rail,Tbtu,Energy,Deliv,1979,15.7869576,23.96341608,1.604930923,41.3553046
+transportation,Urban Rail,Tbtu,Energy,Deliv,1980,16.2,23.65801792,1.631176077,41.489194
+transportation,Urban Rail,Tbtu,Energy,Deliv,1981,15.6,25.79262377,1.657421231,43.050045
+transportation,Urban Rail,Tbtu,Energy,Deliv,1982,15.3,26.45909162,1.683666385,43.442758
+transportation,Urban Rail,Tbtu,Energy,Deliv,1983,18.8577195,28.58335846,1.709911538,49.1509895
+transportation,Urban Rail,Tbtu,Energy,Deliv,1984,17.404423,30.23203131,1.736156692,49.372611
+transportation,Urban Rail,Tbtu,Energy,Deliv,1985,18.4636734,28.51019015,1.762401846,48.7362654
+transportation,Urban Rail,Tbtu,Energy,Deliv,1986,19.6707596,31.699374,1.788647,53.1587806
+transportation,Urban Rail,Tbtu,Energy,Deliv,1987,19.0976328,33.281241,1.974749,54.3536228
+transportation,Urban Rail,Tbtu,Energy,Deliv,1988,19.7136948,33.663784,2.512377,55.8898558
+transportation,Urban Rail,Tbtu,Energy,Deliv,1989,20.6522962,33.973954,2.502038,57.1282882
+transportation,Urban Rail,Tbtu,Energy,Deliv,1990,19.9824687,33.953276,2.471021,56.4067657
+transportation,Urban Rail,Tbtu,Energy,Deliv,1991,20.3435115,33.581072,2.832886,56.7574695
+transportation,Urban Rail,Tbtu,Energy,Deliv,1992,19.2427397,33.012427,3.070683,55.3258497
+transportation,Urban Rail,Tbtu,Energy,Deliv,1993,20.6549882,33.984293,2.905259,57.5445402
+transportation,Urban Rail,Tbtu,Energy,Deliv,1994,21.447246,35.473109,2.915598,59.835953
+transportation,Urban Rail,Tbtu,Energy,Deliv,1995,21.7017438,35.162939,2.977632,59.8423148
+transportation,Urban Rail,Tbtu,Energy,Deliv,1996,21.5593106,34.449548,3.318819,59.3276776
+transportation,Urban Rail,Tbtu,Energy,Deliv,1997,21.8956765,33.632767,3.732379,59.2608225
+transportation,Urban Rail,Tbtu,Energy,Deliv,1998,23.018062,33.91192,3.939159,60.869141
+transportation,Urban Rail,Tbtu,Energy,Deliv,1999,23.7939515,34.997515,4.301024,63.0924905
+transportation,Urban Rail,Tbtu,Energy,Deliv,2000,23.9868866,36.693111,4.786957,65.4669546
+transportation,Urban Rail,Tbtu,Energy,Deliv,2001,24.0137008,37.695994,5.035093,66.7447878
+transportation,Urban Rail,Tbtu,Energy,Deliv,2002,23.8961049,38.078537,5.27289,67.2475319
+transportation,Urban Rail,Tbtu,Energy,Deliv,2003,24.3218538,37.551248,5.241873,67.1149748
+transportation,Urban Rail,Tbtu,Energy,Deliv,2004,24.9674723,38.078537,5.717467,68.7634763
+transportation,Urban Rail,Tbtu,Energy,Deliv,2005,25.9833078,38.967691,5.903569,70.8545678
+transportation,Urban Rail,Tbtu,Energy,Deliv,2006,26.182862,38.347351,6.554926,71.085139
+transportation,Urban Rail,Tbtu,Energy,Deliv,2007,29.4197131,39.4660308,7.1059947,75.9917386
+transportation,Urban Rail,Tbtu,Energy,Deliv,2008,29.3407503,40.2983203,7.4533851,77.0924557
+transportation,Urban Rail,Tbtu,Energy,Deliv,2009,31.57992,40.177354,7.630182,79.387456
+transportation,Urban Rail,Tbtu,Energy,Deliv,2010,31.506023,39.08142,7.743911,78.331354
+transportation,Urban Rail,Tbtu,Energy,Deliv,2011,31.768537,39.846506,8.157471,79.772514
+transportation,Urban Rail,Tbtu,Energy,Deliv,2012,31.564272,39.236505,8.333234,79.134011
+transportation,Urban Rail,Tbtu,Energy,Deliv,2013,32.465314,39.867184,9.118998,81.451496
+transportation,Urban Rail,Tbtu,Energy,Deliv,2014,31.727181,39.412268,10.183915,81.323364
+transportation,Urban Rail,Tbtu,Energy,Deliv,2015,32.03747267,39.44964832,9.284422,80.77154299
+transportation,Urban Rail,Tbtu,Energy,Deliv,2016,32.5065406,38.87850003,9.377473,80.76251363
+transportation,Urban Rail,Tbtu,Energy,Deliv,2017,32.82456754,38.54388505,9.61527,80.98372259
+transportation,Urban Rail,Million P-M,Activity,Deliv,1970,4592,8157.31738,307.1826196,13056.5
+transportation,Urban Rail,Million P-M,Activity,Deliv,1971,4576.2,7710.638119,290.3618808,12577.2
+transportation,Urban Rail,Million P-M,Activity,Deliv,1972,4560.4,7506.813602,282.686398,12349.9
+transportation,Urban Rail,Million P-M,Activity,Deliv,1973,4544.6,7550.180521,284.3194794,12379.1
+transportation,Urban Rail,Million P-M,Activity,Deliv,1974,4528.8,7485.130143,281.8698573,12295.8
+transportation,Urban Rail,Million P-M,Activity,Deliv,1975,4513,7255.285474,273.2145256,12041.5
+transportation,Urban Rail,Million P-M,Activity,Deliv,1976,5340,7077.481108,266.5188917,12684
+transportation,Urban Rail,Million P-M,Activity,Deliv,1977,6167,9682,389,16238
+transportation,Urban Rail,Million P-M,Activity,Deliv,1978,6213,10330,392,16935
+transportation,Urban Rail,Million P-M,Activity,Deliv,1979,6492,10760,407,17659
+transportation,Urban Rail,Million P-M,Activity,Deliv,1980,6516,10558,381,17455
+transportation,Urban Rail,Million P-M,Activity,Deliv,1981,6236,10244,346,16826
+transportation,Urban Rail,Million P-M,Activity,Deliv,1982,6027,10049,379,16455
+transportation,Urban Rail,Million P-M,Activity,Deliv,1983,6097,10350,391,16838
+transportation,Urban Rail,Million P-M,Activity,Deliv,1984,6207,10111,416,16734
+transportation,Urban Rail,Million P-M,Activity,Deliv,1985,6534,10427,350,17311
+transportation,Urban Rail,Million P-M,Activity,Deliv,1986,6723,10649,361,17733
+transportation,Urban Rail,Million P-M,Activity,Deliv,1987,6818,11198,405,18421
+transportation,Urban Rail,Million P-M,Activity,Deliv,1988,6964,11300,477,18741
+transportation,Urban Rail,Million P-M,Activity,Deliv,1989,7211,12030,509,19750
+transportation,Urban Rail,Million P-M,Activity,Deliv,1990,7082,11475,571,19128
+transportation,Urban Rail,Million P-M,Activity,Deliv,1991,7344,10528,662,18534
+transportation,Urban Rail,Million P-M,Activity,Deliv,1992,7320,10737,701,18758
+transportation,Urban Rail,Million P-M,Activity,Deliv,1993,6940,10231,705,17876
+transportation,Urban Rail,Million P-M,Activity,Deliv,1994,7996,10668,833,19497
+transportation,Urban Rail,Million P-M,Activity,Deliv,1995,8244,10559,860,19663
+transportation,Urban Rail,Million P-M,Activity,Deliv,1996,8351,11530,957,20838
+transportation,Urban Rail,Million P-M,Activity,Deliv,1997,8038,12056,1035,21129
+transportation,Urban Rail,Million P-M,Activity,Deliv,1998,8704,12284,1128,22116
+transportation,Urban Rail,Million P-M,Activity,Deliv,1999,8766,12902,1206,22874
+transportation,Urban Rail,Million P-M,Activity,Deliv,2000,9402,13844,1356,24602
+transportation,Urban Rail,Million P-M,Activity,Deliv,2001,9548,14178,1437,25163
+transportation,Urban Rail,Million P-M,Activity,Deliv,2002,9504,13663,1432,24599
+transportation,Urban Rail,Million P-M,Activity,Deliv,2003,9559,13606,1476,24641
+transportation,Urban Rail,Million P-M,Activity,Deliv,2004,9719,14354,1576,25649
+transportation,Urban Rail,Million P-M,Activity,Deliv,2005,9473,14418,1700,25591
+transportation,Urban Rail,Million P-M,Activity,Deliv,2006,10361,14721,1866,26948
+transportation,Urban Rail,Million P-M,Activity,Deliv,2007,11153,16138,1932,29223
+transportation,Urban Rail,Million P-M,Activity,Deliv,2008,11049,16848,2093,29990
+transportation,Urban Rail,Million P-M,Activity,Deliv,2009,11232,16805,2199,30236
+transportation,Urban Rail,Million P-M,Activity,Deliv,2010,10874,16407,2173,29454
+transportation,Urban Rail,Million P-M,Activity,Deliv,2011,11427,17317,2203,30947
+transportation,Urban Rail,Million P-M,Activity,Deliv,2012,11181,17516,2319,31016
+transportation,Urban Rail,Million P-M,Activity,Deliv,2013,11862,18005,2376,32243
+transportation,Urban Rail,Million P-M,Activity,Deliv,2014,11718,18339,2490,32547
+transportation,Urban Rail,Million P-M,Activity,Deliv,2015,11812.721,18283.014,2427.365,32523.1
+transportation,Urban Rail,Million P-M,Activity,Deliv,2016,11899.026,18356.561,2565.638,32821.225
+transportation,Urban Rail,Million P-M,Activity,Deliv,2017,12384.049,17591.05,2577.813,32552.912

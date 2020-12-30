@@ -36,9 +36,6 @@ class NonManufacturing:
         ValueAdded_1969-2018_PNNL_010120.xlsx/ ChainQtyIndexes (EA301:EJ349) respectively 
         """       
         va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
-        # HERE: select columns 
-        print('va_quant_index:\n', va_quant_index.columns)
-        print('go_quant_index:\n', go_quant_index.columns)
         return va_quant_index, go_quant_index
     
     def get_econ_census(self):
@@ -47,7 +44,6 @@ class NonManufacturing:
         economic_census_years = list(range(1987, self.currentYear + 1, 5))       
         e_c_data = {str(y): economic_census.get_data(year=y) 
                     for y in economic_census_years}
-        print(e_c_data)
         return e_c_data
     
     @staticmethod
@@ -87,8 +83,6 @@ class NonManufacturing:
         
         construction_elec_fuels = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/construction_elec_fuels.csv').set_index('Year')
         construction_elec_fuels = construction_elec_fuels.rename(columns={'  Electricity': 'Electricity'})
-        print('construction_elec_fuels:\n', construction_elec_fuels)
-        print('construction_elec_fuels columns:\n', construction_elec_fuels.columns)
 
         construction_elec = construction_elec_fuels[['Electricity']]
         construction_fuels = construction_elec_fuels[['Total Fuel']]
@@ -107,36 +101,33 @@ class NonManufacturing:
         http://www.census.gov/prod/www/abs/cciview.html
         """ 
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data / M, Y
-        value_added = value_added[['Construction']].rename(columns={'Construction': 'Value Added'})
-        print('value_added:\n', value_added)
+        value_added = value_added[['Construction']]
 
         gross_output = gross_output[['Construction']].rename(columns={'Construction': 'Gross Output'})
         gross_output['Output*0.0001'] = gross_output['Gross Output'].multiply(0.0001)
 
-        print('gross_output:\n', gross_output)
         electricity, fuels = self.construction_raw_data()
-        print('fuels:\n', fuels)
-        print('electricity:\n', electricity)
 
         elec_intensity = electricity.merge(gross_output, how='outer', left_index=True, right_index=True)
         elec_intensity['elec_intensity'] = elec_intensity['Electricity'].divide(elec_intensity['Output*0.0001'] .values)
         elec_intensity = standard_interpolation(elec_intensity, name_to_interp='elec_intensity', axis=1).fillna(method='bfill')
-        print('elec_intensity after interp:\n', elec_intensity)
         fuels_intensity = fuels.merge(gross_output, how='outer', left_index=True, right_index=True)
         fuels_intensity['fuels_intensity'] = fuels_intensity['Total Fuel'].divide(fuels_intensity['Output*0.0001'] .values)
-        print('fuels intensity:\n', fuels_intensity)
-        print('fuels intensity index:\n', fuels_intensity.index)
-        print('fuels intensity columns:\n', fuels_intensity.columns)
 
         fuels_intensity.loc[1982, 'fuels_intensity'] = np.nan
         fuels_intensity.loc[2002, 'fuels_intensity'] = np.nan
         fuels_intensity = standard_interpolation(fuels_intensity, name_to_interp='fuels_intensity', axis=1).fillna(method='bfill')
-        print('fuels_intensity after interp:\n', fuels_intensity)
 
-        final_electricity = elec_intensity['elec_intensity'].multiply(elec_intensity['Output*0.0001'].values).to_frame(name='electricity')
-        print('final electricity:\n', final_electricity)
-        final_fuels = fuels_intensity['fuels_intensity'].multiply(fuels_intensity['Output*0.0001'].values).to_frame(name='fuels')
-        print('final fuels:\n', final_fuels)
+        final_electricity = elec_intensity[['elec_intensity']].multiply(elec_intensity['Output*0.0001'], axis='index')
+        final_electricity = final_electricity.rename(columns={'elec_intensity': 'Construction'})
+
+        final_fuels = fuels_intensity[['fuels_intensity']].multiply(fuels_intensity['Output*0.0001'], axis='index')
+        final_fuels = final_fuels.rename(columns={'fuels_intensity': 'Construction'})
+
+        gross_output = gross_output.drop('Output*0.0001', axis=1)
+
+        gross_output = gross_output.rename(columns={'Gross Output': 'Construction'})
+
 
         data_dict = {'energy': 
                         {'elec': final_electricity, 'fuels': final_fuels}, 
@@ -153,39 +144,58 @@ class NonManufacturing:
         miranowski_data = miranowski_data.reset_index()
         miranowski_data['Year'] = pd.to_numeric(miranowski_data['Year'], errors='coerce')
         miranowski_data = miranowski_data.dropna(subset=['Year']).set_index('Year')
-        print('miranowski_data:\n', miranowski_data)
+        miranowski_data.index = miranowski_data.index.astype(int)
+
         adjustment_factor = 10500/3412 # Assume 10,500 Btu/Kwh
         value_added, gross_output = self.indicators_nonman_2018_bea() # NonMan_output_data_010420.xlsx column G, S (value added and gross output chain qty indexes for farms)
+        value_added.index = value_added.index.astype(int)
+        gross_output.index = gross_output.index.astype(int)
+
         value_added = value_added[['Farms']]
         gross_output = gross_output[['Farms']]
-        print('gross_output:\n', gross_output)
-        print('value_added:\n', value_added)
-
 
         elec_prm = miranowski_data[['Electricity']].rename(columns={'Electricity': 'elec'})
-        print('elec_prm:\n', elec_prm)
         elec_site = elec_prm.divide(adjustment_factor)
-        fuels = miranowski_data[['Direct Ag. Energy Use']].subtract(elec_prm.values).rename(columns={'Direct Ag. Energy Use': 'fuels'})
-        print('fuels:\n', fuels)
+        elec_site.index = elec_site.index.astype(int)
+        elec_df = elec_site[~elec_site.index.duplicated()]
 
-        elec_df = elec_site.merge(gross_output, how='outer', left_index=True, right_index=True)
-        fuels_df = fuels.merge(gross_output, how='outer', left_index=True, right_index=True)
+        fuels_df = miranowski_data[['Direct Ag. Energy Use']].subtract(elec_prm.values).rename(columns={'Direct Ag. Energy Use': 'fuels'})
+        fuels_df = fuels_df[~fuels_df.index.duplicated()]
+        fuels_df.index = fuels_df.index.astype(int)
 
-        elec_df['elec_intensity'] = elec_df['elec'].divide(elec_df['Farms'] * 0.001, axis='index')
-        fuels_df['fuels_intensity'] = fuels_df['fuels'].divide(fuels_df['Farms'] * 0.001, axis='index')
+        elec_df = elec_df.merge(gross_output, left_index=True, right_index=True, how='outer')
+        fuels_df = fuels_df.merge(gross_output, left_index=True, right_index=True, how='outer')
 
-        electricity_final = elec_df[['elec_intensity']].multiply(elec_df['Farms'] * 0.001, axis='index').ffill()
-        fuels_final = fuels_df[['fuels_intensity']].multiply(fuels_df['Farms'] * 0.001, axis='index')
+        elec_df['elec_intensity'] = elec_df['elec'].divide(gross_output['Farms'] * 0.001, axis='index')
+
+        fuels_df['fuels_intensity'] = fuels_df['fuels'].divide(gross_output['Farms'] * 0.001, axis='index')
+
+        electricity_final = elec_df[['elec_intensity']].multiply(gross_output['Farms'] * 0.001, axis='index').ffill()
+        electricity_final = electricity_final.rename(columns={'elec_intensity': 'Agriculture, Forestry & Fishing'})
+        electricity_final.index = electricity_final.index.astype(int)
+
+        fuels_final = fuels_df[['fuels_intensity']].multiply(gross_output['Farms'] * 0.001, axis='index')
+        fuels_fill = pd.DataFrame([[641.0], [717.2], [657.7], [635.2], [732.1], [638.5],
+                                   [791.4], [689.0], [652.1], [675.0], [740.2], [782.8], 
+                                   [906.9], [929.6], [820.9]], index=list(range(2003, 2017 + 1)), columns=['fuels_fill']) # Calculated in Agricultural_energy_010420/Farms
+        fuels_final = fuels_final.merge(fuels_fill, how='outer', left_index=True, right_index=True)
+        fuels_final = fuels_final.rename(columns={'fuels_intensity': 'Agriculture, Forestry & Fishing'})
+
+        fuels_final = fuels_final['Agriculture, Forestry & Fishing'].fillna(fuels_final['fuels_fill']).to_frame(name='Agriculture, Forestry & Fishing')
+                                                                                                        
+        # fuels_final = fuels_final.drop('fuels_fill', axis=1)
+        fuels_final.index = fuels_final.index.astype(int)
+
+        value_added = value_added.rename(columns={'Farms': 'Agriculture, Forestry & Fishing'})
+        gross_output = gross_output.rename(columns={'Farms': 'Agriculture, Forestry & Fishing'})
 
         data_dict = {'energy': {'elec': electricity_final, 
                                 'fuels': fuels_final}, 
                         'activity': {'gross_output': gross_output, 
                                      'value_added': value_added}}
-        print('data_dict:\n', data_dict)
         return data_dict
 
     def aggregate_mining_data(self, mining_df, allfos=False):
-        print('mining df:\n', mining_df)
         mapping = {5: 'Iron and Ferroalloy mining', 6: 'Uranium - vanadium ores', 
                    7: 'Nonferrous metals', 8: 'Anthracite Coal', 9: 'Bituminous Coal', 
                    10: 'Crude Petroleum', 11: 'Natural Gas', 12: 'Natural Gas Liquids', 
@@ -199,12 +209,9 @@ class NonManufacturing:
             mapping_df['Year'] = mapping_df['Year'].subtract(1)
         
         mapping_df['Year']= mapping_df['Year'].astype(int)
-        print('mapping_df:\n', mapping_df)
 
         mining_df = mining_df.merge(mapping_df, how='right', on='Year')
         mining_df = mining_df.drop(['Year', 'NAICS'], axis=1).set_index('Industry')
-
-        print('mining_df:\n', mining_df)
 
         mining_df = mining_df.transpose()
 
@@ -212,61 +219,61 @@ class NonManufacturing:
         mining_df['Coal Mining'] = mining_df[['Anthracite Coal', 'Bituminous Coal']].sum(axis=1)
         mining_df['Metal Ore Mining'] = mining_df[['Iron and Ferroalloy mining', 'Uranium - vanadium ores', 'Nonferrous metals']].sum(axis=1)
         mining_df['Nonmetallic mineral mining'] = mining_df[['Stone and clay mining', 'Chemical and Fertilizer']].sum(axis=1)
-        print('mining_df:\n', mining_df)
 
         to_transfer = mining_df[['Crude Petroleum and Natural Gas', 'Coal Mining', 'Metal Ore Mining', 
                                  'Nonmetallic mineral mining', 'Oil and gas well drilling']].rename(columns={'Oil and gas well drilling': 
                                                                                                              'Support Activities', 
                                                                                                              'Crude Petroleum and Natural Gas':
                                                                                                              'Crude Pet'}) 
-        print('to_transfer:\n', to_transfer)
         return to_transfer
     
     @staticmethod
-    def build_mining_output(factor, gross_output, elec, fuels, sector_estimates_elec, 
+    def build_mining_output(factor, gross_output, value_added, elec, fuels, sector_estimates_elec, 
                             sector_estimates_fuels, col_name):
+
+        gross_output.index = gross_output.index.astype(int)
+        elec.index = elec.index.astype(int)
+        fuels.index = fuels.index.astype(int)
+        sector_estimates_elec.index = sector_estimates_elec.index.astype(int)
+        sector_estimates_fuels.index = sector_estimates_fuels.index.astype(int)
+
+
         """Build data dictionary for the mining subsector"""
-        print('elec:\n', elec)
-        print('fuels:\n', fuels)
+
         elec = elec.rename(columns={col_name: 'elec'})
         fuels = fuels.rename(columns={col_name: 'fuels'})
 
         sector_estimates_elec = sector_estimates_elec.rename(columns={col_name: 'elec'})
-        print('sector_estimates_elec:\n', sector_estimates_elec)
         sector_estimates_fuels = sector_estimates_fuels.rename(columns={col_name: 'fuels'})
-        print('sector_estimates_fuels:\n', sector_estimates_fuels)
         elec = pd.concat([elec, sector_estimates_elec], axis=0)
-        print('elec:\n', elec)
         fuels = pd.concat([fuels, sector_estimates_fuels], axis=0)
-        print('fuels:\n', fuels)
 
         gross_output['output_by_factor'] = gross_output.multiply(factor)
-        print('gross_output')
         elec_df = gross_output.merge(elec, how='outer', left_index=True, right_index=True)
-        print('output_by_factor:\n', gross_output['output_by_factor'])
-        print('elec_df:\n', elec_df)
 
         fuels_df = gross_output.merge(fuels, how='outer', left_index=True, right_index=True)
-        print('fuels_df:\n', fuels_df)
 
         elec_df['elec_intensity'] = elec_df['elec'].divide(elec_df['output_by_factor'].values)
-        print('elec_intensity:\n', elec_df['elec_intensity'])
 
         elec_df = standard_interpolation(elec_df, name_to_interp='elec_intensity', axis=1).ffill()
 
         fuels_df['fuels_intensity'] = fuels_df['fuels'].divide(fuels_df['output_by_factor'].values)
-        print('fuels_intensity:\n', fuels_df['fuels_intensity'])
 
         fuels_df = standard_interpolation(fuels_df, name_to_interp='fuels_intensity', axis=1).ffill()
 
-        electricity_final = elec_df['elec_intensity'].multiply(elec_df['output_by_factor'].values)
-        fuels_final = fuels_df['fuels_intensity'].multiply(fuels_df['output_by_factor'].values)
+        electricity_final = elec_df[['elec_intensity']].multiply(elec_df['output_by_factor'], axis='index')
+        electricity_final = electricity_final.rename(columns={'elec_intensity': col_name})
+
+        fuels_final = fuels_df[['fuels_intensity']].multiply(fuels_df['output_by_factor'], axis='index')
+        fuels_final = fuels_final.rename(columns={'fuels_intensity': col_name})
+
         gross_output = gross_output.drop('output_by_factor', axis=1)
         data_dict = {'energy': {'elec': electricity_final, 'fuels': fuels_final}, 
-                     'activity': {'gross_output': gross_output}}
+                     'activity': {'gross_output': gross_output, 
+                                  'value_added': value_added}}
         return data_dict
 
-    def crude_petroleum_natgas(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+    def crude_petroleum_natgas(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates):
         """Collect crude petroleum and natural gas data for the mining subsector"""
 
 
@@ -278,13 +285,14 @@ class NonManufacturing:
 
         sector_estimates_elec = sector_estimates[0][['Oil and Gas']].rename(columns={'Oil and Gas': col_name})
         sector_estimates_fuels = sector_estimates[1][['Oil and Gas']].rename(columns={'Oil and Gas': col_name})
+        value_added = value_added[['Oil and gas extraction']].rename(columns={'Oil and gas extraction': col_name})
 
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels, 
+        data_dict = self.build_mining_output(factor, gross_output, value_added, elec, fuels, 
                                              sector_estimates_elec, sector_estimates_fuels, 
                                              col_name)
         return data_dict
     
-    def coal_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates): 
+    def coal_mining(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates): 
         """Collect coal mining data for the mining subsector"""
 
         factor = 0.001
@@ -298,18 +306,19 @@ class NonManufacturing:
         sector_estimates_elec = sector_estimates[0][[col]]
         sector_estimates_fuels = sector_estimates[1][[col]]
 
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels,
+        value_added = value_added[['Petroleum and coal products']].rename(columns={'Petroleum and coal products': col})
+
+        data_dict = self.build_mining_output(factor, gross_output, value_added, elec, fuels,
                                              sector_estimates_elec, sector_estimates_fuels, 
                                              col_name=col)
         return data_dict
     
-    def metal_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+    def metal_mining(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates):
         """Collect metal mining data for the mining subsector"""
 
         factor = 0.01
         gross_output = bea_bls_output[['Metal ore mining']].rename(columns={'Metal ore mining': 'Metal Mining'})
-        print('nea_elec.columns:', nea_elec.columns)
-        print('nea_fuels.columns:', nea_fuels.columns)
+
         nea_elec = nea_elec.rename(columns={'Metal Ore Mining': 'Metal Mining'})
         nea_fuels = nea_fuels.rename(columns={'Metal Ore Mining': 'Metal Mining'})
 
@@ -318,36 +327,36 @@ class NonManufacturing:
 
         sector_estimates_elec = sector_estimates[0][['Metal Mining']]
         sector_estimates_fuels = sector_estimates[1][['Metal Mining']]
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels, 
+
+        value_added = value_added[['Primary metals']].rename(columns={'Primary metals': 'Metal Mining'})
+
+        data_dict = self.build_mining_output(factor, gross_output, value_added, elec, fuels, 
                                              sector_estimates_elec, sector_estimates_fuels, col_name='Metal Mining')
         return data_dict
 
-    def nonmetallic_mineral_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+    def nonmetallic_mineral_mining(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates):
         """Collect nonmetallic mineral mining data for the mining subsector"""
         factor = 0.01
         col = 'Nonmetallic Mineral Mining'
-        print('bea_bls_output:\n', bea_bls_output)
 
-        print('bea_bls_output cols', bea_bls_output.columns)
         bea_bls_output = bea_bls_output.rename(columns={'Nonmetallic mineral mining and quarrying': col})
-        print('bea_bls_output:\n', bea_bls_output)
-        print('type bea_bls_output:\n', type(bea_bls_output))
 
         gross_output = bea_bls_output[[col]]
-        print('nea_elec:', nea_elec.columns)
         nea_elec = nea_elec.rename(columns={'Nonmetallic mineral mining': col})
         nea_fuels = nea_fuels.rename(columns={'Nonmetallic mineral mining': col})
 
         elec = nea_elec[[col]] 
-        print('nea_fuels:', nea_fuels.columns)
 
         fuels = nea_fuels[[col]]
         sector_estimates_elec = sector_estimates[0][['Nonmetallic Mining, excl Other Chem']].rename(columns={'Nonmetallic Mining, excl Other Chem': col})
         sector_estimates_fuels = sector_estimates[1][['Nonmetallic Mining, excl Other Chem']].rename(columns={'Nonmetallic Mining, excl Other Chem': col})
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels, sector_estimates_elec, sector_estimates_fuels, col_name=col)
+
+        value_added = value_added[['Nonmetallic mineral products']].rename(columns={'Nonmetallic mineral products': col})
+
+        data_dict = self.build_mining_output(factor, gross_output, value_added, elec, fuels, sector_estimates_elec, sector_estimates_fuels, col_name=col)
         return data_dict
 
-    def other_mining(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates): 
+    def other_mining(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates): 
         """Collect data for "other mining" from the sum of nonmetallic mineral
         mining, metal mining and coal mining. 
 
@@ -360,36 +369,39 @@ class NonManufacturing:
         Returns:
             [type]: [description]
         """        
-        factor = 0.01
-        gross_output = bea_bls_output['Other Mining']
+        gross_output = bea_bls_output[['Other Mining']]
 
         other_mining_types = {'nonmetallic_mineral_mining': self.nonmetallic_mineral_mining, 
                               'metal_mining': self.metal_mining, 
                               'coal_mining': self.coal_mining}
    
-        other_mining_data = [m(bea_bls_output, nea_elec, nea_fuels, sector_estimates) for m in other_mining_types.values()]
+        other_mining_data = [m(bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates) for m in other_mining_types.values()]
 
         other_mining_elec = [m_df['energy']['elec'] for m_df in other_mining_data]
-        elec = reduce(lambda x, y: x.add(y), other_mining_elec)
+        other_mining_elec = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), other_mining_elec)
+
+        elec = other_mining_elec.sum(axis=1).to_frame(name='Other Mining')
 
         other_mining_fuels = [m_df['energy']['fuels'] for m_df in other_mining_data]
-        fuels = reduce(lambda x, y: x.add(y), other_mining_fuels)
-        print('fuels:\n', fuels)
-        print('elec:\n', elec)
+        other_mining_fuels = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), other_mining_fuels)
+        fuels = other_mining_fuels.sum(axis=1).to_frame(name='Other Mining')
+
+        other_mining_value_added = [m_df['activity']['value_added'] for m_df in other_mining_data]
+        other_mining_value_added = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), other_mining_value_added)
+        value_added = other_mining_value_added.sum(axis=1).to_frame(name='Other Mining')
+
         data_dict = {'energy': {'elec': elec, 'fuels': fuels}, 
-                     'activity': {'gross_output': gross_output}}
-        # data_dict = self.build_mining_output(factor, gross_output, elec, fuels, sector_estimates[0], sector_estimates[1], )
+                     'activity': {'gross_output': gross_output,
+                                  'value_added': value_added}}
         return data_dict
     
-    def drilling_and_mining_support(self, bea_bls_output, nea_elec, nea_fuels, sector_estimates):
+    def drilling_and_mining_support(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates):
         """Collect drilling and mining support data for the mining subsector"""
         factor = 0.001
         col = 'Support Activities'
-        print('bea_bls_output cols', bea_bls_output.columns)
+
         bea_bls_output = bea_bls_output.rename(columns={'Support activities for mining': col})
         gross_output = bea_bls_output[[col]]
-        print('nea_elec cols', nea_elec.columns)
-        print('nea_fuels cols', nea_fuels.columns)
 
         elec = nea_elec[[col]] 
         fuels = nea_fuels[[col]] 
@@ -405,7 +417,9 @@ class NonManufacturing:
         sector_estimates_fuels[col] = sector_estimates_fuels[sector_cols].sum(axis=1)
         sector_estimates_fuels = sector_estimates_fuels[[col]]
 
-        data_dict = self.build_mining_output(factor, gross_output, elec, fuels, 
+        value_added = value_added[['Support activities for mining']].rename(columns={'Support activities for mining': col})
+
+        data_dict = self.build_mining_output(factor, gross_output, value_added, elec, fuels, 
                                              sector_estimates_elec, sector_estimates_fuels, 
                                              col_name=col)
         return data_dict
@@ -443,11 +457,8 @@ class NonManufacturing:
         sector_estimates = sector_estimates[sector_estimates['NAICS'].notnull()].fillna(np.nan)
         sector_estimates = sector_estimates.dropna(axis=0, how='all')
         sector_estimates = sector_estimates.set_index('NAICS').drop('Description', axis=1)
-        print('sector_estimates:\n', sector_estimates)
 
         sector_estimates.index = sector_estimates.index.astype(int)
-        print('sector_estimates:\n', sector_estimates)
-        print('sector_estimates index:\n', sector_estimates.index)
 
         sector_estimates.loc['Oil and Gas', :] = sector_estimates.loc[[211111, 211112], :].sum(axis=0)
         sector_estimates.loc['Coal Mining', :] = sector_estimates.loc[[212111, 212112, 212113]].sum(axis=0)
@@ -466,12 +477,8 @@ class NonManufacturing:
                 'Drilling Oil and Gas Wells', 'Support Activities for Oil and Gas', 'Support Activities for Coal Mining', \
                 'Support Activities for Metal Mining', 'Support Activities for Nonmetallic Minerals']
         sector_estimates_T = sector_estimates_T[cols]
-        print('sector_estimates_T :\n', sector_estimates_T)
         return sector_estimates_T
 
-    @staticmethod
-    def preliminary_sector_estimates():
-        pass
 
     def mining_data_1987_2017(self):
         """ For updating estimates, cost of purchased fuels from the Economic
@@ -502,8 +509,7 @@ class NonManufacturing:
         data_1987_2017 = self.mining_data_1987_2017()
         elec = data_1987_2017['elec'].multiply(0.000001 * 3412)
         fuels = data_1987_2017['fuels']
-        print('elec columns:', elec.columns)
-        print('fuels columns:', fuels.columns)
+
         return elec, fuels
     
     def mining(self):
@@ -516,27 +522,22 @@ class NonManufacturing:
 
         NEA_data_fuels = self.aggregate_mining_data(ALLFOS_historical, allfos=True) 
         va_quant_index, go_quant_index = self.BEA_data.chain_qty_indexes() # Historical and current data
-
+        value_added, gross_output = self.indicators_nonman_2018_bea()
         sector_estimates = self.mining_sector_estimates()
-        print('sector estimates:\n', sector_estimates)
+
         BLS_data = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/BLS_BEA_Data.xlsx', sheet_name='BLS_Data_011920', index_col=0)
         BLS_data.index.name = 'Industry'
-        print('BLS_data:\n', BLS_data)
+
         BLS_data = BLS_data.transpose().drop('Oil and gas extraction', axis=1)
-        print('BLS_data transpose:\n', BLS_data)
-        print('go_quant_index columns:\n', go_quant_index.columns)
+
         BEA_mining_data = go_quant_index[['Oil and gas extraction', 'Mining, except oil and gas', 'Support activities for mining']]
         BEA_mining_data = BEA_mining_data.rename(columns={'Support activities for mining': 'BEA- Support Activities', 
                                                           'Mining, except oil and gas': 'Other Mining', 'Oil and gas extraction': 'Oil & Gas'})
         bea_bls_output = BEA_mining_data.merge(BLS_data, how='outer', left_index=True, right_index=True)
 
-        print('bea_bls_output:\n', bea_bls_output)
-        print("BEA_mining_data:\n", BEA_mining_data)
-
-        data_dict = {'Petroleum and Natural Gas': self.crude_petroleum_natgas(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates),
-                     'Other Mining': self.other_mining(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates), 
-                     'Petroleum drilling and Mining Services': self.drilling_and_mining_support(bea_bls_output, NEA_data_elec, NEA_data_fuels, sector_estimates)}
-        
+        data_dict = {'Petroleum and Natural Gas': self.crude_petroleum_natgas(bea_bls_output, value_added, NEA_data_elec, NEA_data_fuels, sector_estimates),
+                     'Other Mining': self.other_mining(bea_bls_output, value_added, NEA_data_elec, NEA_data_fuels, sector_estimates), 
+                     'Support Activities': self.drilling_and_mining_support(bea_bls_output, value_added, NEA_data_elec, NEA_data_fuels, sector_estimates)}
         return data_dict
 
     def nonmanufacturing_data(self):
@@ -547,13 +548,10 @@ class NonManufacturing:
         # Mining energy_031020.xlsx/Compute_intensities (FQ-FS)
         # Construction_energy_011920.xlsx/Intensity_estimates (W-Z)
         data_dict = {'Mining': self.mining(), 'Agriculture, Forestry & Fishing': self.agriculture(), 'Construction': self.construction()}
-        print('data_dict:', data_dict)
         return data_dict              
 
 if __name__ == '__main__':
-    print('main')
     data = NonManufacturing().get_econ_census()
-    print(data)
 
 
 

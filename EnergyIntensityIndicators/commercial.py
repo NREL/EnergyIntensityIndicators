@@ -511,10 +511,8 @@ class CommercialIndicators(CalculateLMDI):
         
         weather_data = dict()
         for key, value in weather_factors.items():
-            print('value:\n', value)
             value = value.drop('electricity_weather_factor', axis=1, errors='ignore')
             weather_data[key] = value
-            print('weather_data:\n', weather_data)
 
         return weather_data
 
@@ -530,7 +528,6 @@ class CommercialIndicators(CalculateLMDI):
         print('Energy data collected without issue')
 
         weather_factors = self.collect_weather(comm_activity=activity_data) 
-        print('weather_factors', weather_factors)
 
         data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
         return data_dict
@@ -546,7 +543,7 @@ class CommercialIndicators(CalculateLMDI):
         return results_dict
 
 if __name__ == '__main__':
-    indicators = CommercialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020',
+    indicators = CommercialIndicators(directory='./EnergyIntensityIndicators/Data',
                                       output_directory='./Results', 
                                       level_of_aggregation='Commercial_Total', 
                                       lmdi_model=['multiplicative', 'additive'])

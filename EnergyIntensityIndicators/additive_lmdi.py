@@ -122,7 +122,6 @@ class AdditiveLMDI():
     @staticmethod
     def aggregate_additive(additive, base_year):
         """Aggregate additive data (allows for loop through every year as a base year, if desired)"""
-        print('additive:\n', additive)
         cols = [c for c in list(additive.columns) if c != 'Year']
         additive.loc[additive['Year'] <= base_year, cols] = 0
         additive = additive.set_index('Year')
@@ -134,9 +133,7 @@ class AdditiveLMDI():
         dataframe of the results for the additive LMDI model.
         """
         # ASI.pop('lower_level_structure', None)
-        print('columns additive decomposition df', [l.columns for l in list(ASI.values())])
         ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
-
 
         df = self.calculate_effect(ASI_df)
         df = df.reset_index()
@@ -165,28 +162,36 @@ class AdditiveLMDI():
             data['@filter|Measure|Structure'] = data[structure_cols].sum(axis=1)  # Current level total structure
             to_drop = [s for s in structure_cols if s != '@filter|Measure|Structure']
             data = data.drop(to_drop, axis=1)
-        print('ADDITIVE DATA TO PRINT:\n', data)
-        print('data columns', data.columns)
 
-        x_data = ["@filter|Measure|Activity"]
-        print('os.getcwd()', os.getcwd())
+        x_data = []
 
         if '@filter|Measure|Structure' in data.columns:
             x_data.append('@filter|Measure|Structure')
         else: 
             for c in data.columns: 
-                if c.endswith('Structure'):
+                if 'Structure' in c:
                     x_data.append(c)
 
         if "@filter|Measure|Intensity" in data.columns:
             x_data.append("@filter|Measure|Intensity")
         else: 
             for c in data.columns: 
-                if c.endswith('Intensity'):
+                if 'Intensity' in c:
+                    x_data.append(c)
+
+        if "@filter|Measure|Activity" in data.columns:
+            x_data.append("@filter|Measure|Activity")
+        else: 
+            for c in data.columns: 
+                if c.endswith('Activity'):
                     x_data.append(c)
 
         loa = [l.replace("_", " ") for l in loa]
-        loa = [loa[0], loa[-1]]
+        if loa[0] == loa[-1]:
+            loa = [loa[0]]
+        else:
+            loa = [loa[0], loa[-1]]
+
         final_year = max(data['@timeseries|Year'])
 
         data_base = data[data['@timeseries|Year'] == base_year][x_data]
@@ -199,22 +204,15 @@ class AdditiveLMDI():
             data['final_energy'] = self.energy_data.loc[max(self.energy_data.index), self.total_label]
 
         x_data = ['intial_energy'] + x_data + ['final_energy']
-        print('x_data:', x_data)
         y_data = pd.concat([data_base, data], ignore_index=True, axis=0, sort=False).fillna(0)
-        print('y_data:', y_data)
         y_data = y_data[x_data]
-        print('y_data:', y_data)
 
         y_data.loc[:, 'final_energy'] = 0
-        print('additive data to plot:\n', y_data)
         y_data = y_data.sum(axis=0).values.tolist()
         y_labels = [self.format_y_vals(y) for y in y_data]
 
-        print('additive data to plot:\n', y_data)
 
-        # x_labels = ['intial_energy', 'activity', 'intensity', 'structure', 'final_energy']
         x_labels = [x_.replace('@filter|Measure|', '') for x_ in x_data]
-        print('x_labels:', x_labels)
         x_labels = [x.replace("_", " ").title() for x in x_labels]
         
         measure = ['relative'] * 4 + ['total']
@@ -223,9 +221,8 @@ class AdditiveLMDI():
                                      textposition="outside", y=y_data, text=y_labels,
                                      connector={"line":{"color":"rgb(63, 63, 63)"}}))
         
-        title = f"Change in {energy_type.capitalize()} Energy Use (Trillion British thermal units [TBtu]) {base_year}-{final_year} {' '.join(loa)}"
-        # title = loa + f" {model.capitalize()}" + f" {' '.join(loa)} {energy_type.capitalize()}" 
-        fig.update_layout(title=title, showlegend = True)
+        title = f"Change in {energy_type.capitalize()} Energy Use (TBtu) {base_year}-{final_year} {' '.join([l.title() for l in loa])}"
+        fig.update_layout(title=title, font=dict(size=18), showlegend=True)
         fig.show()
         # fig.write_image(f"{self.output_directory}/{title}.png")
 
@@ -236,6 +233,7 @@ class AdditiveLMDI():
 
         if y > 0:
             sign = "+"
+
         elif y < 0:
             sign = "-"
         else:

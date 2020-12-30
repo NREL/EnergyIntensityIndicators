@@ -19,9 +19,8 @@ class GetEIAData:
         elif id_type == 'series':
             eia_data = self.get_series(api_key, id_)
             if isinstance(eia_data, pd.Series):
-                eia_data = eia_data.to_frame(name=new_name)
+                eia_data = eia_data.to_frame()
                 print('eia_data:\n', eia_data)
-                exit()
         else:
             eia_data = None
             print('Error: neither series nor category given')
@@ -29,6 +28,9 @@ class GetEIAData:
         eia_data['Year'] = eia_data['Year'].apply(lambda y: y.strftime('%Y'))
         eia_data = eia_data.set_index('Year').sort_index(ascending=True)
         eia_data = eia_data.replace('NA', np.nan)
+        if id_type == 'series' and new_name is not None:
+            eia_data = eia_data.rename(columns={list(eia_data)[0]: new_name})
+
         return eia_data
     
     def get_category(self, api_key, id_):

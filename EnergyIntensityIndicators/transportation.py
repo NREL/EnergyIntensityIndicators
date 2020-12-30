@@ -96,7 +96,6 @@ class TransportationIndicators(CalculateLMDI):
         fha_table_vm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4, index_col=0) 
         # Bus / Transit
         apta_table3 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheet_name='3', skiprows=7, skipfooter=42, index_col=0) # 1997-2017 apta_table3
-        print()
          
         # # Bus / Intercity
         # see revised_intercity_bus_estimates
@@ -119,12 +118,9 @@ class TransportationIndicators(CalculateLMDI):
 
         # Intercity Rail (Amtrak) Note: Amtrak data is compiled by fiscal year rather than calendar year
         intercity_rail_2017 =  pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_01_40_091820.xlsx', skiprows=1, skipfooter=25, index_col=0)
-        print('intercity_rail_2017:\n', intercity_rail_2017)
         intercity_rail_2017 = intercity_rail_2017.transpose()
-        print('intercity_rail_2017 columns:\n', intercity_rail_2017.columns)
 
         intercity_rail_2017 = intercity_rail_2017[['Intercity/Amtraki']] # not sure how the i superscript shows up
-        print('intercity_rail_2017 transpose:\n', intercity_rail_2017)
 
                                  # 'Bureau of Transportation Statistics, National Transportation Statistics, Table 1-40: U.S. Passenger-Miles 
 
@@ -169,10 +165,6 @@ class TransportationIndicators(CalculateLMDI):
        
         apta_table59 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheet_name='59', skiprows=2, skipfooter=24, index_col=0) # 1997-2017 apta_table3
         apta_table60 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheet_name='60', skiprows=2, skipfooter=24, index_col=0) # 1997-2017 apta_table3
-
-        print('apta_table59:\n', apta_table59)
-        print('apta_table59 columns:\n', apta_table59.columns)
-
 
         swb_vehciles_all_fuel = fha_table_vm1
         motorcycles_all_fuel_1970_2017 = self.import_tedb_data(table_number='A_02')  # Alternative: 2017 data from Highway Statistics, Table VM-1.
@@ -231,7 +223,6 @@ class TransportationIndicators(CalculateLMDI):
         class_1_rail = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_04_25_112219.xlsx', skiprows=1, skipfooter=9, index_col=0) # USDOT, Bureau of Transportation Statistics			https://www.bts.gov/content/energy-intensity-class-i-railroad-freight-service					Table 4-25
         class_1_rail = class_1_rail.transpose()
         class_1_rail = class_1_rail[['Revenue freight ton-miles (millions)']]
-        print('class_1_rail:\n', class_1_rail)
         air_carrier = self.import_tedb_data(table_number='09_02')
         waterborne_vessles = self.import_tedb_data(table_number='10_05')
         gas_pipeline = self.mer_table_43_nov2019
@@ -244,7 +235,6 @@ class TransportationIndicators(CalculateLMDI):
         reg = linear_model.LinearRegression()
         reg.fit(X, Y)
         coefficients = reg.coef_
-        print('coeffs:', coefficients)
         predicted_value = reg.predict(actual_dd)  # Predicted value of the intensity based on actual degree days
         return predicted_value
 
@@ -297,7 +287,7 @@ class TransportationIndicators(CalculateLMDI):
                         'Air': {'energy': {'deliv': freight_based_energy_use[['Air']]}, 'activity': freight_based_activity[['Air']]}, 
                         'Waterborne': {'energy': {'deliv': freight_based_energy_use[['Waterborne']]}, 'activity': freight_based_activity[['Waterborne']]},
                         'Pipeline': {'energy': {'deliv': freight_based_energy_use[['Oil Pipeline', 'Natural Gas Pipeline']]}, 'activity': freight_based_activity[['Oil Pipeline', 'Natural Gas Pipeline']]}}}
-
+        data_dict = {'All_Transportation': data_dict}
         return data_dict
        
     def main(self, breakout, calculate_lmdi): # base_year=None, 
@@ -314,8 +304,7 @@ class TransportationIndicators(CalculateLMDI):
                                                          breakout=breakout, calculate_lmdi=calculate_lmdi, 
                                                          raw_data=data_dict, lmdi_type='LMDI-I')
         
-        print('RESULTS:\n', results)
-        return results
+        return results_dict
 
     def compare_aggregates(self, parameter_list):
         """Compare aggregates from MER and model
@@ -327,9 +316,9 @@ class TransportationIndicators(CalculateLMDI):
         return pct_difference
 
 if __name__ == '__main__': 
-    indicators = TransportationIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+    indicators = TransportationIndicators(directory='./EnergyIntensityIndicators/Data', 
                                           output_directory='./Results', 
-                                          level_of_aggregation='All_Transportation.All_Freight', lmdi_model=['multiplicative', 'additive'],
+                                          level_of_aggregation='All_Transportation', lmdi_model=['multiplicative', 'additive'],
                                           base_year=1985, end_year=2015) #  
     indicators.main(breakout=True, calculate_lmdi=True)
 

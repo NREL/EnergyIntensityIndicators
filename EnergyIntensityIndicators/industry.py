@@ -25,18 +25,18 @@ class IndustrialIndicators(CalculateLMDI):
     """    
 
     def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
-        self.sub_categories_list = {'Manufacturing': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
-                                               'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
-                                               'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
-                                               'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
-                                               'Fabricated metal products': None, 'Machinery': None, 'Computer and electronic products': None,
-                                               'Electrical equipment, appliances, and components': None, 'Motor vehicles, bodies and trailers, and parts': None,
-                                               'Furniture and related products': None, 'Miscellaneous manufacturing': None},
-                                    'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
-                                                         'Mining': {'Petroleum and Natural Gas': None, 
-                                                                    'Other Mining': None, 
-                                                                    'Petroleum drilling and Mining Services': None},
-                                                         'Construction': None}}
+        self.sub_categories_list = {'Industry': {'Manufacturing': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
+                                                                    'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
+                                                                    'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
+                                                                    'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
+                                                                    'Fabricated metal products': None, 'Machinery': None, 'Computer and electronic products': None,
+                                                                    'Electrical equipment, appliances, and components': None, 'Motor vehicles, bodies and trailers, and parts': None,
+                                                                    'Furniture and related products': None, 'Miscellaneous manufacturing': None},
+                                                'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
+                                                                    'Mining': {'Petroleum and Natural Gas': None, 
+                                                                                'Other Mining': None, 
+                                                                                'Support Activities': None},
+                                                                    'Construction': None}}}
 
         self.ind_eia = GetEIAData('industry')
         self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
@@ -58,7 +58,6 @@ class IndustrialIndicators(CalculateLMDI):
         """Gather manufacturing data
         """
         manufacturing_data = Manufacturing().manufacturing()
-        print('manufacturing_data: \n', manufacturing_data)
         return manufacturing_data
     
     def non_manufacturing(self):
@@ -69,7 +68,6 @@ class IndustrialIndicators(CalculateLMDI):
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
         non_manufacturing_data = NonManufacturing().nonmanufacturing_data()
-        print('non_manufacturing_data: \n', non_manufacturing_data)
 
         return non_manufacturing_data
         
@@ -77,10 +75,10 @@ class IndustrialIndicators(CalculateLMDI):
         """Gather all input data for decomposition of the energy use in the
         Industrial sector
         """
-        man = self.manufacturing()
         non_man = self.non_manufacturing()
+        man = self.manufacturing()
 
-        data_dict = {'Manufacturing': man, 'Nonmanufacturing': non_man}
+        data_dict = {'Industry': {'Manufacturing': man, 'Nonmanufacturing': non_man}}
         return data_dict
 
     def total_industrial_util_adj_lmdi(self):
@@ -97,11 +95,11 @@ class IndustrialIndicators(CalculateLMDI):
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
                                                                breakout=breakout, calculate_lmdi=calculate_lmdi, 
                                                                raw_data=data_dict, lmdi_type='LMDI-I')
-        return formatted_results
+        return results_dict
 
 if __name__ == '__main__': 
     print('os.getcwd()', os.getcwd())
-    indicators = IndustrialIndicators(directory='C:/Users/irabidea/Desktop/Indicators_Spreadsheets_2020', 
+    indicators = IndustrialIndicators(directory='./EnergyIntensityIndicators/Data', 
                                       output_directory='./Results',
-                                      level_of_aggregation='Manufacturing', lmdi_model=['multiplicative', 'additive'])
+                                      level_of_aggregation='Industry', lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)  

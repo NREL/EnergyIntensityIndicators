@@ -1,0 +1,59 @@
+﻿Sector,Nest level,Energy Type,Unit,Data Type,Year,Wood,Waste,Total
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1989,267.41,15.399,282.809
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1990,334.745,16.217,350.962
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1991,318.464,14.124,332.588
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1992,359.49,14.846,374.336
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1993,354.545,16.934,371.479
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1994,363.619,14.378,377.997
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1995,372.752,12.536,385.288
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1996,394.406,12.684,407.09
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1997,366.979,13.762,380.741
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1998,349.363,12.627,361.99
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,1999,364.498,8.491,372.989
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2000,369.229,9.523,378.752
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2001,369.847,7.448,377.295
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2002,463.98,15.254,479.234
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2003,362.46,13.194,375.654
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2004,193.745,5.151,198.896
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2005,189.263,4.758,194.021
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2006,186.803,3.403,190.206
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2007,188.22,4.378,192.598
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2008,179.227,4.726,183.953
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2009,159.712,4.477,164.189
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2010,172.016,8.295,180.311
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2011,181.559,6.59,188.149
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2012,218.924,7.777,226.701
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2013,210.308,10.694,221.002
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2014,210.167134,36.048166,246.2153
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2015,190.839787,10.306487,201.146274
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2016,168.958761,9.551935,178.510696
+Electricity,Industrial Sector CHP Renewable,primary,Tbtu,Energy,2017,168.828344,8.09848,176.926824
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1989,21556.747,893.212,22449.959
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1990,25379.198,948.748,26327.946
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1991,25863.151,927.41,26790.561
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1992,27915.722,931.544,28847.266
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1993,28357.816,1091.704,29449.52
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1994,28650.377,983.084,29633.461
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1995,28868.464,899.796,29768.26
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1996,28354.498,919.388,29273.886
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1997,28225.019,882.479,29107.498
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1998,27692.538,879.712,28572.25
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,1999,28060.358,686.34,28746.698
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2000,28651.835,839.314,29491.149
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2001,26888.483,596.396,27484.879
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2002,29643.207,845.977,30489.184
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2003,27988.371,715.445,28703.816
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2004,28367.085,796.988,29164.073
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2005,28270.534,732.553,29003.087
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2006,28400.016,572.447,28972.463
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2007,28287.375,631.452,28918.827
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2008,26640.889,821.394,27462.283
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2009,25292.157,740.469,26032.626
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2010,25705.664,868.65,26574.314
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2011,26690.634,916.768,27607.402
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2012,26725.161,948.495,27673.656
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2013,27690.926,1345.669,29036.595
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2014,27239.25575,1366.778686,28606.03444
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2015,27317.79171,1243.257356,28561.04907
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2016,27458.06461,1134.161519,28592.22613
+Electricity,Industrial Sector CHP Renewable,primary,Million kWh,Activity,2017,27440.03727,1011.574972,28451.61224

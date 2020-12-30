@@ -1,0 +1,97 @@
+﻿Sector,Nest level,Unit,Data Type,Energy Type,Year,Urban Rail,Intercity Rail,Passenger-Rail
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1970,42.19911885,6.088291626,48.28741048
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1971,41.4827972,6.088291626,47.57108882
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1972,39.55681254,9.283651907,48.84046445
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1973,38.28218489,11.6297673,49.91195218
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1974,41.64976823,11.22313208,52.87290031
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1975,41.68535224,11.20880503,52.89415727
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1976,40.11118027,11.79242138,51.90360165
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1977,38.6976289,12.1990566,50.8966855
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1978,38.3575122,12.44303774,50.80054994
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1979,41.3553046,13.74427044,55.09957504
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1980,41.489194,11.63018868,53.11938268
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1981,43.050045,10.70314465,53.75318965
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1982,43.442758,10.28176101,53.72451901
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1983,49.1509895,10.28176101,59.43275051
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1984,49.372611,10.87169811,60.24430911
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1985,48.7362654,10.87169811,59.60796351
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1986,53.1587806,10.45031447,63.60909507
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1987,54.3536228,11.04025157,65.39387437
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1988,55.8898558,11.37735849,67.26721429
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1989,57.1282882,12.89433962,70.02262782
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1990,56.4067657,12.81006289,69.21682859
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1991,56.7574695,12.81006289,69.56753239
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1992,55.3258497,12.97861635,68.30446605
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1993,57.5445402,13.4,70.9445402
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1994,59.835953,13.4,73.235953
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1995,59.8423148,11.18366872,71.02598352
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1996,59.3276776,11.11715523,70.44483283
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1997,59.2608225,11.8254367,71.0862592
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1998,60.869141,11.96198738,72.83112838
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,1999,63.0924905,12.49377815,75.58626865
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2000,65.4669546,14.77628164,80.24323624
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2001,66.7447878,14.98739884,81.73218664
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2002,67.2475319,13.47917847,80.72671037
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2003,67.1149748,15.9,83.0149748
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2004,68.7634763,15.2,83.9634763
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2005,70.8545678,10.89471822,81.74928602
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2006,71.085139,10.53631477,81.62145377
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2007,75.9917386,10.54666077,86.53839937
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2008,77.0924557,10.78332266,87.87577836
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2009,79.387456,10.48601562,89.87347162
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2010,78.331354,10.70999854,89.04135254
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2011,79.772514,10.6956251,90.4681391
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2012,79.134011,10.62001841,89.75402941
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2013,81.451496,10.95092652,92.40242252
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2014,81.323364,10.87242848,92.19579248
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2015,80.77154299,10.3840176,91.1555606
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2016,80.76251363,10.11101033,90.87352396
+transportation,Passenger-Rail,Tbtu,Energy,Deliv,2017,80.98372259,10.00424719,90.98796978
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1970,13056.5,1993,15049.5
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1971,12577.2,1993,14570.2
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1972,12349.9,3039,15388.9
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1973,12379.1,3807,16186.1
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1974,12295.8,4259,16554.8
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1975,12041.5,3753,15794.5
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1976,12684,4268,16952
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1977,16238,4204,20442
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1978,16935,4154,21089
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1979,17659,4867,22526
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1980,17455,4053,21508
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1981,16826,4397,21223
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1982,16455,3993,20448
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1983,16838,4227,21065
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1984,16734,4427,21161
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1985,17311,4785,22096
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1986,17733,5011,22744
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1987,18421,5361,23782
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1988,18741,5686,24427
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1989,19750,5859,25609
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1990,19128,6057,25185
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1991,18534,6273,24807
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1992,18758,6091,24849
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1993,17876,6199,24075
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1994,19497,5921,25418
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1995,19663,5545,25208
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1996,20838,5050,25888
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1997,21129,5166,26295
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1998,22116,5304,27420
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,1999,22874,5330,28204
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2000,24602,5498,30100
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2001,25163,5559,30722
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2002,24599,5468,30067
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2003,24641,5680,30321
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2004,25649,5511,31160
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2005,25591,5381,30972
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2006,26948,5410,32358
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2007,29223,5784,35007
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2008,29990,6179,36169
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2009,30236,5914,36150
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2010,29454,6420,35874
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2011,30947,6568,37515
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2012,31016,6804,37820
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2013,32243,6810,39053
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2014,32547,6675,39222
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2015,32523.1,6536,39059.1
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2016,32821.225,6520,39341.225
+transportation,Passenger-Rail,Million P-M,Activity,Deliv,2017,32552.912,6563,39115.912

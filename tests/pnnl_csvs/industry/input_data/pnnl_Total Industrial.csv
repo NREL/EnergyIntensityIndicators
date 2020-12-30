@@ -1,0 +1,481 @@
+﻿Sector,Nest level,Energy Type,Unit,Data Type,Year,Manufacturing,"NonManufac-turing (Ag, Mining, Constr)",   Total
+Industrial,Industrial,source,Tbtu,Energy,1970,20610.86815,3376.091829,23986.95998
+Industrial,Industrial,source,Tbtu,Energy,1971,20773.56209,3426.651215,24200.21331
+Industrial,Industrial,source,Tbtu,Energy,1972,21766.83304,3502.444856,25269.27789
+Industrial,Industrial,source,Tbtu,Energy,1973,22609.09919,3663.970535,26273.06972
+Industrial,Industrial,source,Tbtu,Energy,1974,22770.27398,3645.675538,26415.94952
+Industrial,Industrial,source,Tbtu,Energy,1975,20914.10057,3475.701784,24389.80235
+Industrial,Industrial,source,Tbtu,Energy,1976,21997.20397,3608.780234,25605.9842
+Industrial,Industrial,source,Tbtu,Energy,1977,22439.48424,3703.153021,26142.63726
+Industrial,Industrial,source,Tbtu,Energy,1978,22828.30689,4063.640926,26891.94781
+Industrial,Industrial,source,Tbtu,Energy,1979,22731.26206,3836.026132,26567.28819
+Industrial,Industrial,source,Tbtu,Energy,1980,21206.99783,3924.766998,25131.76482
+Industrial,Industrial,source,Tbtu,Energy,1981,20480.19936,3905.920334,24386.11969
+Industrial,Industrial,source,Tbtu,Energy,1982,18463.36251,3569.052236,22032.41475
+Industrial,Industrial,source,Tbtu,Energy,1983,19179.74322,3704.447553,22884.19077
+Industrial,Industrial,source,Tbtu,Energy,1984,19843.26012,3847.77095,23691.03107
+Industrial,Industrial,source,Tbtu,Energy,1985,18699.30306,3670.243311,22369.54637
+Industrial,Industrial,source,Tbtu,Energy,1986,19031.82929,3473.543645,22505.37294
+Industrial,Industrial,source,Tbtu,Energy,1987,19649.95968,3449.536227,23099.49591
+Industrial,Industrial,source,Tbtu,Energy,1988,20975.42066,3545.061073,24520.48174
+Industrial,Industrial,source,Tbtu,Energy,1989,21374.64739,3563.43234,24938.07973
+Industrial,Industrial,source,Tbtu,Energy,1990,21551.24273,3539.403938,25090.64667
+Industrial,Industrial,source,Tbtu,Energy,1991,20954.45232,3430.273207,24384.72552
+Industrial,Industrial,source,Tbtu,Energy,1992,21334.99836,3422.781261,24757.77963
+Industrial,Industrial,source,Tbtu,Energy,1993,21954.66212,3414.56605,25369.22817
+Industrial,Industrial,source,Tbtu,Energy,1994,22551.27556,3390.936359,25942.21192
+Industrial,Industrial,source,Tbtu,Energy,1995,23140.51196,3402.38574,26542.8977
+Industrial,Industrial,source,Tbtu,Energy,1996,23392.24332,3508.632414,26900.87573
+Industrial,Industrial,source,Tbtu,Energy,1997,23361.80894,3532.243713,26894.05266
+Industrial,Industrial,source,Tbtu,Energy,1998,23756.22258,3644.959074,27401.18165
+Industrial,Industrial,source,Tbtu,Energy,1999,24223.94077,3608.091628,27832.03239
+Industrial,Industrial,source,Tbtu,Energy,2000,24393.16521,3709.357265,28102.52247
+Industrial,Industrial,source,Tbtu,Energy,2001,23505.05008,3743.603571,27248.65365
+Industrial,Industrial,source,Tbtu,Energy,2002,22353.8223,3613.369271,25967.19157
+Industrial,Industrial,source,Tbtu,Energy,2003,22049.93098,3470.044017,25519.97499
+Industrial,Industrial,source,Tbtu,Energy,2004,22509.00058,3646.117517,26155.1181
+Industrial,Industrial,source,Tbtu,Energy,2005,22497.6261,3684.018138,26181.64424
+Industrial,Industrial,source,Tbtu,Energy,2006,22375.88499,3695.819204,26071.70419
+Industrial,Industrial,source,Tbtu,Energy,2007,22425.00993,3738.633753,26163.64369
+Industrial,Industrial,source,Tbtu,Energy,2008,21625.64409,3580.923497,25206.56759
+Industrial,Industrial,source,Tbtu,Energy,2009,19107.48549,3528.778502,22636.264
+Industrial,Industrial,source,Tbtu,Energy,2010,20060.28494,3349.500784,23409.78572
+Industrial,Industrial,source,Tbtu,Energy,2011,20368.01098,3386.274261,23754.28524
+Industrial,Industrial,source,Tbtu,Energy,2012,19499.7238,3416.457304,22916.18111
+Industrial,Industrial,source,Tbtu,Energy,2013,20169.15123,3817.018521,23986.16975
+Industrial,Industrial,source,Tbtu,Energy,2014,20573.94455,4351.314046,24925.2586
+Industrial,Industrial,source,Tbtu,Energy,2015,20084.63586,4693.633855,24778.26971
+Industrial,Industrial,source,Tbtu,Energy,2016,20010.73124,4828.457527,24839.18877
+Industrial,Industrial,source,Tbtu,Energy,2017,19505.24028,5136.699861,24641.94014
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1970,623422.2101,758007.3429,1381429.553
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1971,647414.0697,762348.6297,1409762.699
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1972,709523.1168,772148.8006,1481671.917
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1973,767392.6385,779967.4285,1547360.067
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1974,719543.8132,735399.6013,1454943.414
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1975,669440.3312,727136.5351,1396576.866
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1976,737022.2202,755382.8576,1492405.078
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1977,786547.5851,773357.3809,1559904.966
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1978,831370.9309,780960.5884,1612331.519
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1979,845804.5879,767047.225,1612851.813
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1980,786393.4206,748774.6537,1535168.074
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1981,803891.0981,745771.548,1549662.646
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1982,762613.5372,722388.2336,1485001.771
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1983,841064.0277,698552.705,1539616.733
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1984,912615.6541,793063.7415,1705679.396
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1985,939844.9695,868136.2601,1807981.23
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1986,965840.9684,901233.751,1867074.719
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1987,1026061.5,927719.3988,1953780.898
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1988,1090887.697,945843.5523,2036731.249
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1989,1095146.493,962024.6889,2057171.182
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1990,1089037.722,965413.7748,2054451.497
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1991,1075953.005,930794.0446,2006747.05
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1992,1117943.577,953520.4945,2071464.072
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1993,1155906.6,952198.8002,2108105.401
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1994,1224394.206,1033039.576,2257433.782
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1995,1274921.641,1003978.042,2278899.683
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1996,1327877.167,1045324.17,2373201.337
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1997,1425097.193,1079410.576,2504507.769
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1998,1483737.537,1113243.095,2596980.632
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,1999,1566177.036,1145336.123,2711513.158
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2000,1678774.976,1179948.053,2858723.029
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2001,1607454.597,1186379.51,2793834.106
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2002,1621541.383,1170167.721,2791709.104
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2003,1711400.051,1171316.975,2882717.026
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2004,1832207.254,1214419.55,3046626.804
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2005,1887937.743,1229465.117,3117402.86
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2006,1995024.3,1257091.874,3252116.174
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2007,2060948.92,1238681.041,3299629.962
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2008,2019112.513,1159100.682,3178213.195
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2009,1833421.3,1124595.758,2958017.059
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2010,1932626.195,1047211.871,2979838.065
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2011,1939833.388,1044251.181,2984084.569
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2012,1927057,1091790,3018847
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2013,1986179.109,1149423.772,3135602.88
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2014,2020172.394,1202742.926,3222915.321
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2015,2037496.637,1275168.12,3312664.756
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2016,2027013.447,1295745.522,3322758.969
+Industrial,Industrial,source,Value Added --> Gross Domestic Product,Activity,2017,2079776.267,1331368.921,3411145.189
+Industrial,Industrial,deliv,Tbtu,Energy,1970,16493.29838,2683.37794,19176.67632
+Industrial,Industrial,deliv,Tbtu,Energy,1971,16556.91353,2720.851576,19277.76511
+Industrial,Industrial,deliv,Tbtu,Energy,1972,17244.31156,2780.333721,20024.64528
+Industrial,Industrial,deliv,Tbtu,Energy,1973,17721.10554,2896.69785,20617.80339
+Industrial,Industrial,deliv,Tbtu,Energy,1974,17711.00819,2863.13086,20574.13905
+Industrial,Industrial,deliv,Tbtu,Energy,1975,16113.62758,2725.051427,18838.679
+Industrial,Industrial,deliv,Tbtu,Energy,1976,16863.54981,2809.854393,19673.40421
+Industrial,Industrial,deliv,Tbtu,Energy,1977,17075.28175,2851.693833,19926.97559
+Industrial,Industrial,deliv,Tbtu,Energy,1978,17301.25835,3161.223484,20462.48184
+Industrial,Industrial,deliv,Tbtu,Energy,1979,17223.74417,2911.634891,20135.37906
+Industrial,Industrial,deliv,Tbtu,Energy,1980,15878.30537,3011.559511,18889.86489
+Industrial,Industrial,deliv,Tbtu,Energy,1981,15229.78265,3020.763145,18250.5458
+Industrial,Industrial,deliv,Tbtu,Energy,1982,13534.17302,2755.825366,16289.99839
+Industrial,Industrial,deliv,Tbtu,Energy,1983,14217.91501,2911.160157,17129.07516
+Industrial,Industrial,deliv,Tbtu,Energy,1984,14595.39405,2979.392485,17574.78654
+Industrial,Industrial,deliv,Tbtu,Energy,1985,13627.17977,2824.332089,16451.51185
+Industrial,Industrial,deliv,Tbtu,Energy,1986,14032.20645,2666.307735,16698.51419
+Industrial,Industrial,deliv,Tbtu,Energy,1987,14426.89893,2614.695161,17041.59409
+Industrial,Industrial,deliv,Tbtu,Energy,1988,15514.40693,2659.868835,18174.27577
+Industrial,Industrial,deliv,Tbtu,Energy,1989,15604.83469,2606.756636,18211.59132
+Industrial,Industrial,deliv,Tbtu,Energy,1990,15667.35549,2571.262009,18238.6175
+Industrial,Industrial,deliv,Tbtu,Energy,1991,15151.29944,2453.899667,17605.19911
+Industrial,Industrial,deliv,Tbtu,Energy,1992,15555.49218,2437.391948,17992.88412
+Industrial,Industrial,deliv,Tbtu,Energy,1993,16006.31168,2434.108191,18440.41987
+Industrial,Industrial,deliv,Tbtu,Energy,1994,16508.69218,2400.077171,18908.76935
+Industrial,Industrial,deliv,Tbtu,Energy,1995,16953.80999,2374.195113,19328.0051
+Industrial,Industrial,deliv,Tbtu,Energy,1996,17060.87108,2438.804748,19499.67582
+Industrial,Industrial,deliv,Tbtu,Energy,1997,17049.82823,2518.335137,19568.16336
+Industrial,Industrial,deliv,Tbtu,Energy,1998,17456.07707,2582.566504,20038.64358
+Industrial,Industrial,deliv,Tbtu,Energy,1999,17763.69612,2582.523642,20346.21977
+Industrial,Industrial,deliv,Tbtu,Energy,2000,17731.94411,2645.453876,20377.39799
+Industrial,Industrial,deliv,Tbtu,Energy,2001,17161.91585,2647.257884,19809.17373
+Industrial,Industrial,deliv,Tbtu,Energy,2002,16208.10727,2565.511457,18773.61873
+Industrial,Industrial,deliv,Tbtu,Energy,2003,15914.55008,2380.735067,18295.28514
+Industrial,Industrial,deliv,Tbtu,Energy,2004,15940.25788,2494.511964,18434.76985
+Industrial,Industrial,deliv,Tbtu,Energy,2005,15816.4822,2476.482593,18292.96479
+Industrial,Industrial,deliv,Tbtu,Energy,2006,15845.87662,2458.384495,18304.26112
+Industrial,Industrial,deliv,Tbtu,Energy,2007,15932.02068,2494.916776,18426.93746
+Industrial,Industrial,deliv,Tbtu,Energy,2008,15224.37782,2385.939114,17610.31693
+Industrial,Industrial,deliv,Tbtu,Energy,2009,13802.2255,2421.731914,16223.95742
+Industrial,Industrial,deliv,Tbtu,Energy,2010,14467.7591,2295.576963,16763.33607
+Industrial,Industrial,deliv,Tbtu,Energy,2011,14496.81074,2335.433671,16832.24441
+Industrial,Industrial,deliv,Tbtu,Energy,2012,13821.46258,2394.698795,16216.16137
+Industrial,Industrial,deliv,Tbtu,Energy,2013,14659.83322,2702.679513,17362.51273
+Industrial,Industrial,deliv,Tbtu,Energy,2014,15051.96246,3109.498537,18161.46099
+Industrial,Industrial,deliv,Tbtu,Energy,2015,14706.33077,3426.754403,18133.08517
+Industrial,Industrial,deliv,Tbtu,Energy,2016,14851.92369,3546.037201,18397.96089
+Industrial,Industrial,deliv,Tbtu,Energy,2017,14482.07666,3766.99733,18249.07399
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1970,623422.2101,758007.3429,1381429.553
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1971,647414.0697,762348.6297,1409762.699
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1972,709523.1168,772148.8006,1481671.917
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1973,767392.6385,779967.4285,1547360.067
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1974,719543.8132,735399.6013,1454943.414
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1975,669440.3312,727136.5351,1396576.866
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1976,737022.2202,755382.8576,1492405.078
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1977,786547.5851,773357.3809,1559904.966
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1978,831370.9309,780960.5884,1612331.519
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1979,845804.5879,767047.225,1612851.813
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1980,786393.4206,748774.6537,1535168.074
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1981,803891.0981,745771.548,1549662.646
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1982,762613.5372,722388.2336,1485001.771
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1983,841064.0277,698552.705,1539616.733
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1984,912615.6541,793063.7415,1705679.396
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1985,939844.9695,868136.2601,1807981.23
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1986,965840.9684,901233.751,1867074.719
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1987,1026061.5,927719.3988,1953780.898
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1988,1090887.697,945843.5523,2036731.249
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1989,1095146.493,962024.6889,2057171.182
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1990,1089037.722,965413.7748,2054451.497
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1991,1075953.005,930794.0446,2006747.05
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1992,1117943.577,953520.4945,2071464.072
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1993,1155906.6,952198.8002,2108105.401
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1994,1224394.206,1033039.576,2257433.782
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1995,1274921.641,1003978.042,2278899.683
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1996,1327877.167,1045324.17,2373201.337
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1997,1425097.193,1079410.576,2504507.769
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1998,1483737.537,1113243.095,2596980.632
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,1999,1566177.036,1145336.123,2711513.158
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2000,1678774.976,1179948.053,2858723.029
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2001,1607454.597,1186379.51,2793834.106
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2002,1621541.383,1170167.721,2791709.104
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2003,1711400.051,1171316.975,2882717.026
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2004,1832207.254,1214419.55,3046626.804
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2005,1887937.743,1229465.117,3117402.86
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2006,1995024.3,1257091.874,3252116.174
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2007,2060948.92,1238681.041,3299629.962
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2008,2019112.513,1159100.682,3178213.195
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2009,1833421.3,1124595.758,2958017.059
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2010,1932626.195,1047211.871,2979838.065
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2011,1939833.388,1044251.181,2984084.569
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2012,1927057,1091790,3018847
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2013,1986179.109,1149423.772,3135602.88
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2014,2020172.394,1202742.926,3222915.321
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2015,2037496.637,1275168.12,3312664.756
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2016,2027013.447,1295745.522,3322758.969
+Industrial,Industrial,deliv,Value Added --> Gross Domestic Product,Activity,2017,2079776.267,1331368.921,3411145.189
+Industrial,Industrial,elec,Tbtu,Energy,1970,1700.508648,286.0828166,1986.591464
+Industrial,Industrial,elec,Tbtu,Energy,1971,1746.783358,292.3836424,2039.167001
+Industrial,Industrial,elec,Tbtu,Energy,1972,1892.377964,302.1560442,2194.534008
+Industrial,Industrial,elec,Tbtu,Energy,1973,2057.26821,322.9312102,2380.19942
+Industrial,Industrial,elec,Tbtu,Energy,1974,2090.791107,323.3942473,2414.185355
+Industrial,Industrial,elec,Tbtu,Energy,1975,1999.835274,312.7144062,2312.54968
+Industrial,Industrial,elec,Tbtu,Energy,1976,2146.025546,333.9756075,2480.001153
+Industrial,Industrial,elec,Tbtu,Energy,1977,2242.381628,355.9329542,2598.314582
+Industrial,Industrial,elec,Tbtu,Energy,1978,2283.095457,372.7676986,2655.863156
+Industrial,Industrial,elec,Tbtu,Energy,1979,2306.113373,387.0620207,2693.175393
+Industrial,Industrial,elec,Tbtu,Energy,1980,2223.900248,381.1220812,2605.02233
+Industrial,Industrial,elec,Tbtu,Energy,1981,2249.514299,379.2410897,2628.755389
+Industrial,Industrial,elec,Tbtu,Energy,1982,2081.233773,343.3658276,2424.5996
+Industrial,Industrial,elec,Tbtu,Energy,1983,2108.017308,337.0256866,2445.042994
+Industrial,Industrial,elec,Tbtu,Energy,1984,2294.746851,379.7179121,2674.464763
+Industrial,Industrial,elec,Tbtu,Energy,1985,2221.768104,370.5388181,2592.306922
+Industrial,Industrial,elec,Tbtu,Energy,1986,2226.995669,359.569298,2586.564967
+Industrial,Industrial,elec,Tbtu,Energy,1987,2353.940576,376.2480187,2730.188595
+Industrial,Industrial,elec,Tbtu,Energy,1988,2472.26145,400.736338,2872.997788
+Industrial,Industrial,elec,Tbtu,Energy,1989,2500.539357,414.6070887,2915.146446
+Industrial,Industrial,elec,Tbtu,Energy,1990,2563.90005,421.8672178,2985.767268
+Industrial,Industrial,elec,Tbtu,Energy,1991,2551.721072,429.3240223,2981.045095
+Industrial,Industrial,elec,Tbtu,Energy,1992,2559.043607,436.309633,2995.35324
+Industrial,Industrial,elec,Tbtu,Energy,1993,2629.787441,433.4639975,3063.251438
+Industrial,Industrial,elec,Tbtu,Energy,1994,2702.706242,443.1881436,3145.894386
+Industrial,Industrial,elec,Tbtu,Energy,1995,2742.002261,455.7033842,3197.705645
+Industrial,Industrial,elec,Tbtu,Energy,1996,2802.524129,473.5494509,3276.07358
+Industrial,Industrial,elec,Tbtu,Energy,1997,2804.788808,450.5399421,3255.32875
+Industrial,Industrial,elec,Tbtu,Energy,1998,2796.932362,471.6462754,3268.578637
+Industrial,Industrial,elec,Tbtu,Energy,1999,2843.504442,451.4081564,3294.912599
+Industrial,Industrial,elec,Tbtu,Energy,2000,2946.889277,470.6652797,3417.554557
+Industrial,Industrial,elec,Tbtu,Energy,2001,2866.019473,495.3620677,3361.381541
+Industrial,Industrial,elec,Tbtu,Energy,2002,2774.435906,473.0473723,3247.483279
+Industrial,Industrial,elec,Tbtu,Energy,2003,2801.382855,497.3727739,3298.755629
+Industrial,Industrial,elec,Tbtu,Energy,2004,2989.35594,524.0818616,3513.437802
+Industrial,Industrial,elec,Tbtu,Energy,2005,3075.651507,555.886623,3631.53813
+Industrial,Industrial,elec,Tbtu,Energy,2006,3040.260984,576.1285828,3616.389567
+Industrial,Industrial,elec,Tbtu,Energy,2007,3029.886955,580.3677938,3610.254749
+Industrial,Industrial,elec,Tbtu,Energy,2008,2995.116471,559.1264692,3554.24294
+Industrial,Industrial,elec,Tbtu,Energy,2009,2523.895578,526.660332,3050.55591
+Industrial,Industrial,elec,Tbtu,Energy,2010,2672.729103,503.6816911,3176.410794
+Industrial,Industrial,elec,Tbtu,Energy,2011,2834.860004,507.3896032,3342.249607
+Industrial,Industrial,elec,Tbtu,Energy,2012,2804.353605,504.6214048,3308.97501
+Industrial,Industrial,elec,Tbtu,Energy,2013,2730.081118,552.198272,3282.27939
+Industrial,Industrial,elec,Tbtu,Energy,2014,2750.932457,618.6457201,3369.578177
+Industrial,Industrial,elec,Tbtu,Energy,2015,2752.182784,648.2867294,3400.469514
+Industrial,Industrial,elec,Tbtu,Energy,2016,2660.861597,661.4596425,3322.32124
+Industrial,Industrial,elec,Tbtu,Energy,2017,2600.756409,709.1671515,3309.923561
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1970,623422.2101,758007.3429,1381429.553
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1971,647414.0697,762348.6297,1409762.699
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1972,709523.1168,772148.8006,1481671.917
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1973,767392.6385,779967.4285,1547360.067
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1974,719543.8132,735399.6013,1454943.414
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1975,669440.3312,727136.5351,1396576.866
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1976,737022.2202,755382.8576,1492405.078
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1977,786547.5851,773357.3809,1559904.966
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1978,831370.9309,780960.5884,1612331.519
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1979,845804.5879,767047.225,1612851.813
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1980,786393.4206,748774.6537,1535168.074
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1981,803891.0981,745771.548,1549662.646
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1982,762613.5372,722388.2336,1485001.771
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1983,841064.0277,698552.705,1539616.733
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1984,912615.6541,793063.7415,1705679.396
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1985,939844.9695,868136.2601,1807981.23
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1986,965840.9684,901233.751,1867074.719
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1987,1026061.5,927719.3988,1953780.898
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1988,1090887.697,945843.5523,2036731.249
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1989,1095146.493,962024.6889,2057171.182
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1990,1089037.722,965413.7748,2054451.497
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1991,1075953.005,930794.0446,2006747.05
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1992,1117943.577,953520.4945,2071464.072
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1993,1155906.6,952198.8002,2108105.401
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1994,1224394.206,1033039.576,2257433.782
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1995,1274921.641,1003978.042,2278899.683
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1996,1327877.167,1045324.17,2373201.337
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1997,1425097.193,1079410.576,2504507.769
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1998,1483737.537,1113243.095,2596980.632
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,1999,1566177.036,1145336.123,2711513.158
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2000,1678774.976,1179948.053,2858723.029
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2001,1607454.597,1186379.51,2793834.106
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2002,1621541.383,1170167.721,2791709.104
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2003,1711400.051,1171316.975,2882717.026
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2004,1832207.254,1214419.55,3046626.804
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2005,1887937.743,1229465.117,3117402.86
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2006,1995024.3,1257091.874,3252116.174
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2007,2060948.92,1238681.041,3299629.962
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2008,2019112.513,1159100.682,3178213.195
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2009,1833421.3,1124595.758,2958017.059
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2010,1932626.195,1047211.871,2979838.065
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2011,1939833.388,1044251.181,2984084.569
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2012,1927057,1091790,3018847
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2013,1986179.109,1149423.772,3135602.88
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2014,2020172.394,1202742.926,3222915.321
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2015,2037496.637,1275168.12,3312664.756
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2016,2027013.447,1295745.522,3322758.969
+Industrial,Industrial,elec,Value Added --> Gross Domestic Product,Activity,2017,2079776.267,1331368.921,3411145.189
+Industrial,Industrial,fuels,Tbtu,Energy,1970,14792.78973,2397.295124,17190.08485
+Industrial,Industrial,fuels,Tbtu,Energy,1971,14810.13018,2428.467934,17238.59811
+Industrial,Industrial,fuels,Tbtu,Energy,1972,15351.9336,2478.177677,17830.11128
+Industrial,Industrial,fuels,Tbtu,Energy,1973,15663.83733,2573.76664,18237.60397
+Industrial,Industrial,fuels,Tbtu,Energy,1974,15620.21708,2539.736613,18159.9537
+Industrial,Industrial,fuels,Tbtu,Energy,1975,14113.7923,2412.337021,16526.12932
+Industrial,Industrial,fuels,Tbtu,Energy,1976,14717.52427,2475.878785,17193.40305
+Industrial,Industrial,fuels,Tbtu,Energy,1977,14832.90013,2495.760879,17328.66101
+Industrial,Industrial,fuels,Tbtu,Energy,1978,15018.16289,2788.455785,17806.61868
+Industrial,Industrial,fuels,Tbtu,Energy,1979,14917.6308,2524.57287,17442.20367
+Industrial,Industrial,fuels,Tbtu,Energy,1980,13654.40513,2630.43743,16284.84256
+Industrial,Industrial,fuels,Tbtu,Energy,1981,12980.26835,2641.522055,15621.79041
+Industrial,Industrial,fuels,Tbtu,Energy,1982,11452.93925,2412.459538,13865.39879
+Industrial,Industrial,fuels,Tbtu,Energy,1983,12109.8977,2574.134471,14684.03217
+Industrial,Industrial,fuels,Tbtu,Energy,1984,12300.6472,2599.674573,14900.32177
+Industrial,Industrial,fuels,Tbtu,Energy,1985,11405.41166,2453.793271,13859.20493
+Industrial,Industrial,fuels,Tbtu,Energy,1986,11805.21078,2306.738437,14111.94922
+Industrial,Industrial,fuels,Tbtu,Energy,1987,12072.95835,2238.447142,14311.40549
+Industrial,Industrial,fuels,Tbtu,Energy,1988,13042.14548,2259.132497,15301.27798
+Industrial,Industrial,fuels,Tbtu,Energy,1989,13104.29533,2192.149548,15296.44488
+Industrial,Industrial,fuels,Tbtu,Energy,1990,13103.45544,2149.394791,15252.85023
+Industrial,Industrial,fuels,Tbtu,Energy,1991,12599.57837,2024.575645,14624.15401
+Industrial,Industrial,fuels,Tbtu,Energy,1992,12996.44857,2001.082315,14997.53088
+Industrial,Industrial,fuels,Tbtu,Energy,1993,13376.52424,2000.644194,15377.16843
+Industrial,Industrial,fuels,Tbtu,Energy,1994,13805.98593,1956.889027,15762.87496
+Industrial,Industrial,fuels,Tbtu,Energy,1995,14211.80773,1918.491729,16130.29946
+Industrial,Industrial,fuels,Tbtu,Energy,1996,14258.34695,1965.255297,16223.60225
+Industrial,Industrial,fuels,Tbtu,Energy,1997,14245.03942,2067.795195,16312.83461
+Industrial,Industrial,fuels,Tbtu,Energy,1998,14659.14471,2110.920229,16770.06494
+Industrial,Industrial,fuels,Tbtu,Energy,1999,14920.19168,2131.115486,17051.30717
+Industrial,Industrial,fuels,Tbtu,Energy,2000,14785.05483,2174.788596,16959.84343
+Industrial,Industrial,fuels,Tbtu,Energy,2001,14295.89637,2151.895816,16447.79219
+Industrial,Industrial,fuels,Tbtu,Energy,2002,13433.67137,2092.464085,15526.13545
+Industrial,Industrial,fuels,Tbtu,Energy,2003,13113.16722,1883.362293,14996.52951
+Industrial,Industrial,fuels,Tbtu,Energy,2004,12950.90194,1970.430102,14921.33205
+Industrial,Industrial,fuels,Tbtu,Energy,2005,12740.83069,1920.59597,14661.42666
+Industrial,Industrial,fuels,Tbtu,Energy,2006,12805.61564,1882.255912,14687.87155
+Industrial,Industrial,fuels,Tbtu,Energy,2007,12902.13373,1914.548982,14816.68271
+Industrial,Industrial,fuels,Tbtu,Energy,2008,12229.26135,1826.812645,14056.07399
+Industrial,Industrial,fuels,Tbtu,Energy,2009,11278.32992,1895.071583,13173.40151
+Industrial,Industrial,fuels,Tbtu,Energy,2010,11795.03,1791.895272,13586.92527
+Industrial,Industrial,fuels,Tbtu,Energy,2011,11661.95073,1828.044068,13489.9948
+Industrial,Industrial,fuels,Tbtu,Energy,2012,11017.10897,1890.07739,12907.18636
+Industrial,Industrial,fuels,Tbtu,Energy,2013,11929.7521,2150.481241,14080.23335
+Industrial,Industrial,fuels,Tbtu,Energy,2014,12301.03,2490.852817,14791.88282
+Industrial,Industrial,fuels,Tbtu,Energy,2015,11954.14798,2778.467674,14732.61566
+Industrial,Industrial,fuels,Tbtu,Energy,2016,12191.06209,2884.577559,15075.63965
+Industrial,Industrial,fuels,Tbtu,Energy,2017,11881.32025,3057.830178,14939.15043
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1970,623422.2101,758007.3429,1381429.553
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1971,647414.0697,762348.6297,1409762.699
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1972,709523.1168,772148.8006,1481671.917
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1973,767392.6385,779967.4285,1547360.067
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1974,719543.8132,735399.6013,1454943.414
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1975,669440.3312,727136.5351,1396576.866
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1976,737022.2202,755382.8576,1492405.078
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1977,786547.5851,773357.3809,1559904.966
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1978,831370.9309,780960.5884,1612331.519
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1979,845804.5879,767047.225,1612851.813
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1980,786393.4206,748774.6537,1535168.074
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1981,803891.0981,745771.548,1549662.646
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1982,762613.5372,722388.2336,1485001.771
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1983,841064.0277,698552.705,1539616.733
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1984,912615.6541,793063.7415,1705679.396
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1985,939844.9695,868136.2601,1807981.23
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1986,965840.9684,901233.751,1867074.719
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1987,1026061.5,927719.3988,1953780.898
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1988,1090887.697,945843.5523,2036731.249
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1989,1095146.493,962024.6889,2057171.182
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1990,1089037.722,965413.7748,2054451.497
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1991,1075953.005,930794.0446,2006747.05
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1992,1117943.577,953520.4945,2071464.072
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1993,1155906.6,952198.8002,2108105.401
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1994,1224394.206,1033039.576,2257433.782
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1995,1274921.641,1003978.042,2278899.683
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1996,1327877.167,1045324.17,2373201.337
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1997,1425097.193,1079410.576,2504507.769
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1998,1483737.537,1113243.095,2596980.632
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,1999,1566177.036,1145336.123,2711513.158
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2000,1678774.976,1179948.053,2858723.029
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2001,1607454.597,1186379.51,2793834.106
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2002,1621541.383,1170167.721,2791709.104
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2003,1711400.051,1171316.975,2882717.026
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2004,1832207.254,1214419.55,3046626.804
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2005,1887937.743,1229465.117,3117402.86
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2006,1995024.3,1257091.874,3252116.174
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2007,2060948.92,1238681.041,3299629.962
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2008,2019112.513,1159100.682,3178213.195
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2009,1833421.3,1124595.758,2958017.059
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2010,1932626.195,1047211.871,2979838.065
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2011,1939833.388,1044251.181,2984084.569
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2012,1927057,1091790,3018847
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2013,1986179.109,1149423.772,3135602.88
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2014,2020172.394,1202742.926,3222915.321
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2015,2037496.637,1275168.12,3312664.756
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2016,2027013.447,1295745.522,3322758.969
+Industrial,Industrial,fuels,Value Added --> Gross Domestic Product,Activity,2017,2079776.267,1331368.921,3411145.189
+Industrial,Industrial,source_adj,Tbtu,Energy,1970,20375.42699,3336.482698,23711.90969
+Industrial,Industrial,source_adj,Tbtu,Energy,1971,20544.6837,3388.340627,23933.02433
+Industrial,Industrial,source_adj,Tbtu,Energy,1972,21564.46286,3470.132404,25034.59527
+Industrial,Industrial,source_adj,Tbtu,Energy,1973,22417.68841,3633.924616,26051.61303
+Industrial,Industrial,source_adj,Tbtu,Energy,1974,22484.12122,3601.414704,26085.53592
+Industrial,Industrial,source_adj,Tbtu,Energy,1975,20679.09553,3438.954027,24118.04956
+Industrial,Industrial,source_adj,Tbtu,Energy,1976,21762.75876,3572.294657,25335.05341
+Industrial,Industrial,source_adj,Tbtu,Energy,1977,22194.46412,3664.261007,25858.72513
+Industrial,Industrial,source_adj,Tbtu,Energy,1978,22513.38721,4012.223066,26525.61028
+Industrial,Industrial,source_adj,Tbtu,Energy,1979,22488.42114,3795.267296,26283.68843
+Industrial,Industrial,source_adj,Tbtu,Energy,1980,20955.29619,3881.631497,24836.92769
+Industrial,Industrial,source_adj,Tbtu,Energy,1981,20365.24835,3886.540974,24251.78932
+Industrial,Industrial,source_adj,Tbtu,Energy,1982,18285.4674,3539.702769,21825.17017
+Industrial,Industrial,source_adj,Tbtu,Energy,1983,19030.35411,3680.563514,22710.91762
+Industrial,Industrial,source_adj,Tbtu,Energy,1984,19834.12214,3846.258863,23680.381
+Industrial,Industrial,source_adj,Tbtu,Energy,1985,18699.30306,3670.243311,22369.54637
+Industrial,Industrial,source_adj,Tbtu,Energy,1986,19116.26387,3487.176398,22603.44027
+Industrial,Industrial,source_adj,Tbtu,Energy,1987,19800.76167,3473.640043,23274.40171
+Industrial,Industrial,source_adj,Tbtu,Energy,1988,21158.387,3574.71864,24733.10564
+Industrial,Industrial,source_adj,Tbtu,Energy,1989,21313.37101,3553.272283,24866.6433
+Industrial,Industrial,source_adj,Tbtu,Energy,1990,21520.53934,3534.351964,25054.8913
+Industrial,Industrial,source_adj,Tbtu,Energy,1991,20976.67963,3434.012926,24410.69256
+Industrial,Industrial,source_adj,Tbtu,Energy,1992,21397.58914,3433.45281,24831.04195
+Industrial,Industrial,source_adj,Tbtu,Energy,1993,22009.9113,3423.67269,25433.58399
+Industrial,Industrial,source_adj,Tbtu,Energy,1994,22678.75973,3411.841137,26090.60087
+Industrial,Industrial,source_adj,Tbtu,Energy,1995,23213.58729,3414.530397,26628.11769
+Industrial,Industrial,source_adj,Tbtu,Energy,1996,23458.81508,3519.88121,26978.69629
+Industrial,Industrial,source_adj,Tbtu,Energy,1997,23452.94232,3546.882685,26999.825
+Industrial,Industrial,source_adj,Tbtu,Energy,1998,23841.25551,3659.298165,27500.55368
+Industrial,Industrial,source_adj,Tbtu,Energy,1999,24255.19499,3613.053256,27868.24824
+Industrial,Industrial,source_adj,Tbtu,Energy,2000,24459.46249,3719.946,28179.40849
+Industrial,Industrial,source_adj,Tbtu,Energy,2001,23704.81477,3778.130849,27482.94562
+Industrial,Industrial,source_adj,Tbtu,Energy,2002,22541.92806,3645.441713,26187.36977
+Industrial,Industrial,source_adj,Tbtu,Energy,2003,22309.88864,3516.198317,25826.08696
+Industrial,Industrial,source_adj,Tbtu,Energy,2004,22764.72434,3690.949979,26455.67432
+Industrial,Industrial,source_adj,Tbtu,Energy,2005,22837.95471,3745.528397,26583.48311
+Industrial,Industrial,source_adj,Tbtu,Energy,2006,22786.55533,3773.641115,26560.19644
+Industrial,Industrial,source_adj,Tbtu,Energy,2007,22849.01629,3819.851184,26668.86747
+Industrial,Industrial,source_adj,Tbtu,Energy,2008,22061.99512,3662.381235,25724.37636
+Industrial,Industrial,source_adj,Tbtu,Energy,2009,19564.08226,3624.056376,23188.13863
+Industrial,Industrial,source_adj,Tbtu,Energy,2010,20569.39119,3445.44298,24014.83417
+Industrial,Industrial,source_adj,Tbtu,Energy,2011,20968.57502,3493.764561,24462.33958
+Industrial,Industrial,source_adj,Tbtu,Energy,2012,20223.58313,3546.710105,23770.29324
+Industrial,Industrial,source_adj,Tbtu,Energy,2013,20892.39548,3963.3051,24855.70058
+Industrial,Industrial,source_adj,Tbtu,Energy,2014,21332.1267,4521.818465,25853.94516
+Industrial,Industrial,source_adj,Tbtu,Energy,2015,20989.34941,4906.742444,25896.09185
+Industrial,Industrial,source_adj,Tbtu,Energy,2016,20926.46319,5056.097975,25982.56116
+Industrial,Industrial,source_adj,Tbtu,Energy,2017,20419.4007,5385.970626,25805.37132
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1970,623422.2101,758007.3429,1381429.553
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1971,647414.0697,762348.6297,1409762.699
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1972,709523.1168,772148.8006,1481671.917
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1973,767392.6385,779967.4285,1547360.067
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1974,719543.8132,735399.6013,1454943.414
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1975,669440.3312,727136.5351,1396576.866
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1976,737022.2202,755382.8576,1492405.078
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1977,786547.5851,773357.3809,1559904.966
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1978,831370.9309,780960.5884,1612331.519
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1979,845804.5879,767047.225,1612851.813
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1980,786393.4206,748774.6537,1535168.074
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1981,803891.0981,745771.548,1549662.646
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1982,762613.5372,722388.2336,1485001.771
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1983,841064.0277,698552.705,1539616.733
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1984,912615.6541,793063.7415,1705679.396
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1985,939844.9695,868136.2601,1807981.23
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1986,965840.9684,901233.751,1867074.719
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1987,1026061.5,927719.3988,1953780.898
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1988,1090887.697,945843.5523,2036731.249
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1989,1095146.493,962024.6889,2057171.182
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1990,1089037.722,965413.7748,2054451.497
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1991,1075953.005,930794.0446,2006747.05
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1992,1117943.577,953520.4945,2071464.072
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1993,1155906.6,952198.8002,2108105.401
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1994,1224394.206,1033039.576,2257433.782
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1995,1274921.641,1003978.042,2278899.683
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1996,1327877.167,1045324.17,2373201.337
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1997,1425097.193,1079410.576,2504507.769
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1998,1483737.537,1113243.095,2596980.632
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,1999,1566177.036,1145336.123,2711513.158
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2000,1678774.976,1179948.053,2858723.029
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2001,1607454.597,1186379.51,2793834.106
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2002,1621541.383,1170167.721,2791709.104
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2003,1711400.051,1171316.975,2882717.026
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2004,1832207.254,1214419.55,3046626.804
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2005,1887937.743,1229465.117,3117402.86
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2006,1995024.3,1257091.874,3252116.174
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2007,2060948.92,1238681.041,3299629.962
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2008,2019112.513,1159100.682,3178213.195
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2009,1833421.3,1124595.758,2958017.059
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2010,1932626.195,1047211.871,2979838.065
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2011,1939833.388,1044251.181,2984084.569
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2012,1927057,1091790,3018847
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2013,1986179.109,1149423.772,3135602.88
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2014,2020172.394,1202742.926,3222915.321
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2015,2037496.637,1275168.12,3312664.756
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2016,2027013.447,1295745.522,3322758.969
+Industrial,Industrial,source_adj,Value Added --> Gross Domestic Product,Activity,2017,2079776.267,1331368.921,3411145.189
