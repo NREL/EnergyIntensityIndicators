@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Residential Sector &mdash; EnergyIntensityIndicators  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> EnergyIntensityIndicators
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../LMDI/lmdi.html">Core LMDI Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="residential.html">Residential Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results.html">Results</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">EnergyIntensityIndicators</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Residential Sector</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/EnergyIntensityIndicators/Residential/EnergyIntensityIndicators.residential.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-EnergyIntensityIndicators.residential">
+<span id="residential-sector"></span><h1>Residential Sector<a class="headerlink" href="#module-EnergyIntensityIndicators.residential" title="Permalink to this headline">¶</a></h1>
+<p>Overview and Assumptions:
+A. Data on the number and average size of occupied housing units from the biennial American
+Housing Survey were employed to generate many of the activity metrics for this sector.
+B. Three types of residential housing units are distinguished: single-family, multi-family, and
+manufactured homes.
+C. Regional data from EIA’s State Energy Data System (SEDS) are employed to develop regional
+intensity indicators.
+D. Regression models at the regional level are used to adjust for year-to-year changes in weather.
+E. Two separate data construction elements are required to generate the regional and national
+estimates of energy intensity indicators for this sector.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Regional time series of floor space for residential housing units in the U.S (census level).</p></li>
+<li><p>Weather adjustment for the four census regions.</p></li>
+</ol>
+</div></blockquote>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.residential.</code><code class="sig-name descname">ResidentialIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">level_of_aggregation=None</em>, <em class="sig-param">lmdi_model='multiplicative'</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../LMDI/lmdi.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.activity">
+<code class="sig-name descname">activity</code><span class="sig-paren">(</span><em class="sig-param">floorspace</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine Energy datasets into one Energy Consumption Occupied Housing Units</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather all input data for you in decomposition of
+energy use for the Residential sector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.collect_weather">
+<code class="sig-name descname">collect_weather</code><span class="sig-paren">(</span><em class="sig-param">energy_dict</em>, <em class="sig-param">nominal_energy_intensity</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.collect_weather" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect weather data for the Residential Sector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.fuel_electricity_consumption">
+<code class="sig-name descname">fuel_electricity_consumption</code><span class="sig-paren">(</span><em class="sig-param">total_fuels</em>, <em class="sig-param">elec</em>, <em class="sig-param">region</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.fuel_electricity_consumption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
+Data Source: EIA’s State Energy Data System (SEDS)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.get_floorspace">
+<code class="sig-name descname">get_floorspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.get_floorspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect floorspace data for the Residential sector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.get_seds">
+<code class="sig-name descname">get_seds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.get_seds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect SEDS data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.residential.ResidentialIndicators.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.residential.ResidentialIndicators.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate decomposition for the Residential sector</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="toctree-wrapper compound">
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, NREL
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Transportation Sector Data Collection &mdash; EnergyIntensityIndicators  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Supporting Files" href="../supporting_files.html" />
+    <link rel="prev" title="Residential Floorspace" href="../Residential/EnergyIntensityIndicators.Residential.residential_floorspace.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> EnergyIntensityIndicators
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../LMDI/lmdi.html">Core LMDI Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Residential/residential.html">Residential Sector Data Collection</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results.html">Results</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">EnergyIntensityIndicators</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Transportation Sector Data Collection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/EnergyIntensityIndicators/Transportation/transportation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-EnergyIntensityIndicators.transportation">
+<span id="transportation-sector-data-collection"></span><h1>Transportation Sector Data Collection<a class="headerlink" href="#module-EnergyIntensityIndicators.transportation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.transportation.</code><code class="sig-name descname">TransportationIndicators</code><span class="sig-paren">(</span><em class="sig-param">directory</em>, <em class="sig-param">output_directory</em>, <em class="sig-param">level_of_aggregation</em>, <em class="sig-param">lmdi_model='multiplicative'</em>, <em class="sig-param">tedb_date='04302020'</em>, <em class="sig-param">base_year=1985</em>, <em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../LMDI/lmdi.html#EnergyIntensityIndicators.LMDI.CalculateLMDI" title="EnergyIntensityIndicators.LMDI.CalculateLMDI"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyIntensityIndicators.LMDI.CalculateLMDI</span></code></a></p>
+<p>Class to calculate Energy Intensity indicators for the U.S. Transportation Sector</p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.adjust_truck_freight">
+<code class="sig-name descname">adjust_truck_freight</code><span class="sig-paren">(</span><em class="sig-param">parameter_list</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.adjust_truck_freight" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>purpose</dt><dd></dd>
+</dl>
+<p>DOES THIS WORK ? dataframes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.collect_data">
+<code class="sig-name descname">collect_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to collect freight and passenger energy and activity data.
+This method should be adjusted to call dataframe building methods rather than reading csvs, when those are ready</p>
+<p>Gather Energy Data to use in LMDI Calculation TBtu and Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
+:returns: [description]
+:rtype: [type]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.compare_aggregates">
+<code class="sig-name descname">compare_aggregates</code><span class="sig-paren">(</span><em class="sig-param">parameter_list</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.compare_aggregates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare aggregates from MER and model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.detailed_data_school_buses">
+<code class="sig-name descname">detailed_data_school_buses</code><span class="sig-paren">(</span><em class="sig-param">parameter_list</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.detailed_data_school_buses" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Adjusted miles - use number of buses times interpolated values for annual miles per bus.
+For years ending 0 and 5, use published data
+Thus, adjusted values match in years ending 0 and 5 with Column 4, and for 1994.
+After 1994, values taken directly from
+School Bus Fleet Magazine estimates, adjusted for missing values</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.freight_based_activity">
+<code class="sig-name descname">freight_based_activity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.freight_based_activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time series for the activity measures for passenger transportation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.freight_based_energy_use">
+<code class="sig-name descname">freight_based_energy_use</code><span class="sig-paren">(</span><em class="sig-param">freight_based_activity</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.freight_based_energy_use" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the fuel consumption in Btu for freight transportation</p>
+<p>Need FuelConsump, Fuel Heat Content</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.fuel_consump">
+<code class="sig-name descname">fuel_consump</code><span class="sig-paren">(</span><em class="sig-param">parameter_list</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.fuel_consump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time series of fuel consumption for the major transportation subsectors. Data are generally in
+millions gallons or barrels of petroleum.</p>
+<blockquote>
+<div></div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.fuel_heat_content">
+<code class="sig-name descname">fuel_heat_content</code><span class="sig-paren">(</span><em class="sig-param">gross=True</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.fuel_heat_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumed Btu content of the various types of petroleum products. This dataframe is not time variant (no need to update it with subsquent indicator updates)
+Parameters</p>
+<blockquote>
+<div><p>gross (bool): if True use gross fuel heat content, if False use net</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.import_tedb_data">
+<code class="sig-name descname">import_tedb_data</code><span class="sig-paren">(</span><em class="sig-param">table_number</em>, <em class="sig-param">skip_footer=None</em>, <em class="sig-param">skiprows=None</em>, <em class="sig-param">sheet_name=None</em>, <em class="sig-param">usecols=None</em>, <em class="sig-param">index_col=None</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.import_tedb_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">breakout</em>, <em class="sig-param">calculate_lmdi</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decompose Energy use for the Transportation sector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.passenger_based_activity">
+<code class="sig-name descname">passenger_based_activity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.passenger_based_activity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time series for the activity measures for passenger transportation
+1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
+1977-2017 American Public Transportation Association. 2019 Public Transportation Fact Book. Appendix A, Table 3, Pt. A
+Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years.
+<a class="reference external" href="https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/">https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/</a></p>
+<blockquote>
+<div><p>Note: Series not continuous for transit bus between 2006 and 2007; estimation procedures changed for bus systems outside urban areas
+Note: Series not continuous between 1983 and 1984.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.passenger_based_energy_use">
+<code class="sig-name descname">passenger_based_energy_use</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.passenger_based_energy_use" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the fuel consumption in Btu for passenger transportation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.transportation.TransportationIndicators.water_freight_regression">
+<code class="sig-name descname">water_freight_regression</code><span class="sig-paren">(</span><em class="sig-param">intensity</em>, <em class="sig-param">actual_dd</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.transportation.TransportationIndicators.water_freight_regression" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../supporting_files.html" class="btn btn-neutral float-right" title="Supporting Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../Residential/EnergyIntensityIndicators.Residential.residential_floorspace.html" class="btn btn-neutral float-left" title="Residential Floorspace" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, NREL
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

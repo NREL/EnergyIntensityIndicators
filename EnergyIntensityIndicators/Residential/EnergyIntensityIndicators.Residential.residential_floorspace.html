@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Residential Floorspace &mdash; EnergyIntensityIndicators  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Transportation Sector Data Collection" href="../Transportation/transportation.html" />
+    <link rel="prev" title="Residential Sector Data Collection" href="residential.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> EnergyIntensityIndicators
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../LMDI/lmdi.html">Core LMDI Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Commercial/commercial.html">Commercial Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Electricity/electricity.html">Electric Power Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Industry/industry.html">Industrial Sector Data Collection</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="residential.html">Residential Sector Data Collection</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Residential Floorspace</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Transportation/transportation.html">Transportation Sector Data Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supporting_files.html">Supporting Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../results.html">Results</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">EnergyIntensityIndicators</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="residential.html">Residential Sector Data Collection</a> &raquo;</li>
+        
+      <li>Residential Floorspace</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/EnergyIntensityIndicators/Residential/EnergyIntensityIndicators.Residential.residential_floorspace.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-EnergyIntensityIndicators.Residential.residential_floorspace">
+<span id="residential-floorspace"></span><h1>Residential Floorspace<a class="headerlink" href="#module-EnergyIntensityIndicators.Residential.residential_floorspace" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace</p>
+<dl class="class">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace">
+<em class="property">class </em><code class="sig-prename descclassname">EnergyIntensityIndicators.Residential.residential_floorspace.</code><code class="sig-name descname">ResidentialFloorspace</code><span class="sig-paren">(</span><em class="sig-param">end_year=2018</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Calculate regional and national estimates of residential
+floorspace based upon model to interpolate/smooth AHS estimates</p>
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.average_housing_unit_size_mf">
+<code class="sig-name descname">average_housing_unit_size_mf</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.average_housing_unit_size_mf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model of avg housing size model for multi-family homes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.final_floorspace_estimates">
+<code class="sig-name descname">final_floorspace_estimates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.final_floorspace_estimates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect final floorspace estimates for the residential sector</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_ahs_tables">
+<code class="sig-name descname">get_ahs_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_ahs_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect AHS historical tables</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_size_mf">
+<code class="sig-name descname">get_housing_size_mf</code><span class="sig-paren">(</span><em class="sig-param">retirement_df</em>, <em class="sig-param">occupied_predicted_mf1</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_size_mf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize prediction of average housing stock for multi-family homes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_comps_ann</strong> (<em>series</em>) – [description]</p></li>
+<li><p><strong>coeffs</strong> (<em>list</em>) – [CM$5, $CM$6, $CM$7]</p></li>
+<li><p><strong>df</strong> (<em>dataframe</em>) – Input data, df contains ‘occupied_predicted_mf’ and ‘retirements’ columns (from housing stock mf)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_size_sf">
+<code class="sig-name descname">get_housing_size_sf</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_size_sf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize prediction of average housing stock for single-family homes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>dataframe</em>) – Dataframe containing column ‘occupied_predicted’ (predicted number housing units)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock">
+<code class="sig-name descname">get_housing_stock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spreadsheet equivalent: Comps Ann, place_nsa_all
+Data Sources:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Census Bureau Survey of  New Construction <a class="reference external" href="https://www.census.gov/construction/nrc/historical_data/index.html">https://www.census.gov/construction/nrc/historical_data/index.html</a></p></li>
+<li><p>Manufactured Housing Survey: Annual data for the most current years were not found on the Census Bureau website.</p></li>
+</ul>
+<p>Monthly data were downloaded for both total units and single (wide) units from the Census Bureau (in
+worksheets CIDR-1 and CIDR-single). The monthly data were aggregated to an annual basis for the years
+2014 through 2018 on these worksheets and the annual values appended to the existing data in the
+place_nsa_all worksheet. (Ideally, the place_nsa_all spreadsheet would be available from the Census
+Bureau for the most recent years but was not found as part of the 2020 update work.)</p>
+</div></blockquote>
+<p>Estimate regional housing and regional floorspace by housing type (single family, multifamily, manufactured homes)
+Data Sources:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>American Housing Survey (AHS) conducted by the Census Bureau to estimate aggregate floor space for three types</p></li>
+</ul>
+<p>of housing units: single-family (attached and detached), multi-family, and manufactured homes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Spreadsheet Equivalents:</dt><dd><ul class="simple">
+<li><p>AHS_summary_results_date Total_Stock_SF.xlsx (single family)</p></li>
+<li><p>AHS_summary_results_date Total_Stock_MF.xlsx (multifamily)</p></li>
+<li><p>AHD_summary_results_date Total_Stock_MH.xlsx (manufactured homes)</p></li>
+</ul>
+</dd>
+<dt>Methodology:</dt><dd><p>1. An estimated survival curve was first developed from vintage data over the 1999 through
+2009 AHS surveys.
+2. Curve was used along with reported new construction from the Characteristics of New
+Housing reports from the Census Bureau.
+3. The “stock adjustment model” was used to arrive at estimates of “Occupied Housing Units”
+at the national level.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_mf">
+<code class="sig-name descname">get_housing_stock_mf</code><span class="sig-paren">(</span><em class="sig-param">all_stock_sf</em>, <em class="sig-param">occupied_pub_sf</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_mf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get housing stock for multi-family units</p>
+<p>Note: all_stock_sf has two values missing from end in the PNNL version?? (this keeps the pub_total_mf from being negative)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_mh">
+<code class="sig-name descname">get_housing_stock_mh</code><span class="sig-paren">(</span><em class="sig-param">all_stock_sf</em>, <em class="sig-param">occupied_pub_sf</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_mh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get housing stock for manufactured housing units</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_sf">
+<code class="sig-name descname">get_housing_stock_sf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_housing_stock_sf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get housing stock for single family units</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_percent_remaining_surviving">
+<em class="property">static </em><code class="sig-name descname">get_percent_remaining_surviving</code><span class="sig-paren">(</span><em class="sig-param">factor</em>, <em class="sig-param">lifetime</em>, <em class="sig-param">gamma</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_percent_remaining_surviving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate percent remaining surviving based (of a housing unit)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_place_nsa_all">
+<em class="property">static </em><code class="sig-name descname">get_place_nsa_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.get_place_nsa_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scrape placement data for manufactured homes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.housing_stock_model">
+<em class="property">static </em><code class="sig-name descname">housing_stock_model</code><span class="sig-paren">(</span><em class="sig-param">year_array</em>, <em class="sig-param">new_comps_ann</em>, <em class="sig-param">pub_total_0</em>, <em class="sig-param">elasticity_of_retirements</em>, <em class="sig-param">coeffs</em>, <em class="sig-param">full_data=False</em>, <em class="sig-param">retirement=False</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.housing_stock_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate housing stock using provided coefficients</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.interpolate_with_avg">
+<em class="property">static </em><code class="sig-name descname">interpolate_with_avg</code><span class="sig-paren">(</span><em class="sig-param">dataframe</em>, <em class="sig-param">columns</em>, <em class="sig-param">even=True</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.interpolate_with_avg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use average to interpolate dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataframe</strong> (<em>df</em>) – dataframe with year index</p></li>
+<li><p><strong>columns</strong> (<em>list</em>) – names of columns to interpolate with average</p></li>
+<li><p><strong>even</strong> (<em>bool</em>) – whether the years to fill are even (or odd if False)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.main">
+<code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.model_average_housing_unit_size_mh">
+<em class="property">static </em><code class="sig-name descname">model_average_housing_unit_size_mh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.model_average_housing_unit_size_mh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Avg housing size model for manufactured homes</p>
+<dl class="simple">
+<dt>recs_data from  D:Supporting_Sheets_SRB[Residential_Floor_Space_2013_SRB.xlsx]REC_Total_SF (2)</dt><dd><p>ratio_80_70 from D:Supporting_Sheets_SRB[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
+ratio_80_74 from D:Supporting_Sheets_SRB[Residential_Floor_Space_2013_SRB.xlsx]RECS_Vintage_size
+recs_data[2015] = 1191.2 from RECS_4_adj</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.model_average_housing_unit_size_sf">
+<em class="property">static </em><code class="sig-name descname">model_average_housing_unit_size_sf</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">df</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.model_average_housing_unit_size_sf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model of single-family housing avg size</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals">
+<code class="sig-name descname">residuals</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">actual_stock</em>, <em class="sig-param">year_array</em>, <em class="sig-param">ca</em>, <em class="sig-param">pub_total</em>, <em class="sig-param">elasticity_of_retirements</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Calculate squared resiudals from the housing stock model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals_avg_size_mf">
+<code class="sig-name descname">residuals_avg_size_mf</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">actual_size</em>, <em class="sig-param">input_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals_avg_size_mf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residuals of avg housing size model for multi-family homes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals_avg_size_sf">
+<code class="sig-name descname">residuals_avg_size_sf</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">actual_size</em>, <em class="sig-param">input_data</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.residuals_avg_size_sf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate residuals, for use in optimization of single-family housing avg size model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.sum_squared_residuals">
+<code class="sig-name descname">sum_squared_residuals</code><span class="sig-paren">(</span><em class="sig-param">coeffs</em>, <em class="sig-param">actual_stock</em>, <em class="sig-param">year_array</em>, <em class="sig-param">ca</em>, <em class="sig-param">pub_total</em>, <em class="sig-param">elasticity_of_retirements</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.sum_squared_residuals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate residuals for the housing stock model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.update_ahs_data">
+<em class="property">static </em><code class="sig-name descname">update_ahs_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyIntensityIndicators.Residential.residential_floorspace.ResidentialFloorspace.update_ahs_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spreadsheet equivalent: AHS_2017_extract
+Extract and process American Housing Survey (AHS, formerly Annual Housing Survey)
+web: <a class="reference external" href="https://www.census.gov/programs-surveys/ahs/data.html">https://www.census.gov/programs-surveys/ahs/data.html</a>
+? <a class="reference external" href="https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html">https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file–puf-/ahs-2017-national-public-use-file–puf-.html</a></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../Transportation/transportation.html" class="btn btn-neutral float-right" title="Transportation Sector Data Collection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="residential.html" class="btn btn-neutral float-left" title="Residential Sector Data Collection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, NREL
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
