@@ -8,7 +8,8 @@ if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
 set SOURCEDIR=source
-set BUILDDIR=build
+set BUILDDIR=../EnergyIntensityIndicators-docs/
+set SPHINXPROJ=EnergyIntensityIndicators
 
 if "%1" == "" goto help
 

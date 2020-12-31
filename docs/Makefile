@@ -5,8 +5,9 @@
 # from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
+SPHINXPROJ	= EnergyIntensityIndicators
 SOURCEDIR     = source
-BUILDDIR      = ../../EnergyIntensityIndicators-docs
+BUILDDIR      = ../EnergyIntensityIndicators-docs/
 
 # Put it first so that "make" without argument is like "make help".
 help:
