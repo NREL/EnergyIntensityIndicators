@@ -1,3 +1,0 @@
-"""
-Energy Intensity Indicators
-"""

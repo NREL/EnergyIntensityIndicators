@@ -1,7 +1,0 @@
-residential module
-===================
-
-.. automodule:: EnergyIntensityIndicators.residential
-   :members:
-   :undoc-members:
-   :show-inheritance:
