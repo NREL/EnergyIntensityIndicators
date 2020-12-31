@@ -1,7 +1,0 @@
-LMDI module
-=============
-
-.. automodule:: EnergyIntensityIndicators.LMDI
-   :members:
-   :undoc-members:
-   :show-inheritance:

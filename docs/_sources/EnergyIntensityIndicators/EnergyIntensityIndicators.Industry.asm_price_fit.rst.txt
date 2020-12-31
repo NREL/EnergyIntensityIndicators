@@ -1,7 +1,0 @@
-asm_price_fit module
-====================
-
-.. automodule:: EnergyIntensityIndicators.Industry.asm_price_fit
-   :members:
-   :undoc-members:
-   :show-inheritance:
