@@ -30,7 +30,8 @@ class NonManufacturing:
         self.BEA_va_nominal = self.BEA_data.get_data(table_name='va_nominal')
         self.BEA_va_quant_index = self.BEA_data.get_data(table_name='va_quant_index')
 
-    def indicators_nonman_2018_bea(self):
+    @staticmethod
+    def indicators_nonman_2018_bea():
         """Reformat value added and gross output chain quantity indexes from 
         GrossOutput_1967-2018PNNL_213119.xlsx/ ChainQtyIndexes (EA301:EJ349) and 
         ValueAdded_1969-2018_PNNL_010120.xlsx/ ChainQtyIndexes (EA301:EJ349) respectively 
