@@ -353,7 +353,9 @@ class TestLMDI:
                                          columns=['Intensity Index'])
         print('component:\n', component)
         print('comparison_output:\n', comparison_output)
-        assert component.equals(comparison_output)
+        # assert component.equals(comparison_output)
+        assert self.pct_diff(comparison_output, component, acceptable_pct_difference=0.05, sector='transportation')
+
 
     def test_compute_index1(self):
         """Data is from Total_Transportation 1983-1987"""
@@ -517,7 +519,7 @@ class TestLMDI:
                                 columns=['Intensity Index', 'Activity Index', 'Structure Index (lower level)'])
 
         model = 'multiplicative'
-        components = eii.calc_ASI(model, test_weights, test_log_ratios)
+        components = eii.calc_ASI(model, test_weights, test_log_ratios, total_label=None)
         print('test_asi:\n', test_asi)
         print('components:\n', components)
         results = mult.decomposition(components)
@@ -767,7 +769,7 @@ class TestLMDI:
                 print("log_mean_divisia_weights_normalized type: \n", type(log_mean_divisia_weights_normalized))
 
                 eii_output = eii.calc_ASI(model, log_mean_divisia_weights_normalized, 
-                                          log_ratios)
+                                          log_ratios, total_label=None)
 
                 print('eii_output calc asi:\n', eii_output)
                 pnnl_output_ = pnnl_output[(pnnl_output['Energy Type'] == e_type) & (pnnl_output['Nest level'] == level_)]
@@ -801,6 +803,7 @@ class TestLMDI:
             pnnl_output = pnnl_output.replace(p, e)
 
         output_directory = './tests/Results/'
+        print('os.getcwd:', os.getcwd())
         eii_results_data = pd.read_csv(f'{output_directory}transportation_results2.csv').rename(columns={'@timeseries|Year': 'Year'}).set_index('Year')
         eii_results_data = eii_results_data.replace('Highway', 'Freight Trucks')
         levels = eii_results_data['lower_level'].unique()
