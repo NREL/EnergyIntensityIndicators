@@ -145,3 +145,38 @@ if __name__ == '__main__':
                              output_directory='./Results', level_of_aggregation=, 
                              end_year=2018, lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)
+
+
+class EmissionsComparison(CO2EmissionsDecomposition):
+    """Class to visualize the difference between emissions
+    values calculated from energy data and emissions factors
+    vs emissions values given by the EIA API
+    """
+
+    def __init__(self):
+        pass
+
+    def get_eia_emissions(self, sector=None, energy_type=None, region=None):
+        """Collect emissions data from the EIA API (through GetEIAData). 
+        If region is None, collect data for the U.S., if energy_type is None use total, 
+        if sector is None use total
+
+        Parameters:
+            sector (str):
+            energy_type (str): 
+            region (str): 
+
+        Returns: 
+            emissions_factor (df, series or float):
+        """
+        pass
+
+    def compare_values(self):
+        sector = 
+        energy_type = 
+        region = 
+        eia_data = self.get_eia_emissions(sector, energy_type, region)
+        calc_data = # unclear how to extract these values from the nested dictionary
+        pct_diff  = # extract perecent difference calculation currently in LMDITest 
+                    # (should be moved to utilities)
+

@@ -19,3 +19,4 @@ class TestingUtilities:
             bools_list.append(pct_difference)
 
         return bools_list
+
