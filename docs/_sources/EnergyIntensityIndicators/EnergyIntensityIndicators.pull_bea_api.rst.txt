@@ -1,7 +1,0 @@
-pull_bea_api module
-====================
-
-.. automodule:: EnergyIntensityIndicators.pull_bea_api
-   :members:
-   :undoc-members:
-   :show-inheritance:

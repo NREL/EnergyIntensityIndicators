@@ -1,7 +1,0 @@
-pull_eia_api module
-====================
-
-.. automodule:: EnergyIntensityIndicators.pull_eia_api
-   :members:
-   :undoc-members:
-   :show-inheritance:

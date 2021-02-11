@@ -1,5 +1,0 @@
-Transportation Sector
-======================
-
-.. automodule:: EnergyIntensityIndicators.transportation.TransportationIndicators
-   :members:

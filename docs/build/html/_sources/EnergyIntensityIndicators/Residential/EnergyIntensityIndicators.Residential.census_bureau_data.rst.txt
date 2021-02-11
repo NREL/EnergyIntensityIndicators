@@ -1,5 +1,0 @@
-Residential Floorspace Module
-=============================
-
-.. automodule:: EnergyIntensityIndicators.Residential.residential_floorspace
-   :members:
