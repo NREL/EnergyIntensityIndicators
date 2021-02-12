@@ -10,12 +10,11 @@ from EnergyIntensityIndicators.tests.utilities import TestingUtilities
 
 class TestDFUtilities:
 
-
-    def test_calculate_log_changes(self, sector='transportation', acceptable_pct_difference=0.05):
+    @staticmethod
+    def test_calculate_log_changes(acceptable_pct_difference=0.05):
         """Test for the dataframe_utilities calculate_log_changes method
 
         Args:
-            sector (str, optional): [description]. Defaults to 'transportation'.
             acceptable_pct_difference (float, optional): [description]. Defaults to 0.05.
         """
         
@@ -44,3 +43,6 @@ class TestDFUtilities:
         print('comparison_df:\n', comparison_df)
         print('log_ratio_df:\n', log_ratio_df)
         assert TestingUtilities(acceptable_pct_difference).pct_diff(comparison_df, log_ratio_df)
+
+    def test_calculate_shares():
+        pass

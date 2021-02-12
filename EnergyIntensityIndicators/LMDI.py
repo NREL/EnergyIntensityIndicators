@@ -759,13 +759,19 @@ class CalculateLMDI(LMDI):
             if not lower_level_structure_list:
                 lower_level_structure_df = pd.DataFrame()
             else:
-                lower_level_structure_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), lower_level_structure_list)
+                lower_level_structure_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
+                                                                            left_index=True, 
+                                                                            right_index=True), 
+                                                  lower_level_structure_list)
                 lower_level_structure_df = lower_level_structure_df.fillna(1)
 
             if not lower_level_intensity_list:
                 lower_level_intensity_df =  pd.DataFrame()
             else:
-                lower_level_intensity_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), lower_level_intensity_list)
+                lower_level_intensity_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
+                                                                            left_index=True, 
+                                                                            right_index=True), 
+                                                  lower_level_intensity_list)
             return lower_level_structure_df, lower_level_intensity_df
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data, lmdi_type, calculate_lmdi=False, breakout=False):
@@ -795,7 +801,7 @@ class CalculateLMDI(LMDI):
         if breakout:
             final_fmt_results = self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation_,
                                                              breakout, categories_pre_breakout, lmdi_type)
-
+#####################################################################
         total_activity_dfs = dict()
         total_activty_df = results_dict[level1_name]['activity']
         for a_type in total_activty_df['activity_type'].unique():
@@ -833,6 +839,7 @@ class CalculateLMDI(LMDI):
 
             else:
                 total_results_by_energy_type[e] = {'activity': total_activity_dfs, 'energy': total_energy_df, 'weather': weather_data_e}
+#####################################################################
 
         if len(final_fmt_results) > 1: 
             final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer', sort=False)
@@ -841,7 +848,8 @@ class CalculateLMDI(LMDI):
         
         final_results.to_csv(f'{self.output_directory}/{self.sector}_{level1_name}_decomposition.csv', index=False)
 
-        return total_results_by_energy_type, final_results
+        # return total_results_by_energy_type, final_results
+        return final_results, final_results
 
     def nominal_energy_intensity(self, energy_input_data, activity_input_data):
         """Calculate nominal energy intensity (i.e. energy divided by activity)"""
