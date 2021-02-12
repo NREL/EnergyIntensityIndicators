@@ -9,6 +9,8 @@ import seaborn
 import plotly.graph_objects as go
 import plotly.express as px
 
+from EnergyIntensityIndicators.utilites import lmdi_utilities
+
 
 class AdditiveLMDI():
 
@@ -49,7 +51,7 @@ class AdditiveLMDI():
 
             # apply generally not preferred for row-wise operations but?
             log_mean_values = self.energy_data[[col, f"{col}_shift"]].apply(lambda row: 
-                                                                self.logarithmic_average(row[col],
+                                                                lmdi_utilities.logarithmic_average(row[col],
                                                                 row[f"{col}_shift"]), axis=1) 
 
             log_mean_values_df[col] = log_mean_values.values 
@@ -57,7 +59,7 @@ class AdditiveLMDI():
             self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
             # apply generally not preferred for row-wise operations but?
             log_mean_shares = self.energy_shares[[col, f"{col}_shift"]].apply(lambda row: 
-                                                                self.logarithmic_average(row[col], \
+                                                                lmdi_utilities.logarithmic_average(row[col], \
                                                                         row[f"{col}_shift"]), axis=1)
             self.energy_shares[f"log_mean_shares_{col}"] = log_mean_shares
 
@@ -86,29 +88,6 @@ class AdditiveLMDI():
             
         else:
             return log_mean_values_df
-    
-    @staticmethod
-    def logarithmic_average(x, y):
-        """The logarithmic average of two positive numbers x and y
-        """        
-        try:
-            x = float(x)
-            y = float(y)
-        except TypeError:
-            L = np.nan
-            return L       
-
-        if x > 0 and y > 0:
-            if x != y:
-                difference = x - y
-                log_difference = np.log(x) - np.log(y)
-                L = difference / log_difference
-            else:
-                L = x
-        else: 
-            L = np.nan
-
-        return L
 
     def calculate_effect(self, ASI):
         """Calculate effect from changes to activity, structure, 

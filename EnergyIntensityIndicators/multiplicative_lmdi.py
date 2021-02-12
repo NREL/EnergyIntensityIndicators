@@ -10,6 +10,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 import math
 
+from EnergyIntensityIndicators.utilites import lmdi_utilities
+
 
 class MultiplicativeLMDI():
 
@@ -39,34 +41,11 @@ class MultiplicativeLMDI():
                 self.energy_shares[f"{col}_shift"] = self.energy_shares[col].shift(periods=1, axis='index', fill_value=0)
                 # apply generally not preferred for row-wise operations but?
                 log_mean_weights[f'log_mean_weights_{col}'] = self.energy_shares.apply(lambda row: \
-                                                            self.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
+                                                            lmdi_utilities.logarithmic_average(row[col], row[f"{col}_shift"]), axis=1) 
             sum_log_mean_shares = log_mean_weights.sum(axis=1)
             log_mean_weights_normalized = log_mean_weights.divide(sum_log_mean_shares.values.reshape(len(sum_log_mean_shares), 1))
             return log_mean_weights_normalized
 
-    @staticmethod
-    def logarithmic_average(x, y):
-        """The logarithmic average of two positive numbers x and y
-        """        
-        try:
-            x = float(x)
-            y = float(y)
-        except TypeError:
-            L = np.nan
-            return L  
-                 
-        if x > 0 and y > 0:
-            if x != y:
-                difference = x - y
-                log_difference = np.log(x / y)
-                L = difference / log_difference
-            else:
-                L = x
-        else: 
-            L = np.nan
-
-        return L
-    
     def compute_index(self, component, base_year_):
         """Compute index of components (indexing to chosen base_year_), 
         replicating methodology in PNNL spreadsheets for the multiplicative model

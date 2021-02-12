@@ -8,6 +8,7 @@ import os
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 
 class WeatherFactors: 
@@ -269,33 +270,6 @@ class WeatherFactors:
 
         return hdd_by_division, cdd_by_division
     
-    @staticmethod
-    def use_intersection(data, intersection_):
-        """Return portion of dataframe with intersection_ as index"""
-        if isinstance(data, pd.Series): 
-            data_new = data.loc[intersection_]
-        else:
-            data_new = data.loc[intersection_, :]
-            
-        return data_new
-
-    def ensure_same_indices(self, df1, df2):
-        """Returns two dataframes with the same indices
-        purpose: enable dataframe operations such as multiply and divide between the two dfs
-        """        
-        df1.index = df1.index.astype(int)
-        df2.index = df2.index.astype(int)
-
-        intersection_ = df1.index.intersection(df2.index)
-
-        if len(intersection_) == 0: 
-            raise ValueError('DataFrames do not contain any shared years')
-        
-        df1_new = self.use_intersection(df1, intersection_)
-        df2_new = self.use_intersection(df2, intersection_)
-
-        return df1_new, df2_new
-
     def estimate_regional_shares(self):
         """Spreadsheet equivalent: Commercial --> 'Regional Shares' 
         assumed commercial floorspace in each region follows same trends as population or housing units"""
@@ -541,7 +515,7 @@ class WeatherFactors:
 
     def national_method2_regression_models(self, seds_data, weather_factors):
         """Second regression model"""
-        seds_data, weather_factors = self.ensure_same_indices(seds_data, weather_factors)
+        seds_data, weather_factors = df_utils.ensure_same_indices(seds_data, weather_factors)
         
         weather_adjusted_consumption = seds_data.drop('National', axis=1).multiply(weather_factors.values)
         weather_adjusted_consumption['National'] = weather_adjusted_consumption.sum(axis=1)
