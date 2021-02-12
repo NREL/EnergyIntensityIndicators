@@ -280,44 +280,7 @@ class TestLMDI:
     #                     {energy_data.columns} energy columns')
     #             continue
 
-    def test_log_mean_divisia(self, sector='transportation'):
-        eii = self.eii_output_factory(sector)
-        x = 0.5913
-        y = 0.5650
-        L = eii.logarithmic_average(x, y)
-        pnnl_result = 0.578
-        assert round(L, 3) == pnnl_result
-    
-    def test_calculate_log_changes(self, sector='transportation', acceptable_pct_difference=0.05):
-        eii = self.eii_output_factory(sector)
-        
-        input_data = [[1.2759, 0.9869],
-                      [1.2650, 0.9743],
-                      [1.2579, 0.9910],
-                      [1.2634, 0.9915],
-                      [1.2396, 0.9906]]
-
-
-        input_df = pd.DataFrame(input_data, 
-                                     index=[1970, 1971, 1972, 1973, 1974], 
-                                     columns=['All_Passenger', 'All_Freight'])
-
-        log_ratio_df = eii.calculate_log_changes(input_df)
-        log_ratio_df = log_ratio_df.round(4)
-        comparison_output = [[np.nan, np.nan],
-                             [-0.0086, -0.0129],
-                             [-0.0056, 0.0170],
-                             [0.0044, 0.0005],
-                             [-0.0190, -0.0009]]
-
-        comparison_df = pd.DataFrame(comparison_output, 
-                                     index=[1970, 1971, 1972, 1973, 1974], 
-                                     columns=['All_Passenger', 'All_Freight'])
-        print('comparison_df:\n', comparison_df)
-        print('log_ratio_df:\n', log_ratio_df)
-        # assert log_ratio_df.equals(comparison_df)
-        assert self.pct_diff(comparison_df, log_ratio_df, acceptable_pct_difference, sector='transportation')
-
+  
     def test_calc_sum_product(self, sector='transportation'):
         eii = self.eii_output_factory(sector)
 
@@ -706,20 +669,6 @@ class TestLMDI:
 
     #     assert all(bools_list)
 
-    def pct_diff(self, pnnl_data, eii_data, acceptable_pct_difference, sector):
-        eii = self.eii_output_factory(sector)
-        if pnnl_data.empty or eii_data.empty:
-            return False
-        elif pnnl_data.empty and eii_data.empty:
-            return True
-        else:
-            pnnl_data, eii_data = eii.ensure_same_indices(pnnl_data, eii_data)
-
-            diff_df = pnnl_data.subtract(eii_data)
-            diff_df_abs = np.absolute(diff_df)
-            pct_diff = np.absolute(diff_df_abs.divide(pnnl_data))
-            compare_df = pct_diff.fillna(0).apply(lambda col: col<=acceptable_pct_difference, axis=1)
-            return compare_df.all(axis=None)
 
     def get_eii_asi(self, sector):
         pass
