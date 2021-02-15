@@ -13,9 +13,9 @@ from EnergyIntensityIndicators.utilites.standard_interpolation import standard_i
 class Manufacturing:
     """Class to collect and process manufacturing data for the industrial sector
     """
-    def __init__(self):
+    def __init__(self, naics_digits):
         self.end_year = datetime.now().year
-
+        naics_digits = self.naics_digits
         # 2014_MECS = 'https://www.eia.gov/consumption/manufacturing/data/2014/'  # Table 4.2
 
         # Table 3.1 and 3.2 (MECS total fuel consumption)  Table 3.1 shows energy

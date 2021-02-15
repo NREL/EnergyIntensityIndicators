@@ -24,7 +24,7 @@ class IndustrialIndicators(CalculateLMDI):
         transferred to: https://www.census.gov/data/tables/2017/econ/economic-census/naics-sector23.html. 
     """    
 
-    def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
+    def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018, naics_digits=3):
         self.sub_categories_list = {'Industry': {'Manufacturing': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
                                                                     'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
                                                                     'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
@@ -45,6 +45,7 @@ class IndustrialIndicators(CalculateLMDI):
         self.mer_dataT0204 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
         self.BEA_Output_data = [0] # Chain-type Quantity Indexes for Value Added by Industry from Bureau of Economic Analysis
         self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
+        self.naics_digits = naics_digits
 
         super().__init__(sector='industry', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
                     energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, primary_activity='value_added')
@@ -57,7 +58,7 @@ class IndustrialIndicators(CalculateLMDI):
     def manufacturing(self):
         """Gather manufacturing data
         """
-        manufacturing_data = Manufacturing().manufacturing()
+        manufacturing_data = Manufacturing(self.naics_digits).manufacturing()
         return manufacturing_data
     
     def non_manufacturing(self):
@@ -67,7 +68,7 @@ class IndustrialIndicators(CalculateLMDI):
                                 Prior to 1985, primary data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
         """    
-        non_manufacturing_data = NonManufacturing().nonmanufacturing_data()
+        non_manufacturing_data = NonManufacturing(self.naics_digits).nonmanufacturing_data()
 
         return non_manufacturing_data
         

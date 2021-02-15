@@ -22,8 +22,9 @@ class NonManufacturing:
 
 
     """    
-    def __init__(self):        
+    def __init__(self, naics_digits):        
         self.currentYear = datetime.now().year
+        self.naics_digits = naics_digits
         self.BEA_data = BEA_api(years=list(range(1949, self.currentYear + 1)))
         self.BEA_go_nominal = self.BEA_data.get_data(table_name='go_nominal')
         self.BEA_go_quant_index = self.BEA_data.get_data(table_name='go_quant_index')
