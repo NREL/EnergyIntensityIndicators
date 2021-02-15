@@ -409,131 +409,118 @@ class CalculateLMDI(LMDI):
         """Get lower level portion of nested dictionary from path"""
         return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
 
-    @staticmethod
-    def check_cols(dict_key, df, label):
-        """Check whether dataframe contains column matching dict_key"""
-        if isinstance(df, pd.DataFrame):
-            if dict_key not in df.columns:
-                print(f'Warning: {dict_key} column not in {label} data')
-                return False
-            else:
-                return True
-        else:
-            return False
+    # @staticmethod
+    # def check_cols(dict_key, df, label):
+    #     """Check whether dataframe contains column matching dict_key"""
+    #     if isinstance(df, pd.DataFrame):
+    #         if dict_key not in df.columns:
+    #             print(f'Warning: {dict_key} column not in {label} data')
+    #             return False
+    #         else:
+    #             return True
+    #     else:
+    #         return False
 
-    def build_col_list(self, data, key):
-        """Return bool indicating whether dataset contains data for given key"""
-        if isinstance(data['activity'], pd.DataFrame):
-            col_a = self.check_cols(key, data['activity'], label='activity')
+    # def build_col_list(self, data, key):
+    #     """Return bool indicating whether dataset contains data for given key"""
+    #     if isinstance(data['activity'], pd.DataFrame):
+    #         col_a = self.check_cols(key, data['activity'], label='activity')
 
-        elif isinstance(data['activity'], dict):
-            cols_a = []
-            for a_type, a_df in data['activity'].items():
-                col_ = self.check_cols(key, a_df, label=f'activity_{a_type}') 
-                cols_a.append(col_)
+    #     elif isinstance(data['activity'], dict):
+    #         cols_a = []
+    #         for a_type, a_df in data['activity'].items():
+    #             col_ = self.check_cols(key, a_df, label=f'activity_{a_type}') 
+    #             cols_a.append(col_)
             
-            if False in cols_a:
-                col_a = False
-            else:
-                col_a = True
-        else:
-            col_a = None
+    #         if False in cols_a:
+    #             col_a = False
+    #         else:
+    #             col_a = True
+    #     else:
+    #         col_a = None
 
-        for e in data['energy'].keys():
-            self.check_cols(key, data['energy'][e], label=f'energy_{e}')
+    #     for e in data['energy'].keys():
+    #         self.check_cols(key, data['energy'][e], label=f'energy_{e}')
         
-        return col_a
+    #     return col_a
 
-    def build_nest(self, data, select_categories, results_dict, level1_name, level_name=None):
-        """Process and organize raw data"""
+    @staticmethod
+    def process_type_data(data_category, data, d_type_list):
+        all_category_data = []
+        for t in d_type_list:
+            if data[t] is not None:
+                t_data = data[t]
+                t_data = t_data.drop(data_category, errors='ignore', axis=1)
+                t_data = t_data.apply(pd.to_numeric, errors='ignore', axis=1)
 
-        if isinstance(select_categories, dict):
-            for key, value in select_categories.items():
+                if data_category not in t_data.columns:
+                    t_data[data_category] = t
 
-                if type(value) is dict:
-                    print(f'value for {key} is dictionary: with value:\n {value}')
-                    yield from self.build_nest(data=data[key], select_categories=value, 
-                                            results_dict=results_dict, level1_name=level1_name, 
-                                            level_name=key)
+                all_category_data.append(t_data)
+            else:
+                continue
+        
+        all_category_data = pd.concat(all_category_data, axis=0, sort=False)
+        all_category_data = all_category_data.drop('Total', errors='ignore', axis=1)
+        return all_category_data
 
-                else: 
-                    if not level_name:
-                        level_name = level1_name
 
-                    print(f'value for {key} is NOT dictionary: with value:\n {value}')
-                    if isinstance(data, dict):
-                        print('data keys nest:', data.keys())
-                    if 'activity' in data.keys() and 'energy' in data.keys():
-                        col_a = self.build_col_list(data, key)
-                        raw_energy_dict = data['energy']
-                        activity_data = data['activity']
-                        if 'weather_factors' in data.keys():
-                            weather_data_ = data['weather_factors']
-                            weather = True
-                        else:
-                            weather = False
+    def process_results_dict(self, data, select_categories, results_dict, level_name, key):
 
-                    elif 'activity' in data[key].keys() and 'energy' in data[key].keys():
-                        col_a = self.build_col_list(data[key], key)
-                        raw_energy_dict = data[key]['energy']
-                        activity_data = data[key]['activity']
-                        if 'weather_factors' in data[key].keys():
-                            weather_data_ = data[key]['weather_factors']
-                            weather = True
-                        else:
-                            weather = False
 
-                    else:
-                        continue
-
-                    energy = self.collect_energy_data(raw_energy_dict)
-
-                    energy_data = []
-                    for e in self.energy_types:
-                        if energy[e] is not None:
-
-                            e_data = energy[e].drop('Energy_Type', errors='ignore', axis=1)
-                            e_data = e_data.apply(pd.to_numeric, errors='ignore', axis=1)
-
-                            if 'Energy_Type' not in e_data.columns:
-                                e_data['Energy_Type'] = e
-                            energy_data.append(e_data)
-                        else:
-                            continue
-                        
-                    energy_data = pd.concat(energy_data, axis=0, sort=False)
-
-                    if isinstance(activity_data, pd.DataFrame):
-                        activity_data['activity_type'] = 'only_activity'
-
-                    elif isinstance(activity_data, dict):
-
-                        activity_data_ = []
-                        for a_type, a_df in activity_data.items():
-                            a_df = a_df.apply(pd.to_numeric, errors='ignore', axis=1)
-                            a_df.loc[:, 'activity_type'] = a_type
-                            activity_data_.append(a_df)
-                        activity_data = pd.concat(activity_data_, axis=0, sort=False)
-
-                    activity_data = activity_data.drop('Total', axis=1, errors='ignore')
-                    energy_data = energy_data.drop('Total', axis=1, errors='ignore')
-
-                    if level_name in results_dict:
-                        energy_data = self.merge_input_data([energy_data, results_dict[level_name]['energy']], 'Energy_Type')
-                        activity_data = self.merge_input_data([activity_data, results_dict[level_name]['activity']], 'activity_type')
-
-                    if weather:
-                        data_dict_ = {'energy': energy_data, 'activity': activity_data, 
-                                      'weather_factors': weather_data_, 'level_total': level_name}
-                    else:
-                        data_dict_ = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
-                    results_dict[level_name] = data_dict_
-
+        if 'activity' in data.keys() and 'energy' in data.keys():
+            level_data = data
+        elif 'activity' in data[key].keys() and 'energy' in data[key].keys():
+            level_data = data[key]
         else:
-            results_dict = results_dict
+            return None
 
-        if not level_name:
-            level_name = level1_name
+        # col_a = self.build_col_list(level_data, key)
+        raw_energy_dict = level_data['energy']
+        activity_data = level_data['activity']
+        
+        if 'weather_factors' in level_data.keys():
+            weather_data_ = level_data['weather_factors']
+            weather = True
+        else:
+            weather = False
+
+        energy = self.collect_energy_data(raw_energy_dict)
+        energy_data = self.process_type_data('Energy_Type', energy, d_type_list=self.energy_types)
+
+        if isinstance(activity_data, pd.DataFrame):
+            activity_data['activity_type'] = 'only_activity'
+        elif isinstance(activity_data, dict):
+            activity_data = self.process_type_data('activity_type', activity_data, d_type_list=activity_data.keys())
+
+        if level_name in results_dict:
+            energy_data = self.merge_input_data([energy_data, results_dict[level_name]['energy']], 'Energy_Type')
+            activity_data = self.merge_input_data([activity_data, results_dict[level_name]['activity']], 'activity_type')
+        
+        data_dict_ = {'energy': energy_data, 'activity': activity_data, 'level_total': level_name}
+
+        if weather:
+            data_dict_['weather_factors'] = weather_data_
+
+        results_dict[level_name] = data_dict_
+
+        return results_dict
+
+    def nesting(self, level_name, results_dict, select_categories):
+        """Aggregate data from lower level
+
+        Args:
+            level_name ([type]): [description]
+            results_dict ([type]): [description]
+            select_categories ([type]): [description]
+
+        Raises:
+            ValueError: [description]
+
+        Returns:
+            [type]: [description]
+        """
+
         if level_name in results_dict.keys():
             if 'activity' in results_dict[level_name].keys() and 'energy' in results_dict[level_name].keys():
                 aggregate_activity = [results_dict[level_name]['activity']]
@@ -598,11 +585,37 @@ class CalculateLMDI(LMDI):
         agg_a_df = self.merge_input_data(aggregate_activity, 'activity_type')   
         agg_a_df = df_utils.create_total_column(agg_a_df, level_name)          
 
+        data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
         if weather:
-            data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name, 'weather_factors': aggregate_weather}
+            data_dict['weather_factors'] = aggregate_weather
+
+        results_dict[f'{level_name}'] = data_dict
+
+        return results_dict
+
+    def build_nest(self, data, select_categories, results_dict, level1_name, level_name=None):
+        """Process and organize raw data"""
+
+        if isinstance(select_categories, dict):
+            for key, value in select_categories.items():
+
+                if type(value) is dict:
+                    print(f'value for {key} is dictionary: with value:\n {value}')
+                    yield from self.build_nest(data=data[key], select_categories=value, 
+                                            results_dict=results_dict, level1_name=level1_name, 
+                                            level_name=key)
+
+                else: 
+                    if not level_name:
+                        level_name = level1_name
+                    results_dict = self.process_results_dict(data, select_categories, results_dict, level_name, key)
+                    
         else:
-            data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
-        results_dict[f'{level_name}'] = data_dict 
+            results_dict = results_dict
+
+        if not level_name:
+            level_name = level1_name
+        results_dict = self.nesting(level_name, results_dict, select_categories)
         yield results_dict
 
     def merge_input_data(self, list_dfs, second_index):
@@ -798,7 +811,7 @@ class CalculateLMDI(LMDI):
             continue
         final_fmt_results = []
 
-        if breakout:
+        if len(categories) > 1 and breakout:
             final_fmt_results = self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation_,
                                                              breakout, categories_pre_breakout, lmdi_type)
 #####################################################################
@@ -832,7 +845,7 @@ class CalculateLMDI(LMDI):
                                                loa=loa, energy_type=e, 
                                                lmdi_type=lmdi_type)
                 if final_results is None:
-                    continue
+                    continue                                                                                                                                                                                                                               
                 else:
                     final_fmt_results.append(final_results)
                     total_results_by_energy_type[e] = final_results
