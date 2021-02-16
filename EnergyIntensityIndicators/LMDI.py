@@ -542,7 +542,7 @@ class CalculateLMDI(LMDI):
 
         for key, value in select_categories.items():
             if key == np.nan:
-                raise ValueError('SELECT CATEGORIES KEY IS NAN')
+                raise ValueError('select_categories key is NAN')
 
             try:
                 lower_level_e = results_dict[key]['energy']
@@ -599,8 +599,7 @@ class CalculateLMDI(LMDI):
         if isinstance(select_categories, dict):
             for key, value in select_categories.items():
 
-                if type(value) is dict:
-                    print(f'value for {key} is dictionary: with value:\n {value}')
+                if isinstance(value, dict):
                     yield from self.build_nest(data=data[key], select_categories=value, 
                                             results_dict=results_dict, level1_name=level1_name, 
                                             level_name=key)
@@ -615,7 +614,9 @@ class CalculateLMDI(LMDI):
 
         if not level_name:
             level_name = level1_name
+
         results_dict = self.nesting(level_name, results_dict, select_categories)
+
         yield results_dict
 
     def merge_input_data(self, list_dfs, second_index):
@@ -638,24 +639,27 @@ class CalculateLMDI(LMDI):
         """Order categories so that lower levels are calculated prior to current level of aggregation. 
         This ordering ensures that lower level structure is passed to higher level.
         """
-        categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
-        categories_list = []
-        for key in raw_results.keys():
-            if key in categories.keys():
-                categories_list.append(key)
+        if len(self.categories_dict) == 1:
+            categories_list = list(self.categories_dict.keys())
 
-        for key in raw_results.keys():
-            if key not in categories.keys():
-                categories_list.append(key)
+        elif len(self.categories_dict) > 1:
+            categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
+            categories_list = []
+            for key in raw_results.keys():
+                if key in categories.keys():
+                    categories_list.append(key)
+            for key in raw_results.keys():
+                if key not in categories.keys():
+                    categories_list.append(key)
+        
         return categories_list
 
-    def calculate_breakout_lmdi(self, raw_results, final_results_list, level_of_aggregation, 
+    def calculate_breakout_lmdi(self, raw_results, level_of_aggregation, 
                                 breakout, categories, lmdi_type):
         """If breakout=True, calculate LMDI for each lower aggregation level contained in raw_results.
 
         Args:
             raw_results (dictionary): Built "nest" of dictionaries containing input data for LMDI calculations
-            final_results_list (list): list to which calculate_breakout_lmdi appends LMDI results
 
         Returns:
             final_results_list [list]: list of LMDI results dataframes
@@ -664,13 +668,19 @@ class CalculateLMDI(LMDI):
         intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
         """        
         categories_list = self.order_categories(level_of_aggregation, raw_results)
+        final_results_list = []
+
         for key in categories_list:
             level_total = raw_results[key]['level_total']
 
-            if level_of_aggregation[-1] == level_total:
+            if len(categories_list) == 1:
+                level_total = categories_list[0]
+                loa = [self.sector.capitalize()] + level_of_aggregation
+                categories = self.categories_dict
+
+            elif level_of_aggregation[-1] == level_total:
                 loa = [self.sector.capitalize()] + level_of_aggregation
                 categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
-
             else:
                 loa = [self.sector.capitalize()] + level_of_aggregation + [level_total]
                 categories = self.deep_get(self.categories_dict, '.'.join(level_of_aggregation) + f'.{key}')
@@ -678,14 +688,14 @@ class CalculateLMDI(LMDI):
             if not categories:
                 print(f"{key} not in categories")
                 continue
+
+
             activity_ = dict()
             total_activty_df = raw_results[key]['activity']
-
             for a_type in total_activty_df['activity_type'].unique():
                 a_df = total_activty_df[total_activty_df['activity_type'] == a_type].drop('activity_type', axis=1)
                 if level_total not in a_df.columns:
                     raise KeyError(f'{level_total} not in {a_type} dataframe')
-                    exit()
                 activity_[a_type] = a_df
 
  
@@ -697,7 +707,6 @@ class CalculateLMDI(LMDI):
                     continue
                 if level_total not in energy_df.columns:
                     raise KeyError(f'{level_total} not in energy_df')
-                    exit()
 
                 if 'weather_factors' in raw_results[key].keys():
                     weather_data = raw_results[key]['weather_factors']
@@ -719,7 +728,16 @@ class CalculateLMDI(LMDI):
                     category_lmdi["@filter|EnergyType"] = e_type
                     category_lmdi['lower_level'] = level_total
                     final_results_list.append(category_lmdi)
-        return final_results_list
+        
+
+        if len(final_results_list) > 1: 
+            final_results = pd.concat(final_results_list, axis=0, ignore_index=True, join='outer', sort=False)
+        elif len(final_results_list) == 0: 
+            raise ValueError('calculate_breakout_lmdi returned empty list')
+        else:
+            final_results = final_results_list[0]
+
+        return final_results
 
     def calc_lower_level(self, categories, final_fmt_results, e_type):
         """Calculate decomposition for lower levels of aggregation
@@ -748,7 +766,7 @@ class CalculateLMDI(LMDI):
 
                     lower_level_intensity = pd.DataFrame(index=lower_level.index, columns=[key])
 
-                elif type(value) is dict: 
+                elif isinstance(value, dict): 
                     try:
                         lower_level_structure = lower_level[['@timeseries|Year', 'total_structure']].set_index('@timeseries|Year')
                         lower_level_structure = lower_level_structure.rename(columns={'total_structure': f'lower_level_structure_{key}'})
@@ -805,63 +823,18 @@ class CalculateLMDI(LMDI):
         level1_name = level_of_aggregation_[-1]
 
         categories_pre_breakout = categories
+
         results_dict = dict()
         for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
                                             level1_name=level1_name):
             continue
-        final_fmt_results = []
 
-        if len(categories) > 1 and breakout:
-            final_fmt_results = self.calculate_breakout_lmdi(results_dict, final_fmt_results, level_of_aggregation_,
-                                                             breakout, categories_pre_breakout, lmdi_type)
-#####################################################################
-        total_activity_dfs = dict()
-        total_activty_df = results_dict[level1_name]['activity']
-        for a_type in total_activty_df['activity_type'].unique():
-            total_activity_dfs[a_type] = total_activty_df[total_activty_df['activity_type'] == a_type].drop('activity_type', axis=1)
+        final_results = self.calculate_breakout_lmdi(results_dict, level_of_aggregation_,
+                                                     breakout, categories_pre_breakout, lmdi_type)
 
-        total_results_by_energy_type = dict()
-        total_energy_df = results_dict[level1_name]['energy']
-
-        for e in self.energy_types:
-            energy_data = total_energy_df[total_energy_df['Energy_Type'] == e].drop('Energy_Type', axis=1)
-
-            if 'weather_factors' in results_dict[level1_name].keys():
-                weather_data_e = results_dict[level1_name]['weather_factors']
-            else:
-                weather_data_e = None
-
-            lower_level_structure_df, lower_level_intensity_df = self.calc_lower_level(categories, final_fmt_results, e)
-
-            if calculate_lmdi:
-                loa = [self.sector.capitalize()] + level_of_aggregation_
-
-                final_results = self.call_lmdi(energy_data, total_activity_dfs, 
-                                               lower_level_structure_df, 
-                                               lower_level_intensity_df,
-                                               total_label=level1_name,
-                                               unit_conversion_factor=1,
-                                               weather_data=weather_data_e, 
-                                               loa=loa, energy_type=e, 
-                                               lmdi_type=lmdi_type)
-                if final_results is None:
-                    continue                                                                                                                                                                                                                               
-                else:
-                    final_fmt_results.append(final_results)
-                    total_results_by_energy_type[e] = final_results
-
-            else:
-                total_results_by_energy_type[e] = {'activity': total_activity_dfs, 'energy': total_energy_df, 'weather': weather_data_e}
-#####################################################################
-
-        if len(final_fmt_results) > 1: 
-            final_results = pd.concat(final_fmt_results, axis=0, ignore_index=True, join='outer', sort=False)
-        else:
-            final_results = final_fmt_results
         
         final_results.to_csv(f'{self.output_directory}/{self.sector}_{level1_name}_decomposition.csv', index=False)
 
-        # return total_results_by_energy_type, final_results
         return final_results, final_results
 
     def nominal_energy_intensity(self, energy_input_data, activity_input_data):
