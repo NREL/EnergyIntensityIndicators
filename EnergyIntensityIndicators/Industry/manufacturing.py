@@ -15,7 +15,7 @@ class Manufacturing:
     """
     def __init__(self, naics_digits):
         self.end_year = datetime.now().year
-        naics_digits = self.naics_digits
+        self.naics_digits = naics_digits
         # 2014_MECS = 'https://www.eia.gov/consumption/manufacturing/data/2014/'  # Table 4.2
 
         # Table 3.1 and 3.2 (MECS total fuel consumption)  Table 3.1 shows energy
@@ -66,13 +66,13 @@ class Manufacturing:
         naics = [311, 312, 313, 314, 315, 316, 321, 322, 323, 324, 
                  325, 326, 327, 331, 332, 333, 334, 335, 336, 337, 339]
 
-        # asm_price_data = []
-        # for f in fuel_types: 
-        #     predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year, fuel_type=f, naics=naics, asm_col_map=asm_cols)
-        #     asm_price_data.append(predicted_fuel_price)
+        asm_price_data = []
+        for f in fuel_types: 
+            predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year, fuel_type=f, naics=naics, asm_col_map=asm_cols)
+            asm_price_data.append(predicted_fuel_price)
 
-        # asm_price_data = pd.concat(asm_price_data, axis=1)
-        asm_price_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/asm_price_fit.csv')
+        asm_price_data = pd.concat(asm_price_data, axis=1)
+        # asm_price_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/asm_price_fit.csv')
         asm_price_data['Year'] = asm_price_data['Year'].astype(int)
         asm_price_data['NAICS'] = asm_price_data['NAICS'].astype(int)
 
@@ -461,5 +461,5 @@ class Manufacturing:
         return data_dict
 
 if __name__ == '__main__':
-    data = Manufacturing().manufacturing()
-    pass
+    data = Manufacturing(naics_digits=3).manufacturing()
+    print(data)
