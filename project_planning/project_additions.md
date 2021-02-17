@@ -49,7 +49,20 @@
 
 
 # Manufacturing Sector Expansion
+## Goal
+- 
 
+## Required inputs:
+- 
+
+## Framework:
+- Use minimum and maximum NAICS digits for level of aggregation (e.g. minimum of 3 and maximum as high as each MECS year allows)
+
+## Steps:
+- Explore highest number of NAICS digits contained in each MECS year (differs by year)
+
+## Desired outputs:
+- Standard EII outputs for the manufacturing sector (with flexible levels of aggregation)
 
 
 
@@ -59,12 +72,20 @@
 - Incorporate embodied energy from imported goods in decomposition of the Industrial Sector. 
 
 ## Required inputs:
-
+- BEA industry accounts data (trade extensions broken into intermediate/final goods)
 
 ## Framework: 
+- Net out intermediate inputs imported
+
 
 ## Steps:
 
 
 ## Desired outputs: 
 - results of decomposition in csv and visualizations (as in the rest of EII) where imports are a sub-sector level?
+
+## Resources:
+- [Offshoring Bias](https://www.federalreserve.gov/pubs/ifdp/2010/1007/ifdp1007.htm)
+- [Measuring Globalization](https://research.upjohn.org/up_press/232/)
+- [Intermediate Inputs and Economic Productivity](https://royalsocietypublishing.org/doi/pdf/10.1098/rsta.2011.0565)
+- [Industrial Energy Data Book](https://www.nrel.gov/docs/fy20osti/73901.pdf)
