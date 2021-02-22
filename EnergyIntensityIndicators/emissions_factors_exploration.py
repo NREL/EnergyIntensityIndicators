@@ -76,6 +76,21 @@ class EmissionsDataExploration:
         total = self.all_fuels_all_sector_data()
         # sectors['total'] = total
         self.lineplot(sectors)
+    
+    def get_emissions_factors_plots(self):
+        emissions = self.all_fuels_data()
+        energy = self.economy_wide()
+        sectors = ['commercial', 'industrial', 'residential',
+                   'transportation', 'electric_power']
+        emissions_factors = dict()
+        for s in sectors:
+            em = emissions[f'{s}_co2']
+            en = energy[f'{s}_energy']
+            factor = em.divide(en.values, axis=1)
+            print('factor:\n', factor)
+            exit()
+            emissions_factors[s] = factor
+        self.lineplot(emissions_factors)
 
     def economy_wide(self):
         commercial_energy = 'TOTAL.TECCBUS.A'
@@ -100,6 +115,7 @@ if __name__ == '__main__':
     em = EmissionsDataExploration()
     d = em.all_fuels_data()
     print(d)
-    em.get_plots()
+    em.get_emissions_plots()
     economy_wide_data = em.economy_wide()
     print('economy_wide_data:\n', economy_wide_data)
+    em.get_emissions_factors_plots()
