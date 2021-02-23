@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 class EmissionsDataExploration:
 
@@ -12,14 +12,9 @@ class EmissionsDataExploration:
         self.eia = GetEIAData('emissions')
 
     def eia_data(self, id_, label):
-        print('id_:\n', id_)
         data = self.eia.eia_api(id_=id_, id_type='series')
-        print('data:\n', data)
         col = list(data.columns)[0]
-        print('col:', col)
-        print('data[col]', data[[col]])
         data = data.rename(columns={col: label}) #, inplace=True)
-        print('data:\n', data)
 
         return data
 
@@ -34,9 +29,6 @@ class EmissionsDataExploration:
                    'industrial_co2': industrial_co2, 
                    'residential_co2': residential_co2, 
                    'transportation_co2': transportation_co2}
-        for s in sectors:
-            print('s:', s)
-            print('sectors[s]:\n', sectors[s])
 
         all_data = {s: self.eia_data(id_=sectors[s], label='CO2 Emissions') \
                     for s in sectors}
@@ -49,16 +41,14 @@ class EmissionsDataExploration:
         return all_sector
 
     @staticmethod
-    def lineplot(datasets):
+    def lineplot(datasets, y_label):
 
 
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
 
         for i, label in enumerate(datasets.keys()):
-            print('i', i)
             df = datasets[label]
-            print('df:\n', df)
 
             plt.plot(df.index, df, 
                      marker='', color=palette(i), linewidth=1, 
@@ -67,7 +57,7 @@ class EmissionsDataExploration:
         title = 'CO2 Emissions from All Fuels by Sector'
         plt.title(title, fontsize=12, fontweight=0)
         plt.xlabel('Year')
-        plt.ylabel('CO2 Emissions (Million Metric Tons')
+        plt.ylabel(y_label)
         plt.legend(loc=2, ncol=2)
         plt.show()
 
@@ -75,7 +65,7 @@ class EmissionsDataExploration:
         sectors = self.all_fuels_data()
         total = self.all_fuels_all_sector_data()
         # sectors['total'] = total
-        self.lineplot(sectors)
+        self.lineplot(sectors, y_label='CO2 Emissions (Million Metric Tons)')
     
     def get_emissions_factors_plots(self):
         emissions = self.all_fuels_data()
@@ -86,11 +76,11 @@ class EmissionsDataExploration:
         for s in sectors:
             em = emissions[f'{s}_co2']
             en = energy[f'{s}_energy']
+            em, en = df_utils.ensure_same_indices(em, en)
             factor = em.divide(en.values, axis=1)
-            print('factor:\n', factor)
-            exit()
+            factor = factor.rename(columns={'CO2 Emissions': 'Million Metric Tons per Trillion Btu'})
             emissions_factors[s] = factor
-        self.lineplot(emissions_factors)
+        self.lineplot(emissions_factors, y_label='Million Metric Tons CO2 per Trillion Btu')
 
     def economy_wide(self):
         commercial_energy = 'TOTAL.TECCBUS.A'
@@ -103,9 +93,6 @@ class EmissionsDataExploration:
                    'industrial_energy': industrial_energy, 
                    'residential_energy': residential_energy, 
                    'transportation_energy': transportation_energy}
-        for s in sectors:
-            print('s:', s)
-            print('sectors[s]:\n', sectors[s])
 
         all_data = {s: self.eia_data(id_=sectors[s], label='Energy') \
                     for s in sectors}
