@@ -15,13 +15,12 @@ Desired outputs: results of decomposition in csv and visualizations
 
 import urllib
 import zipfile
-from functools import reduce
 import numpy as np
 import pandas as pd
 from sklearn import linear_model
 
 from EnergyIntensityIndicators.industry import IndustrialIndicators
-
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 class TradeFlows(IndustrialIndicators):
 

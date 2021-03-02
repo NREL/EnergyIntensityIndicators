@@ -8,6 +8,7 @@ from functools import reduce
 
 from EnergyIntensityIndicators.get_census_data import Asm
 from EnergyIntensityIndicators.get_census_data import Econ_census
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 
 class Mfg_prices:
@@ -341,7 +342,7 @@ class Mfg_prices:
             
             n_dfs.append(calibrated_prediction)
 
-        calibrated_prediction = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), n_dfs)
+        calibrated_prediction = df_utils.merge_df_list(n_dfs)
 
         return calibrated_prediction
 

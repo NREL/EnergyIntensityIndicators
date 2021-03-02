@@ -9,7 +9,6 @@ from scipy.optimize import leastsq, least_squares, minimize
 import matplotlib.pyplot as plt
 from statistics import mean
 import io
-from functools import reduce
 
 
 

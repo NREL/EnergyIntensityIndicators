@@ -9,7 +9,7 @@ class GetEIAData:
     def __init__(self, sector):
         self.sector = sector
 
-    def eia_api(self, id_, id_type='category', new_name=None):
+    def eia_api(self, id_, id_type='category', new_name=None, units_col=False):
         """Collect data from EIA API by endpoint and type (category or series)
         """          
         api_key = os.environ.get("EIA_API_Key")
@@ -17,7 +17,7 @@ class GetEIAData:
         if id_type == 'category':
             eia_data = self.get_category(api_key, id_)
         elif id_type == 'series':
-            eia_data = self.get_series(api_key, id_)
+            eia_data = self.get_series(api_key, id_, units_col=units_col)
             if isinstance(eia_data, pd.Series):
                 eia_data = eia_data.to_frame()
                 print('eia_data:\n', eia_data)
@@ -46,14 +46,17 @@ class GetEIAData:
         return all_category
 
     @staticmethod
-    def get_series(api_key, id_):
+    def get_series(api_key, id_, units_col=False):
         """Collect series data from EIA API, format in dataframe with year as index
         """        
         api_call = f'http://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()
         date_column_name = str(eia_data['series'][0]['f'])
-        data_column_name =  str(eia_data['series'][0]['name']) + ', ' + str(eia_data['series'][0]['units'])
+        if units_col:
+            data_column_name =  str(eia_data['series'][0]['name'])
+        else:
+            data_column_name =  str(eia_data['series'][0]['name']) + ', ' + str(eia_data['series'][0]['units'])
         eia_df = pd.DataFrame.from_dict(eia_data['series'][0]['data'])
         eia_df = eia_df.rename(columns={0: date_column_name, 1: data_column_name})
         if date_column_name == 'M':
@@ -70,6 +73,8 @@ class GetEIAData:
             print('eia_df no year \n', eia_df.columns)
             print('No year column')
             pass
+        if units_col:
+            eia_df['Unit'] = str(eia_data['series'][0]['units'])
         return eia_df
 
     def get_seds(self):

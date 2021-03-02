@@ -7,7 +7,9 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 class EmissionsDataExploration:
-
+    """Class to visualize changes over time in Emissions and 
+    Emissions factors using EIA data
+    """
     def __init__(self):
         self.eia = GetEIAData('emissions')
 

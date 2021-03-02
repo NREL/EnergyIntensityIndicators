@@ -66,7 +66,7 @@ class LMDI():
                     comp_list.append(c)
                 if len(comp_list) > 1:
                     print('columns component df', [l.columns for l in comp_list])
-                    component = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), comp_list)
+                    component = df_utils.merge_df_list(comp_list)
                 else:
                     component = comp_list[0]
         return component
@@ -790,19 +790,13 @@ class CalculateLMDI(LMDI):
             if not lower_level_structure_list:
                 lower_level_structure_df = pd.DataFrame()
             else:
-                lower_level_structure_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
-                                                                            left_index=True, 
-                                                                            right_index=True), 
-                                                  lower_level_structure_list)
+                lower_level_structure_df = df_utils.merge_df_list(lower_level_structure_list)
                 lower_level_structure_df = lower_level_structure_df.fillna(1)
 
             if not lower_level_intensity_list:
                 lower_level_intensity_df =  pd.DataFrame()
             else:
-                lower_level_intensity_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
-                                                                            left_index=True, 
-                                                                            right_index=True), 
-                                                  lower_level_intensity_list)
+                lower_level_intensity_df = df_utils.merge_df_list(lower_level_intensity_list)
             return lower_level_structure_df, lower_level_intensity_df
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data, lmdi_type, calculate_lmdi=False, breakout=False):

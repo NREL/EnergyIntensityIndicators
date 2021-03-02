@@ -1,7 +1,6 @@
 from sklearn import linear_model
 import pandas as pd
 import numpy as np
-from functools import reduce
 from sklearn.linear_model import LinearRegression
 import math
 import os
@@ -222,7 +221,7 @@ class WeatherFactors:
                 standard_id = f'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_{region}_{type_day}.A'
             r_df = self.eia_data.eia_api(id_=standard_id, id_type='series')
             dd_data.append(r_df)
-        data_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), dd_data)
+        data_df = df_utils.merge_df_list(dd_data)
         return data_df
 
     def heating_cooling_data(self):
@@ -295,7 +294,7 @@ class WeatherFactors:
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
         
         regional_dfs = [regional_estimates_all[r][['Total']].rename(columns={'Total': r}) for r in regions]
-        residential_housing_units = reduce(lambda x, y: pd.merge(x, y, left_index=True, right_index=True, how='outer'), regional_dfs)
+        residential_housing_units = df_utils.merge_df_list(regional_dfs)
         residential_housing_units['U.S.'] = residential_housing_units.sum(axis=1)
         residential_housing_units.index = residential_housing_units.index.astype(str)
         regional_shares_residential_housing_units = residential_housing_units.drop('U.S.', axis=1).divide(residential_housing_units['U.S.'].values.reshape(len(residential_housing_units), 1))

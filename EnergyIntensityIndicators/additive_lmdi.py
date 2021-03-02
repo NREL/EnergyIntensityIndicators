@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
-from functools import reduce
 import os
 from datetime import date
 import matplotlib.pyplot as plt
@@ -112,7 +111,7 @@ class AdditiveLMDI():
         dataframe of the results for the additive LMDI model.
         """
         # ASI.pop('lower_level_structure', None)
-        ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
+        ASI_df = df_utils.merge_df_list(list(ASI.values()))
 
         df = self.calculate_effect(ASI_df)
         df = df.reset_index()

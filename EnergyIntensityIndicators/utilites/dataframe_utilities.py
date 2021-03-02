@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from functools import reduce
 
 
 # class DFUtilities:
@@ -110,3 +111,9 @@ def calculate_shares(dataset, total_label):
     dataset[total_label] = dataset[total_label].replace(0, np.nan)
     shares = dataset.drop(total_label, axis=1).divide(dataset[total_label].values.reshape(len(dataset[total_label]), 1))
     return shares
+
+def merge_df_list(df_list):
+    """Complete outer merge on a list of dataframes, merging on left and right index of each
+    """
+    merged_data = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), df_list)
+    return merged_data

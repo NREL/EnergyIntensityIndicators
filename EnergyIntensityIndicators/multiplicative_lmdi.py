@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
-from functools import reduce
 import os
 from datetime import date
 import matplotlib.pyplot as plt
@@ -11,6 +10,7 @@ import plotly.express as px
 import math
 
 from EnergyIntensityIndicators.utilites import lmdi_utilities
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 
 class MultiplicativeLMDI():
@@ -71,7 +71,7 @@ class MultiplicativeLMDI():
         """Format component data, collect overall effect, return indexed 
         dataframe of the results for the multiplicative LMDI model.
         """
-        ASI_df = reduce(lambda df1,df2: df1.merge(df2, how='outer', left_index=True, right_index=True), list(ASI.values()))
+        ASI_df = df_utils.merge_df_list(list(ASI.values()))
         results = ASI_df.apply(lambda col: np.exp(col), axis=1)
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)

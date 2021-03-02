@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn import linear_model
 import zipfile
-from functools import reduce
 import numpy as np
 import urllib
 

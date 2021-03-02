@@ -1,0 +1,73 @@
+Category,Unit Type,Fuel Type,Heat Content (HHV),CO2 Factor,CH4 Factor,N2O Factor,CO2 Factor,CH4 Factor,N2O Factor
+Units,1,Fuel Type,mmBtu per short ton,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mmBtu,kg CO2 per short ton,g CH4 per short ton,g N2O per short ton
+Coal and Coke,1,Anthracite Coal,25.09,103.69,11,1.6,"2,602",276,40
+Coal and Coke,1,Bituminous Coal,24.93,93.28,11,1.6,"2,325",274,40
+Coal and Coke,1,Sub-bituminous Coal,17.25,97.17,11,1.6,"1,676",190,28
+Coal and Coke,1,Lignite Coal,14.21,97.72,11,1.6,"1,389",156,23
+Coal and Coke,1,Mixed (Commercial Sector),21.39,94.27,11,1.6,"2,016",235,34
+Coal and Coke,1,Mixed (Electric Power Sector),19.73,95.52,11,1.6,"1,885",217,32
+Coal and Coke,1,Mixed (Industrial Coking),26.28,93.9,11,1.6,"2,468",289,42
+Coal and Coke,1,Mixed (Industrial Sector),22.35,94.67,11,1.6,"2,116",246,36
+Coal and Coke,1,Coal Coke,24.8,113.67,11,1.6,"2,819",273,40
+Other Fuels - Solid,1,Municipal Solid Waste,9.95,90.7,32,4.2,902,318,42
+Other Fuels - Solid,1,Petroleum Coke (Solid),30,102.41,32,4.2,"3,072",960,126
+Other Fuels - Solid,1,Plastics,38,75,32,4.2,"2,850","1,216",160
+Other Fuels - Solid,1,Tires,28,85.97,32,4.2,"2,407",896,118
+Biomass Fuels - Solid,1,Agricultural Byproducts,8.25,118.17,32,4.2,975,264,35
+Biomass Fuels - Solid,1,Peat,8,111.84,32,4.2,895,256,34
+Biomass Fuels - Solid,1,Solid Byproducts,10.39,105.51,32,4.2,"1,096",332,44
+Biomass Fuels - Solid,1,Wood and Wood Residuals,17.48,93.8,7.2,3.6,"1,640",126,63
+Units,2,Fuel Type,mmBtu per scf,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mmBtu,kg CO2 per scf,g CH4 per scf,g N2O per scf
+Natural Gas,2,Natural Gas,0.001026,53.06,1,0.1,0.05444,0.00103,0.0001
+ Other Fuels - Gaseous ,2,Blast Furnace Gas,0.000092,274.32,0.022,0.1,0.02524,0.000002,0.000009
+ Other Fuels - Gaseous ,2,Coke Oven Gas,0.000599,46.85,0.48,0.1,0.02806,0.000288,0.00006
+ Other Fuels - Gaseous ,2,Fuel Gas,0.001388,59,3,0.6,0.08189,0.004164,0.000833
+ Other Fuels - Gaseous ,2,Propane Gas,0.002516,61.46,3,0.6,0.15463,0.007548,0.00151
+Biomass Fuels - Gaseous,2,Landfill Gas,0.000485,52.07,3.2,0.63,0.025254,0.001552,0.000306
+Biomass Fuels - Gaseous,2,Other Biomass Gases,0.000655,52.07,3.2,0.63,0.034106,0.002096,0.000413
+Units,3,Fuel Type,mmBtu per gallon,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mmBtu,kg CO2 per gallon,g CH4 per gallon,g N2O per gallon
+ Petroleum Products ,3,Asphalt and Road Oil,0.158,75.36,3,0.6,11.91,0.47,0.09
+ Petroleum Products ,3,Aviation Gasoline,0.12,69.25,3,0.6,8.31,0.36,0.07
+ Petroleum Products ,3,Butane,0.103,64.77,3,0.6,6.67,0.31,0.06
+ Petroleum Products ,3,Butylene,0.105,68.72,3,0.6,7.22,0.32,0.06
+ Petroleum Products ,3,Crude Oil,0.138,74.54,3,0.6,10.29,0.41,0.08
+ Petroleum Products ,3,Distillate Fuel Oil No. 1,0.139,73.25,3,0.6,10.18,0.42,0.08
+ Petroleum Products ,3,Distillate Fuel Oil No. 2,0.138,73.96,3,0.6,10.21,0.41,0.08
+ Petroleum Products ,3,Distillate Fuel Oil No. 4,0.146,75.04,3,0.6,10.96,0.44,0.09
+ Petroleum Products ,3,Ethane,0.068,59.6,3,0.6,4.05,0.2,0.04
+ Petroleum Products ,3,Ethylene,0.058,65.96,3,0.6,3.83,0.17,0.03
+ Petroleum Products ,3,Heavy Gas Oils,0.148,74.92,3,0.6,11.09,0.44,0.09
+ Petroleum Products ,3,Isobutane,0.099,64.94,3,0.6,6.43,0.3,0.06
+ Petroleum Products ,3,Isobutylene,0.103,68.86,3,0.6,7.09,0.31,0.06
+ Petroleum Products ,3,Kerosene,0.135,75.2,3,0.6,10.15,0.41,0.08
+ Petroleum Products ,3,Kerosene-Type Jet Fuel,0.135,72.22,3,0.6,9.75,0.41,0.08
+ Petroleum Products ,3,Liquefied Petroleum Gases (LPG),0.092,61.71,3,0.6,5.68,0.28,0.06
+ Petroleum Products ,3,Lubricants,0.144,74.27,3,0.6,10.69,0.43,0.09
+ Petroleum Products ,3,Motor Gasoline,0.125,70.22,3,0.6,8.78,0.38,0.08
+ Petroleum Products ,3,Naphtha (<401 deg F),0.125,68.02,3,0.6,8.5,0.38,0.08
+ Petroleum Products ,3,Natural Gasoline,0.11,66.88,3,0.6,7.36,0.33,0.07
+ Petroleum Products ,3,Other Oil (>401 deg F),0.139,76.22,3,0.6,10.59,0.42,0.08
+ Petroleum Products ,3,Pentanes Plus,0.11,70.02,3,0.6,7.7,0.33,0.07
+ Petroleum Products ,3,Petrochemical Feedstocks,0.125,71.02,3,0.6,8.88,0.38,0.08
+ Petroleum Products ,3,Petroleum Coke,0.143,102.41,3,0.6,14.64,0.43,0.09
+ Petroleum Products ,3,Propane,0.091,62.87,3,0.6,5.72,0.27,0.05
+ Petroleum Products ,3,Propylene,0.091,67.77,3,0.6,6.17,0.27,0.05
+ Petroleum Products ,3,Residual Fuel Oil No. 5,0.14,72.93,3,0.6,10.21,0.42,0.08
+ Petroleum Products ,3,Residual Fuel Oil No. 6,0.15,75.1,3,0.6,11.27,0.45,0.09
+ Petroleum Products ,3,Special Naphtha,0.125,72.34,3,0.6,9.04,0.38,0.08
+ Petroleum Products ,3,Unfinished Oils,0.139,74.54,3,0.6,10.36,0.42,0.08
+ Petroleum Products ,3,Used Oil,0.138,74,3,0.6,10.21,0.41,0.08
+ Biomass Fuels - Liquid ,3,Biodiesel (100%),0.128,73.84,1.1,0.11,9.45,0.14,0.01
+ Biomass Fuels - Liquid ,3,Ethanol (100%),0.084,68.44,1.1,0.11,5.75,0.09,0.01
+ Biomass Fuels - Liquid ,3,Rendered Animal Fat,0.125,71.06,1.1,0.11,8.88,0.14,0.01
+ Biomass Fuels - Liquid ,3,Vegetable Oil,0.12,81.55,1.1,0.11,9.79,0.13,0.01
+" Biomass Fuels - 
+Kraft Pulping Liquor, by Wood Furnish ",3,North American Softwood,,94.4,1.9,0.42,,,
+" Biomass Fuels - 
+Kraft Pulping Liquor, by Wood Furnish ",3,North American Hardwood,,93.7,1.9,0.42,,,
+" Biomass Fuels - 
+Kraft Pulping Liquor, by Wood Furnish ",3,Bagasse,,95.5,1.9,0.42,,,
+" Biomass Fuels - 
+Kraft Pulping Liquor, by Wood Furnish ",3,Bamboo,,93.7,1.9,0.42,,,
+" Biomass Fuels - 
+Kraft Pulping Liquor, by Wood Furnish ",3,Straw,,95.1,1.9,0.42,,,
