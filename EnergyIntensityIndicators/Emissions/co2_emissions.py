@@ -61,6 +61,45 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         return data
 
     @staticmethod
+    def epa_eia_crosswalk(eia_data):
+        """[summary]
+
+        Args:
+            eia_data ([type]): [description]
+
+        Returns:
+            [type]: [description]
+
+        TODO: 
+            - Handle fuel types with multiple factors
+        """
+        mapping_ = {'Coal': 'Mixed (Commercial Sector)', # what about residential?? 
+                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1', 
+                    #                         'Distillate Fuel Oil No. 2', 
+                    #                         'Distillate Fuel Oil No. 4'],
+                    'Fuel Ethanol including Denaturant': 'Ethanol (100%)',  # is this the correct handling of the two ethanol categories?
+                    # 'Fuel Ethanol excluding Denaturant':,
+                    'Hydrocarbon gas liquids': 'Liquefied Petroleum Gases (LPG)', 
+                    'Kerosene': 'Kerosene',
+                    'Motor Gasoline': 'Motor Gasoline',
+                    'Natural Gas including Supplemental Gaseous Fuels': 'Natural Gas',
+                    'Petroleum Coke': 'Petroleum Coke',
+                    'Propane': 'Propane',
+                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5', 
+                    #                       'Residual Fuel Oil No. 6'],
+                    'Waste': 'Municipal Solid Waste',
+                    'Wood': 'Wood and Wood Residuals'} #,
+                    # 'Wood and Waste': ['Wood and Wood Residuals', 
+                    #                    'Municipal Solid Waste']}
+
+        irrelevant_fuels = [f for f in eia_data.columns if f not in mapping_.keys() and f != 'Census Region']
+        eia_data = eia_data.drop(irrelevant_fuels, axis=1)
+
+        eia_data = eia_data.rename(columns=mapping_)
+
+        return eia_data
+
+    @staticmethod
     def seds_endpoints(sector, state, fuel):
         endpoints = {'All Petroleum Products': f'SEDS.PA{sector}P.{state}.A',
                     'Coal': f'SEDS.CL{sector}P.{state}.A', 
@@ -169,10 +208,10 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         region_data = region_data.drop('Census Region', axis=1, errors='ignore')
         region_data = df_utils.create_total_column(region_data, total_label='total')
         fuel_mix = df_utils.calculate_shares(region_data, total_label='total')
-        print(fuel_mix)
+        return fuel_mix
 
-    @staticmethod
-    def calculate_emissions(energy_data, emissions_factor):
+    def calculate_emissions(self, energy_data, emissions_type='CO2 Factor', 
+                            datasource='EIA'):
         """Calculate emissions from the product of energy_data and 
         emissions_factor
 
@@ -183,7 +222,24 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         Returns: 
             emissions_data (df): 
         """
-        emissions_data = energy_data.multiply(emissions_factor)
+        emissions_factors = self.epa_emissions_data()
+
+        if datasource == 'EIA':
+            energy_data = self.epa_eia_crosswalk(energy_data)
+        
+        print('energy_data:\n', energy_data)
+        emissions_factors = self.get_factor(emissions_factors, 
+                                            emissions_type)
+        emissions_factors = emissions_factors.loc[energy_data.columns.tolist()]
+        print('emissions_factors:\n', emissions_factors)
+
+        emissions_data = energy_data.multiply(emissions_factors, axis='columns')
+        emissions_data['Census Region'] = emissions_data['Census Region'].astype(int).astype(str)
+        print('emissions_data:\n', emissions_data)
+
+        energy_data['Census Region'] = energy_data['Census Region'].astype(int).astype(str)
+        fuel_mix = indicators.get_fuel_mix(energy_data)
+        print(fuel_mix)
         return emissions_data
 
     @staticmethod
@@ -200,15 +256,38 @@ class CO2EmissionsDecomposition: #(EconomyWide):
             unit_data = unit_data.drop(g, axis=1)
 
             unit_data = unit_data.drop(unit_data.index[0])
-
             unit_data = unit_data.melt(id_vars=['Units', 'Fuel Type'], var_name='Unit')
+
             unit_data = unit_data.rename(columns={'Units': 'Category'})
             
             unit_data['Variable'] = unit_data['Unit'].map(units_dict)
 
             dfs.append(unit_data)
         emissions_factors = pd.concat(dfs, axis=0)
+
         return emissions_factors
+
+    @staticmethod
+    def get_factor(factors_df, emissions_type):
+        """Lookup emissions factor for given fuel and emissions
+        type
+
+        Args:
+            factors_df (df): EPA emisions hub data
+            fuel_name (str): Fuel type to look up in factors_df
+            emissions_type (str): Type of emissions to return (e.g CO2)
+
+        Returns:
+            emissions_factor (float): emissions factor for given params
+        """
+        factors_df = factors_df[factors_df['Variable'] == emissions_type]
+        fuel_factor_df = factors_df[['Fuel Type', 'value']]
+        fuel_factor_df['value'] = fuel_factor_df['value'].astype(float)
+        new_row = {'Fuel Type': 'Census Region', 'value': 1}
+        fuel_factor_df = fuel_factor_df.append(new_row, ignore_index=True)
+        fuel_factor_df = fuel_factor_df.set_index('Fuel Type')
+        fuel_factor_df = fuel_factor_df['value']        
+        return fuel_factor_df
 
     def collect_emissions_data(self): 
         """[summary]
@@ -328,10 +407,12 @@ if __name__ == '__main__':
                                            output_directory='./Results', level_of_aggregation=None, 
                                            end_year=2018, lmdi_model=['multiplicative', 'additive'])
     # indicators.main(breakout=True, calculate_lmdi=True)
-    # data = indicators.epa_emissions_data()
+    ef = indicators.epa_emissions_data()
 
-    data = indicators.seds_energy_data(sector='commercial')
+    data = indicators.seds_energy_data(sector='residential')
     print(data)
     print(data.columns)
-    fuel_mix = indicators.get_fuel_mix(data)
-    print(fuel_mix)
+    emissions_data = indicators.calculate_emissions(data, emissions_type='CO2 Factor', 
+                                                    datasource='EIA')
+
+    print('emissions_data:\n', emissions_data)
