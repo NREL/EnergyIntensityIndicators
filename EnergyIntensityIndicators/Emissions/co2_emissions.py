@@ -230,6 +230,8 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         elif datasource == 'MECS':
             energy_data = self.mecs_epa_mapping(energy_data)
             energy_data = energy_data.reset_index()
+        elif datasource == 'eia_elec':
+            pass
         
         print('energy_data:\n', energy_data)
         emissions_factors = self.get_factor(emissions_factors, 
@@ -366,6 +368,26 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         
     def electric_power_co2(self):
         elec_data = ElectricityIndicators.collect_data()
+        elec_gen_total = elec_data['Elec Generation Total']
+        elec_power_sector = elec_gen_total['Elec Power Sector']
+        elec_only = elec_power_sector['Electricity Only']
+
+        comm_sector = elec_gen_total['Commercial Sector']
+        ind_sector = elec_gen_total['Industrial Sector']
+
+        all_chp = elec_data['All CHP']
+        chp_elec_power = all_chp['Elec Power Sector']['Combined Heat & Power']
+        chp_comm = all_chp['Commercial Sector']['Combined Heat & Power']
+        chp_ind = all_chp['Industrial Sector']['Combined Heat & Power']
+
+        data_cats = [elec_only, comm_sector, 
+                     ind_sector, chp_elec_power, 
+                     chp_comm, chp_ind]
+        
+        for d in data_cats:
+            d = d.rename(columns=self.electric_power_sector())
+            d_emissions = self.calculate_emissions(d, emissions_type='CO2 Factor', 
+                                                   datasource='eia_elec')
         return elec_data
         
 
