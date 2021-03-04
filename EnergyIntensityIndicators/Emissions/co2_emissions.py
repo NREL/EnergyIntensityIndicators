@@ -1,11 +1,12 @@
 
 import pandas as pd
 import os
+import numpy as np
 
 # from EnergyIntensityIndicators.industry import IndustrialIndicators
 # from EnergyIntensityIndicators.residential import ResidentialIndicators
 # from EnergyIntensityIndicators.commercial import CommercialIndicators
-# from EnergyIntensityIndicators.electricity import ElectricityIndicators
+from EnergyIntensityIndicators.electricity import ElectricityIndicators
 # from EnergyIntensityIndicators.transportation import TransportationIndicators
 # from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.economy_wide import EconomyWide
@@ -211,7 +212,7 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         return fuel_mix
 
     def calculate_emissions(self, energy_data, emissions_type='CO2 Factor', 
-                            datasource='EIA'):
+                            datasource='SEDS'):
         """Calculate emissions from the product of energy_data and 
         emissions_factor
 
@@ -224,8 +225,11 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         """
         emissions_factors = self.epa_emissions_data()
 
-        if datasource == 'EIA':
+        if datasource == 'SEDS':
             energy_data = self.epa_eia_crosswalk(energy_data)
+        elif datasource == 'MECS':
+            energy_data = self.mecs_epa_mapping(energy_data)
+            energy_data = energy_data.reset_index()
         
         print('energy_data:\n', energy_data)
         emissions_factors = self.get_factor(emissions_factors, 
@@ -349,8 +353,114 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         
         emissions_data_dict = {}
         return emissions_data_dict
-
     
+    @staticmethod
+    def electric_power_sector():
+        mapping_ = {'Coal': 'Mixed (Electric Power Sector)', # for industrial/commercial use 'Mixed (Commercial Sector)', 'Mixed (Industrial Coking)' or 'Mixed (Industrial Sector)'??
+                    'Petroleum': '',
+                    'Natural Gas': 'Natural Gas', 
+                    'Other Gases': '',
+                    'Waste': 'Municipal Solid Waste',
+                    'Wood': 'Wood and Wood Residuals'}
+        return mapping_
+        
+    def electric_power_co2(self):
+        elec_data = ElectricityIndicators.collect_data()
+        return elec_data
+        
+
+    @staticmethod
+    def clean_industrial_data(raw_data, table_3_1=False):
+        if table_3_1:
+            raw_data.index = raw_data.index.str.strip()
+        else:
+            raw_data.index = raw_data.index.fillna(np.nan)
+            raw_data.index = raw_data.index.astype('Int64')
+            raw_data.index = raw_data.index.astype(str)
+            raw_data.index.name = 'NAICS'   
+
+        raw_data = raw_data.reset_index()
+        regions = ['Total United States', 'Northeast Census Region', 'Midwest Census Region', 'South Census Region', 'West Census Region']
+        conditions = [(raw_data['Total'] == r) for r in regions]
+        raw_data['region'] = np.select(conditions, regions)
+        raw_data['region'] = raw_data['region'].replace(to_replace='0', value=np.nan).fillna(method='ffill')
+        raw_data = raw_data[~raw_data['Total'].isin(regions)]
+
+        raw_data['NAICS'] = raw_data['NAICS'].fillna(raw_data['Subsector and Industry'])
+        raw_data = raw_data.set_index(['region', 'NAICS', 'Subsector and Industry'])
+        raw_data = raw_data.replace(to_replace=['*', 'Q', 'D'], value=np.nan)
+        return raw_data
+
+    def industrial_sector_data(self):
+        mecs_3_1 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_1.xlsx', skiprows=9, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (physical units)
+        mecs_3_1 = mecs_3_1.drop('Code(a)', axis=0)
+        mecs_3_1 = mecs_3_1.rename(columns={' ': 'Subsector and Industry'})
+        mecs_3_1 = self.clean_industrial_data(mecs_3_1, table_3_1=True)
+
+
+        mecs_3_2 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_2.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (trillion Btu)
+        mecs_3_2 = self.clean_industrial_data(mecs_3_2)
+        rename_dict_3_1 = {'Electricity(b)': 'Net Electricity', 
+                       'Fuel Oil': 'Residual Fuel Oil', 
+                       'Fuel Oil(c)': 'Distillate Fuel Oil', 
+                       'Gas(d)': 'Natural Gas',
+                       'natural gasoline)(e)': 'HGL (excluding natural gasoline)', 
+                       'and Breeze': 'Coke Coal and Breeze'}
+        mecs_3_2 = mecs_3_2.rename(columns=rename_dict_3_1)
+
+        mecs_3_5 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_5.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # Byproducts in Fuel Consumption By Manufacturing Industry and Region
+                    # (trillion Btu)
+        rename_dict_3_5 = {'Oven Gases': 'Blast Furnace/Coke Oven Gases', 
+                           'Gas': 'Waste Gas', 
+                           'Coke': 'Petroleum Coke',
+                           'Black Liquor': 'Pulping Liquor or Black Liquor', 
+                           'Bark': 'Wood Chips, Bark', 
+                           'Materials': 'Waste Oils/Tars and Waste Materials'}
+        mecs_3_5 = mecs_3_5.rename(columns=rename_dict_3_5)
+        mecs_3_5 = self.clean_industrial_data(mecs_3_5)
+
+        mecs_3_2_other = mecs_3_2[['Other(f)']]
+
+        mecs_3_5 = mecs_3_5.merge(mecs_3_2_other, left_index=True, right_index=True, how='inner')
+
+        mecs_3_5['steam'] = mecs_3_5['Total'].subtract(mecs_3_5['Other(f)'])
+        mecs_3_5 = mecs_3_5.drop(['Total', 'Other(f)'], axis=1)
+
+        industrial_btu = mecs_3_5.merge(mecs_3_2, left_index=True, right_index=True, how='outer')
+        print('industrial_btu:\n', industrial_btu)
+        print('industrial_btu cols:\n', industrial_btu.columns)
+        return industrial_btu
+
+    def industrial_sector_energy(self):
+        """TODO: do further processing to bridge Btu energy data with 
+        physical units used for emissions factors
+        """        
+        industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
+        industrial_renamed = self.mecs_epa_mapping(industrial_data_btu) 
+        return industrial_renamed
+    
+    @staticmethod
+    def mecs_epa_mapping(mecs_data):
+        mapping_ = {
+            # 'Blast Furnace/Coke Oven Gases': ['Blast Furnace Gas', 'Coke Oven Gas'], 
+                    # 'Waste Gas', ??
+                    'Petroleum Coke': 'Petroleum Coke',
+                    # 'Pulping Liquor or Black Liquor', ??
+                    'Wood Chips, Bark': 'Wood and Wood Residuals',
+                    # 'Waste Oils/Tars and Waste Materials', ??
+                    # 'steam', ?? 
+                    # 'Net Electricity', ??
+                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5', 'Residual Fuel Oil No. 6'], 
+                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1', 
+                    #                         'Distillate Fuel Oil No. 2', 
+                    #                         'Distillate Fuel Oil No. 4'],
+                    'Natural Gas': 'Natural Gas', 
+                    'HGL (excluding natural gasoline)': 'Liquefied Petroleum Gases (LPG)', 
+                    'Coal': 'Mixed (Industrial Sector)', # OR Mixed (Industrial Coking)?
+                    'Coke Coal and Breeze': 'Coal Coke'}
+        mecs_data = mecs_data.rename(columns=mapping_)
+        return mecs_data
+
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition of CO2 emissions for the U.S. economy
         
@@ -407,12 +517,16 @@ if __name__ == '__main__':
                                            output_directory='./Results', level_of_aggregation=None, 
                                            end_year=2018, lmdi_model=['multiplicative', 'additive'])
     # indicators.main(breakout=True, calculate_lmdi=True)
-    ef = indicators.epa_emissions_data()
+    # ef = indicators.epa_emissions_data()
 
-    data = indicators.seds_energy_data(sector='residential')
-    print(data)
-    print(data.columns)
-    emissions_data = indicators.calculate_emissions(data, emissions_type='CO2 Factor', 
-                                                    datasource='EIA')
+    # data = indicators.seds_energy_data(sector='residential')
+    # print(data)
+    # print(data.columns)
+    # emissions_data = indicators.calculate_emissions(data, emissions_type='CO2 Factor', 
+    #                                                 datasource='SEDS')
 
-    print('emissions_data:\n', emissions_data)
+    # print('emissions_data:\n', emissions_data)
+    mecs_data = indicators.industrial_sector_energy()
+    industrial_emissions_data = indicators.calculate_emissions(mecs_data, emissions_type='CO2 Factor', 
+                                                               datasource='MECS')
+    print('industrial_emissions_data:\n', industrial_emissions_data)
