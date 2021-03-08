@@ -1,6 +1,6 @@
 
 import pandas as pd
-import os
+# import os
 import numpy as np
 
 # from EnergyIntensityIndicators.industry import IndustrialIndicators
@@ -9,7 +9,7 @@ import numpy as np
 from EnergyIntensityIndicators.electricity import ElectricityIndicators
 # from EnergyIntensityIndicators.transportation import TransportationIndicators
 # from EnergyIntensityIndicators.LMDI import CalculateLMDI
-from EnergyIntensityIndicators.economy_wide import EconomyWide
+# from EnergyIntensityIndicators.economy_wide import EconomyWide
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
@@ -31,22 +31,26 @@ class CO2EmissionsDecomposition: #(EconomyWide):
                  lmdi_model='multiplicative', base_year=1985, end_year=2018): 
         
         self.eia = GetEIAData('emissions')
-        # super().__init__(directory=directory, output_directory=output_directory, 
+        # super().__init__(directory=directory, 
+        #                  output_directory=output_directory, 
         #                  level_of_aggregation=level_of_aggregation, 
-        #                  lmdi_model=lmdi_model, base_year=base_year, end_year=end_year)
+        #                  lmdi_model=lmdi_model, base_year=base_year, 
+        #                  end_year=end_year)
 
     @staticmethod
     def state_census_crosswalk():
         cw = pd.read_csv('./EnergyIntensityIndicators/Data/state_to_census_region.csv')
         state_abbrevs = pd.read_csv('./EnergyIntensityIndicators/Data/name-abbr.csv')
-        cw =cw.merge(state_abbrevs, left_on='USPC', right_on='Abbrev', how='left')
+        cw =cw.merge(state_abbrevs, left_on='USPC', right_on='Abbrev', 
+                     how='left')
         return cw
 
-    def collect_elec_emissions_factors(self, sector=None, energy_type=None, region=None, 
-                                       fuel_type=None, state_abbrev=None):
-        """Collect electricity emissions factors from the EIA API (through GetEIAData). 
-        If region is None, collect data for the U.S., if energy_type is None use total, 
-        if sector is None use total
+    def collect_elec_emissions_factors(self, sector=None, energy_type=None,
+                                       region=None, fuel_type=None, 
+                                       state_abbrev=None):
+        """Collect electricity emissions factors from the EIA API (through 
+        GetEIAData). If region is None, collect data for the U.S., 
+        if energy_type is None use total, if sector is None use total
 
         Parameters:
             sector (str):
@@ -93,7 +97,8 @@ class CO2EmissionsDecomposition: #(EconomyWide):
                     # 'Wood and Waste': ['Wood and Wood Residuals', 
                     #                    'Municipal Solid Waste']}
 
-        irrelevant_fuels = [f for f in eia_data.columns if f not in mapping_.keys() and f != 'Census Region']
+        irrelevant_fuels = [f for f in eia_data.columns if f not in
+                            mapping_.keys() and f != 'Census Region']
         eia_data = eia_data.drop(irrelevant_fuels, axis=1)
 
         eia_data = eia_data.rename(columns=mapping_)
@@ -176,10 +181,13 @@ class CO2EmissionsDecomposition: #(EconomyWide):
             state_data = []
             for s in states:
                 try:
-                    df = self.eia.eia_api(id_=self.seds_endpoints(sector, s, f), id_type='series', new_name=f, units_col=True)
+                    df = self.eia.eia_api(id_=self.seds_endpoints(sector, s, f),
+                                          id_type='series', new_name=f, 
+                                          units_col=True)
                     state_data.append(df)
                 except KeyError:
-                    print(f'Endpoint failed for state {s}, sector {sector} and fuel type {f}')
+                    print(f'Endpoint failed for state {s}, sector \
+                            {sector} and fuel type {f}')
                     continue
 
             region_data = pd.concat(state_data, axis=0)
@@ -198,7 +206,9 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         all_data = []
         for g in sector_data[sector]['regions']:
             region_states = grouped.get_group(g)
-            region_data = self.collect_seds(sector=sector_data[sector]['abbrev'], states=region_states['USPC'].unique())
+            region_data = self.collect_seds(
+                                        sector=sector_data[sector]['abbrev'],
+                                        states=region_states['USPC'].unique())
             region_data['Census Region'] = g
             all_data.append(region_data)
         all_data = pd.concat(all_data, axis=0)
@@ -206,14 +216,16 @@ class CO2EmissionsDecomposition: #(EconomyWide):
 
     @staticmethod
     def get_fuel_mix(region_data):
-        region_data = region_data.drop('Census Region', axis=1, errors='ignore')
-        region_data = df_utils.create_total_column(region_data, total_label='total')
+        region_data = region_data.drop('Census Region',
+                                       axis=1, errors='ignore')
+        region_data = df_utils.create_total_column(region_data,
+                                                   total_label='total')
         fuel_mix = df_utils.calculate_shares(region_data, total_label='total')
         return fuel_mix
 
-    def calculate_emissions(self, energy_data, emissions_type='CO2 Factor', 
+    def calculate_emissions(self, energy_data, emissions_type='CO2 Factor',
                             datasource='SEDS'):
-        """Calculate emissions from the product of energy_data and 
+        """Calculate emissions from the product of energy_data and
         emissions_factor
 
         Parameters:

@@ -1,17 +1,11 @@
 import pandas as pd
-import numpy as np
-from sklearn import linear_model
-import os
-from datetime import date
-import matplotlib.pyplot as plt
-import seaborn
 import plotly.graph_objects as go
-import plotly.express as px
 
 from EnergyIntensityIndicators.utilites import lmdi_utilities
+from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 
-class AdditiveLMDI():
+class AdditiveLMDI:
 
     def __init__(self, output_directory, energy_data, energy_shares,
                  base_year, end_year, total_label, lmdi_type='LMDI-I'):
@@ -29,11 +23,16 @@ class AdditiveLMDI():
 
         Args:
             energy_data (dataframe): energy consumption data
-            energy_shares (dataframe): Shares of total energy for each category in level of aggregation
-            total_label (str): Name of aggregation of categories in level of aggregation
-            lmdi_type (str, optional): 'LMDI-I' or 'LMDI-II'. Defaults to 'LMDI-I' because it is 'consistent in aggregation and perfect 
-                                        in decomposition at the subcategory level' (Ang, B.W., 2015. LMDI decomposition approach: A guide for 
-                                        implementation. Energy Policy 86, 233-238.).
+            energy_shares (dataframe): Shares of total energy for
+            each category in level of aggregation total_label (str):
+            Name of aggregation of categories in level of aggregation
+            lmdi_type (str, optional): 'LMDI-I' or 'LMDI-II'.
+
+        Defaults to 'LMDI-I' because it is
+        'consistent in aggregation and perfect
+        in decomposition at the subcategory level' 
+        (Ang, B.W., 2015. LMDI decomposition approach: A guide for
+        implementation. Energy Policy 86, 233-238.).
         """        
         print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
         if not self.lmdi_type:
@@ -41,12 +40,14 @@ class AdditiveLMDI():
         
         print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
 
-        log_mean_shares_labels = [f"log_mean_shares_{col}" for col in self.energy_shares.columns]
+        log_mean_shares_labels = [f"log_mean_shares_{col}" for
+                                  col in self.energy_shares.columns]
         log_mean_weights = pd.DataFrame(index=self.energy_data.index)
         log_mean_values_df = pd.DataFrame(index=self.energy_data.index)
 
-        for col in self.energy_shares.columns: 
-            self.energy_data[f"{col}_shift"] = self.energy_data[col].shift(periods=1, axis='index', fill_value=0)
+        for col in self.energy_shares.columns:
+            self.energy_data[f"{col}_shift"] = self.energy_data[col].shift(
+                                      periods=1, axis='index', fill_value=0)
 
             # apply generally not preferred for row-wise operations but?
             log_mean_values = self.energy_data[[col, f"{col}_shift"]].apply(lambda row: 
