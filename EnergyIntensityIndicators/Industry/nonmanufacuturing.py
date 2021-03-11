@@ -73,7 +73,6 @@ class NonManufacturing:
         lubricant = dollar_mmbtu.multiply(lubricant_weights)
         return dollar_mmbtu, lubricant
 
-
     def construction_raw_data(self):
         """Equivalent to Construction_energy_011920.xlsx['Construction']
         """ 
