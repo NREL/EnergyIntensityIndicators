@@ -9,13 +9,19 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 
 
 class TransportationIndicators(CalculateLMDI):
-    """Class to calculate Energy Intensity indicators for the U.S. Transportation Sector
+    """Class to calculate Energy Intensity indicators
+    for the U.S. Transportation Sector
     """    
-    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model='multiplicative', tedb_date='04302020', base_year=1985, end_year=2018):
+    def __init__(self, directory, output_directory, level_of_aggregation,
+                 lmdi_model='multiplicative', tedb_date='04302020',
+                 base_year=1985, end_year=2018):
         self.transit_eia = GetEIAData('transportation')
-        self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272', id_type='category') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272', id_type='category') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
-        self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272', id_type='category') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711272'
+        self.mer_table25_dec_2019 = self.transit_eia.eia_api(id_='711272',
+                                                            id_type='category')
+        self.mer_table_43_nov2019 = self.transit_eia.eia_api(id_='711272',
+                                                            id_type='category')
+        self.aer_2010_table_65 = self.transit_eia.eia_api(id_='711272',
+                                                        id_type='category')
         self.tedb_date = tedb_date
         self.energy_types = ['deliv']
         self.sub_categories_list = {'All_Transportation': {'All_Passenger':
@@ -43,14 +49,24 @@ class TransportationIndicators(CalculateLMDI):
                                                                 'Waterborne': None,
                                                                 'Pipeline': 
                                                                     {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}}
-        super().__init__(sector='transportation', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, 
-                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year,
+        super().__init__(sector='transportation',
+                         level_of_aggregation=level_of_aggregation,
+                         lmdi_models=lmdi_model,
+                         categories_dict=self.sub_categories_list,
+                         energy_types=self.energy_types,
+                         directory=directory,
+                         output_directory=output_directory,
+                         base_year=base_year, end_year=end_year,
                          unit_conversion_factor=1000000)
 
-    def import_tedb_data(self, table_number, skip_footer=None, skiprows=None, sheet_name=None, usecols=None, index_col=None):
+    def import_tedb_data(self, table_number, skip_footer=None,
+                         skiprows=None, sheet_name=None,
+                         usecols=None, index_col=None):
         try:
             file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'
-            xls = pd.read_excel(file_url, skipfooter=skip_footer, skiprows=skiprows, sheet_name=sheet_name, usecols=usecols, index_col=index_col)
+            xls = pd.read_excel(file_url, skipfooter=skip_footer, 
+                                skiprows=skiprows, sheet_name=sheet_name, 
+                                usecols=usecols, index_col=index_col)
             return xls
         except urllib.error.HTTPError:
             print('error with table', table_number)
@@ -67,7 +83,7 @@ class TransportationIndicators(CalculateLMDI):
         """
         gross_output = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/BLS_BEA_Data.xlsx', sheet_name='BLS_Data_011920', index_col=0)
         gross_output = gross_output.transpose()  # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model, 
-                                    # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
+                                                # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
         vehicle_miles_fhwa_tvm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4, index_col=0) 
         old_methodology_2007_extrapolated = gross_output.iloc[2007] / gross_output.iloc[2006] * vehicle_miles_fhwa_tvm1.iloc[2006, :]
         old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated  

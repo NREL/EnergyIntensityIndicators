@@ -1,6 +1,6 @@
 
 import pandas as pd
-# import os
+import os
 import numpy as np
 
 # from EnergyIntensityIndicators.industry import IndustrialIndicators
@@ -41,7 +41,7 @@ class CO2EmissionsDecomposition: #(EconomyWide):
     def state_census_crosswalk():
         cw = pd.read_csv('./EnergyIntensityIndicators/Data/state_to_census_region.csv')
         state_abbrevs = pd.read_csv('./EnergyIntensityIndicators/Data/name-abbr.csv')
-        cw =cw.merge(state_abbrevs, left_on='USPC', right_on='Abbrev', 
+        cw = cw.merge(state_abbrevs, left_on='USPC', right_on='Abbrev', 
                      how='left')
         return cw
 
@@ -131,7 +131,7 @@ class CO2EmissionsDecomposition: #(EconomyWide):
                     'Wood': f'SEDS.WD{sector}B.{state}.A',
                     'Wood and Waste': f'SEDS.WW{sector}B.{state}.A'}
         return endpoints[fuel]
-            
+
     def collect_seds(self, sector, states):
         """SEDS energy consumption data (in physical units unless unavailable, in which case in Btu-- indicated by P or B in endpoint)
 
@@ -140,42 +140,42 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         """
 
         fuels = {'CC': ['All Petroleum Products',
-                            'Coal', 
-                            'Distillate Fuel Oil',
-                            'Electrical System Energy Losses', 
-                            'Electricity Sales',
-                            'Fuel Ethanol including Denaturant',
-                            'Fuel Ethanol excluding Denaturant',
-                            'Geothermal',
-                            'Hydrocarbon gas liquids', # is the Lpg factor right for HGL?
-                            'Hydroelectricity',
-                            'Kerosene',
-                            'Motor Gasoline',
-                            'Natural Gas including Supplemental Gaseous Fuels',
-                            'Petroleum Coke',
-                            'Propane',
-                            'Residual Fuel Oil',
-                            'Solar Energy',
-                            'Total (per Capita)',
-                            'Total Energy excluding Electrical System Energy Losses',
-                            'Waste',
-                            'Wind Energy',
-                            'Wood',
-                            'Wood and Waste'],
+                        'Coal', 
+                        'Distillate Fuel Oil',
+                        'Electrical System Energy Losses', 
+                        'Electricity Sales',
+                        'Fuel Ethanol including Denaturant',
+                        'Fuel Ethanol excluding Denaturant',
+                        'Geothermal',
+                        'Hydrocarbon gas liquids', # is the Lpg factor right for HGL?
+                        'Hydroelectricity',
+                        'Kerosene',
+                        'Motor Gasoline',
+                        'Natural Gas including Supplemental Gaseous Fuels',
+                        'Petroleum Coke',
+                        'Propane',
+                        'Residual Fuel Oil',
+                        'Solar Energy',
+                        'Total (per Capita)',
+                        'Total Energy excluding Electrical System Energy Losses',
+                        'Waste',
+                        'Wind Energy',
+                        'Wood',
+                        'Wood and Waste'],
         'RC': ['All Petroleum Products',
-                            'Coal', 
-                            'Distillate Fuel Oil',
-                            'Electrical System Energy Losses', # in BTU
-                            'Electricity Sales',
-                            'Geothermal',
-                            'Hydrocarbon gas liquids',
-                            'Kerosene',
-                            'Natural Gas including Supplemental Gaseous Fuels',
-                            'Propane',
-                            'Solar Energy',
-                            'Total (per Capita)',
-                            'Total Energy excluding Electrical System Energy Losses',
-                            'Wood']}
+                'Coal', 
+                'Distillate Fuel Oil',
+                'Electrical System Energy Losses', # in BTU
+                'Electricity Sales',
+                'Geothermal',
+                'Hydrocarbon gas liquids',
+                'Kerosene',
+                'Natural Gas including Supplemental Gaseous Fuels',
+                'Propane',
+                'Solar Energy',
+                'Total (per Capita)',
+                'Total Energy excluding Electrical System Energy Losses',
+                'Wood']}
         fuels_data = []
         for f in fuels[sector]:
             state_data = []
@@ -244,6 +244,8 @@ class CO2EmissionsDecomposition: #(EconomyWide):
             energy_data = energy_data.reset_index()
         elif datasource == 'eia_elec':
             pass
+        elif datasource == 'TEDB':
+            energy_data = self.tedb_mecs_mapping(energy_data)
         
         print('energy_data:\n', energy_data)
         emissions_factors = self.get_factor(emissions_factors, 
@@ -282,7 +284,8 @@ class CO2EmissionsDecomposition: #(EconomyWide):
 
             dfs.append(unit_data)
         emissions_factors = pd.concat(dfs, axis=0)
-
+        print('emissions_factors:\n', emissions_factors)
+        exit()
         return emissions_factors
 
     @staticmethod
@@ -401,10 +404,61 @@ class CO2EmissionsDecomposition: #(EconomyWide):
             d_emissions = self.calculate_emissions(d, emissions_type='CO2 Factor', 
                                                    datasource='eia_elec')
         return elec_data
-        
+    
+    @staticmethod
+    def transportation_data():
+        tedb_18 = pd.read_excel("https://tedb.ornl.gov/wp-content/uploads/2021/02/Table2_07_01312021.xlsx", skiprows=9, skipfooter=10, index_col=0, usecols='B:J')
+        tedb_18 = tedb_18.rename(columns={'Electricityb': 'Electricity', 'Totalc': 'Total'})
+        tedb_18.index = tedb_18.index.str.strip()
+        tedb_18 = tedb_18.reset_index()
+        print(tedb_18)
+        categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc', 'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY', 
+        conditions = [(tedb_18['index'] == r) for r in categories]
+        tedb_18['Category'] = np.select(conditions, categories)
+        tedb_18['Category'] = tedb_18['Category'].replace(to_replace='0', value=np.nan).fillna(method='ffill')
+        tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
+        tedb_18 = tedb_18.rename(columns={'index': 'Mode', ' Residual fuel oil': 'Residual fuel oil'})
+        print(tedb_18.columns)
+        tedb_fuel_types = ['Gasoline', 'Diesel fuel', 'Liquefied petroleum gas',
+                           'Jet fuel',  'Residual fuel oil', 'Natural gas',
+                           'Electricity', 'Total']
+
+        tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'], value_vars=tedb_fuel_types, var_name='Fuel Type')
+        tedb_fuel['Year'] = 2018
+        tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway', 'Water': 'Waterborne'})
+        print(tedb_fuel)
+        historical_fuel_consump = pd.read_excel('./EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx', 
+                                                skipfooter=196, skiprows=2, usecols='A:BQ')
+        historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
+        historical_fuel_consump.loc[0:2, :] = historical_fuel_consump.loc[0:2, :].ffill(axis=1)
+        historical_fuel_consump.loc[0, 'Unnamed: 0'] = 'Category'
+        historical_fuel_consump.loc[1, 'Unnamed: 0'] = 'Mode'
+
+        historical_fuel_consump = historical_fuel_consump.set_index('Unnamed: 0')
+
+        historical_fuel_consump = historical_fuel_consump.transpose()
+        historical_fuel_consump = historical_fuel_consump.rename(columns={'Year': 'Fuel Type'})
+        historical_fuel_consump = historical_fuel_consump.reset_index().drop('index', axis=1)
+
+        year_cols = [c for c in historical_fuel_consump.columns if isinstance(c, int)]
+        fuel = pd.melt(historical_fuel_consump, id_vars=['Category', 'Mode', 'Fuel Type'], value_vars=year_cols)
+        fuel = fuel.rename(columns={'Unnamed: 0': 'Year'})
+        fuel = fuel[(fuel['Fuel Type']!='Year') & (fuel['Mode']!='Not Used')]
+
+        print('fuel:\n', fuel)
+
+        print('fuel cols:\n', fuel.columns)
+        transport_fuel = pd.concat([fuel, tedb_fuel], axis=0)
+        print('transport_fuel:\n', transport_fuel)
+        print('transport_fuel fuels', transport_fuel['Fuel Type'].unique())
+
+        return transport_fuel
+
+
 
     @staticmethod
     def clean_industrial_data(raw_data, table_3_1=False, sic=False):
+
         if sic:
             code = 'SIC'
         else:
@@ -436,7 +490,6 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         # Table 3.1 : By Mfg. Industry & Region (physical units)
         # Table 3.2 : By Mfg. Industry & Region (trillion Btu)
         # Table 3.5 : Byproducts in Fuel Consumption by Mfg. Industry & Region (trillion Btu)
-https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
         mecs_data = {2018: 
                         {'table_3_1': {'endpoint': 'Table3_1.xlsx', 'skiprows': 9, 'skip_footer': 20}, 
                          'table_3_2': {'endpoint': 'Table3_2.xlsx', 'skiprows': 9, 'skip_footer': 14}, 
@@ -486,10 +539,12 @@ https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
         all_3_1 = []
         all_3_2 = []
         all_3_5 = []
+        all_4_2 = []
 
         sic_3_1 = []
         sic_3_2 = []
         sic_3_5 = []
+        sic_4_2 = []
 
         for year, table_dict in mecs_data.items():
             if year < 1998: 
@@ -551,6 +606,13 @@ https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
                             sic_3_2.append(mecs_3_2)
                         else:
                             all_3_2.append(mecs_3_2)
+                    
+                    elif t == 'table_4_2':
+                        mecs_4_2 = self.clean_industrial_data(df, sic=sic)
+                        if sic:
+                            sic_4_2.append(mecs_4_2)
+                        else:
+                            all_4_2.append(mecs_4_2)
 
         all_3_1 = pd.concat(all_3_1, axis=0).reset_index()
         all_3_1 = all_3_1.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
@@ -567,6 +629,11 @@ https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
         sic_3_5 = pd.concat(sic_3_5, axis=0).reset_index()
         # sic_3_5 = sic_3_5.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
 
+        all_4_2 = pd.concat(all_4_2, axis=0).reset_index()
+        # all_4_2 = all_4_2.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
+        sic_4_2 = pd.concat(sic_4_2, axis=0).reset_index()
+        # sic_4_2 = sic_4_2.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
+
         print('all_3_2:\n', all_3_2)
         all_3_2 = all_3_2[['Other(f)']]
 
@@ -577,9 +644,11 @@ https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
 
         industrial_btu = all_3_5.merge(all_3_2, left_index=True, right_index=True, how='outer')
         print('industrial_btu:\n', industrial_btu)
-        mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2, '3_5': all_3_5},
-                'SIC': {'3_1': sic_3_1, '3_2': sic_3_2, '3_5': sic_3_5}}
+        mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2, '3_5': all_3_5, '4_2': all_4_2},
+                'SIC': {'3_1': sic_3_1, '3_2': sic_3_2, '3_5': sic_3_5, '4_2'}}
         return mecs
+
+
 
     def industrial_sector_data(self):
         mecs_3_1 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_1.xlsx', skiprows=9, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (physical units)
@@ -650,6 +719,25 @@ https://www.eia.gov/consumption/manufacturing/data/1991/xls/mecs05b.xls
                     'Coke Coal and Breeze': 'Coal Coke'}
         mecs_data = mecs_data.rename(columns=mapping_)
         return mecs_data
+    
+    @staticmethod
+    def tedb_fuel_types(tedb_data):
+        tedb_data = tedb_data.drop('Total Energy (Tbtu) - old series')
+        tedb_data = tedb_data.replace({'Gasoline (million gallons)': 'Gasoline',
+                                       'Diesel (million gallons)': 'Diesel',
+                                       'Diesel fuel': 'Diesel',
+                                       'LPG': 'Liquefied petroleum gas',
+                                       })
+        mapping = {['All Fuel' 'Gasoline' 'Gasohol' 'Diesel' 'CNG' 'LNG' 'Bio Diesel '
+                    'Other' 'School' 'School (million bbl)' 'Intercity'
+                    'Diesel Fuel & Distillate (1,000 bbl)' 'Residual Fuel Oil (1,000 bbl)'
+                    'Domestic Operations ' 'International Operations '
+                     'Jet fuel (million gallons)'
+                    'Electricity (GWhrs)' 'Total Energy (Tbtu) '
+                     'Total Energy (Tbtu)'
+                    'Distillate Fuel Oil' 'Natural Gas (million cu. ft.)'
+                    'Electricity (million kWh)' 'Diesel fuel' 'Liquefied petroleum gas'
+                    'Jet fuel' 'Residual fuel oil' 'Natural gas' 'Electricity' 'Total']}
 
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition of CO2 emissions for the U.S. economy
@@ -707,8 +795,8 @@ if __name__ == '__main__':
                                            output_directory='./Results', level_of_aggregation=None, 
                                            end_year=2018, lmdi_model=['multiplicative', 'additive'])
     # indicators.main(breakout=True, calculate_lmdi=True)
-    # ef = indicators.epa_emissions_data()
 
+    # exit()
     # data = indicators.seds_energy_data(sector='residential')
     # print(data)
     # print(data.columns)
@@ -720,4 +808,8 @@ if __name__ == '__main__':
     # industrial_emissions_data = indicators.calculate_emissions(mecs_data, emissions_type='CO2 Factor', 
     #                                                            datasource='MECS')
     # print('industrial_emissions_data:\n', industrial_emissions_data)
-    indicators.mecs_data_by_year()
+    # indicators.mecs_data_by_year()
+    indicators.transportation_data()
+    ef = indicators.epa_emissions_data()
+    print('ef:\n', ef)
+    print(ef['Fuel Type'].unique())
