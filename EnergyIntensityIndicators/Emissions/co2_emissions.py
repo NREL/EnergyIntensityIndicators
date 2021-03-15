@@ -2,6 +2,10 @@
 import pandas as pd
 import os
 import numpy as np
+import zipfile
+import requests
+import io
+import glob
 
 # from EnergyIntensityIndicators.industry import IndustrialIndicators
 # from EnergyIntensityIndicators.residential import ResidentialIndicators
@@ -645,10 +649,8 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         industrial_btu = all_3_5.merge(all_3_2, left_index=True, right_index=True, how='outer')
         print('industrial_btu:\n', industrial_btu)
         mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2, '3_5': all_3_5, '4_2': all_4_2},
-                'SIC': {'3_1': sic_3_1, '3_2': sic_3_2, '3_5': sic_3_5, '4_2'}}
+                'SIC': {'3_1': sic_3_1, '3_2': sic_3_2, '3_5': sic_3_5, '4_2': sic_4_2}}
         return mecs
-
-
 
     def industrial_sector_data(self):
         mecs_3_1 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_1.xlsx', skiprows=9, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (physical units)
@@ -739,6 +741,65 @@ class CO2EmissionsDecomposition: #(EconomyWide):
                     'Electricity (million kWh)' 'Diesel fuel' 'Liquefied petroleum gas'
                     'Jet fuel' 'Residual fuel oil' 'Natural gas' 'Electricity' 'Total']}
 
+    @staticmethod
+    def unpack_noncombustion_data():
+        print('collecting noncombustion_fuels')
+        # zip_file = "https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip"
+        zip_file = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
+        r = requests.get(zip_file)
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        print('zipfile')
+        z.extractall('C:/Users/irabidea/Desktop/emissions_data/')
+        print('zipfile collected')
+    
+    @staticmethod
+    def noncombustion_emissions():
+        files_list = glob.glob("C:/Users/irabidea/Desktop/emissions_data/Annex/*.csv")
+
+        data = dict()
+        for f in files_list:
+            f = f.replace('\\', '/')
+            df = pd.read_csv(f, engine='python')
+            data_key = df.columns[0]
+            data[data_key] = df
+
+            # print('df:\n', df)
+        # print('df types:', data.keys())
+        table_dict = dict()
+        for k in data.keys():
+            split_ = k.split(':')
+            try:
+                table_num = split_[0].strip()
+                table_name = split_[1].strip()
+                table_dict[table_num] = table_name
+            except IndexError as e:
+                print('e:', e)
+                print('split_', split_)
+                pass
+
+        print('tables_dict:\n', table_dict)
+        tables_df = pd.DataFrame.from_dict(table_dict, orient='index', columns=['Table Name'])
+        tables_df.to_csv('C:/Users/irabidea/Desktop/emissions_data/table_names.csv')
+        print('tables_df:\n', tables_df)
+        tables:
+         a-40
+         a-65
+         a-232
+         a-90
+
+        {'Non-energy uses of fossil fuels': 'a_65'
+        'CH4 and N2O from stationary combustion': 'a_90'?
+        'CH4 and N2O from mobile combustion': ['a-114', 'a-115']
+        'CH4 emissions from coal mining': 'a_131'
+        'Industrial processes and product use (might be some double-counting here b/c EIA counts combustion of some process fuels as energy, but EPA considers these industrial process emissions)' 
+        'CH4, CO2, and N20 from petroleum systems': ['a-62', ]
+        'CH4, CO2, and N20 from natural gas systems'
+        'CH4, CO2, and N20 from incineration of waste'
+        'HFC and PFC emissions from substitution of ozone depleting substances'
+        'CH4 emissions from enteric fermentation'
+        'CH4 and N2O emissions from manure management'
+        'Land Use, land-use Change, and forestry '}
+
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition of CO2 emissions for the U.S. economy
         
@@ -809,7 +870,8 @@ if __name__ == '__main__':
     #                                                            datasource='MECS')
     # print('industrial_emissions_data:\n', industrial_emissions_data)
     # indicators.mecs_data_by_year()
-    indicators.transportation_data()
-    ef = indicators.epa_emissions_data()
-    print('ef:\n', ef)
-    print(ef['Fuel Type'].unique())
+    # indicators.transportation_data()
+    # ef = indicators.epa_emissions_data()
+    # print('ef:\n', ef)
+    # print(ef['Fuel Type'].unique())
+    indicators.noncombustion_emissions()
