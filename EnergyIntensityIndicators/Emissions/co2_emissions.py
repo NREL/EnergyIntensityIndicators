@@ -26,10 +26,11 @@ class CO2EmissionsDecomposition: #(EconomyWide):
     - activity share for subsector i (structure) (=Q_i/Q), 
     - energy intensity for subsector i (=E_i/Q_i), 
     - energy share of type j in subsector i (=E_ij/E_i), also called fuel mix
-    - emissions rate of energy type j and subsector i (=C_ij/E_ij), also called emissions coefficient
+    - emissions rate of energy type j and subsector i (=C_ij/E_ij),
+         also called emissions coefficient
 
-    (for time series, all variables have t subscripts (i.e. no constants-- constant emissions 
-    rates cancel out))
+    (for time series, all variables have t subscripts 
+    (i.e. no constants-- constant emissions rates cancel out))
     """
     def __init__(self, directory, output_directory, level_of_aggregation=None, 
                  lmdi_model='multiplicative', base_year=1985, end_year=2018): 
@@ -46,7 +47,7 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         cw = pd.read_csv('./EnergyIntensityIndicators/Data/state_to_census_region.csv')
         state_abbrevs = pd.read_csv('./EnergyIntensityIndicators/Data/name-abbr.csv')
         cw = cw.merge(state_abbrevs, left_on='USPC', right_on='Abbrev', 
-                     how='left')
+                      how='left')
         return cw
 
     def collect_elec_emissions_factors(self, sector=None, energy_type=None,
@@ -458,248 +459,6 @@ class CO2EmissionsDecomposition: #(EconomyWide):
 
         return transport_fuel
 
-
-
-    @staticmethod
-    def clean_industrial_data(raw_data, table_3_1=False, sic=False):
-
-        if sic:
-            code = 'SIC'
-        else:
-            code = 'NAICS'
-
-        if table_3_1:
-            raw_data.index = raw_data.index.str.strip()
-
-        else:
-            raw_data.index = raw_data.index.fillna(np.nan)
-            raw_data.index = raw_data.index.str.strip()
-            raw_data.index.name = code
-
-
-        raw_data = raw_data.reset_index()
-        regions = ['Total United States', 'Northeast Census Region', 'Midwest Census Region', 'South Census Region', 'West Census Region']
-        conditions = [(raw_data['Total'] == r) for r in regions]
-        raw_data['region'] = np.select(conditions, regions)
-        raw_data['region'] = raw_data['region'].replace(to_replace='0', value=np.nan).fillna(method='ffill')
-        raw_data = raw_data[~raw_data['Total'].isin(regions)]
-
-        raw_data[code] = raw_data[code].fillna(raw_data['Subsector and Industry'])
-        raw_data = raw_data.set_index(['region', code, 'Subsector and Industry'])
-        raw_data = raw_data.replace({'*': 0.25, 'Q': np.nan, 'D': np.nan}, value=np.nan)
-        return raw_data
-
-    def mecs_data_by_year(self):
-        # Energy Consumption as a Fuel
-        # Table 3.1 : By Mfg. Industry & Region (physical units)
-        # Table 3.2 : By Mfg. Industry & Region (trillion Btu)
-        # Table 3.5 : Byproducts in Fuel Consumption by Mfg. Industry & Region (trillion Btu)
-        mecs_data = {2018: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xlsx', 'skiprows': 9, 'skip_footer': 20}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xlsx', 'skiprows': 9, 'skip_footer': 14}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xlsx', 'skiprows': 9, 'skip_footer': 12},
-                         'table_4_2': {'endpoint': 'Table4_2.xlsx'}},
-                    2014: 
-                        {'table_3_1': {'endpoint': 'table3_1.xlsx', 'skiprows': 9, 'skip_footer': 20}, 
-                         'table_3_2': {'endpoint': 'table3_2.xlsx', 'skiprows': 9, 'skip_footer': 14}, 
-                         'table_3_5': {'endpoint': 'table3_5.xlsx', 'skiprows': 9, 'skip_footer': 12},
-                         'table_4_2': {'endpoint': 'table4_2.xlsx'}},
-                    2010: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xls', 'skiprows': 9, 'skip_footer': 47}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xls', 'skiprows': 8, 'skip_footer': 47}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xls', 'skiprows': 9, 'skip_footer': 29},
-                         'table_4_2': {'endpoint': 'Table4_2.xls'}},
-                    2006: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xls', 'skiprows': 10, 'skip_footer': 49}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xls', 'skiprows': 9, 'skip_footer': 49}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xls', 'skiprows': 10, 'skip_footer': 31},
-                         'table_4_2': {'endpoint': 'Table4_2.xls'}},
-                    2002: 
-                        {'table_3_1': {'endpoint': 'Table3.1_02.xls', 'skiprows': 7, 'skip_footer': 49}, 
-                         'table_3_2': {'endpoint': 'Table3.2_02.xls', 'skiprows': 6, 'skip_footer': 49}, 
-                         'table_3_5': {'endpoint': 'Table3.5_02.xls', 'skiprows': 7, 'skip_footer': 55},
-                         'table_4_2': {'endpoint': 'Table4.2_02.xls'}},
-                    1998: 
-                        {'table_3_1': {'endpoint': 'd98n3_1.xls', 'skiprows': 7, 'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Physical Units or Btu
-                         'table_3_2': {'endpoint': 'd98n3_2.xls', 'skiprows': 6, 'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
-                         'table_3_5': {'endpoint': 'd98n5_1.xls', 'skiprows': 7, 'skip_footer': 59},  # Selected Byproducts in Fuel Consumption, 1998; Level: National Data and Regional Totals; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
-                         'table_4_2': {'endpoint': 'd98n4_2.xls'}}, 
-                    1994: 
-                        {'table_3_1': {'endpoint': 'm94_04a.xls', 'skiprows': 6, 'skip_footer': 34}, 
-                         'table_3_2': {'endpoint': 'm94_04b.xls', 'skiprows': 5, 'skip_footer': 34}, 
-                         'table_3_5': {'endpoint': 'm94_06.xls', 'skiprows': 7, 'skip_footer': 21},
-                         'table_4_2': {'endpoint': 'm94_05b.xls'}},
-                    1991: 
-                        {'table_3_1': {'endpoint': 'mecs04a.xls', 'skiprows': 6, 'skip_footer': 36}, 
-                         'table_3_2': {'endpoint': 'mecs04b.xls', 'skiprows': 5, 'skip_footer': 38}, 
-                         'table_3_5': None,
-                         'table_4_2': {'endpoint': 'mecs05b.xls'}},
-                    1985: 
-                        {'table_3_1': None, 
-                         'table_3_2': None, 
-                         'table_3_5': None},
-                         'table_4_2': None}
-
-        all_3_1 = []
-        all_3_2 = []
-        all_3_5 = []
-        all_4_2 = []
-
-        sic_3_1 = []
-        sic_3_2 = []
-        sic_3_5 = []
-        sic_4_2 = []
-
-        for year, table_dict in mecs_data.items():
-            if year < 1998: 
-                sic = True
-            else:
-                sic = False
-
-            for t, t_dict in table_dict.items():
-                if t_dict:
-                    endpoint = t_dict['endpoint'] 
-                    general_url = f'https://www.eia.gov/consumption/manufacturing/data/{year}/xls/{endpoint}'
-                    general_df = pd.read_excel(general_url, index_col=0)
-                    col_labels = general_df.loc[:'Code(a)'].tail(4)
-
-                    index_label = general_df.iloc[general_df.index.get_loc('Code(a)')-1].name
-
-                    col_labels = col_labels.apply(lambda c: c.str.cat(sep=' '), axis=0)
-                    col_labels = col_labels.apply(lambda s: s.strip())
-                    col_labels = col_labels.to_frame(name=index_label).transpose()
-
-                    df = pd.read_excel(general_url, skiprows=t_dict['skiprows'],
-                                       skipfooter=t_dict['skip_footer'], 
-                                       index_col=0)
-                    df = df.iloc[df.index.get_loc('Code(a)')+1:]
-
-                    df.columns = col_labels.loc[index_label, :]
-                    df.columns.name = None
-
-                    df = df.dropna(axis=1, how='all')
-
-                    df = df.rename(columns={'Total (trillion Btu)': 'Total',
-                                            'Industry Group and Industry': 'Subsector and Industry',
-                                            'Industry Groups and Industry': 'Subsector and Industry',
-                                            'LPG and NGL(e) (million bbl)': 'HGL (excluding natural gasoline)(e) (million bbl)',
-                                            'LPG and NGL(e)': 'HGL (excluding natural gasoline)(e)'})
-                    df = df.drop(['RSE Row Factors', ''], axis=1, errors='ignore')
-
-                    if t == 'table_3_1':
-                        mecs_3_1 = self.clean_industrial_data(df, table_3_1=True, sic=sic)
-                        mecs_3_1['Year'] = year
-                        
-                        if sic:
-                            sic_3_1.append(mecs_3_1)
-                        else:
-                            all_3_1.append(mecs_3_1)
-
-                    elif t == 'table_3_5':
-                        mecs_3_5 = self.clean_industrial_data(df, sic=sic)
-                        mecs_3_5['Year'] = year
-                        if sic:
-                            sic_3_5.append(mecs_3_5)
-                        else:
-                            all_3_5.append(mecs_3_5)
-
-                    elif t == 'table_3_2':
-                        mecs_3_2 = self.clean_industrial_data(df, sic=sic)
-                        mecs_3_2['Year'] = year
-                        if sic:
-                            sic_3_2.append(mecs_3_2)
-                        else:
-                            all_3_2.append(mecs_3_2)
-                    
-                    elif t == 'table_4_2':
-                        mecs_4_2 = self.clean_industrial_data(df, sic=sic)
-                        if sic:
-                            sic_4_2.append(mecs_4_2)
-                        else:
-                            all_4_2.append(mecs_4_2)
-
-        all_3_1 = pd.concat(all_3_1, axis=0).reset_index()
-        all_3_1 = all_3_1.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_1 = pd.concat(sic_3_1, axis=0).reset_index()
-        # sic_3_1 = sic_3_1.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_3_2 = pd.concat(all_3_2, axis=0).reset_index()
-        # all_3_2 = all_3_2.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_2 = pd.concat(sic_3_2, axis=0).reset_index()
-        # sic_3_2 = sic_3_2.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_3_5 = pd.concat(all_3_5, axis=0).reset_index()
-        # all_3_5 = all_3_5.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_5 = pd.concat(sic_3_5, axis=0).reset_index()
-        # sic_3_5 = sic_3_5.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_4_2 = pd.concat(all_4_2, axis=0).reset_index()
-        # all_4_2 = all_4_2.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_4_2 = pd.concat(sic_4_2, axis=0).reset_index()
-        # sic_4_2 = sic_4_2.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        print('all_3_2:\n', all_3_2)
-        all_3_2 = all_3_2[['Other(f)']]
-
-        all_3_5 = all_3_5.merge(all_3_2, left_index=True, right_index=True, how='inner')
-
-        all_3_5['steam'] = all_3_5['Total'].subtract(all_3_5['Other(f)'])
-        all_3_5 = all_3_5.drop(['Total', 'Other(f)'], axis=1)
-
-        industrial_btu = all_3_5.merge(all_3_2, left_index=True, right_index=True, how='outer')
-        print('industrial_btu:\n', industrial_btu)
-        mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2, '3_5': all_3_5, '4_2': all_4_2},
-                'SIC': {'3_1': sic_3_1, '3_2': sic_3_2, '3_5': sic_3_5, '4_2': sic_4_2}}
-        return mecs
-
-    def industrial_sector_data(self):
-        mecs_3_1 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_1.xlsx', skiprows=9, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (physical units)
-        mecs_3_1 = mecs_3_1.drop('Code(a)', axis=0)
-        mecs_3_1 = mecs_3_1.rename(columns={' ': 'Subsector and Industry'})
-        mecs_3_1 = self.clean_industrial_data(mecs_3_1, table_3_1=True)
-
-
-        mecs_3_2 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_2.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (trillion Btu)
-        mecs_3_2 = self.clean_industrial_data(mecs_3_2)
-        rename_dict_3_1 = {'Electricity(b)': 'Net Electricity', 
-                       'Fuel Oil': 'Residual Fuel Oil', 
-                       'Fuel Oil(c)': 'Distillate Fuel Oil', 
-                       'Gas(d)': 'Natural Gas',
-                       'natural gasoline)(e)': 'HGL (excluding natural gasoline)', 
-                       'and Breeze': 'Coke Coal and Breeze'}
-        mecs_3_2 = mecs_3_2.rename(columns=rename_dict_3_1)
-
-        mecs_3_5 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_5.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # Byproducts in Fuel Consumption By Manufacturing Industry and Region
-                    # (trillion Btu)
-        rename_dict_3_5 = {'Oven Gases': 'Blast Furnace/Coke Oven Gases', 
-                           'Gas': 'Waste Gas', 
-                           'Coke': 'Petroleum Coke',
-                           'Black Liquor': 'Pulping Liquor or Black Liquor', 
-                           'Bark': 'Wood Chips, Bark', 
-                           'Materials': 'Waste Oils/Tars and Waste Materials'}
-        mecs_3_5 = mecs_3_5.rename(columns=rename_dict_3_5)
-        mecs_3_5 = self.clean_industrial_data(mecs_3_5)
-
-        mecs_3_2_other = mecs_3_2[['Other(f)']]
-
-        mecs_3_5 = mecs_3_5.merge(mecs_3_2_other, left_index=True, right_index=True, how='inner')
-
-        mecs_3_5['steam'] = mecs_3_5['Total'].subtract(mecs_3_5['Other(f)'])
-        mecs_3_5 = mecs_3_5.drop(['Total', 'Other(f)'], axis=1)
-
-        industrial_btu = mecs_3_5.merge(mecs_3_2, left_index=True, right_index=True, how='outer')
-        print('industrial_btu:\n', industrial_btu)
-        print('industrial_btu cols:\n', industrial_btu.columns)
-        return industrial_btu
-
-    def industrial_sector_energy(self):
-        """TODO: do further processing to bridge Btu energy data with 
-        physical units used for emissions factors
-        """        
-        industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
-        industrial_renamed = self.mecs_epa_mapping(industrial_data_btu) 
-        return industrial_renamed
-    
     @staticmethod
     def mecs_epa_mapping(mecs_data):
         mapping_ = {
@@ -781,24 +540,24 @@ class CO2EmissionsDecomposition: #(EconomyWide):
         tables_df = pd.DataFrame.from_dict(table_dict, orient='index', columns=['Table Name'])
         tables_df.to_csv('C:/Users/irabidea/Desktop/emissions_data/table_names.csv')
         print('tables_df:\n', tables_df)
-        tables:
-         a-40
-         a-65
-         a-232
-         a-90
+        # tables:
+        #  a-40
+        #  a-65
+        #  a-232
+        #  a-90
 
-        {'Non-energy uses of fossil fuels': 'a_65'
-        'CH4 and N2O from stationary combustion': 'a_90'?
-        'CH4 and N2O from mobile combustion': ['a-114', 'a-115']
-        'CH4 emissions from coal mining': 'a_131'
-        'Industrial processes and product use (might be some double-counting here b/c EIA counts combustion of some process fuels as energy, but EPA considers these industrial process emissions)' 
-        'CH4, CO2, and N20 from petroleum systems': ['a-62', ]
-        'CH4, CO2, and N20 from natural gas systems'
-        'CH4, CO2, and N20 from incineration of waste'
-        'HFC and PFC emissions from substitution of ozone depleting substances'
-        'CH4 emissions from enteric fermentation'
-        'CH4 and N2O emissions from manure management'
-        'Land Use, land-use Change, and forestry '}
+        # {'Non-energy uses of fossil fuels': 'a_65'
+        # 'CH4 and N2O from stationary combustion': 'a_90'?
+        # 'CH4 and N2O from mobile combustion': ['a-114', 'a-115']
+        # 'CH4 emissions from coal mining': 'a_131'
+        # 'Industrial processes and product use (might be some double-counting here b/c EIA counts combustion of some process fuels as energy, but EPA considers these industrial process emissions)' 
+        # 'CH4, CO2, and N20 from petroleum systems': ['a-62', ]
+        # 'CH4, CO2, and N20 from natural gas systems'
+        # 'CH4, CO2, and N20 from incineration of waste'
+        # 'HFC and PFC emissions from substitution of ozone depleting substances'
+        # 'CH4 emissions from enteric fermentation'
+        # 'CH4 and N2O emissions from manure management'
+        # 'Land Use, land-use Change, and forestry '}
 
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition of CO2 emissions for the U.S. economy
@@ -869,9 +628,11 @@ if __name__ == '__main__':
     # industrial_emissions_data = indicators.calculate_emissions(mecs_data, emissions_type='CO2 Factor', 
     #                                                            datasource='MECS')
     # print('industrial_emissions_data:\n', industrial_emissions_data)
-    # indicators.mecs_data_by_year()
+    indicators.mecs_sic_crosswalk()
+    indicators.mecs_data_by_year()
+
     # indicators.transportation_data()
     # ef = indicators.epa_emissions_data()
     # print('ef:\n', ef)
     # print(ef['Fuel Type'].unique())
-    indicators.noncombustion_emissions()
+    # indicators.noncombustion_emissions()

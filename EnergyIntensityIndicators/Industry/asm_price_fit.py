@@ -9,7 +9,8 @@ from functools import reduce
 from EnergyIntensityIndicators.get_census_data import Asm
 from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
-
+from EnergyIntensityIndicators.utilites.standard_interpolation \
+     import standard_interpolation
 
 class Mfg_prices:
     def __init__(self):
@@ -47,7 +48,7 @@ class Mfg_prices:
 
         mecs_prices = mecs_prices[mecs_prices['fuel_type'] == fuel_type]
 
-        mecs_prices =  mecs_prices[mecs_prices['NAICS'].astype(int) == naics]
+        mecs_prices = mecs_prices[mecs_prices['NAICS'].astype(int) == naics]
         mecs_prices = mecs_prices.set_index('NAICS').drop(['Industry', 'fuel_type'], axis=1)
         mecs_prices = mecs_prices.transpose().rename(columns={naics: 'MECS_price'})
         mecs_prices.index.name = 'Year'
@@ -106,8 +107,8 @@ class Mfg_prices:
 
             except AttributeError:
                 print("Updated mecs data are now available.\n" +
-                      "Please download Tables 3.1, 3.2, 7.2, and 7.6\nand update" +
-                      "relevant csv files")
+                      "Please download Tables 3.1, 3.2, 7.2, and 7.6\n" +
+                      "and update relevant csv files")
 
             else:
                 print("Updated MECS data are not yet available")
@@ -126,7 +127,7 @@ class Mfg_prices:
         asm_data = asm_data.rename(columns={col: 'asm_price'})
         asm_data.index = asm_data.index.astype(int)
         return asm_data
-    
+
     @staticmethod
     def get_census_prices(latest_year, start_year=1983):
         """
@@ -150,20 +151,21 @@ class Mfg_prices:
         
         asm_prices = dict()
         for year in year_range:
-            asm = Asm().get_data(year) 
+            asm = Asm().get_data(year)
             asm_prices[year] = asm
         return asm_prices
 
     @staticmethod
-    def price_func(asm_prices, mecs_prices_, *params):
+    def price_func(asm_prices, mecs_prices_, params):
         """
         Calculates predicted fuel price in terms of current and lagged fuel
         prices.
         """
+        print('params price func:', params)
         a, b = params
         asm_prices = asm_prices.values
         mecs_prices_ = mecs_prices_.fillna(np.nan)
-        mecs_prices = mecs_prices_.values
+        mecs_prices_ = mecs_prices_.values
         for index_, price in enumerate(asm_prices):
             if index_ == 0:
                 predicted_price_series = np.array([0])
@@ -178,14 +180,19 @@ class Mfg_prices:
 
         # Align with available MECS
         # mecs_ind = mecs_prices_.dropna().index
-        # final_mecs_df = pd.DataFrame(final_mecs, columns=['final_mecs'])
-        # final_mecs = final_mecs_df['final_mecs'].values
+        final_mecs_df = pd.DataFrame(final_mecs, columns=['final_mecs'])
+        final_mecs = final_mecs_df['final_mecs'].values
+        print('final mecs price_func:\n', final_mecs)
         return final_mecs
 
     @staticmethod
     def residuals(params, asm_prices, mecs_prices, price_func):
-        mecs_calc = price_func(asm_prices, mecs_prices, *params)
-        return mecs_prices.dropna().subtract(mecs_calc, axis='index')
+        print('params residuals:', params)
+        mecs_calc = price_func(asm_prices, mecs_prices, params)
+        print('mecs_calc:\n', mecs_calc)
+        print("mecs_prices.dropna().subtract(mecs_calc, axis='index'):\n", mecs_prices.dropna().subtract(mecs_calc, axis='index'))
+        print("mecs_prices.dropna().subtract(mecs_calc, axis='index').values:\n", mecs_prices.dropna().subtract(mecs_calc, axis='index').values.flatten())
+        return mecs_prices.dropna().subtract(mecs_calc, axis='index').values.flatten()
 
     @staticmethod
     def calc_predicted_coeffs(asm_prices, mecs_prices, start_params):
@@ -198,7 +205,7 @@ class Mfg_prices:
         mecs_prices : numpy.array
             Array of MECS prices, including nan values
 
-        start_params : list
+        start_params : tuple
             starting parameters for optimization
 
         Returns
@@ -228,7 +235,8 @@ class Mfg_prices:
         >>>coeff
         array([0.91430597, 0.1074011 ])
         """
-
+        print('mecs_prices:\n', mecs_prices)
+        print('start params calc_predicted_coeffs:', start_params)
         coeff, flag = leastsq(Mfg_prices.residuals, start_params,
                               args=(asm_prices, mecs_prices,
                                     Mfg_prices.price_func))
@@ -236,9 +244,11 @@ class Mfg_prices:
         return coeff
 
     @staticmethod
-    def calc_predicted_prices(coeff, asm_prices):
+    def calc_predicted_prices(coeff, mecs_prices, asm_prices):
         """Calculate predicted price with leastsq coeffs"""
-        return Mfg_prices.price_func(asm_prices, *coeff)
+        calc_predicted = Mfg_prices.price_func(asm_prices, mecs_prices, coeff)
+        print('this:\n', calc_predicted)
+        return calc_predicted
 
     @staticmethod
     def resid_filler(price_df, coeff, asm_prices):
@@ -253,11 +263,12 @@ class Mfg_prices:
         residual : np.array
             Array of residuals, including nan values.
         """
-
+        print('price df resid_filler:\n', price_df)
+        exit()
         increment_years = price_df.dropna()['year'].values
 
         # Lines 165 - 173 should be placed in separate method.
-        predicted_prices = Mfg_prices.calc_predicted_prices(coeff, asm_prices)
+        predicted_prices = Mfg_prices.calc_predicted_prices(coeff, mecs_prices, asm_prices)
         predicted_prices = pd.DataFrame(predicted_prices,
                                         columns=['predicted'],
                                         index=increment_years)
@@ -303,46 +314,70 @@ class Mfg_prices:
 
         price_df['calibrated_prediction'] = \
             price_df.interp_resid + price_df.predicted
-
+        print('done calc_calibrated_predicted_price')
         return price_df
 
-    def interpolate_residuals(self, predicted_prices, price_df, coeff, asm_prices):
+    def interpolate_residuals(self, price_df, coeff):
         """Interpolate residuals"""
     
         price_df_updated = price_df.copy(deep=True)
-        price_df_updated['predicted_price'] = predicted_prices
-        price_df_updated['residual'] = price_df_updated.mecs.subtract(
-            price_df_updated.predicted_price
+        price_df_updated['residual'] = price_df_updated['MECS_price'].subtract(
+            price_df_updated['predicted']
             )
-    
-        fill = price_df_updated.dropna(subset=['residual'], axis=0).year.diff()
-        # fill.fillna(0, inplace=True)
-    
-        price_df_updated['fill'] = fill
-    
-        interpolated_resid = self.resid_filler(price_df, coeff, asm_prices)
+        price_df_updated.index = price_df_updated.index.astype(int)
+        print('price_df_updated info:\n', price_df_updated.info())
+        interpolated_resid = standard_interpolation(price_df_updated,
+                                                    name_to_interp='residual',
+                                                    axis=1)
+        interpolated_resid['interp_resid'] = interpolated_resid['residual'].ffill().bfill()
+                                            
         return interpolated_resid
     
     def main(self, latest_year, fuel_type, naics, asm_col_map):
         n_dfs = []
         for n in naics:
-            mecs_data = self.import_mecs_historical(self.mecs_historical_prices, fuel_type, n)
+            mecs_data = self.import_mecs_historical(
+                                        self.mecs_historical_prices,
+                                        fuel_type, n)
 
-            self.check_recent_mecs(latest_year=latest_year, last_historical_year=max(mecs_data.index))
+            self.check_recent_mecs(latest_year=latest_year, 
+                                   last_historical_year=max(mecs_data.index))
 
             asm_data = self.import_asm_historical(fuel_type, n, asm_col_map)
 
-            price_df = asm_data.merge(mecs_data, how='outer', left_index=True, right_index=True)
-            start_params = [0.646744966,	0.411641841]
-            fit_coeffs = self.calc_predicted_coeffs(price_df[['asm_price']],price_df[['MECS_price']], start_params)
-            price_df['predicted'] = self.calc_predicted_prices(fit_coeffs, price_df['asm_price'])
+            price_df = asm_data.merge(mecs_data, how='outer', left_index=True,
+                                      right_index=True)
+            start_params = [0.646744966, 0.411641841]
+            fit_coeffs = self.calc_predicted_coeffs(price_df[['asm_price']],
+                                                    price_df[['MECS_price']],
+                                                    start_params)
+            print('fit_coeffs:', fit_coeffs)
+            print("price_df[['MECS_price']]:\n", price_df[['MECS_price']])
+            print("price_df[['asm_price']]:\n", price_df[['asm_price']])
 
-            calibrated_prediction = self.calc_calibrated_predicted_price(price_df)
-            price_df = self.interpolate_residuals(calibrated_prediction, price_df, fit_coeffs, price_df['asm_price'])
+            print()
+
+            predicted = self.calc_predicted_prices(fit_coeffs, 
+                                                   price_df[['MECS_price']],
+                                                   price_df[['asm_price']])
+            print('done prediction:\n', price_df)
+            predicted = predicted.reshape((len(predicted), 1))
+            print('predicted:', predicted)
+            mecs_data['predicted'] = predicted
+            predicted_df = mecs_data[['predicted']]
+            price_df = price_df.merge(predicted_df, how='outer', left_index=True,
+                                      right_index=True)
+            print('done incl:\n', price_df)
+            interp_resid = self.interpolate_residuals(price_df, fit_coeffs)
+            print('intertp:\n', interp_resid)
+            calibrated_prediction = self.calc_calibrated_predicted_price(
+                                                                interp_resid)
+            print('done calibrated_prediction')
+            calibrated_prediction = calibrated_prediction[['calibrated_prediction']]
             
             n_dfs.append(calibrated_prediction)
 
-        calibrated_prediction = df_utils.merge_df_list(n_dfs)
-
-        return calibrated_prediction
+        calibrated_prediction_all = df_utils.merge_df_list(n_dfs)
+        print('calibrated_prediction_all:\n', calibrated_prediction_all)
+        return calibrated_prediction_all
 

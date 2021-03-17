@@ -29,6 +29,8 @@ def standard_interpolation(dataframe, name_to_interp=None, axis=1):
         raise AttributeError(f'standard_interpolation method missing valid axis, given {axis}')
     
     for index, y_ in enumerate(increment_years):
+        print('y_:', y_)
+        print('type(y_):', type(y_))
         if index > 0:
             year_before = increment_years[index - 1]
             num_years = y_ - year_before

@@ -65,7 +65,6 @@ class Manufacturing:
             asm_price_data.append(predicted_fuel_price)
 
         asm_price_data = pd.concat(asm_price_data, axis=1)
-        # asm_price_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/asm_price_fit.csv')
         asm_price_data['Year'] = asm_price_data['Year'].astype(int)
         asm_price_data['NAICS'] = asm_price_data['NAICS'].astype(int)
 
@@ -79,13 +78,13 @@ class Manufacturing:
         with 2 and 7).
         """
         economic_census = Econ_census()
-        economic_census_years = list(range(1987, self.end_year + 1, 5))       
-        e_c_data = {str(y): economic_census.get_data(year=y) 
+        economic_census_years = list(range(1987, self.end_year + 1, 5))
+        e_c_data = {str(y): economic_census.get_data(year=y)
                     for y in economic_census_years}
 
         asm_ = Asm()
-        census_years = list(range(1987, self.end_year + 1))     
-        asm_data = {str(y): asm_.get_data(year=y) 
+        census_years = list(range(1987, self.end_year + 1))
+        asm_data = {str(y): asm_.get_data(year=y)
                     for y in census_years}
         print('asm_data:\n', asm_data)
         print('e_c_data:\n', e_c_data)
@@ -101,19 +100,22 @@ class Manufacturing:
         return va_quant_index, go_quant_index
 
     @staticmethod
-    def calc_quantity_shares(mecs42_df): # From ASMdata_010220.xlsx[Quantity_shares_revised]
+    def calc_quantity_shares(mecs42_df):
+        # From ASMdata_010220.xlsx[Quantity_shares_revised]
         """
         For a given MECS year, take 3-digit NAICS by fuel (TBtu),
         calculate sum, then calcuate quantity shares
         """
 
-        # MECS_data[Quantity Shares_1998 forward] : 
-        cols = ['Residual', 'Distillate', 'Nat. Gas', 'LPG', 'Coal', 'Coke', 'Other']
+        # MECS_data[Quantity Shares_1998 forward] :
+        cols = ['Residual', 'Distillate', 'Nat. Gas',
+                'LPG', 'Coal', 'Coke', 'Other']
         mecs42_df = mecs42_df.set_index(['Year', 'NAICS'])
 
         quantity = mecs42_df[cols]
 
-        quantity_shares = quantity.divide(mecs42_df['  Calc. Total'], axis="index")
+        quantity_shares = quantity.divide(mecs42_df['  Calc. Total'],
+                                          axis="index")
 
         return quantity_shares
 
@@ -262,11 +264,14 @@ class Manufacturing:
         quantity_shares_1998_forward = self.quantity_shares_1998_forward() # MECSPrices122419[Quantity shares 1998 forward]
         asm_data = NAICS3D.reset_index()[['Year', 'NAICS', 'EXPFUEL']]
         NAICS3D = NAICS3D.rename(columns={'column_av': 'ratio_fuel_to_offsite'})
-        ratio_fuel_to_offsite = NAICS3D.reset_index()[['Year', 'NAICS', 'ratio_fuel_to_offsite']]
+        ratio_fuel_to_offsite = NAICS3D.reset_index()[['Year',
+                                                       'NAICS',
+                                                       'ratio_fuel_to_offsite']]
 
-        mecs_based_expenditure = self.expenditure_ratios_revised(asm_data) 
+        mecs_based_expenditure = self.expenditure_ratios_revised(asm_data)
         mecs_based_expenditure['Year'] = mecs_based_expenditure['Year'].astype(int)
-        dataset = mecs_based_expenditure.merge(quantity_shares_1998_forward, how='outer', on=['NAICS', 'Year'])
+        dataset = mecs_based_expenditure.merge(quantity_shares_1998_forward, 
+                                               how='outer', on=['NAICS', 'Year'])
         dataset = dataset.merge(ratio_fuel_to_offsite, how='outer', on=['NAICS', 'Year'])
 
         dataset = dataset[dataset['Year'] >= 1998]
@@ -363,17 +368,25 @@ class Manufacturing:
         # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
         electricity_data = electricity_data.transpose()
 
-        fuels_nea = self.import_mecs_fuel() # fallhap3
-        fuels_nea = fuels_nea.rename(columns={col: int(col) for col in fuels_nea.columns})
+        fuels_nea = self.import_mecs_fuel()  # fallhap3
+        fuels_nea = fuels_nea.rename(columns={col: int(col) for col in
+                                              fuels_nea.columns})
 
         mecs_fuel = self.get_historical_mecs()
         
-        mecs_interpolated_data = self.mecs_fuel(electricity_data, historical_mecs=mecs_fuel)
+        mecs_interpolated_data = self.mecs_fuel(electricity_data,
+                                                historical_mecs=mecs_fuel)
 
-        link_ratio_df = mecs_interpolated_data[[1985]].merge(fuels_nea[[1985]], how='outer', left_index=True, right_index=True)
-        link_ratio = link_ratio_df['1985_x'].divide(link_ratio_df['1985_y'], axis='index').fillna(1)
-        link_ratio = pd.DataFrame(pd.np.tile(link_ratio.values.reshape(len(link_ratio), 1), (1, fuels_nea.shape[1])), 
-                                  index=link_ratio_df.index, columns=fuels_nea.columns)
+        link_ratio_df = mecs_interpolated_data[[1985]].merge(fuels_nea[[1985]],
+                                                             how='outer',
+                                                             left_index=True,
+                                                             right_index=True)
+        link_ratio = link_ratio_df['1985_x'].divide(link_ratio_df['1985_y'],
+                                                    axis='index').fillna(1)
+        link_ratio = pd.DataFrame(pd.np.tile(link_ratio.values.reshape(len(link_ratio), 1),
+                                  (1, fuels_nea.shape[1])),
+                                  index=link_ratio_df.index,
+                                  columns=fuels_nea.columns)
 
         nea_adjusted = fuels_nea.multiply(link_ratio)
 
@@ -382,7 +395,9 @@ class Manufacturing:
         mecs_drop = [c for c in mecs_interpolated_data.columns if c < 1985]
         mecs_interpolated_data = mecs_interpolated_data.drop(mecs_drop, axis=1)
 
-        fuels_consumption = nea_adjusted.merge(mecs_interpolated_data, how='outer', left_index=True, right_index=True)
+        fuels_consumption = nea_adjusted.merge(mecs_interpolated_data, 
+                                               how='outer', left_index=True, 
+                                               right_index=True)
 
         fuels_consumption = fuels_consumption.transpose()
 
@@ -493,5 +508,5 @@ class Manufacturing:
         return data_dict
 
 if __name__ == '__main__':
-    data = Manufacturing(naics_digits=3).call_census_data() #.manufacturing()
+    data = Manufacturing(naics_digits=3).mecs_data_sic() # .call_census_data() #.manufacturing()
     print(data)
