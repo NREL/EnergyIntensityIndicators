@@ -4,6 +4,7 @@ import os
 
 from EnergyIntensityIndicators.industry import IndustrialIndicators
 from EnergyIntensityIndicators.Industry.manufacturing import Manufacturing
+from EnergyIntensityIndicators.Industry.manufacturing_2 import ManufacturingSectors
 from EnergyIntensityIndicators.Industry.nonmanufacuturing import NonManufacturing
 from tests.lmdi_test import TestLMDI
 from tests.utilities import TestingUtilities
@@ -166,22 +167,37 @@ class TestManufacturing:
     output_directory = './Results'
     acceptable_pct_difference = 0.05
     sector = 'industrial'
-    utils = TestingUtilities(sector, acceptable_pct_difference)  
+    utils = TestingUtilities(sector, acceptable_pct_difference)
+
+    @staticmethod
+    def mecs_data(sic=False):
+        mecs = ManufacturingSectors().mecs_data_by_year
+        if sic:
+            data = mecs['SIC']
+        else:
+            data = mecs['NAICS']
+        return data
 
     def test_mecs_fuel():
         ...
+        mecs_31_32, mecs_fuel = ManufacturingSectors().create_historical_mecs_31_32()
+        assert self.pct_diff(mecs_fuel, ,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
 
     def test_get_historical_mecs():
         ...
+        mecs_31_32, mecs_fuel = ManufacturingSectors().create_historical_mecs_31_32()
+        assert self.pct_diff(mecs_31_32, ,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
 
     def test_manufacturing_prices():
         ...
-
-    def test_import_mecs_fuel():
-        ...
-
-    def test_call_census_data():
-        ...
+        asm_price_data = ManufacturingSectors().manufacturing_prices()
+        assert self.pct_diff(asm_price_data, ,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
 
     def test_call_activity_data():
         ...
@@ -197,9 +213,20 @@ class TestManufacturing:
 
     def test_quantity_shares_1985_1998():
         ...
+        result = ManufacturingSectors().quantity_shares_1985_1998()
+        composite_price =
+        assert self.pct_diff(result, composite_price, 
+                             acceptable_pct_difference=acceptable_pct_difference, 
+                             sector='industry')
 
     def test_expenditure_ratios_revised():
         ...
+        pnnl_asm_data = 
+        result = ManufacturingSectors().expenditure_ratios_revised(pnnl_asm_data)
+        mecs_based_expenditure =
+        assert self.pct_diff(result, mecs_based_expenditure, 
+                             acceptable_pct_difference=acceptable_pct_difference, 
+                             sector='industry')
 
     def test_expend_ratios_revised_85_97():
         ...
@@ -215,12 +242,34 @@ class TestManufacturing:
 
     def test_interpolate_mecs():
         ...
+        mecs_data = 
+        col_name = 
+        reindex = 
+        interp_mecs = ManufacturingSectors().interpolate_mecs(mecs_data, col_name, reindex)
+
+        pnnl_data = 
+        assert self.pct_diff(interp_mecs, pnnl_data,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
+
 
     def test_pre_1998_quantities():
         ...
 
+        qty_shares_1998 = ManufacturingSectors().quantity_shares_1998_forward()
+        pnnl_data = 
+        assert self.pct_diff(qty_shares_1998, pnnl_data,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
+
     def test_quantities_1998_forward():
         ...
+        NAICS3D = 
+        qty_1998 = ManufacturingSectors().quantities_1998_forward(NAICS3D)
+        pnnl_data = 
+        assert self.pct_diff(qty_1998, pnnl_data,
+                             acceptable_pct_difference=acceptable_pct_difference,
+                             sector='industry')
 
     def test_final_quantities_asm_85():
         ...

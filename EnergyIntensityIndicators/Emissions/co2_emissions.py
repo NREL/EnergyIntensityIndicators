@@ -504,7 +504,9 @@ class CO2EmissionsDecomposition: #(EconomyWide):
     def unpack_noncombustion_data():
         print('collecting noncombustion_fuels')
         # zip_file = "https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip"
-        zip_file = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
+        annex = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
+        chapter_0 = 'https://www.epa.gov/sites/production/files/2020-08/chapter_0.zip'
+        zip_file = 
         r = requests.get(zip_file)
         z = zipfile.ZipFile(io.BytesIO(r.content))
         print('zipfile')

@@ -186,7 +186,9 @@ class ManufacturingSectors:
 
         print('all_3_2:\n', all_3_2)
         exit()
-        all_3_2 = all_3_2[['Year', 'region', 'NAICS', 'Subsector and Industry', 'Other(f)']]
+        all_3_2 = all_3_2[['Year', 'region', 'NAICS',
+                           'Subsector and Industry',
+                           'Other(f)']]
 
         print('all_3_5:\n', all_3_5)
         print('all_3_5 cols:\n', all_3_5.columns)
@@ -199,14 +201,16 @@ class ManufacturingSectors:
         all_3_5['steam'] = all_3_5['Total'].subtract(all_3_5['Other(f)'])
         all_3_5 = all_3_5.drop(['Total', 'Other(f)'], axis=1)
 
-        industrial_btu = all_3_5.merge(all_3_2, on=['Year', 'region', 'NAICS', 'Subsector and Industry'], how='outer')
+        industrial_btu = all_3_5.merge(all_3_2, on=['Year', 'region', 'NAICS',
+                                                    'Subsector and Industry'],
+                                       how='outer')
 
         print('industrial_btu:\n', industrial_btu)
         x_walk = self.mecs_sic_crosswalk()
-        sic_naics_3_1 = self.naics_to_sic(sic_3_1 , x_walk)
-        sic_naics_3_2 = self.naics_to_sic(sic_3_2 , x_walk)
+        sic_naics_3_1 = self.naics_to_sic(sic_3_1, x_walk)
+        sic_naics_3_2 = self.naics_to_sic(sic_3_2, x_walk)
         sic_naics_3_5 = self.naics_to_sic(sic_3_5, x_walk)
-        sic_naics_4_2 = self.naics_to_sic(sic_4_2 , x_walk)
+        sic_naics_4_2 = self.naics_to_sic(sic_4_2, x_walk)
         exit()
         print('industrial nan:\n', industrial_btu[pd.isna(industrial_btu['Waste Gas'])])
         mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2,
@@ -259,20 +263,20 @@ class ManufacturingSectors:
 
     def create_historical_mecs_31_32(self):
         mecs = self.mecs_data_by_year()
-        mecs_3_1 = mecs['NAICS']['3_1'][['Year', 
-                                         'region', 
-                                         'NAICS', 
+        mecs_3_1 = mecs['NAICS']['3_1'][['Year',
+                                         'region',
+                                         'NAICS',
                                          'Subsector and Industry',
                                          'Net Electricity(b) (million kWh)']]
-        mecs_3_2 = mecs['NAICS']['3_2'][['Year', 
-                                         'region', 
-                                         'NAICS', 
+        mecs_3_2 = mecs['NAICS']['3_2'][['Year',
+                                         'region',
+                                         'NAICS',
                                          'Subsector and Industry',
                                          'Total',
                                          'Net Electricity(b)']]
         historical_mecs_31_32 = mecs_3_1.merge(mecs_3_2, 
-                                               on=['Year', 'region', 
-                                                   'NAICS', 'Subsector and Industry'], 
+                                               on=['Year', 'region',
+                                                   'NAICS', 'Subsector and Industry'],
                                                how='outer')
         mecs_fuel = mecs_3_2.copy()
         mecs_fuel['Fuel'] = mecs_fuel['Total'].subtract(mecs_fuel['Net Electricity(b)'])
@@ -357,6 +361,7 @@ class ManufacturingSectors:
                     'LPG': 'LPG (Use Propane Price) cents/gal',
                     'Coke': "Anthracite $/MBTU",
                     'Other': "Bituminous $/MBTU"}
+
         naics = [311, 312, 313, 314, 315, 316, 321, 322, 323, 324,
                  325, 326, 327, 331, 332, 333, 334, 335, 336, 337, 339]
 
@@ -383,7 +388,8 @@ class ManufacturingSectors:
         mecs_data, industrial_btu = self.mecs_data_by_year()
         mecs42_df = mecs_data['NAICS']['4_2']
         
-        quantity_shares = df_utils.calculate_shares(mecs42_df, total_label=['  Calc. Total'])
+        quantity_shares = df_utils.calculate_shares(mecs42_df,
+                                                    total_label=['  Calc. Total'])
         return quantity_shares
 
     @staticmethod

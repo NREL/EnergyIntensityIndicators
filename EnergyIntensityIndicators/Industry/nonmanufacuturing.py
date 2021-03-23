@@ -117,28 +117,37 @@ class NonManufacturing:
 
         fuels_intensity.loc[1982, 'fuels_intensity'] = np.nan
         fuels_intensity.loc[2002, 'fuels_intensity'] = np.nan
-        fuels_intensity = standard_interpolation(fuels_intensity, name_to_interp='fuels_intensity', axis=1).fillna(method='bfill')
+        fuels_intensity = standard_interpolation(fuels_intensity, 
+                                                 name_to_interp='fuels_intensity', 
+                                                 axis=1).fillna(method='bfill')
 
-        final_electricity = elec_intensity[['elec_intensity']].multiply(elec_intensity['Output*0.0001'], axis='index')
-        final_electricity = final_electricity.rename(columns={'elec_intensity': 'Construction'})
+        final_electricity = elec_intensity[['elec_intensity']].multiply(elec_intensity['Output*0.0001'],
+                                                                        axis='index')
+        final_electricity = final_electricity.rename(columns={'elec_intensity': 
+                                                              'Construction'})
 
-        final_fuels = fuels_intensity[['fuels_intensity']].multiply(fuels_intensity['Output*0.0001'], axis='index')
-        final_fuels = final_fuels.rename(columns={'fuels_intensity': 'Construction'})
+        final_fuels = fuels_intensity[['fuels_intensity']].multiply(fuels_intensity['Output*0.0001'],
+                                                                    axis='index')
+        final_fuels = final_fuels.rename(columns={'fuels_intensity':
+                                                  'Construction'})
 
         gross_output = gross_output.drop('Output*0.0001', axis=1)
 
-        gross_output = gross_output.rename(columns={'Gross Output': 'Construction'})
+        gross_output = gross_output.rename(columns={'Gross Output':
+                                                    'Construction'})
 
 
         data_dict = {'energy': 
-                        {'elec': final_electricity, 'fuels': final_fuels}, 
-                     'activity': 
-                        {'gross_output': gross_output, 'value_added': value_added}}
+                        {'elec': final_electricity,
+                         'fuels': final_fuels},
+                     'activity':
+                        {'gross_output': gross_output,
+                         'value_added': value_added}}
         return data_dict
 
     def agriculture(self):
         """Build data dictionary for the agricultural sector"""
-        miranowski_data =  pd.read_excel('./EnergyIntensityIndicators/Industry/Data/miranowski_data.xlsx', 
+        miranowski_data = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/miranowski_data.xlsx', 
                                          sheet_name='Ag Cons by Use', skiprows=4, skipfooter=9, usecols='A,F:G', 
                                          index_col=0, names=['Year', 'Electricity', 'Direct Ag. Energy Use'])  
                                          # Annual Estimates of energy by fuel for the farm sector for the period 1965-2002

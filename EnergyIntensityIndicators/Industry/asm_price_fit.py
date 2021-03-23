@@ -3,14 +3,12 @@ import numpy as np
 import requests
 from scipy.optimize import leastsq
 from bs4 import BeautifulSoup
-import datetime
-from functools import reduce
 
 from EnergyIntensityIndicators.get_census_data import Asm
-from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 from EnergyIntensityIndicators.utilites.standard_interpolation \
      import standard_interpolation
+
 
 class Mfg_prices:
     def __init__(self):
@@ -24,14 +22,14 @@ class Mfg_prices:
         """
         # Historical MECS data with missing observations estimated
         # ad-hoc by PNNL.
-        self.mecs_historical_prices = './EnergyIntensityIndicators/Industry/Data/mecs_prices.csv'
+        self.mecs_historical_prices = './EnergyIntensityIndicators/Industry/Data/mecs_prices.csv'  # fuel types: ['Gas' 'LPG' 'Distillate' 'Residual' 'Coal' 'Coke' 'Other ']
 
-    @staticmethod
-    def import_mecs_historical(file_path, fuel_type, naics):
+    def import_mecs_historical(self, fuel_type, naics):
         """
         Import and format csv of historical fuel prices from Manufacturing
         Energy Consumption Survey (MECS). MECS was conducted every three
         years from 1985 - 1994 and every four years since.
+
 
         Parameters
         ----------
@@ -43,14 +41,13 @@ class Mfg_prices:
         mecs_prices : dataframe
 
         """
-
-        mecs_prices = pd.read_csv(file_path)
+        mecs_prices = pd.read_csv(self.mecs_historical_prices)
 
         mecs_prices = mecs_prices[mecs_prices['fuel_type'] == fuel_type]
-
         mecs_prices = mecs_prices[mecs_prices['NAICS'].astype(int) == naics]
         mecs_prices = mecs_prices.set_index('NAICS').drop(['Industry', 'fuel_type'], axis=1)
         mecs_prices = mecs_prices.transpose().rename(columns={naics: 'MECS_price'})
+
         mecs_prices.index.name = 'Year'
         mecs_prices.index = mecs_prices.index.astype(int)
 
@@ -178,7 +175,6 @@ class Mfg_prices:
         final_mecs = np.append(early_mecs, later_mecs)
 
         # Align with available MECS
-        # mecs_ind = mecs_prices_.dropna().index
         final_mecs_df = pd.DataFrame(final_mecs, columns=['final_mecs'])
         final_mecs = final_mecs_df['final_mecs'].values
         return final_mecs
@@ -186,7 +182,15 @@ class Mfg_prices:
     @staticmethod
     def residuals(params, asm_prices, mecs_prices, price_func):
         mecs_calc = price_func(asm_prices, mecs_prices, params)
-        return mecs_prices.dropna().subtract(mecs_calc, axis='index').values.flatten()
+        print('mecs_prices residual:\n', mecs_prices)
+
+        print('mecs_calc residual:\n', mecs_calc)
+        try:
+            residuals = mecs_prices.dropna().subtract(mecs_calc, axis='index')
+        except ValueError:
+            return None
+
+        return residuals.values.flatten()
 
     @staticmethod
     def calc_predicted_coeffs(asm_prices, mecs_prices, start_params):
@@ -229,7 +233,6 @@ class Mfg_prices:
         >>>coeff
         array([0.91430597, 0.1074011 ])
         """
-
         coeff, flag = leastsq(Mfg_prices.residuals, start_params,
                               args=(asm_prices, mecs_prices,
                                     Mfg_prices.price_func))
@@ -271,10 +274,9 @@ class Mfg_prices:
     
     def main(self, latest_year, fuel_type, naics, asm_col_map):
         n_dfs = []
-        for n in naics:
-            mecs_data = self.import_mecs_historical(
-                                        self.mecs_historical_prices,
-                                        fuel_type, n)
+
+        for n in naics:              
+            mecs_data = self.import_mecs_historical(fuel_type, n)
 
             self.check_recent_mecs(latest_year=latest_year, 
                                    last_historical_year=max(mecs_data.index))
@@ -284,6 +286,7 @@ class Mfg_prices:
             price_df = asm_data.merge(mecs_data, how='outer', left_index=True,
                                       right_index=True)
             start_params = [0.646744966, 0.411641841]
+
             fit_coeffs = self.calc_predicted_coeffs(price_df[['asm_price']],
                                                     price_df[['MECS_price']],
                                                     start_params)

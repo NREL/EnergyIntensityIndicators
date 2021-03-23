@@ -184,13 +184,16 @@ class Manufacturing:
         dataset_['mecs_asm_ratio_interp'] = dataset_['mecs_asm_ratio_interp'].fillna(dataset_['interpolated_ratio'])
         dataset_ = dataset_.drop('interpolated_ratio', axis=1)
 
-        dataset =  dataset_.merge(dataset, how='outer', on=['Year', 'NAICS']).set_index('Year')       
+        dataset =  dataset_.merge(dataset, how='outer', 
+                                  on=['Year', 'NAICS']).set_index('Year')       
 
         dataset['mecs_based_expenditure'] = dataset['Calc. Cost of Fuels'].multiply(1000) # I depends on MECS year/not
         dataset['fill_values'] = dataset['EXPFUEL'].multiply(dataset['mecs_asm_ratio_interp'], axis='index')
         dataset['mecs_based_expenditure'] = dataset['mecs_based_expenditure'].fillna(dataset['fill_values'])
 
-        mecs_based_expenditure = dataset.reset_index()[['Year', 'NAICS', 'mecs_based_expenditure']]
+        mecs_based_expenditure = dataset.reset_index()[['Year',
+                                                        'NAICS',
+                                                        'mecs_based_expenditure']]
         return mecs_based_expenditure
 
     @staticmethod
