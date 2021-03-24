@@ -72,8 +72,7 @@ class LMDI():
     def calc_ASI(self, model, log_mean_divisia_weights_normalized,
                  log_ratios, total_label):
         """Collect activity, structure, and intensity components
-        """        
-
+        """
         if isinstance(self.primary_activity, dict):
             if total_label in self.primary_activity.keys():
                 primary_activity = self.primary_activity[total_label]
@@ -84,17 +83,17 @@ class LMDI():
         else:
             primary_activity = None
 
-        activity = self.calc_component(log_ratios['activity'], 
+        activity = self.calc_component(log_ratios['activity'],
                                        log_mean_divisia_weights_normalized,
-                                       type_='activity', 
+                                       type_='activity',
                                        primary_activity=primary_activity)
-        intensity = self.calc_component(log_ratios['intensity'], 
+        intensity = self.calc_component(log_ratios['intensity'],
                                         log_mean_divisia_weights_normalized,
-                                        type_='intensity', 
+                                        type_='intensity',
                                         primary_activity=primary_activity)
-        structure = self.calc_component(log_ratios['structure'], 
+        structure = self.calc_component(log_ratios['structure'],
                                         log_mean_divisia_weights_normalized,
-                                        type_='structure', 
+                                        type_='structure',
                                         primary_activity=primary_activity)
 
         try:
@@ -106,24 +105,26 @@ class LMDI():
         except KeyError:
             lower_level_structure = pd.DataFrame()
 
-        if primary_activity is not None and log_ratios['activity'][ \
+        if primary_activity is not None and log_ratios['activity'][
                                             primary_activity].shape[1] == 1:
 
             if model == 'additive':
-                intensity = intensity.divide(structure.sum(axis=1), axis='index')
+                intensity = intensity.divide(structure.sum(axis=1),
+                                             axis='index')
 
             elif model == 'multiplicative':
-                intensity = intensity.divide(structure.product(axis=1), axis='index')
+                intensity = intensity.divide(structure.product(axis=1),
+                                             axis='index')
         ASI = {'activity': activity, 'structure': structure, 
-                'intensity': intensity}
+               'intensity': intensity}
 
         if not lower_level_structure.empty:
             ASI['lower_level_structure'] = lower_level_structure
         
         return ASI
 
-    def call_decomposition(self, energy_data, energy_shares, 
-                           log_ratios, total_label, lmdi_type, loa, 
+    def call_decomposition(self, energy_data, energy_shares,
+                           log_ratios, total_label, lmdi_type, loa,
                            energy_type):
         """Calculate Log Mean Divisia Index from input data"""
         results_list = []
@@ -138,8 +139,10 @@ class LMDI():
             else:
                 lmdi_type_ = None
 
-            model_ = self.LMDI_types[model](self.output_directory, energy_data, energy_shares, 
-                                            self.base_year, self.end_year, total_label, lmdi_type_)
+            model_ = self.LMDI_types[model](self.output_directory, energy_data,
+                                            energy_shares, self.base_year,
+                                            self.end_year, total_label,
+                                            lmdi_type_)
             weights = model_.log_mean_divisia_weights()
         
             cols_to_drop_ = [col for col in weights.columns if col.endswith('_shift')]
@@ -365,7 +368,7 @@ class CalculateLMDI(LMDI):
                                            axis=1).multiply(conversion_factors,
                                                             axis='index')
                                                             # Column M
-        source_adj = source_electricity_adj.add(fuels.drop('Energy_Type', 
+        source_adj = source_electricity_adj.add(fuels.drop('Energy_Type',
                                                 axis=1), axis='index')
         source_adj['Energy_Type'] = 'Source_Adj'
         source_adj = source_adj.drop('selected site-source conversion factor',
