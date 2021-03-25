@@ -18,7 +18,8 @@ class SymbolicLMDI:
         model = ''
         base_year = 
         end_year = 
-        
+        variables = 
+
     @staticmethod
     def read_yaml():
         """Read yaml input data
@@ -44,6 +45,8 @@ class SymbolicLMDI:
         """
         denominator = sp.MatPow(denominator, -1)
         term = sp.HadamardProduct(numerator, denominator)
+        term = # find change (divide every row by previous row)
+        term = term.applyfunc(sympy.log)
         return term
     
     @staticmethod
@@ -112,7 +115,7 @@ class SymbolicLMDI:
     
     def eval_expression(self):
         expression = self.LMDI_expression()
-        input_dict = 
+        input_dict = {sp.symbols(v): self.input_data[v] for v in self.variables}
         final_result = expression.subs(input_dict)
 
 
