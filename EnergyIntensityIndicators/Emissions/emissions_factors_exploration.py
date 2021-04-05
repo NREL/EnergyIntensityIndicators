@@ -14,6 +14,15 @@ class EmissionsDataExploration:
         self.eia = GetEIAData('emissions')
 
     def eia_data(self, id_, label):
+        """[summary]
+
+        Args:
+            id_ ([type]): [description]
+            label ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         data = self.eia.eia_api(id_=id_, id_type='series')
         col = list(data.columns)[0]
         data = data.rename(columns={col: label}) #, inplace=True)
@@ -21,6 +30,11 @@ class EmissionsDataExploration:
         return data
 
     def all_fuels_data(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         commercial_co2 = 'EMISS.CO2-TOTV-CC-TO-US.A'
         electric_power_co2 = 'EMISS.CO2-TOTV-EC-TO-US.A'
         industrial_co2 = 'EMISS.CO2-TOTV-IC-TO-US.A'
@@ -37,6 +51,11 @@ class EmissionsDataExploration:
         return all_data
     
     def all_fuels_all_sector_data(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         all_fuels_all_sector = 'EMISS.CO2-TOTV-TT-TO-US.A'
         all_sector = self.eia_data(id_=all_fuels_all_sector, 
                                    label='CO2 Emissions')
@@ -44,7 +63,12 @@ class EmissionsDataExploration:
 
     @staticmethod
     def lineplot(datasets, y_label):
+        """[summary]
 
+        Args:
+            datasets ([type]): [description]
+            y_label ([type]): [description]
+        """
 
         plt.style.use('seaborn-darkgrid')
         palette = plt.get_cmap('Set2')
@@ -64,12 +88,16 @@ class EmissionsDataExploration:
         plt.show()
 
     def get_emissions_plots(self):
+        """[summary]
+        """        
         sectors = self.all_fuels_data()
         total = self.all_fuels_all_sector_data()
         # sectors['total'] = total
         self.lineplot(sectors, y_label='CO2 Emissions (Million Metric Tons)')
     
     def get_emissions_factors_plots(self):
+        """[summary]
+        """        
         emissions = self.all_fuels_data()
         energy = self.economy_wide()
         sectors = ['commercial', 'industrial', 'residential',
@@ -85,6 +113,11 @@ class EmissionsDataExploration:
         self.lineplot(emissions_factors, y_label='Million Metric Tons CO2 per Trillion Btu')
 
     def economy_wide(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         commercial_energy = 'TOTAL.TECCBUS.A'
         electric_power_energy = 'TOTAL.TXEIBUS.A'
         industrial_energy = 'TOTAL.TEICBUS.A'

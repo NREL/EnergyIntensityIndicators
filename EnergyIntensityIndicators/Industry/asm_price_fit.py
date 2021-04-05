@@ -182,9 +182,7 @@ class Mfg_prices:
     @staticmethod
     def residuals(params, asm_prices, mecs_prices, price_func):
         mecs_calc = price_func(asm_prices, mecs_prices, params)
-        print('mecs_prices residual:\n', mecs_prices)
 
-        print('mecs_calc residual:\n', mecs_calc)
         try:
             residuals = mecs_prices.dropna().subtract(mecs_calc, axis='index')
         except ValueError:
@@ -233,6 +231,9 @@ class Mfg_prices:
         >>>coeff
         array([0.91430597, 0.1074011 ])
         """
+        print('asm_prices:\n', asm_prices)
+        print('mecs_prices:\n', mecs_prices)
+
         coeff, flag = leastsq(Mfg_prices.residuals, start_params,
                               args=(asm_prices, mecs_prices,
                                     Mfg_prices.price_func))

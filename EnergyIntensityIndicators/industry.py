@@ -25,7 +25,7 @@ class IndustrialIndicators(CalculateLMDI):
     """    
 
     def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018, naics_digits=3):
-        self.sub_categories_list = {'Industry': {'Manufacturing': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
+        self.sub_categories_list = {'Industry': {',': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
                                                                     'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
                                                                     'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
                                                                     'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
@@ -37,6 +37,7 @@ class IndustrialIndicators(CalculateLMDI):
                                                                                 'Other Mining': None, 
                                                                                 'Support Activities': None},
                                                                     'Construction': None}}}
+
 
         self.ind_eia = GetEIAData('industry')
         self.MER_Nov19_Table24 = self.ind_eia.eia_api(id_='711252') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711252'
@@ -83,6 +84,11 @@ class IndustrialIndicators(CalculateLMDI):
         return data_dict
 
     def total_industrial_util_adj_lmdi(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         util_adj_categories = ['Fuels', 'Delivered Electricity', 'Source Electricity', 'Total Source']  # This case is quite different from the others
         return util_adj_categories
 

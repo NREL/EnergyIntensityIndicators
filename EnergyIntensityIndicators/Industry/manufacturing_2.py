@@ -24,6 +24,11 @@ class ManufacturingSectors:
         self.end_year = datetime.now().year
 
     def mecs_data_by_year(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         # Energy Consumption as a Fuel
         # Table 3.1 : By Mfg. Industry & Region (physical units)
         # Table 3.2 : By Mfg. Industry & Region (trillion Btu)
@@ -221,7 +226,16 @@ class ManufacturingSectors:
     
     @staticmethod
     def clean_industrial_data(raw_data, table_3_1=False, sic=False):
+        """[summary]
 
+        Args:
+            raw_data ([type]): [description]
+            table_3_1 (bool, optional): [description]. Defaults to False.
+            sic (bool, optional): [description]. Defaults to False.
+
+        Returns:
+           raw_data [type]: [description]
+        """
         if sic:
             code = 'SIC'
         else:
@@ -253,6 +267,11 @@ class ManufacturingSectors:
 
     @staticmethod
     def mecs_sic_crosswalk():
+        """[summary]
+
+        Returns:
+           cw [DataFrame]: [description]
+        """        
         #  Use crosswalk 1987 SIC to 1997 NAICS from 
         #  https://www.census.gov/eos/www/naics/concordances/concordances.html
         cw = pd.read_excel('https://www.census.gov/eos/www/naics/concordances/1987_SIC_to_1997_NAICS.xls')
@@ -262,6 +281,12 @@ class ManufacturingSectors:
         return cw
 
     def create_historical_mecs_31_32(self):
+        """[summary]
+
+        Returns:
+           historical_mecs_31_32 [type]: [description]
+           mecs_fuel [type]: [description]
+        """        
         mecs = self.mecs_data_by_year()
         mecs_3_1 = mecs['NAICS']['3_1'][['Year',
                                          'region',
@@ -274,7 +299,7 @@ class ManufacturingSectors:
                                          'Subsector and Industry',
                                          'Total',
                                          'Net Electricity(b)']]
-        historical_mecs_31_32 = mecs_3_1.merge(mecs_3_2, 
+        historical_mecs_31_32 = mecs_3_1.merge(mecs_3_2,
                                                on=['Year', 'region',
                                                    'NAICS', 'Subsector and Industry'],
                                                how='outer')
@@ -285,6 +310,12 @@ class ManufacturingSectors:
 
     @staticmethod
     def naics_to_sic(sic_data, cw):
+        """[summary]
+
+        Args:
+            sic_data ([type]): [description]
+            cw ([type]): [description]
+        """        
         sic_data = sic_data[~sic_data['SIC'].isnull()]
         sic_data = sic_data[sic_data['SIC'].str.isnumeric()]
         sic_data['SIC'] = sic_data['SIC'].astype(int)
@@ -383,6 +414,9 @@ class ManufacturingSectors:
         """
         For a given MECS year, take NAICS by fuel (TBtu),
         calculate sum, then calcuate quantity shares
+
+        Returns: 
+            quantity_shares [DataFrame]: 
         """
 
         mecs_data, industrial_btu = self.mecs_data_by_year()
@@ -394,6 +428,16 @@ class ManufacturingSectors:
 
     @staticmethod
     def interpolate_mecs(mecs_data, col_name, reindex=None):
+        """[summary]
+
+        Args:
+            mecs_data ([type]): [description]
+            col_name ([type]): [description]
+            reindex ([type], optional): [description]. Defaults to None.
+
+        Returns:
+            mecs_data [DataFrame]: [description]
+        """        
         if 'Year' not in mecs_data.columns:
             mecs_data = mecs_data.reset_index()
         mecs_data = mecs_data.pivot(index='Year', columns='NAICS', 
@@ -409,6 +453,11 @@ class ManufacturingSectors:
         return mecs_data
 
     def quantity_shares_1998_forward(self):
+        """[summary]
+
+        Returns:
+           composite_price [DataFrame]: [description]
+        """        
         mecs_years_prices_and_interpolations = self.manufacturing_prices()
 
         mecs_data_qty_shares = self.calc_quantity_shares()
@@ -436,6 +485,14 @@ class ManufacturingSectors:
         return composite_price
     
     def expenditure_ratios_revised(self, asm_data):
+        """[summary]
+
+        Args:
+            asm_data ([type]): [description]
+
+        Returns:
+           mecs_based_expenditure [DataFrame]: [description]
+        """        
         mecs = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mecs_calc_purchased_fuels_historical.csv') # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/J (also called EXPFUEL)
 
         mecs['Year'] = mecs['Year'].astype(int)
@@ -462,6 +519,14 @@ class ManufacturingSectors:
         return mecs_based_expenditure
 
     def quantities_1998_forward(self, NAICS3D): 
+        """[summary]
+
+        Args:
+            NAICS3D ([type]): [description]
+
+        Returns:
+           dataset [DataFrame]: [description]
+        """        
         quantity_shares_1998_forward = self.quantity_shares_1998_forward() # MECSPrices122419[Quantity shares 1998 forward]
         asm_data = NAICS3D.reset_index()[['Year', 'NAICS', 'EXPFUEL']]
         NAICS3D = NAICS3D.rename(columns={'column_av': 'ratio_fuel_to_offsite'})
@@ -491,12 +556,21 @@ class ManufacturingSectors:
         return composite_price
 
     def expend_ratios_revised_85_97(self):
+        """[summary]
 
+        Returns:
+           mecs_based_expenditure_hist [DataFrame]: [description]
+        """
         mecs_based_expenditure_hist = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Expend_ratios_revised_1985-97.csv')  
         return mecs_based_expenditure_hist
     
     @staticmethod
     def mecs_data_sic():
+        """[summary]
+
+        Returns:
+           mecs_data_sic [DataFrame]: [description]
+        """        
         mecs_data_sic = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_data_SIC.csv') # from [MECS_prices_101116b.xlsx]MECS_data_SIC BA
         mecs_data_sic = mecs_data_sic[mecs_data_sic['Year'].notnull()]
         mecs_data_sic['Year'] = mecs_data_sic['Year'].astype(int)
@@ -505,6 +579,11 @@ class ManufacturingSectors:
         return mecs_data_sic
 
     def pre_1998_quantities(self):
+        """[summary]
+
+        Returns:
+           dataset [DataFrame]: [description]
+        """        
         # from quantity_shares_revised CW --> '[MECS_prices_122419.xlsx]Quantity Shares_1985-1998'!
         dollar_per_mmbtu = self.quantity_shares_1985_1998()
         dollar_per_mmbtu['Year'] = dollar_per_mmbtu['Year'].astype(int)

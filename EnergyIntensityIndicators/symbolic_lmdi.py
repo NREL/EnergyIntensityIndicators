@@ -18,6 +18,8 @@ class SymbolicLMDI:
         self.base_year = 1990
         self.end_year = 2018
         self.variables = ['Ei', 'Ai']
+        self.lmdi_type = 'II'
+        
 
     # @staticmethod
     # def create_yaml():
@@ -43,33 +45,92 @@ class SymbolicLMDI:
     @staticmethod
     def test_expression(expression, lhs):
         """Verify expression provided properly simplifies
-        """
+
+        Args:
+            expression (Symbolic Expression): [description]
+            lhs (Symbolic Variable): The LHS variable 
+                                     (variable to decompose)
+
+        Returns:
+            (bool): Whether or not the symbolic expression simplifies
+                    to the LHS variable
+        """  
         assert lhs == sp.simplify(expression)
     
     @staticmethod
     def create_symbolic_var(variable, num_years, num_columns):
-        """[summary]
+        """Create m X n symbolic matrix (populated by 
+        variable name) where m is the number of years and n is the 
+        number of columns (subsectors)
+
+        Args:
+            variable (str): Variable name
+            num_years (int): The number of years in the dataset
+            num_columns (int): The number of columns in the dataset
+                               (subsectors)
+
+        Returns:
+            variable [Symbolic Matrix]: Matrix version of string variable
         """
         variable = sp.MatrixSymbol(str(variable), num_years, num_columns)
         return variable
     
     @staticmethod
-    def create_symbolic_term(numerator, denominator):
+    def hadamard_division(numerator, denominator):
         """[summary]
+
+        Args:
+            numerator ([type]): [description]
+            denominator ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
+        print('numerator:\n', numerator)
+
+        denominator = sp.HadamardPower(denominator, -1)
+        print('denominator:\n', denominator)
+        result = sp.HadamardProduct(numerator, denominator)
+        return result
+    
+    @staticmethod
+    def shift_matrices(matrix):
+        """[summary]
+
+        Args:
+            matrix ([type]): [description]
+
+        Returns:
+            [type]: [description]
         """
-        denominator = sp.MatPow(denominator, -1)
-        base_term = sp.HadamardProduct(numerator, denominator)
-        width = base_term.shape[1]
-        length = base_term.shape[0]
+        width = matrix.shape[1]
+        length = matrix.shape[0]
         row = sp.ones(1, width)
-        shift_term = base_term.row_insert(0, row)
+        shift_term = matrix.row_insert(0, row)
         shift_term = sp.MatPow(shift_term, -1)
-        long_term = base_term.row_insert(length, row)
+        long_term = matrix.row_insert(length, row)
+
+        return shift_term, long_term
+
+    def create_symbolic_term(self, numerator, denominator):
+        """[summary]
+
+        Args:
+            numerator ([type]): [description]
+            denominator ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        """[summary]
+        """
+        base_term = self.hadamard_division(numerator, denominator)
+        shift_term, long_term = self.shift_matrices(base_term)
+
         # find change (divide every row by previous row)
         term = sp.HadamardProduct(long_term, shift_term)
         term = term.applyfunc(sp.log)
         return term
-    
+
     @staticmethod
     def weighted_term(weight, term):
         """Calculate components from dot product of weights and term
@@ -83,57 +144,122 @@ class SymbolicLMDI:
         component = sp.MatMult(weighted_term, ones_)
         return component
 
-    @staticmethod
-    logarithmic_average(x, y):
+    def logarithmic_average(self, x, y):
         """[summary]
+
+        Args:
+            x ([type]): [description]
+            y ([type]): [description]
 
         Returns:
             [type]: [description]
         """
         if x != y:
-            numerator = 
-            denominator = 
-            
+
+            negative_y = sp.HadamardProduct(y, -1)
+            log_x = x.applyfunc(sp.log)
+            log_y = y.applyfunc(sp.log)
+            negative_log_y = sp.HadamardProduct(log_y, -1)
+
+            numerator = sp.MatAdd(x, negative_y)
+            denominator = sp.MatAdd(log_x, negative_log_y)
+
+            logarithmic_average = self.hadamard_division(numerator,
+                                                         denominator)
+
         elif x == y:
-            return x
-        pass
+            logarithmic_average = x
 
-    def multiplicative_weights(self):
+        return logarithmic_average
+
+    def multiplicative_weights(self, log_mean_matrix,
+                               log_mean_share, log_mean_share_total):
         """[summary]
+
+        Args:
+            log_mean_matrix ([type]): [description]
+            log_mean_share ([type]): [description]
+            log_mean_share_total ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        """[summary]
         """
-        if lmdi_type == 'I':
-            
-        elif lmdi_type == 'II':
+        if self.lmdi_type == 'I':
+            weights = log_mean_matrix
 
+        elif self.lmdi_type == 'II':
+            numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
+            weights = self.hadamard_division(numerator, log_mean_total)
+        
+        return weights
 
-    def additive_weights(self):
+    def additive_weights(self, log_mean_matrix,
+                         log_mean_matrix_total):
         """[summary]
+
+        Args:
+            log_mean_matrix ([type]): [description]
+            log_mean_matrix_total ([type]): [description]
         """
-        if lmdi_type == 'I':
-            
-        elif lmdi_type == 'II':
 
+        if self.lmdi_type == 'I':
+            weights = log_mean_matrix
+        elif self.lmdi_type == 'II':
+            numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
+            weights = self.hadamard_division(numerator, log_mean_matrix_total)
 
-    def calc_weights(self, model):
+    def calc_weights(self, lhs_matrix):
         """[summary]
+
+        Args:
+            lhs_matrix ([type]): [description]
+
+        Returns:
+            [type]: [description]
         """
-        if model == 'additive':
-            weights = self.additive_weights()
-        elif model == 'multiplicative':
-            weights = self.multiplicative_weights()
+        lhs_total = lhs_matrix * sp.ones(lhs_matrix.shape[1], 1)
+        lhs_share = self.hadamard_division(lhs_matrix, lhs_total)
+
+        shift_matrix, long_matrix = self.shift_matrices(lhs_matrix)
+        shift_share, long_share = self.shift_matrices(lhs_share)
+
+        log_mean_matrix = self.logarithmic_average(long_matrix,
+                                                   shift_matrix)
+        log_mean_matrix_total = log_mean_matrix * sp.ones(
+                                            log_mean_matrix.shape[1], 1)
+
+        log_mean_share = self.logarithmic_average(long_share,
+                                                  shift_share)
+        log_mean_share_total = log_mean_share * sp.ones(
+                                            log_mean_share.shape[1], 1)
+
+        if self.model == 'additive':
+            weights = self.additive_weights(log_mean_matrix,
+                                            log_mean_matrix_total)
+        elif self.model == 'multiplicative':
+            weights = self.multiplicative_weights(log_mean_matrix,
+                                                  log_mean_share,
+                                                  log_mean_share_total)
         return weights
 
     def LMDI_expression(self):
+        """[summary]
 
+        Returns:
+            [type]: [description]
+        """
         num_years = self.end_year - self.base_year
         num_columns = self.subscripts['i']['count']
-        weights = self.calc_weights(self.model)
 
         variable_dict = {var:
                          self.create_symbolic_var(var,
                                                   num_years,
                                                   num_columns)
                          for var in self.variables}
+
+        lhs_matrix = variable_dict[self.lhs_variable]
+        weights = self.calc_weights(lhs_matrix)
 
         symbolic_terms = []
 
@@ -158,6 +284,11 @@ class SymbolicLMDI:
         return expression
     
     def eval_expression(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         expression = self.LMDI_expression()
         input_dict = {sp.symbols(v):
                       self.input_data[v] for v in self.variables}

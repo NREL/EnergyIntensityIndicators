@@ -163,11 +163,23 @@ class Manufacturing:
         return composite_price
 
     def expend_ratios_revised_85_97(self):
+        """[summary]
 
+        Returns:
+            [type]: [description]
+        """
         mecs_based_expenditure_hist = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Expend_ratios_revised_1985-97.csv')  
         return mecs_based_expenditure_hist
 
     def expenditure_ratios_revised(self, asm_data):
+        """[summary]
+
+        Args:
+            asm_data ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         mecs = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mecs_calc_purchased_fuels_historical.csv') # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/J (also called EXPFUEL)
 
         mecs['Year'] = mecs['Year'].astype(int)
@@ -198,7 +210,15 @@ class Manufacturing:
 
     @staticmethod
     def aggregate_naics(df, values):
-        
+        """[summary]
+
+        Args:
+            df ([type]): [description]
+            values ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         df = df.pivot(index='NAICS', columns='Year', values=values)
         df.index = df.index.astype(int)
 
@@ -212,6 +232,16 @@ class Manufacturing:
 
     @staticmethod
     def interpolate_mecs(mecs_data, col_name, reindex=None):
+        """[summary]
+
+        Args:
+            mecs_data ([type]): [description]
+            col_name ([type]): [description]
+            reindex ([type], optional): [description]. Defaults to None.
+
+        Returns:
+            [type]: [description]
+        """        
         if 'Year' not in mecs_data.columns:
             mecs_data = mecs_data.reset_index()
         mecs_data = mecs_data.pivot(index='Year', columns='NAICS', 
@@ -228,6 +258,11 @@ class Manufacturing:
 
     @staticmethod
     def mecs_data_sic():
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         mecs_data_sic = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_data_SIC.csv') # from [MECS_prices_101116b.xlsx]MECS_data_SIC BA
         mecs_data_sic = mecs_data_sic[mecs_data_sic['Year'].notnull()]
         mecs_data_sic['Year'] = mecs_data_sic['Year'].astype(int)
@@ -236,6 +271,11 @@ class Manufacturing:
         return mecs_data_sic
 
     def pre_1998_quantities(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """        
         # from quantity_shares_revised CW --> '[MECS_prices_122419.xlsx]Quantity Shares_1985-1998'!
         dollar_per_mmbtu = self.quantity_shares_1985_1998()
         dollar_per_mmbtu['Year'] = dollar_per_mmbtu['Year'].astype(int)
@@ -264,6 +304,14 @@ class Manufacturing:
         return dataset
 
     def quantities_1998_forward(self, NAICS3D): 
+        """[summary]
+
+        Args:
+            NAICS3D ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         quantity_shares_1998_forward = self.quantity_shares_1998_forward() # MECSPrices122419[Quantity shares 1998 forward]
         asm_data = NAICS3D.reset_index()[['Year', 'NAICS', 'EXPFUEL']]
         NAICS3D = NAICS3D.rename(columns={'column_av': 'ratio_fuel_to_offsite'})
@@ -313,7 +361,7 @@ class Manufacturing:
         # final_quantities_asm_85 = pd.read_csv('./EnergyIntensityIndicators/Indutry/Data/final_quantities_asm_85.csv').set_index('NAICS')
         return final_quantities_asm_85_agg
 
-   # Corresponds to data in MECS_Fuel tab in Indhap3 spreadsheet, which
+    # Corresponds to data in MECS_Fuel tab in Indhap3 spreadsheet, which
     # is connected to the MECS_Annual_Fuel1 and MECS_Annual_Fuel2
     # tabs in the same spreadsheet.
     def import_mecs_fuel(self):
@@ -347,6 +395,15 @@ class Manufacturing:
         return mecs_annual_fuel
 
     def mecs_fuel(self, asm_elec_data, historical_mecs):
+        """[summary]
+
+        Args:
+            asm_elec_data ([type]): [description]
+            historical_mecs ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         historical_mecs_31_32 = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
         mecs_fuel = historical_mecs.set_index('NAICS')
         mecs_fuel = mecs_fuel.rename(columns={c: int(c) for c in mecs_fuel.columns})
@@ -368,6 +425,14 @@ class Manufacturing:
         return historical_mecs
     
     def get_manufacturing_fuels(self, electricity_data):
+        """[summary]
+
+        Args:
+            electricity_data ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """        
         # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
         electricity_data = electricity_data.transpose()
 
