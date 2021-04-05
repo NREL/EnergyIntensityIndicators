@@ -77,15 +77,21 @@ class SymbolicLMDI:
     
     @staticmethod
     def hadamard_division(numerator, denominator):
-        """[summary]
+        """Perform element-wise division of two
+        symbolic matrices
+        
+        Note: I haven't found this functionality in
+        the sympy library though it may exist or not exist for a
+        good reason? (e.g. mathematical properties)
 
         Args:
-            numerator ([type]): [description]
-            denominator ([type]): [description]
+            numerator (Symbolic Matrix): dividend
+            denominator ([type]): divisor
 
         Returns:
-            [type]: [description]
-        """        
+            result (Symbolic Matrix): Quotient
+        """
+
         print('numerator:\n', numerator)
 
         denominator = sp.HadamardPower(denominator, -1)
@@ -95,13 +101,22 @@ class SymbolicLMDI:
     
     @staticmethod
     def shift_matrices(matrix):
-        """[summary]
+        """Create two matrices from input matrix 
+        (append row of ones to the beginning of one and 
+        the end of the other) in order to find the 
+        change between rows (years)
 
         Args:
-            matrix ([type]): [description]
+            matrix (Symbolic Matrix): any matrix
 
         Returns:
-            [type]: [description]
+            shift_term (Symbolic Matrix): matrix with rows shifted down
+            long_term (Symbolic Matrix): matrix with row appended to end
+                                         (so that the dimensions will match
+                                         shift term)
+
+        TODO: Is a row of ones the best way to do this?
+
         """
         width = matrix.shape[1]
         length = matrix.shape[0]
@@ -113,15 +128,15 @@ class SymbolicLMDI:
         return shift_term, long_term
 
     def create_symbolic_term(self, numerator, denominator):
-        """[summary]
+        """Create LMDI RHS term e.g. the log change of structure
+        (Ai/A) in symbolic matrix terms
 
         Args:
-            numerator ([type]): [description]
-            denominator ([type]): [description]
+            numerator (Symbolic Matrix): Dividend (e.g. Ai)
+            denominator (Symbolic Matrix): Divisor (e.g. A)
 
         Returns:
-            [type]: [description]
-        """        """[summary]
+            term (Symbolic Matrix): the log change of the RHS term
         """
         base_term = self.hadamard_division(numerator, denominator)
         shift_term, long_term = self.shift_matrices(base_term)
@@ -137,7 +152,8 @@ class SymbolicLMDI:
 
         Args:
             weight (MatrixSymbol): normalized log-mean divisia weights
-            term (MatrixSymbol): [description]
+            term (MatrixSymbol): The effect of the component (RHS) variable
+                                 on the change in the LHS variable
         """
         weighted_term = sp.HadamardProduct(weight, term).doit()
         ones_ = sp.ones(weighted_term.shape[1], 1)
@@ -174,7 +190,8 @@ class SymbolicLMDI:
 
     def multiplicative_weights(self, log_mean_matrix,
                                log_mean_share, log_mean_share_total):
-        """[summary]
+        """Calculate log-mean divisia weights for the multiplicative model
+        in symbolic terms
 
         Args:
             log_mean_matrix ([type]): [description]
@@ -196,7 +213,8 @@ class SymbolicLMDI:
 
     def additive_weights(self, log_mean_matrix,
                          log_mean_matrix_total):
-        """[summary]
+        """Calculate log-mean divisia weights for the additive model
+        in symbolic terms
 
         Args:
             log_mean_matrix ([type]): [description]
@@ -210,13 +228,14 @@ class SymbolicLMDI:
             weights = self.hadamard_division(numerator, log_mean_matrix_total)
 
     def calc_weights(self, lhs_matrix):
-        """[summary]
+        """Calculate log-mean divisia weights
 
         Args:
-            lhs_matrix ([type]): [description]
+            lhs_matrix (Symbolic Matrix): Matrix representing the LHS variable
+                                          (the variable to decompose) symbolically
 
         Returns:
-            [type]: [description]
+            weights (Symbolic Matrix): The log-mean divisia weights
         """
         lhs_total = lhs_matrix * sp.ones(lhs_matrix.shape[1], 1)
         lhs_share = self.hadamard_division(lhs_matrix, lhs_total)
@@ -244,10 +263,17 @@ class SymbolicLMDI:
         return weights
 
     def LMDI_expression(self):
-        """[summary]
+        """Calculate the LMDI equation in
+        symbolic Matrix terms
 
         Returns:
-            [type]: [description]
+            expressions (Symbolic Matrix): Matrix where each element contains
+                                           a symbolic expression representing
+                                           the appropriate calculation of the 
+                                           value
+
+        TODO: 
+            - describe the expression more accurately
         """
         num_years = self.end_year - self.base_year
         num_columns = self.subscripts['i']['count']
@@ -284,10 +310,17 @@ class SymbolicLMDI:
         return expression
     
     def eval_expression(self):
-        """[summary]
+        """Substitute actual data into the symbolic
+        LMDI expression to calculate results
 
         Returns:
-            [type]: [description]
+            final_result (Matrix): LMDI results ?
+        
+        TODO: 
+            Should return pandas dataframe containing
+            the relative contributions of each term to the
+            change in the LHS variable, with appropriate column
+            labels and years as the index
         """        
         expression = self.LMDI_expression()
         input_dict = {sp.symbols(v):
