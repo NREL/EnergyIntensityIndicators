@@ -14,26 +14,28 @@ class EmissionsDataExploration:
         self.eia = GetEIAData('emissions')
 
     def eia_data(self, id_, label):
-        """[summary]
+        """Make EIA API call
 
         Args:
-            id_ ([type]): [description]
-            label ([type]): [description]
+            id_ (str): EIA API endpoint
+            label (str): Label to use as column name
+                         in resulting df
 
         Returns:
-            [type]: [description]
-        """        
-        data = self.eia.eia_api(id_=id_, id_type='series')
-        col = list(data.columns)[0]
-        data = data.rename(columns={col: label}) #, inplace=True)
-
+            data (DataFrame): data resulting from API call
+        """
+        data = self.eia.eia_api(id_=id_, id_type='series', new_name=label)
         return data
 
     def all_fuels_data(self):
-        """[summary]
+        """Collect EIA CO2 Emissions data from
+        all fuels data for each Sector
 
         Returns:
-            [type]: [description]
+            all_data (dict): All CO2 emissions data
+                             Dictionary with {sector}_co2 as keys and
+                             dataframe as value
+
         """        
         commercial_co2 = 'EMISS.CO2-TOTV-CC-TO-US.A'
         electric_power_co2 = 'EMISS.CO2-TOTV-EC-TO-US.A'
@@ -46,15 +48,16 @@ class EmissionsDataExploration:
                    'residential_co2': residential_co2, 
                    'transportation_co2': transportation_co2}
 
-        all_data = {s: self.eia_data(id_=sectors[s], label='CO2 Emissions') \
+        all_data = {s: self.eia_data(id_=sectors[s], label='CO2 Emissions')
                     for s in sectors}
         return all_data
     
     def all_fuels_all_sector_data(self):
-        """[summary]
+        """Collect EIA CO2 Emissions data from all fuels and all sectors
 
         Returns:
-            [type]: [description]
+            all_sector (DataFrame): CO2 Emissions data for all 
+                                    fuels and all sectors in the US
         """        
         all_fuels_all_sector = 'EMISS.CO2-TOTV-TT-TO-US.A'
         all_sector = self.eia_data(id_=all_fuels_all_sector, 
@@ -63,11 +66,12 @@ class EmissionsDataExploration:
 
     @staticmethod
     def lineplot(datasets, y_label):
-        """[summary]
+        """Plot 'CO2 Emissions from All Fuels by Sector' data
 
         Args:
-            datasets ([type]): [description]
-            y_label ([type]): [description]
+            datasets (dict): [description]
+            y_label (str): Label to use for y-axis of resulting
+                           plot
         """
 
         plt.style.use('seaborn-darkgrid')
@@ -88,15 +92,16 @@ class EmissionsDataExploration:
         plt.show()
 
     def get_emissions_plots(self):
-        """[summary]
-        """        
+        """Collect CO2 Emisisons data and plot it
+        """
         sectors = self.all_fuels_data()
-        total = self.all_fuels_all_sector_data()
+        # total = self.all_fuels_all_sector_data()
         # sectors['total'] = total
         self.lineplot(sectors, y_label='CO2 Emissions (Million Metric Tons)')
     
     def get_emissions_factors_plots(self):
-        """[summary]
+        """Collect CO2 Emissions and Energy data by sector, 
+        calculate Emissions factors (CO2/Energy) and plot the results
         """        
         emissions = self.all_fuels_data()
         energy = self.economy_wide()
@@ -113,23 +118,25 @@ class EmissionsDataExploration:
         self.lineplot(emissions_factors, y_label='Million Metric Tons CO2 per Trillion Btu')
 
     def economy_wide(self):
-        """[summary]
+        """Collect Energy Consumption data for each sector 
+        from the EIA API
 
         Returns:
-            [type]: [description]
+            all_data (dict): Dictionary with sectors as keys and 
+                             df as values
         """        
         commercial_energy = 'TOTAL.TECCBUS.A'
         electric_power_energy = 'TOTAL.TXEIBUS.A'
         industrial_energy = 'TOTAL.TEICBUS.A'
         residential_energy = 'TOTAL.TERCBUS.A'
         transportation_energy = 'TOTAL.TEACBUS.A'
-        sectors = {'commercial_energy': commercial_energy, 
-                   'electric_power_energy': electric_power_energy, 
-                   'industrial_energy': industrial_energy, 
-                   'residential_energy': residential_energy, 
+        sectors = {'commercial_energy': commercial_energy,
+                   'electric_power_energy': electric_power_energy,
+                   'industrial_energy': industrial_energy,
+                   'residential_energy': residential_energy,
                    'transportation_energy': transportation_energy}
 
-        all_data = {s: self.eia_data(id_=sectors[s], label='Energy') \
+        all_data = {s: self.eia_data(id_=sectors[s], label='Energy')
                     for s in sectors}
         return all_data
 
