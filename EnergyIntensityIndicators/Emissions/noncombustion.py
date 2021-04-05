@@ -8,7 +8,9 @@ import glob
 
 
 class NonCombustion:
-
+    """Class to handle and explore
+    zipped Emissions data from the EPA
+    """
     def __init__(self):
         self.annex = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
         self.chapter_0 = 'https://www.epa.gov/sites/production/files/2020-08/chapter_0.zip'
@@ -16,10 +18,10 @@ class NonCombustion:
 
     @staticmethod
     def unpack_noncombustion_data(zip_file):
-        """[summary]
+        """Unpack zipped file into folder stored locally
 
         Args:
-            zip_file ([type]): [description]
+            zip_file (str): URL / path to zipfile
         """        
         print('collecting noncombustion_fuels')
         r = requests.get(zip_file)
@@ -30,10 +32,12 @@ class NonCombustion:
     
     @staticmethod
     def noncombustion_emissions(base_dir='C:/Users/irabidea/Desktop/emissions_data'):
-        """[summary]
+        """Create a dataframe (saved to base_dir) matching the filename and title 
+        of each csv in base_dir
 
         Args:
-            base_dir (str, optional): [description]. Defaults to 'C:/Users/irabidea/Desktop/emissions_data'.
+            base_dir (str, optional): Local folder containing unzipped emissions data
+                                      Defaults to 'C:/Users/irabidea/Desktop/emissions_data'.
         """        
         files_list = glob.glob(f"{base_dir}/*.csv")
 
@@ -62,10 +66,14 @@ class NonCombustion:
         print('tables_df:\n', tables_df)
 
     def walk_folders(self, directory):
-        """[summary]
+        """Append file information from sub-directories
+         to dataframe in directory, capturing filenames and 
+         titles of each csv in the subdirectories
+
 
         Args:
-            directory ([type]): [description]
+            directory (str): Directory containing subfolders
+            of Emissions data
         """        
         walk = [x[0] for x in os.walk(directory)]
         print('walk:\n', walk)
@@ -80,26 +88,6 @@ class NonCombustion:
         
         all_names = pd.concat(names)
         all_names.to_csv('C:/Users/irabidea/Desktop/emissions_data/all_names.csv', index=False)
-
-
-class IndustrialEmissions:
-
-    def __init__(self):
-        self.sub_categories_list = {'Industry': {',': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
-                                                                'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
-                                                                'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
-                                                                'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
-                                                                'Fabricated metal products': None, 'Machinery': None, 'Computer and electronic products': None,
-                                                                'Electrical equipment, appliances, and components': None, 'Motor vehicles, bodies and trailers, and parts': None,
-                                                                'Furniture and related products': None, 'Miscellaneous manufacturing': None},
-                                            'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
-                                                                'Mining': {'Petroleum and Natural Gas': None, 
-                                                                            'Other Mining': None, 
-                                                                            'Support Activities': None},
-                                                                'Construction': None}}}
-
-                                                                {'aluminum': {'noncombustion': None, 'combustion': None}}
-                                                                {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
 
 
 if __name__ == '__main__':

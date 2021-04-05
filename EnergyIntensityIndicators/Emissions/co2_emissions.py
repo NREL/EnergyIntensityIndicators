@@ -473,7 +473,21 @@ class CommercialEmissions(SEDSEmissionsData):
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
     def __init__(self):
-        pass
+        self.sub_categories_list = {'Industry': {',': {'Food and beverage and tobacco products': None, 'Textile mills and textile product mills': None, 
+                                                                'Apparel and leather and allied products': None, 'Wood products': None, 'Paper products': None,
+                                                                'Printing and related support activities': None, 'Petroleum and coal products': None, 'Chemical products': None,
+                                                                'Plastics and rubber products': None, 'Nonmetallic mineral products': None, 'Primary metals': None,
+                                                                'Fabricated metal products': None, 'Machinery': None, 'Computer and electronic products': None,
+                                                                'Electrical equipment, appliances, and components': None, 'Motor vehicles, bodies and trailers, and parts': None,
+                                                                'Furniture and related products': None, 'Miscellaneous manufacturing': None},
+                                            'Nonmanufacturing': {'Agriculture, Forestry & Fishing': None,
+                                                                'Mining': {'Petroleum and Natural Gas': None, 
+                                                                            'Other Mining': None, 
+                                                                            'Support Activities': None},
+                                                                'Construction': None}}}
+
+                                                                {'aluminum': {'noncombustion': None, 'combustion': None}}
+                                                                {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self):
