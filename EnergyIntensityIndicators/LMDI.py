@@ -28,25 +28,31 @@ class LMDI():
         log mean divisia weights, rename column in the resulting dataframe
         """
         if component_.shape[1] == 1 or weights.empty:
-            sum_product_ = component_.rename(columns={component_.columns[0]: name})
+            sum_product_ = component_.rename(columns={component_.columns[0]:
+                                                      name})
         else:
-            component_, weights = df_utils.ensure_same_indices(component_, weights)
-            sum_product_ = (component_.multiply(weights.values, axis='index')).sum(axis=1)
+            component_, weights = df_utils.ensure_same_indices(component_,
+                                                               weights)
+            sum_product_ = (component_.multiply(weights.values,
+                                                axis='index')).sum(axis=1)
             sum_product_ = sum_product_.to_frame(name=name)
         return sum_product_
 
-    def calc_component(self, log_ratio_component, weights, type_, primary_activity):
-        """Calculate the component values from log_ratio components and log mean divisia weights
+    def calc_component(self, log_ratio_component, weights, type_,
+                       primary_activity):
+        """Calculate the component values from log_ratio components
+        and log mean divisia weights
         """
 
         if isinstance(log_ratio_component, pd.DataFrame):
-            component = self.sum_product(log_ratio_component, weights, name=type_)
+            component = self.sum_product(log_ratio_component,
+                                         weights, name=type_)
         elif isinstance(log_ratio_component, dict):
             comp_list = []
 
             if type_ == 'activity' and primary_activity is not None:
                 component = self.sum_product(
-                                        log_ratio_component[primary_activity], 
+                                        log_ratio_component[primary_activity],
                                         weights, name=type_)
             elif type_ == 'intensity' and primary_activity is not None:
                 component = self.sum_product(
@@ -98,10 +104,10 @@ class LMDI():
 
         try:
             lower_level_structure = self.calc_component(
-                                                log_ratios['lower_level_structure'],
-                                                log_mean_divisia_weights_normalized,
-                                                type_='lower_level_structure',
-                                                primary_activity=primary_activity)
+                                        log_ratios['lower_level_structure'],
+                                        log_mean_divisia_weights_normalized,
+                                        type_='lower_level_structure',
+                                        primary_activity=primary_activity)
         except KeyError:
             lower_level_structure = pd.DataFrame()
 
@@ -115,7 +121,7 @@ class LMDI():
             elif model == 'multiplicative':
                 intensity = intensity.divide(structure.product(axis=1),
                                              axis='index')
-        ASI = {'activity': activity, 'structure': structure, 
+        ASI = {'activity': activity, 'structure': structure,
                'intensity': intensity}
 
         if not lower_level_structure.empty:
@@ -180,11 +186,11 @@ class LMDI():
             A list of options that can be grouped by 1 or more categories.
             @weight|Category1|...Category2|...|Label#units
 
-            A weighted value to use with a matching filter (must match filter label 
-            and categories).
+            A weighted value to use with a matching filter (must match filter
+            label and categories).
             @scenario|Label
 
-            A list of options that are completely separate from each other, i.e. 
+            A list of options that are completely separate from each other, i.e.
             they will not be seen on the same chart at the same time.
             The options come from the unique values in the scenario column.
             @timeseries|Label
@@ -241,7 +247,7 @@ class LMDI():
             elif col.startswith('@filter'):
                 col_ = col
             else:
-                extensionsToCheck = ('Intensity', 'Structure', 'Activity', 
+                extensionsToCheck = ('Intensity', 'Structure', 'Activity',
                                      'Effect')
                 if col_.endswith(extensionsToCheck):
                     col_ = "@filter|Measure|" + col_
@@ -263,16 +269,16 @@ class LMDI():
 
 class CalculateLMDI(LMDI):
 
-    def __init__(self, sector, level_of_aggregation, lmdi_models, 
-                 categories_dict, energy_types, directory, 
-                 output_directory, primary_activity=None, 
-                 base_year=1985, end_year=2017, 
-                 unit_conversion_factor=1, 
+    def __init__(self, sector, level_of_aggregation, lmdi_models,
+                 categories_dict, energy_types, directory,
+                 output_directory, primary_activity=None,
+                 base_year=1985, end_year=2017,
+                 unit_conversion_factor=1,
                  weather_activity=None):
 
         super().__init__(sector=sector, lmdi_models=lmdi_models,
                          primary_activity=primary_activity,
-                         output_directory=output_directory, 
+                         output_directory=output_directory,
                          base_year=base_year, end_year=end_year)
 
         self.directory = directory
@@ -290,7 +296,7 @@ class CalculateLMDI(LMDI):
     @staticmethod
     def get_elec(elec):
         """Add 'Energy_Type' column to electricity dataframe
-        """        
+        """
         elec['Energy_Type'] = 'Electricity'
         print('Collected elec data')
         return elec
@@ -298,17 +304,17 @@ class CalculateLMDI(LMDI):
     @staticmethod
     def get_fuels(fuels):
         """Add 'Energy_Type' column to fuels dataframe
-        """      
+        """
         fuels['Energy_Type'] = 'Fuels'
         print('Collected fuels data')
         return fuels
 
     @staticmethod
     def get_deliv(elec, fuels):
-        """Calculate delivered energy by adding electricity and 
-        fuels then add 'Energy_Type' column to the resulting 
+        """Calculate delivered energy by adding electricity and
+        fuels then add 'Energy_Type' column to the resulting
         delivered energy dataframe
-        """      
+        """
         delivered = elec.add(fuels, axis='index')
         delivered['Energy_Type'] = 'Delivered'
         print('Calculated deliv data')
@@ -320,7 +326,7 @@ class CalculateLMDI(LMDI):
         electricity and fuels dataframe, then add
         'Energy-Type' column to the resulting source
         energy dataframe
-        """        
+        """
         if self.sector == 'commercial':
             conversion_factors = GetEIAData(self.sector).conversion_factors(
                 include_utility_sector_efficiency=True)
@@ -335,10 +341,10 @@ class CalculateLMDI(LMDI):
         conversion_factors, elec = df_utils.ensure_same_indices(
                                             conversion_factors, elec)
         source_electricity = elec.drop('Energy_Type', 
-                                       axis=1).multiply(conversion_factors, 
-                                                        axis='index')  
+                                       axis=1).multiply(conversion_factors,
+                                                        axis='index')
                                                         # Column A
-        total_source = source_electricity.add(fuels.drop('Energy_Type', 
+        total_source = source_electricity.add(fuels.drop('Energy_Type',
                                                          axis=1), axis='index')
         total_source['Energy_Type'] = 'Source'
         total_source = total_source.drop(
@@ -355,12 +361,12 @@ class CalculateLMDI(LMDI):
         """        
         conversion_factors = GetEIAData(self.sector).conversion_factors(
                                         include_utility_sector_efficiency=True)
-        
+            
         if conversion_factors is None:
             return None
 
         conversion_factors.index = conversion_factors.index.astype(int)
-            
+
         conversion_factors, elec = df_utils.ensure_same_indices(
                                                 conversion_factors, elec)
 
@@ -376,21 +382,21 @@ class CalculateLMDI(LMDI):
 
         print('Calculated source_adj data')
         return source_adj
-    
+
     def calculate_energy_data(self, e_type, energy_data):
-        """Calculate 'deliv', 'source', and 'source_adj' data from 
-        'fuels' and 'elec' dataframes contained in the energy_data dictionary. 
+        """Calculate 'deliv', 'source', and 'source_adj' data from
+        'fuels' and 'elec' dataframes contained in the energy_data dictionary.
         """
 
-        funcs = {'elec': self.get_elec, 
-                 'fuels': self.get_fuels, 
-                 'deliv': self.get_deliv, 
-                 'source': self.get_source, 
+        funcs = {'elec': self.get_elec,
+                 'fuels': self.get_fuels,
+                 'deliv': self.get_deliv,
+                 'source': self.get_source,
                  'source_adj': self.get_source_adj}
 
         if e_type in ['deliv', 'source', 'source_adj']:
             elec = energy_data['elec']
-            elec = elec.drop('electricity_weather_factor', axis=1, errors='ignore') # for weather factors
+            elec = elec.drop('electricity_weather_factor', axis=1, errors='ignore')  # for weather factors
             fuels = energy_data['fuels']
             elec, fuels = df_utils.ensure_same_indices(elec, fuels)
             e_type_df = funcs[e_type](elec, fuels)
@@ -413,14 +419,14 @@ class CalculateLMDI(LMDI):
         return e_type_df
 
     def collect_energy_data(self, energy_data): 
-        """Calculate energy data for energy types in 
+        """Calculate energy data for energy types in
         self.energy_types for which data is not provided
 
         Example data: 
 
-            data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use}, 
-                                           'activity': passenger_based_activity}, 
-                        'All_Freight': {'energy': {'deliv': freight_based_energy_use}, 
+            data_dict = {'All_Passenger': {'energy': {'deliv': passenger_based_energy_use},
+                                           'activity': passenger_based_activity},
+                        'All_Freight': {'energy': {'deliv': freight_based_energy_use},
                                         'activity': freight_based_activity}}
         """         
  
@@ -431,12 +437,12 @@ class CalculateLMDI(LMDI):
         elif 'elec' in energy_data and 'fuels' in energy_data:
             energy_data_by_type = dict()
             for type_ in self.energy_types:
-                try: 
+                try:
                     e_type_df = self.calculate_energy_data(type_, energy_data)
                     energy_data_by_type[type_] = e_type_df
                 except KeyError as err:
-                    print(err.args) 
-        else: 
+                    print(err.args)
+        else:
             energy_data_by_type = energy_data
             for e in self.energy_types:
                 if e not in provided_energy_data:
@@ -455,7 +461,7 @@ class CalculateLMDI(LMDI):
     @staticmethod
     def deep_get(dictionary, keys, default=None):
         """Get lower level portion of nested dictionary from path"""
-        return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, 
+        return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
                       keys.split("."), dictionary)
 
     @staticmethod
@@ -475,12 +481,13 @@ class CalculateLMDI(LMDI):
                 continue
         
         all_category_data = pd.concat(all_category_data, axis=0, sort=False)
-        all_category_data = all_category_data.drop('Total', errors='ignore', axis=1)
+        all_category_data = all_category_data.drop('Total',
+                                                   errors='ignore',
+                                                   axis=1)
         return all_category_data
 
-
-    def process_results_dict(self, data, select_categories, results_dict, level_name, key):
-
+    def process_results_dict(self, data, select_categories, results_dict,
+                             level_name, key):
 
         if 'activity' in data.keys() and 'energy' in data.keys():
             level_data = data
@@ -492,7 +499,7 @@ class CalculateLMDI(LMDI):
         # col_a = self.build_col_list(level_data, key)
         raw_energy_dict = level_data['energy']
         activity_data = level_data['activity']
-        
+
         if 'weather_factors' in level_data.keys():
             weather_data_ = level_data['weather_factors']
             weather = True
@@ -506,18 +513,19 @@ class CalculateLMDI(LMDI):
         if isinstance(activity_data, pd.DataFrame):
             activity_data['activity_type'] = 'only_activity'
         elif isinstance(activity_data, dict):
-            activity_data = self.process_type_data('activity_type', activity_data, 
+            activity_data = self.process_type_data('activity_type',
+                                                   activity_data,
                                                    d_type_list=activity_data.keys())
 
         if level_name in results_dict:
-            energy_data = self.merge_input_data([energy_data, 
-                                                results_dict[level_name]['energy']], 
+            energy_data = self.merge_input_data([energy_data,
+                                                results_dict[level_name]['energy']],
                                                 'Energy_Type')
-            activity_data = self.merge_input_data([activity_data, 
+            activity_data = self.merge_input_data([activity_data,
                                                   results_dict[level_name]['activity']],
                                                   'activity_type')
         
-        data_dict_ = {'energy': energy_data, 'activity': activity_data, 
+        data_dict_ = {'energy': energy_data, 'activity': activity_data,
                       'level_total': level_name}
 
         if weather:
@@ -548,7 +556,7 @@ class CalculateLMDI(LMDI):
                 aggregate_activity = [results_dict[level_name]['activity']]
                 aggregate_energy = [results_dict[level_name]['energy']]
 
-            else: 
+            else:
                 aggregate_activity = []
                 aggregate_energy = []
 
@@ -557,7 +565,7 @@ class CalculateLMDI(LMDI):
                 aggregate_weather = results_dict[level_name]['weather_factors']
             else:
                 weather = False
-        else: 
+        else:
             aggregate_activity = []
             aggregate_energy = []
             weather = False
@@ -581,12 +589,12 @@ class CalculateLMDI(LMDI):
                     base_col_a = 'activity_type'
                     if len(lower_level_a.columns.difference([base_col_a]).tolist()) > 1:
                         lower_level_a = df_utils.create_total_column(lower_level_a, 
-                                                                     key)[[base_col_a, key]]              
+                                                                     key)[[base_col_a, key]]     
 
                     base_col_e = 'Energy_Type'
                     if len(lower_level_e.columns.difference([base_col_e]).tolist()) > 1:
-                        lower_level_e = df_utils.create_total_column(lower_level_e, 
-                                                                     key)[[base_col_e, key]]       
+                        lower_level_e = df_utils.create_total_column(lower_level_e,
+                                                                     key)[[base_col_e, key]]
 
                 else:
 
@@ -604,12 +612,14 @@ class CalculateLMDI(LMDI):
                 continue
 
         e_df = self.merge_input_data(aggregate_energy, 'Energy_Type')
-        e_df = df_utils.create_total_column(e_df, level_name)                
+        e_df = df_utils.create_total_column(e_df, level_name)
 
-        agg_a_df = self.merge_input_data(aggregate_activity, 'activity_type')   
-        agg_a_df = df_utils.create_total_column(agg_a_df, level_name)          
+        agg_a_df = self.merge_input_data(aggregate_activity, 'activity_type')
+        agg_a_df = df_utils.create_total_column(agg_a_df, level_name)
 
-        data_dict = {'energy': e_df, 'activity': agg_a_df, 'level_total': level_name}
+        data_dict = {'energy': e_df,
+                     'activity': agg_a_df,
+                     'level_total': level_name}
         if weather:
             data_dict['weather_factors'] = aggregate_weather
 
@@ -617,7 +627,7 @@ class CalculateLMDI(LMDI):
 
         return results_dict
 
-    def build_nest(self, data, select_categories, results_dict, 
+    def build_nest(self, data, select_categories, results_dict,
                    level1_name, level_name=None):
         """Process and organize raw data"""
 
@@ -625,27 +635,28 @@ class CalculateLMDI(LMDI):
             for key, value in select_categories.items():
 
                 if isinstance(value, dict):
-                    yield from self.build_nest(data=data[key], 
-                                               select_categories=value, 
-                                               results_dict=results_dict, 
-                                               level1_name=level1_name, 
+                    yield from self.build_nest(data=data[key],
+                                               select_categories=value,
+                                               results_dict=results_dict,
+                                               level1_name=level1_name,
                                                level_name=key)
 
                 else: 
                     if not level_name:
                         level_name = level1_name
-                    results_dict = self.process_results_dict(data, 
-                                                             select_categories, 
-                                                             results_dict, 
+                    results_dict = self.process_results_dict(data,
+                                                             select_categories,
+                                                             results_dict,
                                                              level_name, key)
-                    
+
         else:
             results_dict = results_dict
 
         if not level_name:
             level_name = level1_name
 
-        results_dict = self.nesting(level_name, results_dict, select_categories)
+        results_dict = self.nesting(level_name, results_dict,
+                                    select_categories)
 
         yield results_dict
 
@@ -655,20 +666,21 @@ class CalculateLMDI(LMDI):
         list_dfs = [df_utils.int_index(l) for l in list_dfs]
         if len(list_dfs) == 1:
             return list_dfs[0]
-        elif np.array([list(df.columns) == list(list_dfs[0].columns) 
+        elif np.array([list(df.columns) == list(list_dfs[0].columns)
                        for df in list_dfs]).all():
             print('dataframes have the same columns')
             return list_dfs[0]
         else:
             list_dfs = [l.reset_index() for l in list_dfs]
-            
-            df = reduce(lambda df1,df2: df1.merge(df2[list(df2.columns.difference(df1.columns)) + \
+
+            df = reduce(lambda df1, df2: df1.merge(df2[list(df2.columns.difference(df1.columns)) + \
                                                     ['Year', second_index]], how='outer', on=['Year', second_index]), list_dfs).set_index('Year')
             return df
 
     def order_categories(self, level_of_aggregation, raw_results):
-        """Order categories so that lower levels are calculated prior to current level of aggregation. 
-        This ordering ensures that lower level structure is passed to higher level.
+        """Order categories so that lower levels are calculated prior
+        to current level of aggregation. This ordering ensures that 
+        lower level structure is passed to higher level.
         """
         if len(self.categories_dict) == 1:
             categories_list = list(self.categories_dict.keys())
@@ -682,23 +694,28 @@ class CalculateLMDI(LMDI):
             for key in raw_results.keys():
                 if key not in categories.keys():
                     categories_list.append(key)
-        
+
         return categories_list
 
     def calculate_breakout_lmdi(self, raw_results, level_of_aggregation, 
                                 breakout, categories, lmdi_type):
-        """If breakout=True, calculate LMDI for each lower aggregation level contained in raw_results.
+        """If breakout=True, calculate LMDI for each lower aggregation
+        level contained in raw_results.
 
         Args:
-            raw_results (dictionary): Built "nest" of dictionaries containing input data for LMDI calculations
+            raw_results (dictionary): Built "nest" of dictionaries
+                                      containing input data for LMDI
+                                      calculations
 
         Returns:
             final_results_list [list]: list of LMDI results dataframes
         
-        TODO: Lower level Total structure (product of each structure index for multiplicative) and component 
-        intensity index (index of aggregate intensity divided by total strucutre) need to be passed to higher level
+        TODO: Lower level Total structure (product of each structure index
+        for multiplicative) and component intensity index (index of aggregate
+        intensity divided by total strucutre) need to be passed to higher level
         """        
-        categories_list = self.order_categories(level_of_aggregation, raw_results)
+        categories_list = self.order_categories(level_of_aggregation,
+                                                raw_results)
         final_results_list = []
 
         for key in categories_list:
@@ -720,7 +737,6 @@ class CalculateLMDI(LMDI):
                 print(f"{key} not in categories")
                 continue
 
-
             activity_ = dict()
             total_activty_df = raw_results[key]['activity']
             for a_type in total_activty_df['activity_type'].unique():
@@ -729,7 +745,6 @@ class CalculateLMDI(LMDI):
                     raise KeyError(f'{level_total} not in {a_type} dataframe')
                 activity_[a_type] = a_df
 
- 
             total_energy_df = raw_results[key]['energy']
             for e_type in self.energy_types:
                 try:
@@ -744,13 +759,19 @@ class CalculateLMDI(LMDI):
                 else:
                     weather_data = None
 
-                lower_level_structure_df, lower_level_intensity_df = self.calc_lower_level(categories, final_results_list, e_type)
+                lower_level_structure_df, lower_level_intensity_df = \
+                    self.calc_lower_level(categories,
+                                          final_results_list,
+                                          e_type)
 
-                category_lmdi = self.call_lmdi(energy_df, activity_, 
-                                               lower_level_structure_df, lower_level_intensity_df, 
+                category_lmdi = self.call_lmdi(energy_df, activity_,
+                                               lower_level_structure_df,
+                                               lower_level_intensity_df,
                                                level_total,
-                                               unit_conversion_factor=1, weather_data=weather_data, 
-                                               loa=loa, energy_type=e_type, lmdi_type=lmdi_type)
+                                               unit_conversion_factor=1,
+                                               weather_data=weather_data,
+                                               loa=loa, energy_type=e_type,
+                                               lmdi_type=lmdi_type)
                 if category_lmdi is None:
                     continue
                 else:
@@ -760,10 +781,11 @@ class CalculateLMDI(LMDI):
                     category_lmdi['lower_level'] = level_total
                     final_results_list.append(category_lmdi)
         
-
-        if len(final_results_list) > 1: 
-            final_results = pd.concat(final_results_list, axis=0, ignore_index=True, join='outer', sort=False)
-        elif len(final_results_list) == 0: 
+        if len(final_results_list) > 1:
+            final_results = pd.concat(final_results_list,
+                                      axis=0, ignore_index=True,
+                                      join='outer', sort=False)
+        elif len(final_results_list) == 0:
             raise ValueError('calculate_breakout_lmdi returned empty list')
         else:
             final_results = final_results_list[0]
@@ -776,11 +798,12 @@ class CalculateLMDI(LMDI):
         if not final_fmt_results:
             return pd.DataFrame(), pd.DataFrame()
         else:
-            final_fmt_results = pd.concat(final_fmt_results, axis=0, sort=False)
-            
+            final_fmt_results = pd.concat(final_fmt_results,
+                                          axis=0, sort=False)
+
             if 'lower_level' not in final_fmt_results.columns:
                 return pd.DataFrame(), pd.DataFrame()
-            
+
             lower_level_structure_list = []
             lower_level_intensity_list = []
 
@@ -797,11 +820,11 @@ class CalculateLMDI(LMDI):
 
                     lower_level_intensity = pd.DataFrame(index=lower_level.index, columns=[key])
 
-                elif isinstance(value, dict): 
+                elif isinstance(value, dict):
                     try:
                         lower_level_structure = lower_level[['@timeseries|Year', 'total_structure']].set_index('@timeseries|Year')
                         lower_level_structure = lower_level_structure.rename(columns={'total_structure': f'lower_level_structure_{key}'})
-                        
+
                     except KeyError:
                         print(f"{key} dataframe does not contain total_structure column, \
                                 columns are {lower_level.columns}")
@@ -830,7 +853,9 @@ class CalculateLMDI(LMDI):
                 lower_level_intensity_df = df_utils.merge_df_list(lower_level_intensity_list)
             return lower_level_structure_df, lower_level_intensity_df
 
-    def get_nested_lmdi(self, level_of_aggregation, raw_data, lmdi_type, calculate_lmdi=False, breakout=False):
+    def get_nested_lmdi(self, level_of_aggregation, raw_data,
+                        lmdi_type, calculate_lmdi=False,
+                        breakout=False):
         """
         Collect LMDI decomposition according to user specifications
 
@@ -850,12 +875,16 @@ class CalculateLMDI(LMDI):
         categories_pre_breakout = categories
 
         results_dict = dict()
-        for results_dict in self.build_nest(data=data, select_categories=categories, results_dict=results_dict,
+        for results_dict in self.build_nest(data=data, select_categories=categories,
+                                            results_dict=results_dict,
                                             level1_name=level1_name):
             continue
 
-        final_results = self.calculate_breakout_lmdi(results_dict, level_of_aggregation_,
-                                                     breakout, categories_pre_breakout, lmdi_type)
+        final_results = self.calculate_breakout_lmdi(results_dict,
+                                                     level_of_aggregation_,
+                                                     breakout,
+                                                     categories_pre_breakout,
+                                                     lmdi_type)
 
         
         final_results.to_csv(f'{self.output_directory}/{self.sector}_{level1_name}_decomposition.csv', index=False)
