@@ -34,25 +34,24 @@ class CO2EmissionsDecomposition:
     (for time series, all variables have t subscripts
     (i.e. no constants-- constant emissions rates cancel out))
     """
-    def __init__(self, directory, output_directory, level_of_aggregation=None, 
-                 lmdi_model='multiplicative', base_year=1985, end_year=2018): 
-        
+    def __init__(self, directory, output_directory, sector,
+                 level_of_aggregation=None, lmdi_model='multiplicative',
+                 base_year=1985, end_year=2018):
+        self.sector = sector
         self.eia = GetEIAData('emissions')
 
-    def collect_elec_emissions_factors(self, sector=None, energy_type=None,
-                                       region=None, fuel_type=None,
-                                       state_abbrev=None):
-        """Collect electricity emissions factors from the EIA API (through
-        GetEIAData). If region is None, collect data for the U.S.,
-        if energy_type is None use total, if sector is None use total
+    def collect_emissions(self, sector=None,
+                          fuel_type=None, state_abbrev=None):
+        """Collect emissions from the EIA API (through
+        GetEIAData).
 
-        Parameters:
-            sector (str): Economic Sector
-            energy_type (str):
-            region (str):
+        Args:
+            sector (str, optional): Economic sector. Defaults to None.
+            fuel_type (str, optional): Fuel Type. Defaults to None.
+            state_abbrev (str, optional): State (e.g. 'AK'). Defaults to None.
 
         Returns:
-            emissions_factor (df, series or float):
+            data (DataFrame): Emissions data for sector, fuel type and state
         """
         eia_co2_emiss = f'EMISS.CO2-TOTV-{sector}-{fuel_type}-{state_abbrev}.A'
         data = self.eia.eia_api(id_=eia_co2_emiss, id_type='series')  # , new_name='')
@@ -61,14 +60,14 @@ class CO2EmissionsDecomposition:
 
     @staticmethod
     def get_fuel_mix(region_data):
-        """[summary]
+        """Calculate shares of total fuel by fuel type
 
         Args:
-            region_data ([type]): [description]
+            region_data (DataFrame): Fuel use data by fuel for a region
 
         Returns:
-            [type]: [description]
-        """        
+            fuel_mix (DataFrame): Fuel mix (i.e. share of total by fuel)
+        """
         region_data = region_data.drop('Census Region',
                                        axis=1, errors='ignore')
         region_data = df_utils.create_total_column(region_data,
@@ -78,11 +77,11 @@ class CO2EmissionsDecomposition:
 
     @staticmethod
     def epa_emissions_data():
-        """[summary]
+        """Read and process EPA emissions factors data
 
         Returns:
-            [type]: [description]
-        """        
+            emissions_factors (DataFrame): [description]
+        """
         ef = pd.read_csv('./EnergyIntensityIndicators/Data/EPA_emissions_factors.csv')
         df_cols = ef.columns
         dfs = []
@@ -108,13 +107,16 @@ class CO2EmissionsDecomposition:
 
     @staticmethod
     def mecs_epa_mapping(mecs_data):
-        """[summary]
+        """Rename mecs_data columns so that labels match
+        EPA emissions factors labels
 
         Args:
-            mecs_data ([type]): [description]
+            mecs_data (DataFrame): [description]
 
         Returns:
-            [type]: [description]
+            mecs_data (DataFrame): MECS data with column names 
+                                   that match EPA emissions data
+                                   labels
         """        
         mapping_ = {
             # 'Blast Furnace/Coke Oven Gases': ['Blast Furnace Gas', 'Coke Oven Gas'], 
@@ -155,11 +157,12 @@ class CO2EmissionsDecomposition:
         new_row = {'Fuel Type': 'Census Region', 'value': 1}
         fuel_factor_df = fuel_factor_df.append(new_row, ignore_index=True)
         fuel_factor_df = fuel_factor_df.set_index('Fuel Type')
-        fuel_factor_df = fuel_factor_df['value']        
+        fuel_factor_df = fuel_factor_df['value']
         return fuel_factor_df
 
     def collect_emissions_data(self):
-        """[summary]
+        """Calculate emissions data for all sectors and fuel types
+        (from energy and fuel mix data)
 
         Parameters:
 
@@ -276,9 +279,12 @@ class CO2EmissionsDecomposition:
 
 
 class SEDSEmissionsData(CO2EmissionsDecomposition):
+    """Class to [Summary]
 
+    """
     def __init__(self):
-        pass
+        
+        super().__init__()
 
     @staticmethod
     def state_census_crosswalk():
@@ -465,11 +471,11 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
 class ResidentialEmissions(SEDSEmissionsData):
     def __init__(self):
-        pass
+        super().__init__()
 
 class CommercialEmissions(SEDSEmissionsData):
     def __init__(self):
-        pass
+        super().__init__()
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
     def __init__(self):
@@ -488,10 +494,12 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
                                                                 {'aluminum': {'noncombustion': None, 'combustion': None}}
                                                                 {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
+        super().__init__()
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self):
-        pass
+        super().__init__()
+
 
     @staticmethod
     def tedb_fuel_types(tedb_data):
@@ -586,7 +594,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
     power sector
     """
     def __init__(self):
-        pass
+        super().__init__()
 
     @staticmethod
     def electric_power_sector():
