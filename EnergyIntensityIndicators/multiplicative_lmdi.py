@@ -81,10 +81,12 @@ class MultiplicativeLMDI():
         results["@filter|Measure|BaseYear"] = self.base_year
         return results
 
-    def visualizations(self, data, base_year, end_year, loa, model, energy_type, rename_dict): 
-        """Visualize multiplicative LMDI results in a line plot 
+    def visualizations(self, data, base_year, end_year, loa, model,
+                       energy_type, rename_dict): 
+        """Visualize multiplicative LMDI results in a line plot
         """
-        data = data[(data['@timeseries|Year'] >=  base_year) & (data['@filter|Model'] == model.capitalize())]
+        data = data[(data['@timeseries|Year'] >= base_year) &
+                    (data['@filter|Model'] == model.capitalize())]
 
         structure_cols = []
         for column in data.columns: 
@@ -98,7 +100,7 @@ class MultiplicativeLMDI():
             to_drop = [s for s in structure_cols if s != '@filter|Measure|Structure']
             data = data.drop(to_drop, axis=1)
 
-        lines_to_plot = ["@filter|Measure|Effect"]  
+        lines_to_plot = ["@filter|Measure|Effect"]
 
         if '@filter|Measure|Structure' in data.columns:
             lines_to_plot.append('@filter|Measure|Structure')
@@ -109,15 +111,15 @@ class MultiplicativeLMDI():
 
         if "@filter|Measure|Intensity" in data.columns:
             lines_to_plot.append("@filter|Measure|Intensity")
-        else: 
-            for c in data.columns: 
+        else:
+            for c in data.columns:
                 if c.endswith('Intensity'):
                     lines_to_plot.append(c)
 
         if "@filter|Measure|Activity" in data.columns:
             lines_to_plot.append("@filter|Measure|Activity")
-        else: 
-            for c in data.columns: 
+        else:
+            for c in data.columns:
                 if c.endswith('Activity'):
                     lines_to_plot.append(c)
                           

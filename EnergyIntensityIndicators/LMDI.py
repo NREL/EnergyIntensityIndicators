@@ -24,7 +24,7 @@ class LMDI():
         self.primary_activity = primary_activity
 
     def sum_product(self, component_, weights, name):
-        """Calculate the sum product of a log-ratio component and 
+        """Calculate the sum product of a log-ratio component and
         log mean divisia weights, rename column in the resulting dataframe
         """
         if component_.shape[1] == 1 or weights.empty:
@@ -396,11 +396,12 @@ class CalculateLMDI(LMDI):
 
         if e_type in ['deliv', 'source', 'source_adj']:
             elec = energy_data['elec']
-            elec = elec.drop('electricity_weather_factor', axis=1, errors='ignore')  # for weather factors
+            elec = elec.drop('electricity_weather_factor',
+                             axis=1, errors='ignore')  # for weather factors
             fuels = energy_data['fuels']
             elec, fuels = df_utils.ensure_same_indices(elec, fuels)
             e_type_df = funcs[e_type](elec, fuels)
-                
+
         elif e_type in ['elec', 'fuels']:
             data = energy_data[e_type]
             e_type_df = funcs[e_type](data)
