@@ -1,4 +1,5 @@
 import sympy as sp
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -109,11 +110,16 @@ class SymbolicLMDI:
             result (Symbolic Matrix): Quotient
         """
 
-        print('numerator:\n', numerator)
+        print('numerator shape:\n', numerator.shape)
+        print('denominator shape pre power:\n', denominator.shape)
 
         denominator = sp.HadamardPower(denominator, -1).doit()
-        print('denominator:\n', denominator)
-        result = sp.HadamardProduct(numerator, denominator).doit()
+        print('denominator shape:\n', denominator.shape)
+
+        if numerator.shape == denominator.shape:
+            result = sp.HadamardProduct(denominator, numerator).doit()
+        elif numerator.shape[0] == denominator.shape[1]:
+            result = sp.MatMul(denominator, numerator).doit()
         return result
     
     @staticmethod
@@ -135,14 +141,17 @@ class SymbolicLMDI:
         TODO: Is a row of ones the best way to do this?
 
         """
-        width = matrix.shape[1]
-        length = matrix.shape[0]
-        row = sp.ones(1, width)
-        shift_term = matrix.row_insert(0, row)
-        shift_term = sp.MatPow(shift_term, -1)
-        long_term = matrix.row_insert(length, row)
+        print('matrix shape', matrix.shape)
+        n = matrix.shape[0]  # Length
+        shift = -1
+        ones_V = [sp.Matrix([0, 1])] + [1] * (n-np.abs(shift) - 1)
 
-        return shift_term, long_term
+        subdiag = sp.diag(*ones_V)
+        subdiag = subdiag.col_insert(subdiag.shape[1],
+                                     sp.zeros(subdiag.shape[0], 1))
+        sp.pprint(subdiag)
+        shift_term = sp.MatMul(subdiag, matrix).doit()
+        return shift_term, matrix
 
     def create_symbolic_term(self, numerator, denominator):
         """Create LMDI RHS term e.g. the log change of structure
@@ -174,7 +183,7 @@ class SymbolicLMDI:
         """
         weighted_term = sp.HadamardProduct(weight, term).doit()
         ones_ = sp.ones(weighted_term.shape[1], 1)
-        component = sp.MatMult(weighted_term, ones_)
+        component = sp.MatMul(weighted_term, ones_)
         return component
 
     def logarithmic_average(self, x, y):
@@ -189,13 +198,15 @@ class SymbolicLMDI:
         """
         if x != y:
 
-            negative_y = sp.HadamardProduct(y, -1)
+            negative_y = y * -1
             log_x = x.applyfunc(sp.log)
             log_y = y.applyfunc(sp.log)
-            negative_log_y = sp.HadamardProduct(log_y, -1)
+            negative_log_y = log_y * -1
 
             numerator = sp.MatAdd(x, negative_y)
+            print('numerator shape', numerator.shape)
             denominator = sp.MatAdd(log_x, negative_log_y)
+            print('denominator shape', denominator.shape)
 
             logarithmic_average = self.hadamard_division(numerator,
                                                          denominator)
@@ -206,7 +217,8 @@ class SymbolicLMDI:
         return logarithmic_average
 
     def multiplicative_weights(self, log_mean_matrix,
-                               log_mean_share, log_mean_share_total):
+                               log_mean_share, log_mean_share_total,
+                               log_mean_total):
         """Calculate log-mean divisia weights for the multiplicative model
         in symbolic terms
 
@@ -224,12 +236,14 @@ class SymbolicLMDI:
 
         elif self.lmdi_type == 'II':
             numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
+            log_mean_total = self.transform_col_vector(log_mean_total)
             weights = self.hadamard_division(numerator, log_mean_total)
         
         return weights
 
     def additive_weights(self, log_mean_matrix,
-                         log_mean_matrix_total):
+                         log_mean_matrix_total,
+                         log_mean_share):
         """Calculate log-mean divisia weights for the additive model
         in symbolic terms
 
@@ -243,13 +257,18 @@ class SymbolicLMDI:
         elif self.lmdi_type == 'II':
             numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
             weights = self.hadamard_division(numerator, log_mean_matrix_total)
+        
+        return weights
 
     @staticmethod
-    def copyCol(N,V):
-        M = sp.Matrix(V)
-        for i in range(N):
-            M = M.col_insert(1, V)
-        return M
+    def transform_col_vector(V):
+        print(V.shape)
+        ones_vector = sp.ones(1, V.shape[0])
+        print(ones_vector.shape)
+
+        V = V * ones_vector
+        V = V.T
+        return V
             
     def calc_weights(self, lhs_matrix, num_columns):
         """Calculate log-mean divisia weights
@@ -263,10 +282,19 @@ class SymbolicLMDI:
         """
         lhs_total = lhs_matrix * sp.ones(lhs_matrix.shape[1], 1)
         print('lhs_total:', lhs_total)
-        lhs_total = self.copyCol(num_columns, lhs_total)
+        lhs_total = self.transform_col_vector(lhs_total)
         print('lhs_total tiled:', lhs_total)
 
-        lhs_share = self.hadamard_division(lhs_matrix, lhs_total)
+
+
+
+        sp.pprint(lhs_total)
+        print(lhs_total.shape)
+        sp.pprint(lhs_matrix)
+        print(lhs_matrix.shape)
+        # lhs_total = sp.HadamardPower(lhs_total, -1)
+        lhs_share = sp.MatMul(lhs_total, lhs_matrix)
+        print(lhs_share.shape)
 
         shift_matrix, long_matrix = self.shift_matrices(lhs_matrix)
         shift_share, long_share = self.shift_matrices(lhs_share)
@@ -283,11 +311,13 @@ class SymbolicLMDI:
 
         if self.model == 'additive':
             weights = self.additive_weights(log_mean_matrix,
-                                            log_mean_matrix_total)
+                                            log_mean_matrix_total,
+                                            log_mean_share_total)
         elif self.model == 'multiplicative':
             weights = self.multiplicative_weights(log_mean_matrix,
                                                   log_mean_share,
-                                                  log_mean_share_total)
+                                                  log_mean_share_total,
+                                                  log_mean_matrix_total)
         return weights
 
     def LMDI_expression(self):
@@ -303,6 +333,7 @@ class SymbolicLMDI:
         TODO: 
             - describe the expression more accurately
         """
+        print('self.variables:', self.variables)
         num_years = self.end_year - self.base_year
         num_columns = self.subscripts['i']['count']
 
@@ -311,6 +342,10 @@ class SymbolicLMDI:
                                                   num_years,
                                                   num_columns)
                          for var in self.variables}
+        
+        for t, s in self.totals.items():
+            to_sum = variable_dict[s]
+            variable_dict[t] = to_sum * sp.ones(to_sum.shape[1], 1)
 
         lhs_matrix = variable_dict[self.LHS_var]
         weights = self.calc_weights(lhs_matrix, num_columns)
@@ -318,10 +353,14 @@ class SymbolicLMDI:
         symbolic_terms = []
 
         for term in self.terms:
+            print('term:', term)
             if '/' in term:
                 parts = term.split('/')
                 numerator = parts[0]
+                numerator = variable_dict[numerator]
                 denominator = parts[1]
+                denominator = variable_dict[denominator]
+
                 matrix_term = self.create_symbolic_term(numerator, denominator)
 
             else:
@@ -329,11 +368,18 @@ class SymbolicLMDI:
             
             weighted_term = self.weighted_term(weights, matrix_term)
             symbolic_terms.append(weighted_term)
+        
+        decomposition_pieces = self.decomposition.split('*')
+        not_weighted = [t for t in decomposition_pieces 
+                        if t not in self.terms]
+
+        for n in not_weighted:  # need to add capability for more complicated unweighted terms
+            symbolic_terms.append(variable_dict[n])
 
         if self.model == 'additive':
             expression = sp.MatAdd(symbolic_terms)
         elif self.model == 'multiplicative':
-            expression = sp.MatMult(symbolic_terms)
+            expression = sp.MatMul(symbolic_terms)
         
         return expression
     
@@ -381,7 +427,7 @@ class IndexedVersion:
         if x == y:
             L = x
         else:
-            L = (x - y) / (sp.log(x) - sp.log(y))
+            L = sp.exp((x - y) / (sp.log(x) - sp.log(y)))
 
         return L
 
@@ -398,15 +444,15 @@ class IndexedVersion:
 
     def weights(self, lhs, t, i, m):
         lhs_total = sp.Sum(lhs[t, i], (i, 1, m))
-        lhs_total_shift = sp.Sum(lhs[t-1, i], (i, 1, m))
+        lhs_total_shift = sp.Sum(lhs[sp.exp(t-1), i], (i, 1, m))
 
-        lhs_share = lhs[t, i] / lhs_total
-        lhs_share_shift = lhs[t-1, i] / lhs_total_shift
+        lhs_share = sp.exp(lhs[t, i] / lhs_total)
+        lhs_share_shift = sp.exp(lhs[sp.exp(t-1), i] / lhs_total_shift)
         
         log_average_total = self.logarithmic_average(lhs_total,
                                                      lhs_total_shift)
         sp.pprint(log_average_total)
-        log_average = self.logarithmic_average(lhs[t, i], lhs[t-1, i])
+        log_average = self.logarithmic_average(lhs[t, i], lhs[sp.exp(t-1), i])
         sp.pprint(log_average)
 
         log_average_shares = self.logarithmic_average(lhs_share,
@@ -417,59 +463,142 @@ class IndexedVersion:
 
         if self.model == 'multiplicative':
             if self.lmdi_type == 'I':
-                weights = log_average_total / log_average_total
+                weights = sp.exp(log_average_total / log_average_total)
             elif self.lmdi_type == 'II':
-                weights = log_average_shares / total_log_average_shares
+                weights = sp.exp(log_average_shares / total_log_average_shares)
 
         elif self.model == 'additive':
             if self.lmdi_type == 'I':
                 weights = log_average
             elif self.lmdi_type == 'II':
-                weights = (log_average_shares * log_average_total) / \
-                          total_log_average_shares
+                weights = sp.exp((log_average_shares * log_average_total) /
+                                 total_log_average_shares)
 
-        return weights
+        return weights.doit()
+
+    @staticmethod
+    def check_eval_str(s):
+        """From NREL rev.rev.utilities.utilities (properly import/cite?)
+        
+        Check an eval() string for questionable code.
+        Parameters
+        ----------
+        s : str
+            String to be sent to eval(). This is most likely a math equation to be
+            evaluated. It will be checked for questionable code like imports and
+            dunder statements.
+        """
+        bad_strings = ('import', 'os.', 'sys.', '.__', '__.')
+        for bad_s in bad_strings:
+            if bad_s in s:
+                raise ValueError('Will not eval() string which contains "{}": \
+                                 {}'.format(bad_s, s))
+
+    def process_var(self, subscripts, vars_, var):
+        subs_ = [subscripts[i] for i in self.subscripts.keys()
+                 if f'_{i}' in var]
+
+        if var in self.totals.keys():
+            total_subs = [i for i in self.subscripts.keys()
+                          if f'_{i}' in var]
+            other_subs = [i for i in self.subscripts.keys()
+                          if f'_{i}' in var]
+            diff = [i for i in total_subs if i
+                    not in other_subs]
+            for d in diff:
+                m = self.subscripts[d]['count']
+                var = sp.Sum(var, (d, 1, m))
+
+        var = vars_[var[0]]
+        return var
 
     def general_expr(self):
 
         # for i in self.subscripts.keys():
         #     i = sp.symbols(str(i), cls=sp.Idx)
         #     print('i', i)
+        self.check_eval_str(self.decomposition)
+        for t in self.terms:
+            self.check_eval_str(t)
 
         vars_ = {str(v): sp.IndexedBase(str(v)) for v in self.variables}
         print(vars_)
         lhs = vars_[self.LHS_var]
         print(lhs)
-        for i in self.subscripts.keys():
-            i = sp.symbols(str(i), cls=sp.Idx)
-            m = self.subscripts[str(i)]['count']
-            print(i, m)
-        
-        t = sp.symbols('t', cls=sp.Idx)
+        subscripts = {i: sp.symbols(str(i), cls=sp.Idx,
+                      range=(1, self.subscripts[str(i)]['count'])) for i in
+                      self.subscripts.keys()}
 
-        weights = self.weights(lhs, t, i, m)
+        counts = {i: self.subscripts[str(i)]['count'] for i in
+                  self.subscripts.keys()}
+
+        time = sp.symbols('t', cls=sp.Idx, range=(self.base_year,
+                                                  self.end_year))
+
+        weights = self.weights(lhs, time, subscripts['i'], counts['i'])
         print('weights:\n', weights)
+
+        effect = 0
+        results = dict()
 
         for t in self.terms:
             print('t:', t)
             if '/' in t:
                 parts = t.split('/')
                 numerator = parts[0]
-        #             for i in self.subscripts.keys():
-                        
                 print('numerator:', numerator)
-                denominator = parts[1]
+
+                subs_ = [subscripts[i] for i in self.subscripts.keys()
+                         if f'_{i}' in numerator]
+                print(subs_)
+                print('numerator:', numerator)
+
+                numerator = vars_[numerator[0]]
+
+                print('numerator:', numerator)
+                if len(subs_) > 0:
+                    numerator = numerator[time, subs_[0]]
+                else:
+                    numerator = numerator[time]
+
+                print('numerator:', numerator)
+                print('numerator shape:', numerator.shape)
+
+                base_denominator = parts[1]
+                subs_d = [subscripts[i] for i in self.subscripts.keys()
+                          if f'_{i}' in base_denominator]
+                print(subs_d)
+                denominator = vars_[base_denominator[0]]
+                if len(subs_d) > 0:
+                    denominator = denominator[time, subs_d[0]]
+                else:
+                    denominator = denominator[time]
+
                 print('denominator:', denominator)
-                f = numerator / denominator
-                # f = vars_[numerator] / vars_[denominator]
+                print('denominator shape:', denominator.shape)
+
+                f = sp.exp(numerator / denominator)
             else:
-                # f = vars_[t]
-                f = t
+                f = vars_[t]
 
             print('f', f)
+            component = sp.exp(f * weights)
+            # sp.pprint(component)
 
-        #     # effect = t * weights
-        #     result = effect.subs()
+            results[t] = component
+
+            if self.model == 'additive':
+                effect += component
+            elif self.model == 'multiplicative':
+                component = sp.functions.elementary.exponential.exp(component)
+                sp.pprint(component)
+
+                if effect == 0:
+                    effect += 1
+                effect *= component
+        # sp.pprint(sp.exp(effect))
+        results['effect'] = sp.exp(effect)
+        return results
 
     def expr(self):
         
@@ -504,16 +633,62 @@ class IndexedVersion:
             print('k:', k)
             sp.pprint(results[k])
         return results
+    
+    def eval_expression(self):
+        """Substitute actual data into the symbolic
+        LMDI expression to calculate results
+
+        Returns:
+            final_result (?): LMDI results ?
+        
+        TODO: 
+            Should return pandas dataframe containing
+            the relative contributions of each term to the
+            change in the LHS variable, with appropriate column
+            labels and years as the index
+        """        
+        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv')
+        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv')
+        data = {'A': activity, 'E': energy}
+
+        expression_dict = self.general_expr()
+
+        df = pd.DataFrame(index=activity.index,
+                          columns=list(expression_dict.keys()))
+        for name, expr in expression_dict.items():
+
+            symbs_ = expr.free_symbols
+            print('symbols:\n', symbs_)
+            symbs_2 = expr.atoms(sp.IndexedBase)
+            print('symbsols_2:\n', symbs_2)
+            symbs_3 = expr.atoms(sp.Idx)
+            print('symbsols_3:\n', symbs_3)
+            f = sp.lambdify(tuple(list(symbs_2) + list(symbs_3)), expr, "numpy")
+            print('tuple(symbs_2, symbs_3):\n',
+                  tuple(list(symbs_2) + list(symbs_3)))
+            
+            # df[name] = f(energy, activity, t=1995)
+
+            # print('answer:\n', answer)
+            for year in df.index:
+                df.at[year, name] = f(**{str(a): data[str(a)].ilo
+                                         for a in expr.atoms()
+                                         if isinstance(a, sp.Symbol)
+                                         })
+
 
     def main(self, fname):
         self.read_yaml(fname)
         # print("dir(IndexedVersion):\n", dir(IndexedVersion))
         self.expr()
-        self.general_expr()
+        # results = self.general_expr()
+        # print('results:\n', results)
+        # self.eval_expression()
 
 if __name__ == '__main__':
     directory = 'C:/Users/irabidea/Desktop/yamls/'
-    # symb = SymbolicLMDI(directory)
-    # symb.read_yaml(fname='test1')
-    # expression = symb.LMDI_expression()
-    c = IndexedVersion(directory=directory).main(fname='test1')
+    symb = SymbolicLMDI(directory)
+    symb.read_yaml(fname='test1')
+    expression = symb.LMDI_expression()
+    # c = IndexedVersion(directory=directory).main(fname='test1')
+
