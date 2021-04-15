@@ -93,8 +93,7 @@ class SymbolicLMDI:
         variable = sp.MatrixSymbol(str(variable), num_years, num_columns)
         return variable
 
-    @staticmethod
-    def hadamard_division(numerator, denominator):
+    def hadamard_division(self, numerator, denominator):
         """Perform element-wise division of two
         symbolic matrices
         
@@ -113,13 +112,21 @@ class SymbolicLMDI:
         print('numerator shape:\n', numerator.shape)
         print('denominator shape pre power:\n', denominator.shape)
 
-        denominator = sp.HadamardPower(denominator, -1).doit()
+        denominator = sp.HadamardPower(denominator, -1).doit().as_explicit()
         print('denominator shape:\n', denominator.shape)
 
         if numerator.shape == denominator.shape:
-            result = sp.HadamardProduct(denominator, numerator).doit()
+            result = sp.HadamardPower(denominator, 
+                                      numerator).doit().as_explicit()
         elif numerator.shape[0] == denominator.shape[1]:
-            result = sp.MatMul(denominator, numerator).doit()
+            result = denominator * numerator
+        elif numerator.shape[1] > denominator.shape[1] \
+                and denominator.shape[1] == 1:
+            denominator = self.transform_col_vector(denominator)
+            print('denominator shape after transform:\n', denominator.shape)
+
+            result = denominator * numerator
+
         return result
     
     @staticmethod
@@ -150,7 +157,7 @@ class SymbolicLMDI:
         subdiag = subdiag.col_insert(subdiag.shape[1],
                                      sp.zeros(subdiag.shape[0], 1))
         sp.pprint(subdiag)
-        shift_term = sp.MatMul(subdiag, matrix).doit()
+        shift_term = subdiag * matrix
         return shift_term, matrix
 
     def create_symbolic_term(self, numerator, denominator):
@@ -168,7 +175,7 @@ class SymbolicLMDI:
         shift_term, long_term = self.shift_matrices(base_term)
 
         # find change (divide every row by previous row)
-        term = sp.HadamardProduct(long_term, shift_term)
+        term = sp.matrix_multiply_elementwise(long_term, shift_term)
         term = term.applyfunc(sp.log)
         return term
 
@@ -181,9 +188,9 @@ class SymbolicLMDI:
             term (MatrixSymbol): The effect of the component (RHS) variable
                                  on the change in the LHS variable
         """
-        weighted_term = sp.HadamardProduct(weight, term).doit()
+        weighted_term = sp.matrix_multiply_elementwise(weight, term).doit()
         ones_ = sp.ones(weighted_term.shape[1], 1)
-        component = sp.MatMul(weighted_term, ones_)
+        component = weighted_term * ones_
         return component
 
     def logarithmic_average(self, x, y):
@@ -235,7 +242,7 @@ class SymbolicLMDI:
             weights = log_mean_matrix
 
         elif self.lmdi_type == 'II':
-            numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
+            numerator = sp.matrix_multiply_elementwise(log_mean_share, log_mean_matrix)
             log_mean_total = self.transform_col_vector(log_mean_total)
             weights = self.hadamard_division(numerator, log_mean_total)
         
@@ -255,7 +262,7 @@ class SymbolicLMDI:
         if self.lmdi_type == 'I':
             weights = log_mean_matrix
         elif self.lmdi_type == 'II':
-            numerator = sp.HadamardProduct(log_mean_share, log_mean_matrix)
+            numerator = sp.matrix_multiply_elementwise(log_mean_share, log_mean_matrix)
             weights = self.hadamard_division(numerator, log_mean_matrix_total)
         
         return weights
@@ -285,15 +292,12 @@ class SymbolicLMDI:
         lhs_total = self.transform_col_vector(lhs_total)
         print('lhs_total tiled:', lhs_total)
 
-
-
-
         sp.pprint(lhs_total)
         print(lhs_total.shape)
         sp.pprint(lhs_matrix)
         print(lhs_matrix.shape)
         # lhs_total = sp.HadamardPower(lhs_total, -1)
-        lhs_share = sp.MatMul(lhs_total, lhs_matrix)
+        lhs_share = lhs_total * lhs_matrix
         print(lhs_share.shape)
 
         shift_matrix, long_matrix = self.shift_matrices(lhs_matrix)
@@ -337,19 +341,39 @@ class SymbolicLMDI:
         num_years = self.end_year - self.base_year
         num_columns = self.subscripts['i']['count']
 
-        variable_dict = {var:
-                         self.create_symbolic_var(var,
-                                                  num_years,
-                                                  num_columns)
-                         for var in self.variables}
+        # variable_dict = {var:
+        #                  self.create_symbolic_var(var,
+        #                                           num_years,
+        #                                           num_columns)
+        #                  for var in self.variables}
         
+        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_activity.csv', index_col=0)
+        activity = activity.loc[self.base_year:self.end_year, :]
+        activity = sp.Matrix(activity.values)
+        # sp.pprint(activity)
+        # print(type(activity))
+        # exit()
+        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_energy.csv', index_col=0)
+        energy = energy.loc[self.base_year:self.end_year, :]
+        energy = sp.Matrix(energy.values)
+
+        variable_dict = {'A_i': activity, 'E_i': energy}
+        print('input data A:\n', variable_dict['A_i'])
         for t, s in self.totals.items():
             to_sum = variable_dict[s]
             variable_dict[t] = to_sum * sp.ones(to_sum.shape[1], 1)
 
         lhs_matrix = variable_dict[self.LHS_var]
-        weights = self.calc_weights(lhs_matrix, num_columns)
+        # lhs_matrix = self.eval_expression(lhs_matrix)
+        print('lhs_matrix done')
+        # lhs_matrix = lhs_matrix.as_explicit()
+        print('lhs_matrix term literal')
+        sp.pprint(lhs_matrix)
+        print('type(lhs_matrix):', type(lhs_matrix))
 
+        weights = self.calc_weights(lhs_matrix, num_columns)
+        sp.pprint(weights)
+        print('type(weights):', type(weights))
         symbolic_terms = []
 
         for term in self.terms:
@@ -366,24 +390,37 @@ class SymbolicLMDI:
             else:
                 matrix_term = variable_dict[term]
             
+            # matrix_term = self.eval_expression(matrix_term)
+            print('matrix_term done')
+            # matrix_term = matrix_term.as_explicit()
+            print('matrix term literal')
             weighted_term = self.weighted_term(weights, matrix_term)
             symbolic_terms.append(weighted_term)
         
         decomposition_pieces = self.decomposition.split('*')
-        not_weighted = [t for t in decomposition_pieces 
+        not_weighted = [t for t in decomposition_pieces
                         if t not in self.terms]
 
         for n in not_weighted:  # need to add capability for more complicated unweighted terms
             symbolic_terms.append(variable_dict[n])
 
+        # symbolic_terms = [self.eval_expression(s) for s in symbolic_terms]
+
+        # print('done')
+        # symbolic_terms = [s.as_explicit() for s in symbolic_terms]
+        # print('well done')
+        print("symbolic_terms:\n", symbolic_terms)
         if self.model == 'additive':
-            expression = sp.MatAdd(symbolic_terms)
+            expression = sp.MatAdd(*symbolic_terms).doit().as_explicit()
         elif self.model == 'multiplicative':
-            expression = sp.MatMul(symbolic_terms)
-        
+            expression = sp.MatMul(*symbolic_terms).doit().as_explicit()
+        print('expression done')
+        # expression = expression.as_explicit()
+        print('expression literal')
+        sp.pprint(expression)
         return expression
     
-    def eval_expression(self):
+    def eval_expression(self, expression):
         """Substitute actual data into the symbolic
         LMDI expression to calculate results
 
@@ -396,10 +433,23 @@ class SymbolicLMDI:
             change in the LHS variable, with appropriate column
             labels and years as the index
         """        
-        expression = self.LMDI_expression()
+        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_activity.csv', index_col=0)
+        activity = activity.loc[self.base_year:self.end_year, :]
+        activity = sp.Matrix(activity.values)
+        # sp.pprint(activity)
+        # print(type(activity))
+        # exit()
+        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_energy.csv', index_col=0)
+        energy = energy.loc[self.base_year:self.end_year, :]
+        energy = sp.Matrix(energy.values)
+
+        input_data = {'A_i': activity, 'E_i': energy}
+        print('input data A:\n', input_data['A_i'])
+        # expression = self.LMDI_expression()
         input_dict = {sp.symbols(v):
-                      self.input_data[v] for v in self.variables}
-        final_result = expression.subs(input_dict)
+                      input_data[v] for v in self.variables}
+        final_result = expression.subs(input_dict)   #.as_explicit()
+        sp.pprint(final_result)
         return final_result
 
 
@@ -690,5 +740,6 @@ if __name__ == '__main__':
     symb = SymbolicLMDI(directory)
     symb.read_yaml(fname='test1')
     expression = symb.LMDI_expression()
+    # subs_ = symb.eval_expression()
     # c = IndexedVersion(directory=directory).main(fname='test1')
 
