@@ -18,7 +18,7 @@ from EnergyIntensityIndicators.utilites.standard_interpolation \
      import standard_interpolation
 
 
-class ManufacturingSectors:
+class Manufacturing:
 
     def __init__(self):
         self.eia = GetEIAData('Industry')
@@ -419,7 +419,6 @@ class ManufacturingSectors:
         print('asm_price_data:\n', asm_price_data)
 
         asm_price_data['NAICS'] = asm_price_data['NAICS'].astype(int)
-
         return asm_price_data
 
     def calc_quantity_shares(self, region='Total United States'):
@@ -442,7 +441,18 @@ class ManufacturingSectors:
         mecs42_df = mecs42_df.set_index(['region', 'NAICS', 'Subsector and Industry', 'Year'])
         quantity_shares = df_utils.calculate_shares(mecs42_df,
                                                     total_label=['Total'])
-        quantity_shares = quantity_shares.reset_index()                         
+        quantity_shares = quantity_shares.reset_index()
+         
+        rename_dict = {'Electricity(b)': 'Electricity',
+                       'Residual Fuel Oil': 'Residual',
+                       'Distillate Fuel Oil(c)': 'Distillate',
+                       'Natural Gas(d)': 'Gas',
+                       'HGL (excluding natural gasoline)(e)': 'HGL',
+                       'Coke and Breeze': 'Coke',
+                       'Other(f)': 'Other'}
+
+        quantity_shares = quantity_shares.rename(columns=rename_dict)
+
         return quantity_shares
 
     @staticmethod
@@ -480,41 +490,51 @@ class ManufacturingSectors:
         mecs_years_prices_and_interpolations = self.manufacturing_prices()
 
         mecs_data_qty_shares = self.calc_quantity_shares()
-        print('mecs_data_qty_shares:\n', mecs_data_qty_shares)
-        print('mecs_data_qty_shares.columns:\n', mecs_data_qty_shares.columns)
-
-        mecs_cols = ['Electricity(b)', 'Residual Fuel Oil',
-                     'Distillate Fuel Oil(c)', 'Natural Gas(d)',
-                     'HGL (excluding natural gasoline)(e)', 'Coal',
-                     'Coke and Breeze', 'Other(f)']
-        print('mecs_cols:\n', mecs_cols)
+        fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual',
+                      'LPG', 'Coke', 'Other', 'HGL', 'Electricity']               
 
         mecs_data_qty_shares = mecs_data_qty_shares.reset_index()
         fuel_quanity_shares = []
         # interpolate mecs_data_qty_shares data (has 3 dimensions: fuel type, year, naics)
-        for fuel_type in mecs_cols:
-            print('fuel_type:\n', fuel_type)
-            fuel_df = mecs_data_qty_shares[['Year', 'NAICS', fuel_type]]
-            print('fuel_df:\n', fuel_df)
-            for n in fuel_df['NAICS'].unique():
-                fuel_naics = fuel_df[fuel_df['NAICS'] == n]
-                print('fuel_naics:\n', fuel_naics)
-                fuel_naics = self.interpolate_mecs(fuel_naics, fuel_type, 
-                                                reindex=mecs_years_prices_and_interpolations['Year'].unique())
-                fuel_quanity_shares.append(fuel_naics)
-
+        for fuel_type in fuel_types:
+            if fuel_type in mecs_data_qty_shares.columns:
+                fuel_type_data = []
+                fuel_df = mecs_data_qty_shares[['Year', 'NAICS', fuel_type]]
+                for n in fuel_df['NAICS'].unique():
+                    fuel_naics = fuel_df[fuel_df['NAICS'] == n]
+                    fuel_naics = self.interpolate_mecs(fuel_naics, fuel_type, 
+                                                    reindex=mecs_years_prices_and_interpolations['Year'].unique())
+                    fuel_type_data.append(fuel_naics)
+                
+            df = pd.concat(fuel_type_data, axis=0)
+            fuel_quanity_shares.append(df)
         fuel_quanity_shares = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
                                      on=['Year', 'NAICS']), fuel_quanity_shares)
-        fuel_quanity_shares = fuel_quanity_shares.set_index('Year')
+        fuel_quanity_shares = fuel_quanity_shares.set_index(['Year', 'NAICS'])
 
-        mecs_years_prices_and_interpolations = mecs_years_prices_and_interpolations.set_index('Year')
+        # mecs_years_prices_and_interpolations = mecs_years_prices_and_interpolations.set_index('Year')
+        mecs_prices = []
+        for year in mecs_years_prices_and_interpolations['Year'].unique():
+            prices_df = mecs_years_prices_and_interpolations[mecs_years_prices_and_interpolations['Year'] == year]
+            prices_df = prices_df.pivot(index='NAICS',
+                                        columns='fuel_type',
+                                        values='Price')
+            prices_df['Year'] = year                            
+            mecs_prices.append(prices_df)
 
-        # composite_price = mecs_years_prices_and_interpolations.multiply(fuel_quanity_shares, axis='index').sum(axis=1)
-        composite_price = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/current_composite_price.csv')
-        composite_price['NAICS'] = composite_price['NAICS'].astype(int)
-        composite_price['Year'] = composite_price['Year'].astype(int)
-        print('')
-        return composite_price
+        mecs_prices_df = pd.concat(mecs_prices, axis=0)
+        mecs_prices_df = mecs_prices_df.reset_index()
+        mecs_prices_df = mecs_prices_df.set_index(['Year', 'NAICS'])
+
+
+        mecs_prices_df['composite_price_calc'] = mecs_prices_df.multiply(fuel_quanity_shares,
+                                                       fill_value=1,
+                                                       axis=1).sum(skipna=True,
+                                                                   axis=1)
+        composite_price_calc = mecs_prices_df[['composite_price_calc']]
+
+
+        return composite_price_calc.reset_index()
     
     def expenditure_ratios_revised(self, asm_data):
         """[summary]
@@ -681,6 +701,7 @@ class ManufacturingSectors:
 
         quantities_1998_forward = self.quantities_1998_forward(NAICS3D)
         quantities_1998_forward = quantities_1998_forward.replace({'NAICS': {331: 328, 332: 329}})
+        print('quantities_1998_forward:\n', quantities_1998_forward)
 
         quantities_1998_forward = quantities_1998_forward.rename(columns={c: 'composite_price' for c in quantities_1998_forward.columns if 'rice' in c})
 
@@ -899,5 +920,5 @@ class ManufacturingSectors:
         return data_dict   
 
 if __name__ == '__main__':
-    asm = ManufacturingSectors().manufacturing()
+    asm = Manufacturing().manufacturing()
     print('asm:\n', asm)
