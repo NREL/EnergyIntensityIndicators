@@ -159,6 +159,8 @@ class ManufacturingSectors:
                     
                     elif t == 'table_4_2':
                         mecs_4_2 = self.clean_industrial_data(df, sic=sic)
+                        mecs_4_2['Year'] = year
+
                         # print('table_4_2:\n', mecs_4_2)
 
                         if sic:
@@ -190,7 +192,6 @@ class ManufacturingSectors:
         print('all_3_1:\n', all_3_1)
 
         print('all_3_2:\n', all_3_2)
-        exit()
         all_3_2 = all_3_2[['Year', 'region', 'NAICS',
                            'Subsector and Industry',
                            'Other(f)']]
@@ -216,14 +217,13 @@ class ManufacturingSectors:
         sic_naics_3_2 = self.naics_to_sic(sic_3_2, x_walk)
         sic_naics_3_5 = self.naics_to_sic(sic_3_5, x_walk)
         sic_naics_4_2 = self.naics_to_sic(sic_4_2, x_walk)
-        exit()
         print('industrial nan:\n', industrial_btu[pd.isna(industrial_btu['Waste Gas'])])
         mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2,
                           '3_5': all_3_5, '4_2': all_4_2},
                 'SIC': {'3_1': sic_naics_3_1, '3_2': sic_naics_3_2,
                         '3_5': sic_naics_3_5, '4_2': sic_naics_4_2}}
         return mecs, industrial_btu
-    
+
     @staticmethod
     def clean_industrial_data(raw_data, table_3_1=False, sic=False):
         """[summary]
@@ -398,13 +398,25 @@ class ManufacturingSectors:
 
         asm_price_data = []
         for f in fuel_types: 
-            predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year,
-                                                     fuel_type=f, naics=naics,
-                                                     asm_col_map=asm_cols)
+            try:
+                predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year,
+                                                        fuel_type=f, naics=naics,
+                                                        asm_col_map=asm_cols)
+                predicted_fuel_price['fuel_type'] = f
+                predicted_fuel_price = predicted_fuel_price.reset_index()                      
+            except Exception as e:
+                print(f'fuel type {f} failed with error {e}')
+                continue
             asm_price_data.append(predicted_fuel_price)
 
-        asm_price_data = pd.concat(asm_price_data, axis=1)
+        asm_price_data = pd.concat(asm_price_data, axis=0)
+        print('asm_price_data:\n', asm_price_data)
         asm_price_data['Year'] = asm_price_data['Year'].astype(int)
+        asm_price_data = pd.melt(asm_price_data, id_vars=['Year', 'fuel_type'],
+                                 value_vars=naics,
+                                 var_name='NAICS', value_name='Price')
+        print('asm_price_data:\n', asm_price_data)
+
         asm_price_data['NAICS'] = asm_price_data['NAICS'].astype(int)
 
         return asm_price_data
@@ -421,9 +433,12 @@ class ManufacturingSectors:
 
         mecs_data, industrial_btu = self.mecs_data_by_year()
         mecs42_df = mecs_data['NAICS']['4_2']
-        
+        print('mecs42_df:\n', mecs42_df)
+        print('mecs42_df cols', mecs42_df.columns)
+        mecs42_df = mecs42_df.set_index(['region', 'NAICS', 'Subsector and Industry', 'Year'])
         quantity_shares = df_utils.calculate_shares(mecs42_df,
-                                                    total_label=['  Calc. Total'])
+                                                    total_label=['Total'])
+        quantity_shares = quantity_shares.reset_index()                         
         return quantity_shares
 
     @staticmethod

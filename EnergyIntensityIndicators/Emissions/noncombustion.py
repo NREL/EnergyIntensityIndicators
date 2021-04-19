@@ -53,11 +53,13 @@ class NonCombustion:
                             'Petrochemical Production': 
                                 {'source': 'EPA', 'table': 'Table 4-48'},
                             'Phosphoric Acid Production': 
-                                {'source': 'EPA', 'table': ['Table 4-57', 'Table 4-58']},
+                                {'source': 'EPA', 'table': ['Table 4-57',
+                                                            'Table 4-58']},
                             'Soda Ash Production': 
                                 {'source': 'EPA', 'table': 'Table 4-44'},
                             'Stationary Combustion': 
-                                {'source': 'EPA', 'table': ['A-89', 'A-90']},
+                                {'source': 'EPA', 'table': ['Table A-89',
+                                                            'Table A-90']},
                             'Titanium Dioxide Production': 
                                 {'source': 'EPA', 'table': 'Table 4-41'},
                             'Urea Consumption for NonAgricultural Purposes': 
@@ -158,55 +160,175 @@ class NonCombustion:
         all_names = pd.concat(names)
         all_names.to_csv('C:/Users/irabidea/Desktop/emissions_data/all_names.csv', index=False)
 
-    def noncombustion_activity_level1(self):
+    def noncombustion_activity_epa(self, table_name):
         directory = 'C:/Users/irabidea/Desktop/emissions_data/'
-        data_dict = dict()
-        for c, info in self.categories_level1.items():
-            if info['source'] == 'EPA':
-                try:
-                    table_name = info['table']
-                    if table_name.startswith('A-'):
-                        f_path = directory + 'Annex/'
-                    elif table_name.startswith('Table 4-'):
-                        f_path = directory + 'Chapter Text/Ch 4 - Industrial Processes/'
-                    elif table_name.startswith('Table 5-'):
-                        f_path = directory + 'Chapter Text/Ch 5 - Agriculture/'
 
-                    table = pd.read_csv(f'{f_path}{table_name}.csv'
-                                        ).dropna(axis=1, how='all'
-                                        ).dropna(axis=0, how='all')
-                    if 'Year' not in table.columns:
-                        table.columns = table.iloc[0]
-                        table = table.drop(table.index[0])
-                        if 'Year' not in table.columns:
-                            if 'Source' in table.columns:
-                                try:
-                                    table = table.set_index('Source')
-                                    table = table.transpose()
-                                    table.index = table.index.astype('int')
-                                    table.index.name = 'Year'
-                                    table = table.dropna(how='all', axis=1)
-                                except Exception as e:
-                                    print(f'year col {table_name} failed with error', e)
-                                # if 'Year' not in table.columns:
-                                #     print('table missing year:\n', table)
-                                #     exit()
-                                #     # raise KeyError('Table missing year columns')
-                        else:
-                            table = table.set_index('Year')
-                            table.columns.name = None
+        try:
+            if table_name.startswith('Table A-'):
+                f_path = directory + 'Annex/'
+            elif table_name.startswith('Table 1-'):
+                f_path = directory + 'Chapter Text/Ch 1 - Intro/'
+            elif table_name.startswith('Table 2-'):
+                f_path = directory + 'Chapter Text/Ch 2 - Trends/'
+            elif table_name.startswith('Table 3-'):
+                f_path = directory + 'Chapter Text/Ch 3 - Energy/'
+            elif table_name.startswith('Table 4-'):
+                f_path = directory + 'Chapter Text/Ch 4 - Industrial Processes/'
+            elif table_name.startswith('Table 5-'):
+                f_path = directory + 'Chapter Text/Ch 5 - Agriculture/'
+            elif table_name.startswith('Table 6-'):
+                f_path = directory + 'Chapter Text/Ch 6 - LULUCF/'
+            elif table_name.startswith('Table 7-'):
+                f_path = directory + 'Chapter Text/Ch 7 - Waste/'
+
+            table = pd.read_csv(f'{f_path}{table_name}.csv',
+                                encoding='latin1',
+                                ).dropna(axis=1, how='all'
+                                ).dropna(axis=0, how='all')
+            if 'Year' not in table.columns:
+                table.columns = table.iloc[0]
+                table = table.drop(table.index[0])
+                if 'Year' not in table.columns:
+                    if 'Source' in table.columns:
+                        try:
+                            table = table.set_index('Source')
+                            table = table.transpose()
+                            table.index = table.index.astype('int')
                             table.index.name = 'Year'
+                            table = table.dropna(how='all', axis=1)
+                        except Exception as e:
+                            print(f'year col {table_name} failed with error {e}')
 
-                except Exception as e:
-                    print(f'Table {table_name} failed with error', e)
-                    continue
+                else:
+                    table = table.set_index('Year')
+                    table.columns.name = None
+                    table.index.name = 'Year'
 
-            data_dict[c] = table
+            return table
 
-        print('data_dict:\n', data_dict)
+        except Exception as e:
+            print(f'Table {table_name} failed with error', e)
+            return None
 
     def noncombustion_activity_level1(self):
-        self.categories_level2
+        categories = self.categories_level1
+
+        data_dict = dict()
+        for c, info in categories.items():
+            if info['source'] == 'EPA':
+                table_name = info['table']
+                if isinstance(table_name, str):
+                    data = self.noncombustion_activity_epa(table_name)
+                elif isinstance(table_name, list):
+                    data = [self.noncombustion_activity_epa(t)
+                            for t in table_name]
+            data_dict[c] = data
+
+        return data_dict
+
+    def noncombustion_activity_level2(self):
+        categories = self.categories_level2
+        print('categories:', categories)
+        data_dict = dict()
+        for c, info in categories.items():
+            print('category:', c)
+            if info['source'] == 'EPA':
+                tables = info['table']
+                if isinstance(tables, dict):
+                    data = dict()
+                    for s, table_names in tables.items():
+                        print('subcategory:', s)
+                        print('table_names:', table_names)
+                        if isinstance(table_names, list):
+                            tables_list = [self.noncombustion_activity_epa(t)
+                                           for t in table_names]
+                            print('tables_list:\n', tables_list)
+                            data[s] = tables_list
+                elif isinstance(tables, list):
+                    print('tables:', tables)
+                    data = [self.noncombustion_activity_epa(t)
+                            for t in tables]
+                    print('data:\n', data)
+
+            data_dict[c] = data
+            print(data_dict)
+
+        return data_dict
+
+    def agricultural_soil_management(self):
+        """
+        - Separate tables ( in A 3.12) into Organic vs
+          Mineral Soil (these are top level categories)
+        - Test that sum of data from each sub-category match
+          the total hectares given in A-182
+        - Aggregate emissions from each category into
+          Organic vs Mineral
+        - Check overall emissions sum match values published
+          under that emissions source category
+        """
+        # activity = self.noncombustion_activity_epa('Table A-167')
+        # print('activity:\n', activity)
+        # emissions = self.noncombustion_activity_epa('Table A-178')
+        # print('emissions:\n', emissions)
+        # return {'activity': activity, 'emissions': emissions}
+        return None
+
+    def enteric_fermentation(self):
+        """
+        - Table A-167: Animals by Type (for Cattle only)
+        - Table A-158: Calculated Annual National Emission
+          Factors for Cattle by Animal Type
+        - Table A-163: Emissions by animal type (cattle only)
+        """
+        activity = self.noncombustion_activity_epa('Table A-167')
+        print('activity:\n', activity)
+        activity2 = self.noncombustion_activity_epa('Table A-158')
+        print('activity2:\n', activity2)
+
+        emissions = self.noncombustion_activity_epa('Table A-163')
+        print('emissions:\n', emissions)
+        return {'activity': activity, 'emissions': emissions}
+
+    def landfills(self):
+        """
+        - Table A-221: Total MSW Landfilled + Total Industrial
+          Waste Landfilled
+        - (if time-- decompose)
+        """
+        activity = self.noncombustion_activity_epa('Table A-221')
+        print('activity:\n', activity)
+        # emissions = self.noncombustion_activity_epa('Table A-178')
+        # print('emissions:\n', emissions)
+        # return {'activity': activity, 'emissions': emissions}
+        return activity
+
+    def manure_management(self):
+        """
+        - Table A-167: Animals by Type (all)
+        - Table A-178, A-179: Emissions by animal type (all) 
+          for Methane and Nitrous Oxide
+        """
+        activity = self.noncombustion_activity_epa('Table A-167')
+        print('activity:\n', activity)
+        emissions = self.noncombustion_activity_epa('Table A-178')
+        emissions = emissions.set_index('Cattle Type ').transpose()
+        emissions.index.name = 'Year'
+        print('emissions:\n', emissions)
+        return {'activity': activity, 'emissions': emissions}
+
+    def noncombustion_activity_level_3(self):
+        """[summary]
+        """        
+        # agricultural_soil_management = self.agricultural_soil_management()
+        enteric_fermentation = self.enteric_fermentation()
+        # landfills = self.landfills()
+        manure_management = self.manure_management()
+        pass
+
+    def main(self):
+        # activity_level1 = self.noncombustion_activity_level1()
+        # activity_level2 = self.noncombustion_activity_level2()
+        activity_level3 = self.noncombustion_activity_level_3()
 
 
 if __name__ == '__main__':
@@ -214,4 +336,4 @@ if __name__ == '__main__':
     # chapter_0 = com.chapter_0
     # com.unpack_noncombustion_data(chapter_0)
     # com.walk_folders('C:/Users/irabidea/Desktop/emissions_data/Chapter Text/')
-    com.noncombustion_activity()
+    com.main()
