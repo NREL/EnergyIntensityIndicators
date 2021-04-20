@@ -15,6 +15,7 @@ class NonCombustion:
         self.annex = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
         self.chapter_0 = 'https://www.epa.gov/sites/production/files/2020-08/chapter_0.zip'
         self.archive = "https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip"
+        self.years = list(range(1990, 2018 + 1))
         self.categories_level1 = {
                             'Liming': 
                                 {'source': 'EPA', 'table': 'Table 5-22'},
@@ -188,21 +189,43 @@ class NonCombustion:
             if 'Year' not in table.columns:
                 table.columns = table.iloc[0]
                 table = table.drop(table.index[0])
+                
                 if 'Year' not in table.columns:
-                    if 'Source' in table.columns:
-                        try:
-                            table = table.set_index('Source')
-                            table = table.transpose()
-                            table.index = table.index.astype('int')
-                            table.index.name = 'Year'
-                            table = table.dropna(how='all', axis=1)
-                        except Exception as e:
-                            print(f'year col {table_name} failed with error {e}')
+                    years = [str(y) for y in self.years]
+                    year_cols = [c for c in table.columns
+                                 if c in years]
+                    if len(year_cols) == 0:
+                        years = self.years
+                    not_year_cols = [c for c in table.columns
+                                     if c not in years]
+
+                    if len(not_year_cols) == 1:
+                        table = table.set_index(not_year_cols[0])
+                    elif len(not_year_cols) > 1:
+                        table = table.set_index(not_year_cols)
+                    try:
+                        table = table.transpose()
+                        table.index = table.index.astype('int')
+                        table.index.name = 'Year'
+                        table = table.dropna(how='all', axis=1)
+                    except Exception as e:
+                        print(f'year col {table_name} failed with error {e}')
 
                 else:
                     table = table.set_index('Year')
                     table.columns.name = None
                     table.index.name = 'Year'
+            if table.empty:
+                t = pd.read_csv(f'{f_path}{table_name}.csv',
+                                encoding='latin1',
+                                ).dropna(axis=1, how='all'
+                                ).dropna(axis=0, how='all')
+                print('t columns:', t.columns)
+                print('not_year_cols:', not_year_cols)
+                print('t:\n', t)
+            else:
+                print('table:\n', table)
+                print('table cols:\n', table.columns)
 
             return table
 
@@ -228,30 +251,22 @@ class NonCombustion:
 
     def noncombustion_activity_level2(self):
         categories = self.categories_level2
-        print('categories:', categories)
         data_dict = dict()
         for c, info in categories.items():
-            print('category:', c)
             if info['source'] == 'EPA':
                 tables = info['table']
                 if isinstance(tables, dict):
                     data = dict()
                     for s, table_names in tables.items():
-                        print('subcategory:', s)
-                        print('table_names:', table_names)
                         if isinstance(table_names, list):
                             tables_list = [self.noncombustion_activity_epa(t)
                                            for t in table_names]
-                            print('tables_list:\n', tables_list)
                             data[s] = tables_list
                 elif isinstance(tables, list):
-                    print('tables:', tables)
                     data = [self.noncombustion_activity_epa(t)
                             for t in tables]
-                    print('data:\n', data)
 
             data_dict[c] = data
-            print(data_dict)
 
         return data_dict
 
@@ -266,12 +281,10 @@ class NonCombustion:
         - Check overall emissions sum match values published
           under that emissions source category
         """
-        # activity = self.noncombustion_activity_epa('Table A-167')
-        # print('activity:\n', activity)
-        # emissions = self.noncombustion_activity_epa('Table A-178')
-        # print('emissions:\n', emissions)
-        # return {'activity': activity, 'emissions': emissions}
-        return None
+        print('start agricultural_soil_management')
+        activity = self.noncombustion_activity_epa('Table A-167')
+        emissions = self.noncombustion_activity_epa('Table A-178')
+        return {'activity': activity, 'emissions': emissions}
 
     def enteric_fermentation(self):
         """
@@ -280,14 +293,14 @@ class NonCombustion:
           Factors for Cattle by Animal Type
         - Table A-163: Emissions by animal type (cattle only)
         """
+        print('start enteric_fermentation')
         activity = self.noncombustion_activity_epa('Table A-167')
-        print('activity:\n', activity)
         activity2 = self.noncombustion_activity_epa('Table A-158')
-        print('activity2:\n', activity2)
-
         emissions = self.noncombustion_activity_epa('Table A-163')
-        print('emissions:\n', emissions)
-        return {'activity': activity, 'emissions': emissions}
+        # exit()
+        return {'activity': activity,
+                'activity2': activity2,
+                'emissions': emissions}
 
     def landfills(self):
         """
@@ -295,12 +308,11 @@ class NonCombustion:
           Waste Landfilled
         - (if time-- decompose)
         """
+        print('start landfills')
+
         activity = self.noncombustion_activity_epa('Table A-221')
-        print('activity:\n', activity)
-        # emissions = self.noncombustion_activity_epa('Table A-178')
-        # print('emissions:\n', emissions)
-        # return {'activity': activity, 'emissions': emissions}
-        return activity
+        emissions = self.noncombustion_activity_epa('Table A-178')
+        return {'activity': activity, 'emissions': emissions}
 
     def manure_management(self):
         """
@@ -308,22 +320,22 @@ class NonCombustion:
         - Table A-178, A-179: Emissions by animal type (all) 
           for Methane and Nitrous Oxide
         """
+        print('start manure_management')
         activity = self.noncombustion_activity_epa('Table A-167')
-        print('activity:\n', activity)
         emissions = self.noncombustion_activity_epa('Table A-178')
-        emissions = emissions.set_index('Cattle Type ').transpose()
-        emissions.index.name = 'Year'
-        print('emissions:\n', emissions)
         return {'activity': activity, 'emissions': emissions}
 
     def noncombustion_activity_level_3(self):
         """[summary]
         """        
-        # agricultural_soil_management = self.agricultural_soil_management()
+        agricultural_soil_management = self.agricultural_soil_management()
         enteric_fermentation = self.enteric_fermentation()
-        # landfills = self.landfills()
+        landfills = self.landfills()
         manure_management = self.manure_management()
-        pass
+        return {'manure_management': manure_management,
+                'enteric_fermentation': enteric_fermentation,
+                'landfills': landfills,
+                'agricultural_soil_management': agricultural_soil_management}
 
     def main(self):
         # activity_level1 = self.noncombustion_activity_level1()
