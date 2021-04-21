@@ -328,7 +328,7 @@ class NonCombustion:
         return {'activity': activity, 'emissions': emissions}
 
     def petroleum_systems(self):
-        """
+        """Activity is number of wells (Oil and HF Oil)
         """
         link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_petroleum_systems_annex35_tables.xlsx'
         sheet = '3.5-5'
@@ -338,16 +338,19 @@ class NonCombustion:
         petroleum = petroleum.set_index('Segment/Source')
         petroleum = petroleum.loc[['Total Oil Wells', 'Total HF Oil Wells'], :]
         petroleum = petroleum.drop('Activity Units', axis=1)
-        petroleum['Wells', :] = petroleum.sum(axis=0)
-        petroleum_activity = petroleum.transpose()[['Wells']]
+        petroleum.loc['Petroleum Systems', :] = petroleum.sum(axis=0)
+
+        petroleum_activity = petroleum.transpose()[['Petroleum Systems']]
+        petroleum_activity.columns.name = None
 
         emissions = self.noncombustion_activity_epa('Table ES-4')
         emissions = emissions[['Petroleum Systems']]
+        emissions.columns.name = None
 
         return {'activity': petroleum_activity, 'emissions': emissions}
 
     def natural_gas_systems(self):
-        """
+        """Activity is Total Active Gas Wells
         """
         link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_natural_gas_systems_annex36_tables.xlsx'
         sheet = '3.6-7'
@@ -355,19 +358,21 @@ class NonCombustion:
                                skiprows=5)
         natgas = natgas.dropna(thresh=3)
         natgas = natgas.set_index('Segment/Source')
-        natgas = natgas.xs('Total Active Gas Wells')
-        natgas = natgas.drop('Units', axis=1)
-        natgas_activity = natgas.transpose()
+
+        natgas = natgas.xs('Total Active Gas Wells').to_frame()
+        natgas.index.name = 'Year'
+        natgas = natgas.rename(columns={'Total Active Gas Wells':
+                                        'Natural Gas Systems'})
 
         emissions = self.noncombustion_activity_epa('Table ES-4')
         emissions = emissions[['Natural Gas Systems']]
+        emissions.columns.name = None
 
-        return {'activity': natgas_activity, 'emissions': emissions}
-
+        return {'activity': natgas, 'emissions': emissions}
 
     def noncombustion_level_3(self):
         """[summary]
-        """        
+        """
         agricultural_soil_management = self.agricultural_soil_management()
         enteric_fermentation = self.enteric_fermentation()
         landfills = self.landfills()
@@ -381,7 +386,7 @@ class NonCombustion:
         # activity_level1 = self.noncombustion_activity_level1()
         # activity_level2 = self.noncombustion_activity_level2()
         # level3 = self.noncombustion_level_3()
-        results = self.petroleum_systems()
+        results = self.natural_gas_systems()
         print('results:\n', results)
 
 if __name__ == '__main__':
