@@ -181,6 +181,8 @@ class NonCombustion:
                 f_path = directory + 'Chapter Text/Ch 6 - LULUCF/'
             elif table_name.startswith('Table 7-'):
                 f_path = directory + 'Chapter Text/Ch 7 - Waste/'
+            elif table_name.startswith('Table ES-'):
+                f_path = directory + 'Chapter Text/Executive Summary/'
 
             table = pd.read_csv(f'{f_path}{table_name}.csv',
                                 encoding='latin1',
@@ -295,8 +297,8 @@ class NonCombustion:
         """
         print('start enteric_fermentation')
         activity = self.noncombustion_activity_epa('Table A-167')
-        activity2 = self.noncombustion_activity_epa('Table A-158')
-        emissions = self.noncombustion_activity_epa('Table A-163')
+        activity2 = self.noncombustion_activity_epa('Table A-158')  # 180
+        emissions = self.noncombustion_activity_epa('Table A-163')  # 180
         # exit()
         return {'activity': activity,
                 'activity2': activity2,
@@ -325,7 +327,45 @@ class NonCombustion:
         emissions = self.noncombustion_activity_epa('Table A-178')
         return {'activity': activity, 'emissions': emissions}
 
-    def noncombustion_activity_level_3(self):
+    def petroleum_systems(self):
+        """
+        """
+        link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_petroleum_systems_annex35_tables.xlsx'
+        sheet = '3.5-5'
+        petroleum = pd.read_excel(link, sheet_name=sheet,
+                                  skiprows=6)
+        petroleum = petroleum.dropna(thresh=3)
+        petroleum = petroleum.set_index('Segment/Source')
+        petroleum = petroleum.loc[['Total Oil Wells', 'Total HF Oil Wells'], :]
+        petroleum = petroleum.drop('Activity Units', axis=1)
+        petroleum['Wells', :] = petroleum.sum(axis=0)
+        petroleum_activity = petroleum.transpose()[['Wells']]
+
+        emissions = self.noncombustion_activity_epa('Table ES-4')
+        emissions = emissions[['Petroleum Systems']]
+
+        return {'activity': petroleum_activity, 'emissions': emissions}
+
+    def natural_gas_systems(self):
+        """
+        """
+        link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_natural_gas_systems_annex36_tables.xlsx'
+        sheet = '3.6-7'
+        natgas = pd.read_excel(link, sheet_name=sheet,
+                               skiprows=5)
+        natgas = natgas.dropna(thresh=3)
+        natgas = natgas.set_index('Segment/Source')
+        natgas = natgas.xs('Total Active Gas Wells')
+        natgas = natgas.drop('Units', axis=1)
+        natgas_activity = natgas.transpose()
+
+        emissions = self.noncombustion_activity_epa('Table ES-4')
+        emissions = emissions[['Natural Gas Systems']]
+
+        return {'activity': natgas_activity, 'emissions': emissions}
+
+
+    def noncombustion_level_3(self):
         """[summary]
         """        
         agricultural_soil_management = self.agricultural_soil_management()
@@ -340,8 +380,9 @@ class NonCombustion:
     def main(self):
         # activity_level1 = self.noncombustion_activity_level1()
         # activity_level2 = self.noncombustion_activity_level2()
-        activity_level3 = self.noncombustion_activity_level_3()
-
+        # level3 = self.noncombustion_level_3()
+        results = self.petroleum_systems()
+        print('results:\n', results)
 
 if __name__ == '__main__':
     com = NonCombustion()
