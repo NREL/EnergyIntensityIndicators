@@ -76,7 +76,10 @@ class GeneralLMDI:
             (bool): Whether or not the symbolic expression simplifies
                     to the LHS variable
         """
-        assert lhs == sp.simplify(expression)
+        if lhs == str(sp.simplify(expression)):
+            print('Decomposition expression simplifies properly')
+        else:
+            raise ValueError('Decomposition expression does not simplify to LHS variable')
     
     @staticmethod
     def check_eval_str(s):
@@ -149,12 +152,11 @@ class GeneralLMDI:
         index_normalized = index.divide(index.loc[base_year_])  # 1985=1
         return index_normalized
 
-    def multiplicative(self, ASI):
+    def decomposition_multiplicative(self, terms_df):
         """Format component data, collect overall effect, return indexed
         dataframe of the results for the multiplicative LMDI model.
         """
-        ASI_df = df_utils.merge_df_list(list(ASI.values()))
-        results = ASI_df.apply(lambda col: np.exp(col), axis=1)
+        results = terms_df.apply(lambda col: np.exp(col), axis=1)
 
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)
@@ -191,7 +193,7 @@ class GeneralLMDI:
                                   col in LHS_share.columns]
         log_mean_weights = pd.DataFrame(index=LHS.index)
         log_mean_values_df = pd.DataFrame(index=LHS.index)
-
+        print('LHS:\n', LHS)
         for col in LHS.columns:
             LHS[f"{col}_shift"] = LHS[col].shift(
                                       periods=1, axis='index', fill_value=0)
@@ -250,44 +252,28 @@ class GeneralLMDI:
         else:
             return log_mean_values_df
 
-    def calculate_effect(self, ASI):
+    def calculate_effect_additive(self, terms_df):
         """Calculate effect from changes to activity, structure, 
         and intensity in the additive model
         """
 
-        ASI['effect'] = ASI.sum(axis=1)
+        terms_df['effect'] = terms_df.sum(axis=1)
 
-        return ASI
+        return terms_df
 
-    @staticmethod
-    def aggregate_additive(additive, base_year):
-        """Aggregate additive data (allows for loop through every year
-        as a base year, if desired)
-        """
-
-        cols = [c for c in list(additive.columns) if c != 'Year']
-        additive.loc[additive['Year'] <= base_year, cols] = 0
-        additive = additive.set_index('Year')
-        df = additive.cumsum(axis=0)
-        return df
-
-    def decomposition(self, ASI):
+    def decomposition_additive(self, terms_df):
         """Format component data, collect overall effect,
         return aggregated dataframe of the results for
         the additive LMDI model.
         """
         # ASI.pop('lower_level_structure', None)
-        ASI_df = df_utils.merge_df_list(list(ASI.values()))
 
-        df = self.calculate_effect(ASI_df)
+        df = self.calculate_effect_additive(terms_df)
         df = df.reset_index()
         if 'Year' not in df.columns:
             df = df.rename(columns={'index': 'Year'})
 
-        aggregated_df = self.aggregate_additive(df, self.base_year)
-        aggregated_df["@filter|Measure|BaseYear"] = self.base_year
-
-        return aggregated_df
+        return df
 
     def general_expr(self, input_data):
 
@@ -297,49 +283,66 @@ class GeneralLMDI:
     
         self.test_expression(self.decomposition, self.LHS_var)
 
-        for total, cols in self.totals:
+        for total, cols in self.totals.items():
             name = input_data['total_label']
             total_df = \
                 df_utils.create_total_column(input_data[cols],
                                              total_label=name)
-            total_df = total_df[[name]]
-            input_data[total] = total_df
+            total_col = total_df[[name]]
+            input_data[total] = total_col
 
         lhs = input_data[self.LHS_var]
+        print('lhs:\n', lhs)
+        lhs_total = df_utils.create_total_column(lhs,
+                                                 total_label=name)
+        print('lhs_total:\n', lhs_total)
+        lhs_share = df_utils.calculate_shares(lhs_total,
+                                              total_label=name)
+        print('lhs_share:\n', lhs_share)
 
-        weights = self.weights(lhs)
+        if self.model == 'additive':
+            weights = self.additive_weights(lhs, lhs_share)
+        elif self.model == 'multiplicative':
+            weights = self.multiplicative_weights(lhs, lhs_share)
 
-        effect = 0
-        results = dict()
+        results = pd.DataFrame(index=lhs.index)
 
-        for t in self.terms:
+        for t in self.decomposition.split('*'):
             if '/' in t:
                 parts = t.split('/')
                 numerator = parts[0]
                 numerator = input_data[numerator]
                 denominator = parts[1]
                 denominator = input_data[denominator]
+                numerator, denominator = \
+                    df_utils.ensure_same_indices(numerator, denominator)
+                print('numerator:\n', numerator)
+                print('denominator:\n', denominator)
 
-                f = numerator.divide(denominator, axis=1)
+                f = numerator.divide(denominator.values, axis=0)
             else:
                 f = input_data[t]
             
-            component = f.multiply(weights, axis=1)
+            if t in self.terms:
+                print(f'f {t}:\n', f)
+                component = f.multiply(weights.values, axis=1).sum(axis=1)
+                print(f'component {t}:\n', component)
+
+            else:
+                component = f
 
             results[t] = component
+            print(f'component {t}:\n', component)
 
-            if self.model == 'additive':
-                effect += component
-            elif self.model == 'multiplicative':
-                component = np.log(component)
+        results = results.rename(columns=self.term_labels)
+        print('results:\n', results)
+        if self.model == 'additive':
+            expression = self.decomposition_additive(results)
+        elif self.model == 'multiplicative':
+            expression = self.decomposition_multiplicative(results)
 
-                if effect == 0:
-                    effect += 1
-
-                effect *= component
-
-        results['effect'] = np.exp(effect)
-        return results
+        print('expression:\n', expression)
+        return expression
 
     def eval_expression(self):
         """Substitute actual data into the symbolic
@@ -355,20 +358,15 @@ class GeneralLMDI:
             labels and years as the index
         """
         activity = \
-            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv')
+            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv').set_index('Year')
         energy = \
-            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv')
-
-        data = {'A': activity, 'E': energy}
-
-        expression_dict = self.general_expr()
+            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv').set_index('Year')
+        print('energy cols:', energy.columns)
+        data = {'A_i': activity, 'E_i': energy, 'total_label': 'NonManufacturing'}
+        expression_dict = self.general_expr(data)
 
     def main(self, fname):
         self.read_yaml(fname)
-        # print("dir(IndexedVersion):\n", dir(IndexedVersion))
-        self.expr()
-        # results = self.general_expr()
-        # print('results:\n', results)
         self.eval_expression()
 
 

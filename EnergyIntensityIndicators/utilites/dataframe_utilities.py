@@ -83,12 +83,13 @@ def create_total_column(df, total_label):
     """Create column from sum of all other columns, name with name of 
     level of aggregation
     """
-    df_drop_str = df.select_dtypes(exclude='object')
+    df2 = df.copy()
+    df_drop_str = df2.select_dtypes(exclude='object')
     if len(df_drop_str.columns.tolist()) > 1:
-        df[total_label] = df.drop(total_label, axis=1, errors='ignore').sum(axis=1, numeric_only=True)
+        df2[total_label] = df2.drop(total_label, axis=1, errors='ignore').sum(axis=1, numeric_only=True)
     elif len(df_drop_str.columns.tolist()) == 1:
-        df[total_label] = df[df_drop_str.columns]
-    return df 
+        df2[total_label] = df2[df_drop_str.columns]
+    return df2 
     
 # @staticmethod
 def select_value(dataframe, base_row, base_column):
