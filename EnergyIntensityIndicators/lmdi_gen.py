@@ -2,6 +2,7 @@ import sympy as sp
 import numpy as np
 import pandas as pd
 import yaml
+import math
 
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 from EnergyIntensityIndicators.utilites import lmdi_utilities
@@ -151,12 +152,13 @@ class GeneralLMDI:
 
         index_normalized = index.divide(index.loc[base_year_])  # 1985=1
         return index_normalized
-
+    
     def decomposition_multiplicative(self, terms_df):
         """Format component data, collect overall effect, return indexed
         dataframe of the results for the multiplicative LMDI model.
         """
         results = terms_df.apply(lambda col: np.exp(col), axis=1)
+        print('results after exp:\n', results)
 
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)
@@ -194,13 +196,14 @@ class GeneralLMDI:
         log_mean_weights = pd.DataFrame(index=LHS.index)
         log_mean_values_df = pd.DataFrame(index=LHS.index)
         print('LHS:\n', LHS)
+        LHS_data = LHS.copy()
         for col in LHS.columns:
-            LHS[f"{col}_shift"] = LHS[col].shift(
-                                      periods=1, axis='index', fill_value=0)
+            LHS_data[f"{col}_shift"] = LHS_data[col].shift(
+                                        periods=1, axis='index', fill_value=0)
 
             # apply generally not preferred for row-wise operations but?
             log_mean_values = \
-                LHS[[col, f"{col}_shift"]].apply(lambda row:
+                LHS_data[[col, f"{col}_shift"]].apply(lambda row:
                                                  lmdi_utilities.logarithmic_average(row[col],
                                                  row[f"{col}_shift"]),
                                                  axis=1)
@@ -231,7 +234,10 @@ class GeneralLMDI:
         LHS_share = LHS_share.drop(cols_to_drop, axis=1)
 
         cols_to_drop_ = [col for col in LHS.columns if col.endswith('_shift')]
-        LHS = LHS.drop(cols_to_drop_, axis=1)
+        print('LHS:\n', LHS_data)
+
+        LHS_data = LHS_data.drop(cols_to_drop_, axis=1)
+        print('LHS:\n', LHS_data)
 
         if self.lmdi_type == 'LMDI-I':
             return log_mean_values_df
@@ -339,6 +345,7 @@ class GeneralLMDI:
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
         elif self.model == 'multiplicative':
+            results = df_utils.calculate_log_changes(results)
             expression = self.decomposition_multiplicative(results)
 
         print('expression:\n', expression)
