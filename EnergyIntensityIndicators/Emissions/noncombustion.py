@@ -144,12 +144,21 @@ class NonCombustion:
                                     {'source': 'EPA', 'table': 'Table 4-91'}},  # CO2 Emissions from Zinc Production (MMT CO2 Eq. and kt)
         self.categories_level2 = {'Iron and Steel Production & Metallurgical Coke Production':
                                    {'activity': {'source': 'EPA', 'table': 
-                                        {'Metallurgical coke': ['Table 4-67', 'Table 4-69'],
-                                         'Iron and Steel': ['Table 4-72', 'Table 4-73']}},
-                                    'emissions': {}},
+                                        {'Metallurgical coke': ['Table 4-67',   # Production and Consumption Data for the Calculation of CO2 Emissions from Metallurgical Coke Production (Thousand Metric Tons)
+                                                                'Table 4-69'],  # Material Carbon Contents for Iron and Steel Production
+                                         'Iron and Steel': ['Table 4-72',  # Production and Consumption Data for the Calculation of CO2 and CH4 Emissions from Iron and Steel Production (Thousand Metric Tons)
+                                                            'Table 4-73']}},  # Production and Consumption Data for the Calculation of CO2 Emissions from Iron and Steel Production (Million ft3 unless otherwise specified)
+                                    'emissions': {'source': 'EPA', 'table': 
+                                        {'Metallurgical coke': 'Table 4-60',  # CO2 Emissions from Metallurgical Coke Production (MMT CO2 Eq.)
+                                         'Iron and Steel': ['Table 4-62',  # CO2 Emissions from Iron and Steel Production (MMT CO2 Eq.)
+                                                            'Table 4-64']}}},  # CH4 Emissions from Iron and Steel Production (MMT CO2 Eq.)
                                   'Non-Energy Use of Fuels': 
-                                    {'source': 'EPA', 'table': ['Table 3-21', 'Table 3-22']}}
-
+                                    {'activity': 
+                                        {'source': 'EPA', 'table': ['Table 3-21',  # Adjusted Consumption of Fossil Fuels for Non-Energy Uses (TBtu)
+                                                                    'Table 3-22']}, # 2018 Adjusted Non-Energy Use Fossil Fuel Consumption, Storage, and Emissions
+                                        # Table 3-21 Adjusted Consumption of Fossil Fuels for Non-Energy Uses (TBtu) ?
+                                    'emissions': 
+                                        {'source': 'EPA', 'table': 'Table 3-20'}}}  # CO2 Emissions from Non-Energy Use Fossil Fuel Consumption (MMT CO2 Eq. and Percent)
     @staticmethod
     def unpack_noncombustion_data(zip_file):
         """Unpack zipped file into folder stored locally
