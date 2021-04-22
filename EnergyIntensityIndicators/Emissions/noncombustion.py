@@ -18,75 +18,137 @@ class NonCombustion:
         self.years = list(range(1990, 2018 + 1))
         self.categories_level1 = {
                             'Liming': 
-                                {'source': 'EPA', 'table': 'Table 5-22'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 5-22'}, # Table 5-22
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 5-21'}},  # Emissions from Liming (MMT CO2 Eq.)
                             'Adipic Acid Production': 
-                                {'source': 'EPA', 'table': 'Table 4-31'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-31'},  # Adipic Acid Production (kt)
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-30'}},  # N2O Emissions from Adipic Acid Production (MMT CO2 Eq. and kt N2O)
                             'Aluminum Production': 
-                                {'source': 'EPA', 'table': 'Table 4-82'},
+                                {'activity':
+                                    {'source': 'EPA', 'table': 'Table 4-82'},  # Production of Primary Aluminum (kt)
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-79'}}  # CO2 Emissions from Aluminum Production (MMT CO2 Eq. and kt)
+                                    # PFC Emissions from Aluminum Production (MMT CO2 Eq.) TAble 4-80 ?
                             'Ammonia Production': 
-                                {'source': 'EPA', 'table': 'Table 4-21'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-21'},  # Ammonia Production, Recovered CO2 Consumed for Urea Production, and Urea Production (kt)
+                                 'emissions': {'source': 'EPA', 'table': 'Table 4-19'}},  # CO2 Emissions from Ammonia Production (MMT CO2 Eq.)
                             'Caprolactam, Glyoxal, and Glyoxylic Acid Production': 
-                                {'source': 'EPA', 'table': 'Table 4-34'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-34'},  # Caprolactam Production (kt)
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-33'}},  # N2O Emissions from Caprolactam Production (MMT CO2 Eq. and kt N2O)
+                                    # Table 4-35 Approach 2 Quantitative Uncertainty Estimates for N2O Emissions from Caprolactam, Glyoxal and Glyoxylic Acid Production (MMT CO2 Eq. and Percent) ?
                             'Carbide Production and Consumption': 
-                                {'source': 'EPA', 'table': 'Table 4-38'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-38'}, # Production and Consumption of Silicon Carbide (Metric Tons)
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-36'}},  # CO2 and CH4 Emissions from Silicon Carbide Production and Consumption (MMT CO2 Eq.)
                             'Carbon Dioxide Consumption': 
-                                {'source': 'EPA', 'table': 'Table 4-54'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-54'}, # CO2 Production (kt CO2) and the Percent Used for Non-EOR Applications
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-53'}},  # CO2 Emissions from CO2 Consumption (MMT CO2 Eq. and kt)
                             'Cement Production': 
-                                {'source': 'USGS', 'table': np.nan},
+                                {'activity':
+                                    {'source': 'USGS', 'table': np.nan},
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 4-3'}},  # CO2 Emissions from Cement Production (MMT CO2 Eq. and kt)
                             'Coal Mining': 
-                                {'source': 'EPA', 'table': 'Table 3-29'},
+                                {'activity':
+                                    {'source': 'EPA', 'table': 'Table 3-29'},  # Coal Production (kt)
+                                 'emissions': 
+                                    {'source': 'EPA', 'table': 'Table 3-30'}},  # CH4 Emissions from Coal Mining (MMT CO2 Eq.)
                             'Composting': 
-                                {'source': 'EPA', 'table': 'Table 7-20'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 7-20'},  # U.S. Waste Composted (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 7-18'}},  # CH4 and N2O Emissions from Composting (MMT CO2 Eq.)
                             'Ferroalloy Production': 
-                                {'source': 'EPA', 'table': 'Table 4-77'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-77'},  # Production of Ferroalloys (Metric Tons)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-75'}}, # CO2 and CH4 Emissions from Ferroalloy Production (MMT CO2 Eq.)
                             'Glass Production': 
-                                {'source': 'EPA', 'table': 'Table 4-12'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-12'},  # Limestone, Dolomite, and Soda Ash Consumption Used in Glass Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-11'}},  # CO2 Emissions from Glass Production (MMT CO2 Eq. and kt)
                             'Lead Production': 
-                                {'source': 'EPA', 'table': 'Table 4-89'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-89'},  # Lead Production (Metric Tons)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-88'}},  # CO2 Emissions from Lead Production (MMT CO2 Eq. and kt)
                             'Lime Production': 
-                                {'source': 'EPA', 'table': ['Table 4-8', 'Table 4-9']},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-9'},  # Adjusted Lime Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-6'}},  # CO2 Emissions from Lime Production (MMT CO2 Eq. and kt)
                             'N2O from Product Uses': 
-                                {'source': 'EPA', 'table': 'Table 4-109'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-109'},  # N2O Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-110'}},  # N2O Emissions from N2O Product Usage (MMT CO2 Eq. and kt)
                             'Nitric Acid Production': 
-                                {'source': 'EPA', 'table': 'Table 4-28'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-28'},  # Nitric Acid Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-27'}},  # N2O Emissions from Nitric Acid Production (MMT CO2 Eq. and kt N2O)
                             'Other Process Uses of Carbonates': 
-                                {'source': 'EPA', 'table': 'Table 4-16'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-16'},  # Limestone and Dolomite Consumption (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-14'}}, # CO2 Emissions from Other Process Uses of Carbonates (MMT CO2 Eq.)
                             'Petrochemical Production': 
-                                {'source': 'EPA', 'table': 'Table 4-48'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-48'},  # Production of Selected Petrochemicals (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-46'}},  # CO2 and CH4 Emissions from Petrochemical Production (MMT CO2 Eq.)
                             'Phosphoric Acid Production': 
-                                {'source': 'EPA', 'table': ['Table 4-57',
-                                                            'Table 4-58']},
+                                {'activity': {'source': 'EPA', 'table': 
+                                                                ['Table 4-57',  # Phosphate Rock Domestic Consumption, Exports, and Imports (kt)
+                                                                 'Table 4-58']},  # Chemical Composition of Phosphate Rock (Percent by Weight)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-56'}},  # CO2 Emissions from Phosphoric Acid Production (MMT CO2 Eq. and kt)
                             'Soda Ash Production': 
-                                {'source': 'EPA', 'table': 'Table 4-44'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-44'},  # Soda Ash Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-43'}},  # CO2 Emissions from Soda Ash Production (MMT CO2 Eq. and kt CO2)
                             'Stationary Combustion': 
                                 {'source': 'EPA', 'table': ['Table A-89',
                                                             'Table A-90']},
                             'Titanium Dioxide Production': 
-                                {'source': 'EPA', 'table': 'Table 4-41'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-41'},  # Titanium Dioxide Production (kt)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-40'}},  # CO2 Emissions from Titanium Dioxide (MMT CO2 Eq. and kt)
                             'Urea Consumption for NonAgricultural Purposes': 
-                                {'source': 'EPA', 'table': np.nan},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-25'},  # Urea Production, Urea Applied as Fertilizer, Urea Imports, and Urea Exports (kt) ** subtract urea applied as fertilizer
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-23'}},  # CO2 Emissions from Urea Consumption for Non-Agricultural Purposes (MMT CO2 Eq.)
                             'Urea Fertilization': 
-                                {'source': 'EPA', 'table': 'Table 4-25'},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-25'},  # Urea Production, Urea Applied as Fertilizer, Urea Imports, and Urea Exports (kt) 
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 5-25'}},  # CO2 Emissions from Urea Fertilization (MMT CO2 Eq.)
                             'Zinc Production': 
-                                {'source': 'EPA', 'table': 'Table 4-92'}}
+                                {'activity': 
+                                    {'source': 'EPA', 'table': 'Table 4-92'},  # Zinc Production (Metric Tons)
+                                 'emissions':
+                                    {'source': 'EPA', 'table': 'Table 4-91'}},  # CO2 Emissions from Zinc Production (MMT CO2 Eq. and kt)
         self.categories_level2 = {'Iron and Steel Production & Metallurgical Coke Production':
-                                    {'source': 'EPA', 'table': 
+                                   {'activity': {'source': 'EPA', 'table': 
                                         {'Metallurgical coke': ['Table 4-67', 'Table 4-69'],
                                          'Iron and Steel': ['Table 4-72', 'Table 4-73']}},
+                                    'emissions': {}},
                                   'Non-Energy Use of Fuels': 
                                     {'source': 'EPA', 'table': ['Table 3-21', 'Table 3-22']}}
-        self.categories_level3 = {'Agricultural Soil Management': 
-                                    {'source': 'EPA', 'table': ''},
-                                  'Enteric Fermentation': 
-                                    {'source': 'EPA', 'table': ''},
-                                  'Landfills': 
-                                    {'source': 'EPA', 'table': ''},
-                                  'Manure Management': 
-                                    {'source': 'EPA', 'table': ''},
-                                  'Natural Gas Systems': 
-                                    {'source': 'EPA', 'table': ''},
-                                  'Petroleum Systems': 
-                                    {'source': 'EPA', 'table': ''}}
 
     @staticmethod
     def unpack_noncombustion_data(zip_file):
@@ -225,9 +287,9 @@ class NonCombustion:
                 print('t columns:', t.columns)
                 print('not_year_cols:', not_year_cols)
                 print('t:\n', t)
-            else:
-                print('table:\n', table)
-                print('table cols:\n', table.columns)
+            # else:
+            #     print('table:\n', table)
+            #     print('table cols:\n', table.columns)
 
             return table
 
@@ -284,7 +346,17 @@ class NonCombustion:
           under that emissions source category
         """
         print('start agricultural_soil_management')
-        activity = self.noncombustion_activity_epa('Table A-167')
+        # Total Cropland and Grassland Area Estimated with Tier 1/2
+        # and 3 Inventory Approaches (Million Hectares)
+        activity = self.noncombustion_activity_epa('Table A-199')
+        for t in range(200, )
+        'Table A-185: Total Rice Harvested Area Estimated with Tier 1 and 3 Inventory Approaches (Million Hectares)'
+        'Table A-186: Sources of Soil Nitrogen (kt N)'
+        'Table A-187: U.S. Soil Groupings Based on the IPCC Categories and Dominant Taxonomic Soil, and Reference 2 Carbon Stocks (Metric Tons C/ha)'
+        '1 Table A-188: Soil Organic Carbon Stock Change Factors for the United States and the IPCC Default Values 2 Associated with Management Impacts on Mineral Soils'
+        '190-195', '197-200', 
+        mineral_tables = []
+        organic_tables = []
         emissions = self.noncombustion_activity_epa('Table A-178')
         return {'activity': activity, 'emissions': emissions}
 
@@ -296,9 +368,19 @@ class NonCombustion:
         - Table A-163: Emissions by animal type (cattle only)
         """
         print('start enteric_fermentation')
-        activity = self.noncombustion_activity_epa('Table A-167')
-        activity2 = self.noncombustion_activity_epa('Table A-158')  # 180
-        emissions = self.noncombustion_activity_epa('Table A-163')  # 180
+        # Livestock Population (1,000 Head)
+        activity = self.noncombustion_activity_epa('Table A-184')
+        print('activity:\n', activity)
+
+        # Calculated Annual National Emission Factors for Cattle by 
+        # Animal Type, for 2017 (kg CH4/head/year), 86F[1]
+        activity2 = self.noncombustion_activity_epa('Table A-175')
+        print('activity2:\n', activity2)
+
+        # CH4 Emissions from Enteric Fermentation (MMT CO2 Eq.)
+        emissions = self.noncombustion_activity_epa('Table A-180')
+        print('emissions:\n', emissions)
+
         # exit()
         return {'activity': activity,
                 'activity2': activity2,
@@ -308,12 +390,19 @@ class NonCombustion:
         """
         - Table A-221: Total MSW Landfilled + Total Industrial
           Waste Landfilled
+          - Table A-228 CH4 Emissions from Landfills (kt)
         - (if time-- decompose)
         """
         print('start landfills')
+        # Solid Waste in MSW and Industrial Waste Landfills Contributing
+        # to CH4 Emissions (MMT unless otherwise noted)
+        activity = self.noncombustion_activity_epa('Table A-236')
+        print('activity:\n', activity)
 
-        activity = self.noncombustion_activity_epa('Table A-221')
-        emissions = self.noncombustion_activity_epa('Table A-178')
+        # CH4 Emissions from Landfills (MMT CO2 Eq.)
+        emissions = self.noncombustion_activity_epa('Table 7-3')
+        print('emissions:\n', emissions)
+
         return {'activity': activity, 'emissions': emissions}
 
     def manure_management(self):
@@ -323,9 +412,18 @@ class NonCombustion:
           for Methane and Nitrous Oxide
         """
         print('start manure_management')
-        activity = self.noncombustion_activity_epa('Table A-167')
-        emissions = self.noncombustion_activity_epa('Table A-178')
-        return {'activity': activity, 'emissions': emissions}
+        # Livestock Population (1,000 Head)
+        activity = self.noncombustion_activity_epa('Table A-184')
+        print('activity:\n', activity)
+        # Total Methane Emissions from Livestock Manure Management (kt)a
+        methane = self.noncombustion_activity_epa('Table A-195')
+        print('methane:\n', methane)
+        # Total (Direct and Indirect) Nitrous Oxide Emissions from
+        #  Livestock Manure Management (kt)
+        nitrous_oxide = self.noncombustion_activity_epa('Table A-196')
+        print('nitrous_oxide:\n', nitrous_oxide)
+
+        # return {'activity': activity, 'emissions': emissions}
 
     def petroleum_systems(self):
         """Activity is number of wells (Oil and HF Oil)
@@ -386,9 +484,13 @@ class NonCombustion:
         # activity_level1 = self.noncombustion_activity_level1()
         # activity_level2 = self.noncombustion_activity_level2()
         # level3 = self.noncombustion_level_3()
-        results = self.natural_gas_systems()
+        results = self.landfills()
         print('results:\n', results)
 
+        results = self.enteric_fermentation()
+        print('results:\n', results)
+        results = self.manure_management()
+        print('results:\n', results)
 if __name__ == '__main__':
     com = NonCombustion()
     # chapter_0 = com.chapter_0
