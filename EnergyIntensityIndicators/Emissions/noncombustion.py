@@ -19,7 +19,7 @@ class NonCombustion:
         self.categories_level1 = {
                             'Liming': 
                                 {'activity': 
-                                    {'source': 'EPA', 'table': 'Table 5-22'}, # Table 5-22
+                                    {'source': 'EPA', 'table': 'Table 5-22'}, # Emissions from Liming (MMT C)
                                  'emissions': 
                                     {'source': 'EPA', 'table': 'Table 5-21'}},  # Emissions from Liming (MMT CO2 Eq.)
                             'Adipic Acid Production': 
@@ -31,7 +31,7 @@ class NonCombustion:
                                 {'activity':
                                     {'source': 'EPA', 'table': 'Table 4-82'},  # Production of Primary Aluminum (kt)
                                  'emissions': 
-                                    {'source': 'EPA', 'table': 'Table 4-79'}}  # CO2 Emissions from Aluminum Production (MMT CO2 Eq. and kt)
+                                    {'source': 'EPA', 'table': 'Table 4-79'}},  # CO2 Emissions from Aluminum Production (MMT CO2 Eq. and kt)
                                     # PFC Emissions from Aluminum Production (MMT CO2 Eq.) TAble 4-80 ?
                             'Ammonia Production': 
                                 {'activity': 
@@ -55,7 +55,7 @@ class NonCombustion:
                                     {'source': 'EPA', 'table': 'Table 4-53'}},  # CO2 Emissions from CO2 Consumption (MMT CO2 Eq. and kt)
                             'Cement Production': 
                                 {'activity':
-                                    {'source': 'USGS', 'table': np.nan},
+                                    {'source': 'EPA', 'table': '4-4'},  # Production Thousand Tons
                                  'emissions': 
                                     {'source': 'EPA', 'table': 'Table 4-3'}},  # CO2 Emissions from Cement Production (MMT CO2 Eq. and kt)
                             'Coal Mining': 
@@ -110,8 +110,8 @@ class NonCombustion:
                                     {'source': 'EPA', 'table': 'Table 4-46'}},  # CO2 and CH4 Emissions from Petrochemical Production (MMT CO2 Eq.)
                             'Phosphoric Acid Production': 
                                 {'activity': {'source': 'EPA', 'table': 
-                                                                ['Table 4-57',  # Phosphate Rock Domestic Consumption, Exports, and Imports (kt)
-                                                                 'Table 4-58']},  # Chemical Composition of Phosphate Rock (Percent by Weight)
+                                                                'Table 4-57'},  # Phosphate Rock Domestic Consumption, Exports, and Imports (kt) ** Use domestic consumption
+                                                                #  'Table 4-58']},  # Chemical Composition of Phosphate Rock (Percent by Weight)
                                  'emissions':
                                     {'source': 'EPA', 'table': 'Table 4-56'}},  # CO2 Emissions from Phosphoric Acid Production (MMT CO2 Eq. and kt)
                             'Soda Ash Production': 
@@ -120,8 +120,12 @@ class NonCombustion:
                                  'emissions':
                                     {'source': 'EPA', 'table': 'Table 4-43'}},  # CO2 Emissions from Soda Ash Production (MMT CO2 Eq. and kt CO2)
                             'Stationary Combustion': 
-                                {'source': 'EPA', 'table': ['Table A-89',
-                                                            'Table A-90']},
+                                {'activity': 
+                                    {'source': 'EPA', 'table': ['Table A-89',
+                                                                'Table A-90']}, # Fuel Consumption by Stationary Combustion for Calculating CH4 and N2O Emissions (TBtu)
+                                'emissions': 
+                                    {'source': 'EPA', 'table': ['Table 3-10',  # CH4 Emissions from Stationary Combustion (MMT CO2 Eq.)
+                                                                'Table 3-11']}},  # N2O Emissions from Stationary Combustion (MMT CO2 Eq.)
                             'Titanium Dioxide Production': 
                                 {'activity': 
                                     {'source': 'EPA', 'table': 'Table 4-41'},  # Titanium Dioxide Production (kt)
@@ -141,11 +145,11 @@ class NonCombustion:
                                 {'activity': 
                                     {'source': 'EPA', 'table': 'Table 4-92'},  # Zinc Production (Metric Tons)
                                  'emissions':
-                                    {'source': 'EPA', 'table': 'Table 4-91'}},  # CO2 Emissions from Zinc Production (MMT CO2 Eq. and kt)
+                                    {'source': 'EPA', 'table': 'Table 4-91'}}}  # CO2 Emissions from Zinc Production (MMT CO2 Eq. and kt)
         self.categories_level2 = {'Iron and Steel Production & Metallurgical Coke Production':
                                    {'activity': {'source': 'EPA', 'table': 
-                                        {'Metallurgical coke': ['Table 4-67',   # Production and Consumption Data for the Calculation of CO2 Emissions from Metallurgical Coke Production (Thousand Metric Tons)
-                                                                'Table 4-69'],  # Material Carbon Contents for Iron and Steel Production
+                                        {'Metallurgical coke': 'Table 4-67',   # Production and Consumption Data for the Calculation of CO2 Emissions from Metallurgical Coke Production (Thousand Metric Tons)
+                                                                # 'Table 4-69'],  # Material Carbon Contents for Iron and Steel Production
                                          'Iron and Steel': ['Table 4-72',  # Production and Consumption Data for the Calculation of CO2 and CH4 Emissions from Iron and Steel Production (Thousand Metric Tons)
                                                             'Table 4-73']}},  # Production and Consumption Data for the Calculation of CO2 Emissions from Iron and Steel Production (Million ft3 unless otherwise specified)
                                     'emissions': {'source': 'EPA', 'table': 
@@ -154,9 +158,8 @@ class NonCombustion:
                                                             'Table 4-64']}}},  # CH4 Emissions from Iron and Steel Production (MMT CO2 Eq.)
                                   'Non-Energy Use of Fuels': 
                                     {'activity': 
-                                        {'source': 'EPA', 'table': ['Table 3-21',  # Adjusted Consumption of Fossil Fuels for Non-Energy Uses (TBtu)
-                                                                    'Table 3-22']}, # 2018 Adjusted Non-Energy Use Fossil Fuel Consumption, Storage, and Emissions
-                                        # Table 3-21 Adjusted Consumption of Fossil Fuels for Non-Energy Uses (TBtu) ?
+                                        {'source': 'EPA', 'table': 'Table 3-21'},  # Adjusted Consumption of Fossil Fuels for Non-Energy Uses (TBtu)
+                                                                    # 'Table 3-22']}, # 2018 Adjusted Non-Energy Use Fossil Fuel Consumption, Storage, and Emissions
                                     'emissions': 
                                         {'source': 'EPA', 'table': 'Table 3-20'}}}  # CO2 Emissions from Non-Energy Use Fossil Fuel Consumption (MMT CO2 Eq. and Percent)
     @staticmethod
@@ -310,37 +313,43 @@ class NonCombustion:
         categories = self.categories_level1
 
         data_dict = dict()
-        for c, info in categories.items():
-            if info['source'] == 'EPA':
-                table_name = info['table']
-                if isinstance(table_name, str):
-                    data = self.noncombustion_activity_epa(table_name)
-                elif isinstance(table_name, list):
-                    data = [self.noncombustion_activity_epa(t)
-                            for t in table_name]
-            data_dict[c] = data
+        for c, var_info in categories.items():
+            c_data = dict()
+            for v, info in var_info.items():
+                if info['source'] == 'EPA':
+                    table_name = info['table']
+                    if isinstance(table_name, str):
+                        data = self.noncombustion_activity_epa(table_name)
+                    elif isinstance(table_name, list):
+                        data = [self.noncombustion_activity_epa(t)
+                                for t in table_name]
+                c_data[v] = data
+            data_dict[c] = c_data
 
         return data_dict
 
     def noncombustion_activity_level2(self):
         categories = self.categories_level2
         data_dict = dict()
-        for c, info in categories.items():
-            if info['source'] == 'EPA':
-                tables = info['table']
-                if isinstance(tables, dict):
-                    data = dict()
-                    for s, table_names in tables.items():
-                        if isinstance(table_names, list):
-                            tables_list = [self.noncombustion_activity_epa(t)
-                                           for t in table_names]
-                            data[s] = tables_list
-                elif isinstance(tables, list):
-                    data = [self.noncombustion_activity_epa(t)
-                            for t in tables]
+        for c, var_info in categories.items():
+            c_data = dict()
+            for v, info in var_info.items():
+                if info['source'] == 'EPA':
+                    tables = info['table']
+                    if isinstance(tables, dict):
+                        data = dict()
+                        for s, table_names in tables.items():
+                            if isinstance(table_names, list):
+                                tables_list = [self.noncombustion_activity_epa(t)
+                                            for t in table_names]
+                                data[s] = tables_list
+                    elif isinstance(tables, list):
+                        data = [self.noncombustion_activity_epa(t)
+                                for t in tables]
+                c_data[v] = data
 
-            data_dict[c] = data
-
+            data_dict[c] = c_data
+        print('data_dict:\n', data_dict)
         return data_dict
 
     def agricultural_soil_management(self):
@@ -358,12 +367,12 @@ class NonCombustion:
         # Total Cropland and Grassland Area Estimated with Tier 1/2
         # and 3 Inventory Approaches (Million Hectares)
         activity = self.noncombustion_activity_epa('Table A-199')
-        for t in range(200, )
-        'Table A-185: Total Rice Harvested Area Estimated with Tier 1 and 3 Inventory Approaches (Million Hectares)'
-        'Table A-186: Sources of Soil Nitrogen (kt N)'
-        'Table A-187: U.S. Soil Groupings Based on the IPCC Categories and Dominant Taxonomic Soil, and Reference 2 Carbon Stocks (Metric Tons C/ha)'
-        '1 Table A-188: Soil Organic Carbon Stock Change Factors for the United States and the IPCC Default Values 2 Associated with Management Impacts on Mineral Soils'
-        '190-195', '197-200', 
+        # for t in range(200, )
+        # 'Table A-185: Total Rice Harvested Area Estimated with Tier 1 and 3 Inventory Approaches (Million Hectares)'
+        # 'Table A-186: Sources of Soil Nitrogen (kt N)'
+        # 'Table A-187: U.S. Soil Groupings Based on the IPCC Categories and Dominant Taxonomic Soil, and Reference 2 Carbon Stocks (Metric Tons C/ha)'
+        # '1 Table A-188: Soil Organic Carbon Stock Change Factors for the United States and the IPCC Default Values 2 Associated with Management Impacts on Mineral Soils'
+        # '190-195', '197-200', 
         mineral_tables = []
         organic_tables = []
         emissions = self.noncombustion_activity_epa('Table A-178')
@@ -430,6 +439,8 @@ class NonCombustion:
         # Total (Direct and Indirect) Nitrous Oxide Emissions from
         #  Livestock Manure Management (kt)
         nitrous_oxide = self.noncombustion_activity_epa('Table A-196')
+
+        # Table 5-7 CH4 and N2O Emissions from Manure Management (MMT CO2 Eq.) ?
         print('nitrous_oxide:\n', nitrous_oxide)
 
         # return {'activity': activity, 'emissions': emissions}
@@ -491,15 +502,15 @@ class NonCombustion:
 
     def main(self):
         # activity_level1 = self.noncombustion_activity_level1()
-        # activity_level2 = self.noncombustion_activity_level2()
+        activity_level2 = self.noncombustion_activity_level2()
         # level3 = self.noncombustion_level_3()
-        results = self.landfills()
-        print('results:\n', results)
+        # results = self.landfills()
+        # print('results:\n', results)
 
-        results = self.enteric_fermentation()
-        print('results:\n', results)
-        results = self.manure_management()
-        print('results:\n', results)
+        # results = self.enteric_fermentation()
+        # print('results:\n', results)
+        # results = self.manure_management()
+        # print('results:\n', results)
 if __name__ == '__main__':
     com = NonCombustion()
     # chapter_0 = com.chapter_0
