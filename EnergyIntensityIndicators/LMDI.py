@@ -230,8 +230,8 @@ class LMDI():
         
         """
 
-        data = data[(data["@filter|EnergyType"] == energy_type) & \
-                     (data["@filter|Measure|BaseYear"] == self.base_year)]
+        data = data[(data["@filter|EnergyType"] == energy_type) &
+                    (data["@filter|Measure|BaseYear"] == self.base_year)]
         if 'lower_level' in data.columns:
             data = data[data['lower_level'] == total_label]
 
