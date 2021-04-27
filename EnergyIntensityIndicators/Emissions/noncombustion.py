@@ -392,27 +392,70 @@ class NonCombustion:
         return data_dict
 
     def noncombustion_activity_level2(self):
+        """
+        - Use heat content from Emissions Hub
+        - Table 4-67
+            - mmBtu per short ton
+            - Mixed (Industrial Coking)
+            - Coal Coke
+            - Coke oven gas
+            - Natural gas
+        - Table 4-68
+            - Total energy value as single activity
+              data
+            - (scf is standard cubic feet)
+        - Table 4-74
+            - Iron and steel
+                - sum of BOF steel production and
+                  EAF steel production
+        - NonEnergy Use of fuels
+            - Total from 3-21 as activity
+
+        Returns:
+            [type]: [description]
+        """
         categories = self.categories_level2
         data_dict = dict()
         for c, var_info in categories.items():
+            print('category:', c)
             c_data = dict()
             for v, info in var_info.items():
+                print('variable:', v)
                 if info['source'] == 'EPA':
                     tables = info['table']
                     if isinstance(tables, dict):
                         data = dict()
                         for s, table_names in tables.items():
+                            print('sub category:', s)                       
                             if isinstance(table_names, list):
-                                tables_list = \
-                                    [self.noncombustion_activity_epa(t)
-                                     for t in table_names]
-                                data[s] = tables_list
-                    elif isinstance(tables, list):
-                        data = [self.noncombustion_activity_epa(t)
-                                for t in tables]
-                c_data[v] = data
+                                for t in table_names:
+                                    table = self.noncombustion_activity_epa(t)
+                                    if s == 'Metallurgical coke':
+                                        print(table.columns)
+                                        break
+                                    elif s == 'Iron and Steel':
+                                        if t == 'Table 4-68':
+                                            print('Table 4-68 cols:',
+                                                  table.columns)
+                                        elif t == 'Table 4-72':
+                                            table = table[['EAF Steel Production',
+                                                           'BOF Steel Production']]
+                                            table['Steel'] = table.sum(axis=1)
+                                            table = table[['Steel']]
 
-            data_dict[c] = c_data
+                                # data[s] = tables_list
+
+                    elif isinstance(tables, list):
+                        for t in tables:
+                            table = self.noncombustion_activity_epa(t)
+                            print(table.columns)
+
+            #     c_data[v] = data
+
+            # data_dict[c] = c_data
+
+        exit()
+
         print('data_dict:\n', data_dict)
         return data_dict
 

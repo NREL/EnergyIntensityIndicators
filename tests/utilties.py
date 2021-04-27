@@ -24,12 +24,13 @@ class TestingUtilities:
             return compare_df.all(axis=None)
 
     def pct_diff_bools_list(self, df_pairs_list):
-        """Given pairs (tuples) of eii, pnnl dataframes, return a list of bools indicating
-        whether the percent different between the dataframes are within the acceptable range
+        """Given pairs (tuples) of eii, pnnl dataframes, return a
+        list of bools indicating whether the percent different
+        between the dataframes are within the acceptable range
         """
         bools_list = []
         for eii, pnnl in df_pairs_list:
-            pct_difference = self.pct_diff(pnnl, eii)           
+            pct_difference = self.pct_diff(pnnl, eii)
             bools_list.append(pct_difference)
 
         return bools_list
