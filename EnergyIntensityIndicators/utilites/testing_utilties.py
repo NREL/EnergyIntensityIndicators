@@ -1,9 +1,8 @@
 import numpy as np
 
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
-from EnergyIntensityIndicators.utilites import lmdi_utilities
+import EnergyIntensityIndicators.utilites.dataframe_utilities as df_utils
 
-    
+
 class TestingUtilities:
 
     def __init__(self, acceptable_pct_difference):
@@ -15,12 +14,14 @@ class TestingUtilities:
         elif pnnl_data.empty and eii_data.empty:
             return True
         else:
-            pnnl_data, eii_data = df_utils.ensure_same_indices(pnnl_data, eii_data)
+            pnnl_data, eii_data = df_utils\
+                .ensure_same_indices(pnnl_data, eii_data)
 
             diff_df = pnnl_data.subtract(eii_data)
             diff_df_abs = np.absolute(diff_df)
             pct_diff = np.absolute(diff_df_abs.divide(pnnl_data))
-            compare_df = pct_diff.fillna(0).apply(lambda col: col<=self.acceptable_pct_difference, axis=1)
+            compare_df = pct_diff.fillna(0)\
+                .apply(lambda col: col <= self.acceptable_pct_difference, axis=1)
             return compare_df.all(axis=None)
 
     def pct_diff_bools_list(self, df_pairs_list):
@@ -35,3 +36,6 @@ class TestingUtilities:
 
         return bools_list
 
+
+if __name__ == '__main__':
+    pass

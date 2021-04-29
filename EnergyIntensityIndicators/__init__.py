@@ -11,7 +11,6 @@ from EnergyIntensityIndicators import (industry, residential, commercial, transp
                                        electricity, additive_lmdi, multiplicative_lmdi, 
                                        LMDI)
 
-
 __author__  = 'Isabelle Rabideau'
 __email__ = 'isabelle.rabideau@nrel.gov'
 

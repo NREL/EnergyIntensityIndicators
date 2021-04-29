@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 
 # from EnergyIntensityIndicators.utilities import dataframe_utilities as df_utils
-from utilities import TestingUtilities
-
+from EnergyIntensityIndicators.utilites.testing_utilties import TestingUtilities
 
 class TestDFUtilities:
 

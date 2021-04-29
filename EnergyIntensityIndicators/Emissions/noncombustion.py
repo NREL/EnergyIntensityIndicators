@@ -73,7 +73,7 @@ class NonCombustion:
                              'Cement Production':
                                 {'activity':
                                     {'source': 'EPA',
-                                     'table': '4-4'},  # Production Thousand Tons
+                                     'table': 'Table 4-4'},  # Production Thousand Tons
                                  'emissions':
                                     {'source': 'EPA',
                                      'table': 'Table 4-3'}},  # CO2 Emissions from Cement Production (MMT CO2 Eq. and kt)
@@ -165,9 +165,9 @@ class NonCombustion:
                              'Stationary Combustion':
                                 {'activity':
                                     {'source': 'EPA',
-                                     'table': ['Table A-89',
-                                               'Table A-90']},  # Fuel Consumption by Stationary Combustion for Calculating CH4 and N2O Emissions (TBtu)
-                                'emissions':
+                                     'table': 'Table A-90'},  # Fuel Consumption by Stationary Combustion for Calculating CH4 and N2O Emissions (TBtu)
+                                            #    'Table A-91']},  # CH4 and N2O Emission Factors by Fuel Type and Sector (g/GJ)a
+                                 'emissions':
                                     {'source': 'EPA',
                                      'table': ['Table 3-10',  # CH4 Emissions from Stationary Combustion (MMT CO2 Eq.)
                                                'Table 3-11']}},  # N2O Emissions from Stationary Combustion (MMT CO2 Eq.)
@@ -302,7 +302,7 @@ class NonCombustion:
 
     def noncombustion_activity_epa(self, table_name):
         directory = 'C:/Users/irabidea/Desktop/emissions_data/'
-
+        print('table_name:', table_name)
         # try:
         if table_name.startswith('Table A-'):
             f_path = directory + 'Annex/'
@@ -326,66 +326,57 @@ class NonCombustion:
 
         if table_name == 'Table A-199':
             table = pd.read_csv(f'{f_path}{table_name}.csv',
-                    encoding='latin1', header=3, index_col=0).dropna(
-                        axis=1, how='all').dropna(
-                            axis=0, how='all')
+                                encoding='latin1', header=3,
+                                index_col=0).dropna(
+                                    axis=1, how='all').dropna(
+                                        axis=0, how='all')
             table = table.rename(columns={'Total': 'Mineral',
                                           'Tier 1/2.1': 'Organic',
                                           'Total[1]': 'Total'})
             table = table[['Mineral', 'Organic', 'Total']]
-            
+        elif table_name == 'Table 3-29':
+            table = pd.read_csv(f'{f_path}{table_name}.csv',
+                                encoding='latin1', header=3,
+                                index_col=1).dropna(
+                                    axis=1, how='all').dropna(
+                                        axis=0, how='all')
+            table = table.rename(
+                columns={'Number of Mines': 'Number of Underground Mines',
+                         'Production': 'Underground Production', 
+                         'Number of Mines.1': 'Number of Surface Mines', 
+                         'Production.1': 'Surface Production',
+                         'Number of Mines.2': 'Total Number of Mines',
+                         'Production.2': 'Total Production'})
+            table.index.name = 'Year'
+
         else:
             table = pd.read_csv(f'{f_path}{table_name}.csv',
-                    encoding='latin1').dropna(
-                        axis=1, how='all').dropna(
-                            axis=0, how='all')
+                                encoding='latin1').dropna(  # , header=2
+                                    axis=1, how='all').dropna(
+                                        axis=0, how='any')
 
-        if 'Year' not in table.columns:
-            table.columns = table.iloc[0]
-            table = table.drop(table.index[0])
+            if table[table.columns[0]].str.contains('Year').any():
 
-            if 'Year' not in table.columns:
-                years = [str(y) for y in self.years]
-                year_cols = [c for c in table.columns
-                                if c in years]
-                if len(year_cols) == 0:
-                    years = self.years
-                not_year_cols = [c for c in table.columns
-                                    if c not in years]
+                year_row = table.index[table[table.columns[0]] == 'Year']
 
-                if len(not_year_cols) == 1:
-                    table = table.set_index(not_year_cols[0])
-                elif len(not_year_cols) > 1:
-                    table = table.set_index(not_year_cols)
-                try:
-                    table = table.transpose()
-                    table.index = table.index.astype('int')
-                    table.index.name = 'Year'
-                    table = table.dropna(how='all', axis=1)
-                except Exception as e:
-                    print(f'year col {table_name} failed with error {e}')
-
+                new_header = table.iloc[0]
+                table = table[1:]
+                table.columns = new_header
             else:
-                table = table.set_index('Year')
+                print('table:\n', table)
+                new_header = table.iloc[0]
+
+                table = table[1:]
+
+                table.columns = new_header
+                table = table.set_index(table.columns[0])
+                table = table.transpose()
+                print('table:\n', table)
+                table.index = table.index.astype(int)
                 table.columns.name = None
                 table.index.name = 'Year'
-        if table.empty:
-            t = pd.read_csv(f'{f_path}{table_name}.csv',
-                            encoding='latin1').dropna(
-                                axis=1, how='all').dropna(
-                                    axis=0, how='all')
-            print('t columns:', t.columns)
-            print('not_year_cols:', not_year_cols)
-            print('t:\n', t)
-            # else:
-            #     print('table:\n', table)
-            #     print('table cols:\n', table.columns)
 
-            return table
-
-        # except Exception as e:
-        #     print(f'Table {table_name} failed with error', e)
-        #     return None
+        return table
 
     def noncombustion_activity_level1(self):
         categories = self.categories_level1
@@ -517,41 +508,108 @@ class NonCombustion:
         print('start agricultural_soil_management')
         # Total Cropland and Grassland Area Estimated with Tier 1/2
         # and 3 Inventory Approaches (Million Hectares)
-        organic_mineral_managed = self.noncombustion_activity_epa('Table A-199') # Note: The report shows
-                                                                            # This table as A-198
+
+        # Note: The report shows this table as A-198
+        organic_mineral_managed = \
+            self.noncombustion_activity_epa('Table A-199')
+        organic_mineral_managed = organic_mineral_managed.rename(
+            columns={'Total': 'Organic and Mineral Soil Managed'})
         print('organic_mineral_managed:\n', organic_mineral_managed)
         rice_cultivation = self.noncombustion_activity_epa('Table A-202')
-        rice_cultivation = rice_cultivation[['Total']]  # Land Areas (Million Hectares)
-        activity = # merge rice and organic_mineral_managed
-        # for t in range(200, )
-        # 'Table A-185: Total Rice Harvested Area Estimated with Tier 1
-        #               and 3 Inventory Approaches (Million Hectares)'
-        # 'Table A-186: Sources of Soil Nitrogen (kt N)'
-        # 'Table A-187: U.S. Soil Groupings Based on the IPCC Categories
-        #               and Dominant Taxonomic Soil, and Reference 2 Carbon
-        #               Stocks (Metric Tons C/ha)'
-        # '1 Table A-188: Soil Organic Carbon Stock Change Factors for the
-        #                 United States and the IPCC Default Values 2
-        #                 Associated with Management Impacts on Mineral Soils'
-        # '190-195', '197-200',
+        rice_cultivation = rice_cultivation.set_index('Year')
+        rice_cultivation.columns.name = None
 
-        mineral_tables_emissions = ['Table A-206', 'Table A-207']
-        n2o_cropland_mineral = self.noncombustion_activity_epa('Table A-206')
-        n2o_cropland_mineral = n2o_cropland_mineral[['Total Cropland Mineral Soil Emission']]
-        n2o_grassland_mineral = self.noncombustion_activity_epa('Table A-207')
-        n2o_grassland_mineral = n2o_grassland_mineral[['Total Grassland Mineral Soil Emission']]
-                # sum A-206, A-207 in report are the emissions data for organic activity from table A-198
+        print('rice_cultivation:\n', rice_cultivation)
 
-        n20_mineral = n2o_cropland_mineral.merge(n2o_grassland_mineral, how='outer', left_index=True,
-                                                 right_index=True)
-        n20_mineral['N2O Mineral'] = n20_mineral.sum(axis=1)        
-        # Do the same thing with tables A-208 and A-209 to get change in carbon stocks 
-        # from organic hectares
-        carbon_
+        # Land Areas (Million Hectares)
+        rice_cultivation = rice_cultivation[['Total']].rename(
+            columns={'Total': 'Rice Cultivation'})
 
-        organic_tables_emissions = ['Table A-208', 'Table A-209']
+        n2o_cropland_mineral = self.noncombustion_activity_epa('Table A-207')
+        n2o_cropland_mineral = \
+            n2o_cropland_mineral[['Total Cropland Mineral Soil Emission']]
+        n2o_grassland_mineral = self.noncombustion_activity_epa('Table A-208')
+        n2o_grassland_mineral = \
+            n2o_grassland_mineral[['Total Grassland Mineral Soil Emission']]
+        # sum A-206, A-207 in report are the emissions data for organic
+        # activity from table A-198
+        n2o_mineral = \
+            n2o_cropland_mineral.merge(n2o_grassland_mineral,
+                                       how='outer', left_index=True,
+                                       right_index=True)
+        n2o_mineral['N2O Mineral'] = n2o_mineral.sum(axis=1)
+        n2o_mineral = n2o_mineral[['N2O Mineral']]
 
-        emissions = self.noncombustion_activity_epa('Table A-178')
+        # Do the same thing with tables A-208 and A-209 to get
+        # change in carbon stocks from organic hectares
+        carbon_st_organic_crop = self.noncombustion_activity_epa('Table A-209')
+        carbon_st_organic_crop = \
+            carbon_st_organic_crop[['Total Cropland SOC Stock Change']]
+        carbon_st_organic_grass = self.noncombustion_activity_epa('Table A-210')
+        carbon_st_organic_grass = \
+            carbon_st_organic_grass[['Total Grassland SOC Stock Change']]
+        carbon_stock_organic =\
+            carbon_st_organic_crop.merge(carbon_st_organic_grass,
+                                         how='outer', left_index=True,
+                                         right_index=True)
+        carbon_stock_organic['Carbon Stock Organic'] = \
+            carbon_stock_organic.sum(axis=1)   # MMT CO2 Eq.
+        carbon_stock_organic = carbon_stock_organic[['Carbon Stock Organic']]
+
+        n2o_organic = self.noncombustion_activity_epa('Table A-212')
+        n2o_organic = n2o_organic[['Total Organic Soil Emissions']]
+
+        carbon_st_organic_crop_drain = \
+            self.noncombustion_activity_epa('Table A-214')
+        carbon_st_organic_crop_drain = \
+            carbon_st_organic_crop_drain[['Total Cropland SOC Stock Change']]
+        carbon_st_organic_grass_drain = \
+            self.noncombustion_activity_epa('Table A-215')
+        carbon_st_organic_grass_drain = \
+            carbon_st_organic_grass_drain[['Total Grassland SOC Stock Change']]
+        carbon_stock_organic_drain = carbon_st_organic_crop_drain.merge(
+                                        carbon_st_organic_grass_drain,
+                                        how='outer', left_index=True,
+                                        right_index=True)
+        carbon_stock_organic_drain['Carbon Stock Organic Drain'] = \
+            carbon_stock_organic_drain.sum(axis=1)   # MMT CO2 Eq.
+        carbon_stock_organic_drain = \
+            carbon_stock_organic_drain[['Carbon Stock Organic Drain']]
+
+        # (MMT CO2 Eq.)
+        rice_methane = self.noncombustion_activity_epa('Table A-211')
+        rice_methane = rice_methane[['Total Rice Methane Emission']]
+
+        # mineral_leaching_n2o_emissions for cropland and grassland
+        # (Table A-215, Table A-216 ) do the same as above
+        cropland_indirect = self.noncombustion_activity_epa('Table A-216')
+        cropland_indirect = \
+            cropland_indirect[['Total Cropland Indirect Emissions']]
+        grassland_indirect = self.noncombustion_activity_epa('Table A-217')
+        grassland_indirect = \
+            grassland_indirect[['Total Grassland Indirect Emissions']]
+        indirect_emissions = cropland_indirect.merge(
+                                        grassland_indirect,
+                                        how='outer', left_index=True,
+                                        right_index=True)
+        indirect_emissions['Indirect Emissions Mineral'] = \
+            indirect_emissions.sum(axis=1)   # MMT CO2 Eq.
+        indirect_emissions = indirect_emissions[['Indirect Emissions Mineral']]
+
+        emissions_tables = [n2o_mineral, carbon_stock_organic,
+                            n2o_organic, carbon_stock_organic_drain,
+                            rice_methane, indirect_emissions]
+        emissions = df_utils.merge_df_list(emissions_tables)
+        emissions['Agricultural Soil Management'] = emissions.sum(axis=1)
+        emissions = emissions[['Agricultural Soil Management']]
+
+        activity = df_utils.merge_df_list([organic_mineral_managed,
+                                           rice_cultivation])
+        activity['Agricultural Soil Management'] = activity.sum(axis=1)
+        activity = activity[['Agricultural Soil Management']]
+        print('activity:\n', activity)
+        print('emissions:\n', emissions)
+
         return {'activity': activity, 'emissions': emissions}
 
     def enteric_fermentation(self):
@@ -576,7 +634,6 @@ class NonCombustion:
         emissions = self.noncombustion_activity_epa('Table A-180')
         print('emissions:\n', emissions)
 
-        # exit()
         return {'activity': activity,
                 'activity2': activity2,
                 'emissions': emissions}
@@ -679,10 +736,10 @@ class NonCombustion:
                 'agricultural_soil_management': agricultural_soil_management}
 
     def main(self):
-        # activity_level1 = self.noncombustion_activity_level1()
-        # activity_level2 = self.noncombustion_activity_level2()
-        self.agricultural_soil_management()
-        # level3 = self.noncombustion_level_3()
+        activity_level1 = self.noncombustion_activity_level1()
+        activity_level2 = self.noncombustion_activity_level2()
+        # self.agricultural_soil_management()
+        level3 = self.noncombustion_level_3()
         # results = self.landfills()
         # print('results:\n', results)
 

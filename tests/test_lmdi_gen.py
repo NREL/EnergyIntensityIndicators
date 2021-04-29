@@ -1,20 +1,15 @@
-import sympy as sp
-import numpy as np
-import yaml
 import pandas as pd
+import os
 
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
-from EnergyIntensityIndicators.utilites \
-    import dataframe_utilities as df_utils
-# from tests.utilites import TestingUtilities
-import utilites
-# import TestingUtilities
+import EnergyIntensityIndicators.utilites.dataframe_utilities as df_utils 
+from EnergyIntensityIndicators.utilites.testing_utilties import TestingUtilities
 
 
 class TestLMDIGen:
     directory = 'C:/Users/irabidea/Desktop/yamls/'
     gen = GeneralLMDI(directory)
-    utils = utilites.TestingUtilities(acceptable_pct_difference=0.05)
+    utils = TestingUtilities(acceptable_pct_difference=0.05)
 
     @staticmethod
     def input_data():
