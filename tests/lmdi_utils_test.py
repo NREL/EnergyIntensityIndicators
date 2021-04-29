@@ -1,12 +1,6 @@
-import pytest
-import unittest
-import pandas as pd
-import os
-import glob
-import numpy as np
 
 from EnergyIntensityIndicators.utilites import lmdi_utilities
-from EnergyIntensityIndicators.tests.utilites import TestingUtilities
+
 
 class TestLMDIUtilities:
 

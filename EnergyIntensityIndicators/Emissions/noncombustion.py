@@ -5,6 +5,9 @@ import requests
 import io
 import glob
 
+from EnergyIntensityIndicators.utilites \
+    import dataframe_utilities as df_utils
+
 
 class NonCombustion:
     """Class to handle and explore
@@ -200,8 +203,8 @@ class NonCombustion:
                                    {'activity':
                                      {'source': 'EPA',
                                       'table':
-                                        {'Metallurgical coke': 'Table 4-67',   # Production and Consumption Data for the Calculation of CO2 Emissions from Metallurgical Coke Production (Thousand Metric Tons)
-                                                                # 'Table 4-69'],  # Material Carbon Contents for Iron and Steel Production
+                                        {'Metallurgical coke': ['Table 4-67',   # Production and Consumption Data for the Calculation of CO2 Emissions from Metallurgical Coke Production (Thousand Metric Tons)
+                                                                'Table 4-68'],  # Material Carbon Contents for Iron and Steel Production
                                          'Iron and Steel': ['Table 4-72',  # Production and Consumption Data for the Calculation of CO2 and CH4 Emissions from Iron and Steel Production (Thousand Metric Tons)
                                                             'Table 4-73']}},  # Production and Consumption Data for the Calculation of CO2 Emissions from Iron and Steel Production (Million ft3 unless otherwise specified)
                                     'emissions':
@@ -300,77 +303,89 @@ class NonCombustion:
     def noncombustion_activity_epa(self, table_name):
         directory = 'C:/Users/irabidea/Desktop/emissions_data/'
 
-        try:
-            if table_name.startswith('Table A-'):
-                f_path = directory + 'Annex/'
-            elif table_name.startswith('Table 1-'):
-                f_path = directory + 'Chapter Text/Ch 1 - Intro/'
-            elif table_name.startswith('Table 2-'):
-                f_path = directory + 'Chapter Text/Ch 2 - Trends/'
-            elif table_name.startswith('Table 3-'):
-                f_path = directory + 'Chapter Text/Ch 3 - Energy/'
-            elif table_name.startswith('Table 4-'):
-                f_path = directory + \
-                    'Chapter Text/Ch 4 - Industrial Processes/'
-            elif table_name.startswith('Table 5-'):
-                f_path = directory + 'Chapter Text/Ch 5 - Agriculture/'
-            elif table_name.startswith('Table 6-'):
-                f_path = directory + 'Chapter Text/Ch 6 - LULUCF/'
-            elif table_name.startswith('Table 7-'):
-                f_path = directory + 'Chapter Text/Ch 7 - Waste/'
-            elif table_name.startswith('Table ES-'):
-                f_path = directory + 'Chapter Text/Executive Summary/'
+        # try:
+        if table_name.startswith('Table A-'):
+            f_path = directory + 'Annex/'
+        elif table_name.startswith('Table 1-'):
+            f_path = directory + 'Chapter Text/Ch 1 - Intro/'
+        elif table_name.startswith('Table 2-'):
+            f_path = directory + 'Chapter Text/Ch 2 - Trends/'
+        elif table_name.startswith('Table 3-'):
+            f_path = directory + 'Chapter Text/Ch 3 - Energy/'
+        elif table_name.startswith('Table 4-'):
+            f_path = directory + \
+                'Chapter Text/Ch 4 - Industrial Processes/'
+        elif table_name.startswith('Table 5-'):
+            f_path = directory + 'Chapter Text/Ch 5 - Agriculture/'
+        elif table_name.startswith('Table 6-'):
+            f_path = directory + 'Chapter Text/Ch 6 - LULUCF/'
+        elif table_name.startswith('Table 7-'):
+            f_path = directory + 'Chapter Text/Ch 7 - Waste/'
+        elif table_name.startswith('Table ES-'):
+            f_path = directory + 'Chapter Text/Executive Summary/'
 
+        if table_name == 'Table A-199':
             table = pd.read_csv(f'{f_path}{table_name}.csv',
-                                encoding='latin1').dropna(
-                                    axis=1, how='all').dropna(
-                                        axis=0, how='all')
+                    encoding='latin1', header=3, index_col=0).dropna(
+                        axis=1, how='all').dropna(
+                            axis=0, how='all')
+            table = table.rename(columns={'Total': 'Mineral',
+                                          'Tier 1/2.1': 'Organic',
+                                          'Total[1]': 'Total'})
+            table = table[['Mineral', 'Organic', 'Total']]
+            
+        else:
+            table = pd.read_csv(f'{f_path}{table_name}.csv',
+                    encoding='latin1').dropna(
+                        axis=1, how='all').dropna(
+                            axis=0, how='all')
+
+        if 'Year' not in table.columns:
+            table.columns = table.iloc[0]
+            table = table.drop(table.index[0])
+
             if 'Year' not in table.columns:
-                table.columns = table.iloc[0]
-                table = table.drop(table.index[0])
+                years = [str(y) for y in self.years]
+                year_cols = [c for c in table.columns
+                                if c in years]
+                if len(year_cols) == 0:
+                    years = self.years
+                not_year_cols = [c for c in table.columns
+                                    if c not in years]
 
-                if 'Year' not in table.columns:
-                    years = [str(y) for y in self.years]
-                    year_cols = [c for c in table.columns
-                                 if c in years]
-                    if len(year_cols) == 0:
-                        years = self.years
-                    not_year_cols = [c for c in table.columns
-                                     if c not in years]
-
-                    if len(not_year_cols) == 1:
-                        table = table.set_index(not_year_cols[0])
-                    elif len(not_year_cols) > 1:
-                        table = table.set_index(not_year_cols)
-                    try:
-                        table = table.transpose()
-                        table.index = table.index.astype('int')
-                        table.index.name = 'Year'
-                        table = table.dropna(how='all', axis=1)
-                    except Exception as e:
-                        print(f'year col {table_name} failed with error {e}')
-
-                else:
-                    table = table.set_index('Year')
-                    table.columns.name = None
+                if len(not_year_cols) == 1:
+                    table = table.set_index(not_year_cols[0])
+                elif len(not_year_cols) > 1:
+                    table = table.set_index(not_year_cols)
+                try:
+                    table = table.transpose()
+                    table.index = table.index.astype('int')
                     table.index.name = 'Year'
-            if table.empty:
-                t = pd.read_csv(f'{f_path}{table_name}.csv',
-                                encoding='latin1').dropna(
-                                    axis=1, how='all').dropna(
-                                        axis=0, how='all')
-                print('t columns:', t.columns)
-                print('not_year_cols:', not_year_cols)
-                print('t:\n', t)
+                    table = table.dropna(how='all', axis=1)
+                except Exception as e:
+                    print(f'year col {table_name} failed with error {e}')
+
+            else:
+                table = table.set_index('Year')
+                table.columns.name = None
+                table.index.name = 'Year'
+        if table.empty:
+            t = pd.read_csv(f'{f_path}{table_name}.csv',
+                            encoding='latin1').dropna(
+                                axis=1, how='all').dropna(
+                                    axis=0, how='all')
+            print('t columns:', t.columns)
+            print('not_year_cols:', not_year_cols)
+            print('t:\n', t)
             # else:
             #     print('table:\n', table)
             #     print('table cols:\n', table.columns)
 
             return table
 
-        except Exception as e:
-            print(f'Table {table_name} failed with error', e)
-            return None
+        # except Exception as e:
+        #     print(f'Table {table_name} failed with error', e)
+        #     return None
 
     def noncombustion_activity_level1(self):
         categories = self.categories_level1
@@ -417,42 +432,71 @@ class NonCombustion:
         categories = self.categories_level2
         data_dict = dict()
         for c, var_info in categories.items():
-            print('category:', c)
-            c_data = dict()
-            for v, info in var_info.items():
-                print('variable:', v)
-                if info['source'] == 'EPA':
-                    tables = info['table']
-                    if isinstance(tables, dict):
-                        data = dict()
-                        for s, table_names in tables.items():
-                            print('sub category:', s)                       
-                            if isinstance(table_names, list):
-                                for t in table_names:
-                                    table = self.noncombustion_activity_epa(t)
-                                    if s == 'Metallurgical coke':
-                                        print(table.columns)
-                                        break
-                                    elif s == 'Iron and Steel':
-                                        if t == 'Table 4-68':
-                                            print('Table 4-68 cols:',
-                                                  table.columns)
-                                        elif t == 'Table 4-72':
-                                            table = table[['EAF Steel Production',
-                                                           'BOF Steel Production']]
-                                            table['Steel'] = table.sum(axis=1)
-                                            table = table[['Steel']]
 
-                                # data[s] = tables_list
-
-                    elif isinstance(tables, list):
+            if c == \
+                  'Iron and Steel Production & Metallurgical Coke Production':
+                e_tables = var_info['emissions']['table']
+                for s, tables in e_tables.items():
+                    if s == 'Iron and Steel':
+                        iron_and_steel = []
                         for t in tables:
                             table = self.noncombustion_activity_epa(t)
-                            print(table.columns)
+                            table = table[['Total']]
 
-            #     c_data[v] = data
+                            if t == 'Table 4-62':
+                                table = table.rename(
+                                    columns={'Total':
+                                             'CO2 Emissions (MMT CO2 Eq.)'})
+                                # print(f'{s} emissions table {t}:\n', table)
+                            elif t == 'Table 4-64':
+                                table = table.rename(
+                                    columns={'Total':
+                                             'CH4 Emissions (MMT CO2 Eq.)'})
+                                # print(f'{s} {t} table:\n', table)
+                            iron_and_steel.append(table)
+                        iron_and_steel = df_utils.merge_df_list(iron_and_steel)
+                    elif s == 'Metallurgical coke':
+                        table = self.noncombustion_activity_epa(tables)
+                        table = table[['Total']].rename(
+                            columns={'Total': 'CO2 Emissions (MMT CO2 Eq.)'})
+                        print(f'{s} emissions table {tables}:\n', table)
 
-            # data_dict[c] = c_data
+                a_tables = var_info['activity']['table']
+                for s, tables in a_tables.items():
+                    if s == 'Iron and Steel':
+                        for t in tables:
+                            table = self.noncombustion_activity_epa(t)
+                            if t == 'Table 4-72':
+                                table = table[['EAF Steel Production',
+                                               'BOF Steel Production']]
+                                table['Iron and Steel Production'] = \
+                                    table.sum(axis=1)
+                                table = table[['Iron and Steel Production']]
+                                # print(f'{s} emissions table {t}:\n', table)
+                            elif t == 'Table 4-73':
+                                # heat_content = 
+                                print(f'{s} activity table {t}:\n', table)
+                    elif s == 'Metallurgical coke':
+                        metallurgical_coke = []
+                        for t in tables:
+                            table = self.noncombustion_activity_epa(t)
+                            print(f'{s} activity table {t}:\n', table)
+                            metallurgical_coke.append(table)
+
+                        metallurgical_coke = df_utils.merge_df_list(
+                            metallurgical_coke)
+
+            elif c == 'Non-Energy Use of Fuels':
+                e_table = var_info['emissions']['table']
+                e_table = self.noncombustion_activity_epa(e_table)
+                e_table = e_table.transpose()
+                e_table = e_table[['Emissions']].rename(
+                    columns={'Emissions': 'CO2 Emissions (MMT CO2 Eq)'})
+                a_table = var_info['activity']['table']
+                a_table = self.noncombustion_activity_epa(a_table)
+                a_table = a_table.transpose()
+                a_table = a_table[['Total']].rename(
+                    columns={'Total': 'Non-Energy Use of Fuels (TBtu)'})
 
         exit()
 
@@ -473,7 +517,12 @@ class NonCombustion:
         print('start agricultural_soil_management')
         # Total Cropland and Grassland Area Estimated with Tier 1/2
         # and 3 Inventory Approaches (Million Hectares)
-        activity = self.noncombustion_activity_epa('Table A-199')
+        organic_mineral_managed = self.noncombustion_activity_epa('Table A-199') # Note: The report shows
+                                                                            # This table as A-198
+        print('organic_mineral_managed:\n', organic_mineral_managed)
+        rice_cultivation = self.noncombustion_activity_epa('Table A-202')
+        rice_cultivation = rice_cultivation[['Total']]  # Land Areas (Million Hectares)
+        activity = # merge rice and organic_mineral_managed
         # for t in range(200, )
         # 'Table A-185: Total Rice Harvested Area Estimated with Tier 1
         #               and 3 Inventory Approaches (Million Hectares)'
@@ -485,8 +534,23 @@ class NonCombustion:
         #                 United States and the IPCC Default Values 2
         #                 Associated with Management Impacts on Mineral Soils'
         # '190-195', '197-200',
-        mineral_tables = []
-        organic_tables = []
+
+        mineral_tables_emissions = ['Table A-206', 'Table A-207']
+        n2o_cropland_mineral = self.noncombustion_activity_epa('Table A-206')
+        n2o_cropland_mineral = n2o_cropland_mineral[['Total Cropland Mineral Soil Emission']]
+        n2o_grassland_mineral = self.noncombustion_activity_epa('Table A-207')
+        n2o_grassland_mineral = n2o_grassland_mineral[['Total Grassland Mineral Soil Emission']]
+                # sum A-206, A-207 in report are the emissions data for organic activity from table A-198
+
+        n20_mineral = n2o_cropland_mineral.merge(n2o_grassland_mineral, how='outer', left_index=True,
+                                                 right_index=True)
+        n20_mineral['N2O Mineral'] = n20_mineral.sum(axis=1)        
+        # Do the same thing with tables A-208 and A-209 to get change in carbon stocks 
+        # from organic hectares
+        carbon_
+
+        organic_tables_emissions = ['Table A-208', 'Table A-209']
+
         emissions = self.noncombustion_activity_epa('Table A-178')
         return {'activity': activity, 'emissions': emissions}
 
@@ -616,7 +680,8 @@ class NonCombustion:
 
     def main(self):
         # activity_level1 = self.noncombustion_activity_level1()
-        activity_level2 = self.noncombustion_activity_level2()
+        # activity_level2 = self.noncombustion_activity_level2()
+        self.agricultural_soil_management()
         # level3 = self.noncombustion_level_3()
         # results = self.landfills()
         # print('results:\n', results)

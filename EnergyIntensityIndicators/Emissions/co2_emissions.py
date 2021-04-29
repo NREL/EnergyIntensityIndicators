@@ -7,13 +7,13 @@ import numpy as np
 # from EnergyIntensityIndicators.commercial import CommercialIndicators
 from EnergyIntensityIndicators.electricity import ElectricityIndicators
 # from EnergyIntensityIndicators.transportation import TransportationIndicators
-# from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
 
 
-class CO2EmissionsDecomposition:
+class CO2EmissionsDecomposition(CalculateLMDI):
     """Class to decompose CO2 emissions by
     sector of the U.S. economy.
 
@@ -114,24 +114,32 @@ class CO2EmissionsDecomposition:
             mecs_data (DataFrame): MECS data with column names
                                    that match EPA emissions data
                                    labels
-        """ 
+        """
         mapping_ = {
-            # 'Blast Furnace/Coke Oven Gases': ['Blast Furnace Gas', 'Coke Oven Gas'],
+                    # 'Blast Furnace/Coke Oven Gases':
+                    #   ['Blast Furnace Gas',
+                    #    'Coke Oven Gas'],
                     # 'Waste Gas', ??
                     'Petroleum Coke': 'Petroleum Coke',
                     # 'Pulping Liquor or Black Liquor', ??
                     'Wood Chips, Bark': 'Wood and Wood Residuals',
                     # 'Waste Oils/Tars and Waste Materials', ??
-                    # 'steam', ?? 
+                    # 'steam', ??
                     # 'Net Electricity', ??
-                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5', 'Residual Fuel Oil No. 6'],
-                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
-                    #                         'Distillate Fuel Oil No. 2',
-                    #                         'Distillate Fuel Oil No. 4'],
-                    'Natural Gas': 'Natural Gas', 
-                    'HGL (excluding natural gasoline)': 'Liquefied Petroleum Gases (LPG)',
-                    'Coal': 'Mixed (Industrial Sector)', # OR Mixed (Industrial Coking)?
-                    'Coke Coal and Breeze': 'Coal Coke'}
+                    # 'Residual Fuel Oil':
+                    #   ['Residual Fuel Oil No. 5',
+                    #    'Residual Fuel Oil No. 6'],
+                    # 'Distillate Fuel Oil':
+                    #   ['Distillate Fuel Oil No. 1',
+                    #    'Distillate Fuel Oil No. 2',
+                    #    'Distillate Fuel Oil No. 4'],
+                    'Natural Gas': 'Natural Gas',
+                    'HGL (excluding natural gasoline)':
+                        'Liquefied Petroleum Gases (LPG)',
+                    'Coal':
+                        'Mixed (Industrial Sector)',  # OR Mixed (Industrial Coking)?
+                    'Coke Coal and Breeze':
+                        'Coal Coke'}
         mecs_data = mecs_data.rename(columns=mapping_)
         return mecs_data
 
@@ -178,7 +186,7 @@ class CO2EmissionsDecomposition:
                                         # all data collected in
                                         # EconomyWide.collect_data()
 
-        state_abbrev = 'AK' # Alaska
+        state_abbrev = 'AK'  # Alaska
         sectors = {'residential': 'RC',
                    'commercial': 'CC',
                    'industrial': 'IC',
@@ -286,9 +294,12 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
     """Class to [Summary]
 
     """
-    def __init__(self):
+    def __init__(self, directory, output_directory, sector):
 
-        super().__init__()
+        super().__init__(directory, output_directory, sector,
+                         level_of_aggregation=None,
+                         lmdi_model='multiplicative',
+                         base_year=1985, end_year=2018)
 
     @staticmethod
     def state_census_crosswalk():
@@ -429,7 +440,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                         'Fuel Ethanol including Denaturant',
                         'Fuel Ethanol excluding Denaturant',
                         'Geothermal',
-                        'Hydrocarbon gas liquids', # is the Lpg factor right for HGL?
+                        'Hydrocarbon gas liquids',  # is the Lpg factor right for HGL?
                         'Hydroelectricity',
                         'Kerosene',
                         'Motor Gasoline',
@@ -447,7 +458,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                  'RC': ['All Petroleum Products',
                         'Coal',
                         'Distillate Fuel Oil',
-                        'Electrical System Energy Losses', # in BTU
+                        'Electrical System Energy Losses',  # in BTU
                         'Electricity Sales',
                         'Geothermal',
                         'Hydrocarbon gas liquids',
@@ -518,7 +529,7 @@ class CommercialEmissions(SEDSEmissionsData):
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
-    def __init__(self):
+    def __init__(self, directory, output_directory, sector):
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
@@ -549,13 +560,19 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
         # {'aluminum': {'noncombustion': None, 'combustion': None}}
         # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
-        super().__init__()
+
+        super().__init__(directory, output_directory, sector,
+                         level_of_aggregation=None,
+                         lmdi_model='multiplicative',
+                         base_year=1985, end_year=2018)
 
 
 class TransportationEmssions(CO2EmissionsDecomposition):
-    def __init__(self):
-        super().__init__()
-
+    def __init__(self, directory, output_directory, sector):
+        super().__init__(directory, output_directory, sector,
+                         level_of_aggregation=None,
+                         lmdi_model='multiplicative',
+                         base_year=1985, end_year=2018)
     @staticmethod
     def tedb_fuel_types(tedb_data):
         """[summary]
@@ -645,7 +662,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                        value_vars=year_cols)
 
         fuel = fuel.rename(columns={'Unnamed: 0': 'Year'})
-        fuel = fuel[(fuel['Fuel Type'] != 'Year') & (fuel['Mode']!='Not Used')]
+        fuel = fuel[(fuel['Fuel Type'] != 'Year') & (fuel['Mode'] != 'Not Used')]
 
         print('fuel:\n', fuel)
 
@@ -661,9 +678,11 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
     """Class to decompose changes in Emissions from the electric
     power sector
     """
-    def __init__(self):
-        super().__init__()
-
+    def __init__(self, directory, output_directory, sector):
+        super().__init__(directory, output_directory, sector,
+                         level_of_aggregation=None,
+                         lmdi_model='multiplicative',
+                         base_year=1985, end_year=2018)
     @staticmethod
     def electric_power_sector():
         """[summary]
@@ -678,7 +697,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
         return mapping_
-        
+
     def electric_power_co2(self):
         """[summary]
 

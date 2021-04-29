@@ -3,16 +3,18 @@ import numpy as np
 import yaml
 import pandas as pd
 
-from ..EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
-from ..EnergyIntensityIndicators.utilites \
+from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
+from EnergyIntensityIndicators.utilites \
     import dataframe_utilities as df_utils
-from ..EnergyIntensityIndicators.tests.utilites import TestingUtilities
+# from tests.utilites import TestingUtilities
+import utilites
+# import TestingUtilities
 
 
 class TestLMDIGen:
     directory = 'C:/Users/irabidea/Desktop/yamls/'
     gen = GeneralLMDI(directory)
-    utils = TestingUtilities(acceptable_pct_difference=0.05)
+    utils = utilites.TestingUtilities(acceptable_pct_difference=0.05)
 
     @staticmethod
     def input_data():
