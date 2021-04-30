@@ -2,13 +2,16 @@
 import pandas as pd
 import numpy as np
 
-# from EnergyIntensityIndicators.utilities import dataframe_utilities as df_utils
-from EnergyIntensityIndicators.utilites.testing_utilties import TestingUtilities
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
+from EnergyIntensityIndicators.utilities.testing_utilties \
+    import TestingUtilities
+
 
 class TestDFUtilities:
 
     @staticmethod
-    def test_calculate_log_changes(acceptable_pct_difference=0.05):
+    def test_calculate_log_changes():
         """Test for the dataframe_utilities calculate_log_changes method
 
         Args:
@@ -26,7 +29,7 @@ class TestDFUtilities:
                                 index=[1970, 1971, 1972, 1973, 1974], 
                                 columns=['All_Passenger', 'All_Freight'])
 
-        log_ratio_df = df_utils.calculate_log_changes(input_df)
+        log_ratio_df = df_utils().calculate_log_changes(input_df)
         log_ratio_df = log_ratio_df.round(4)
         comparison_output = [[np.nan, np.nan],
                              [-0.0086, -0.0129],
@@ -39,9 +42,9 @@ class TestDFUtilities:
                                      columns=['All_Passenger', 'All_Freight'])
         print('comparison_df:\n', comparison_df)
         print('log_ratio_df:\n', log_ratio_df)
-        assert TestingUtilities(
-                acceptable_pct_difference).pct_diff(
+        assert TestingUtilities().pct_diff(
                     comparison_df, log_ratio_df)
-
+    
+    @staticmethod
     def test_calculate_shares():
         pass

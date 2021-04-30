@@ -7,7 +7,8 @@ import os
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 
 class WeatherFactors: 
@@ -221,7 +222,7 @@ class WeatherFactors:
                 standard_id = f'AEO.2020.AEO2019REF.KEI_NA_COMM_NA_NA_NA_{region}_{type_day}.A'
             r_df = self.eia_data.eia_api(id_=standard_id, id_type='series')
             dd_data.append(r_df)
-        data_df = df_utils.merge_df_list(dd_data)
+        data_df = df_utils().merge_df_list(dd_data)
         return data_df
 
     def heating_cooling_data(self):
@@ -294,7 +295,7 @@ class WeatherFactors:
         final_results_total_floorspace_regions, regional_estimates_all, avg_size_all_regions = residential_data.final_floorspace_estimates()
         
         regional_dfs = [regional_estimates_all[r][['Total']].rename(columns={'Total': r}) for r in regions]
-        residential_housing_units = df_utils.merge_df_list(regional_dfs)
+        residential_housing_units = df_utils().merge_df_list(regional_dfs)
         residential_housing_units['U.S.'] = residential_housing_units.sum(axis=1)
         residential_housing_units.index = residential_housing_units.index.astype(str)
         regional_shares_residential_housing_units = residential_housing_units.drop('U.S.', axis=1).divide(residential_housing_units['U.S.'].values.reshape(len(residential_housing_units), 1))
@@ -514,7 +515,7 @@ class WeatherFactors:
 
     def national_method2_regression_models(self, seds_data, weather_factors):
         """Second regression model"""
-        seds_data, weather_factors = df_utils.ensure_same_indices(seds_data, weather_factors)
+        seds_data, weather_factors = df_utils().ensure_same_indices(seds_data, weather_factors)
         
         weather_adjusted_consumption = seds_data.drop('National', axis=1).multiply(weather_factors.values)
         weather_adjusted_consumption['National'] = weather_adjusted_consumption.sum(axis=1)

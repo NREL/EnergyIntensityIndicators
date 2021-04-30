@@ -5,8 +5,9 @@ from scipy.optimize import leastsq
 from bs4 import BeautifulSoup
 
 from EnergyIntensityIndicators.get_census_data import Asm
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
-from EnergyIntensityIndicators.utilites.standard_interpolation \
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
+from EnergyIntensityIndicators.utilities.standard_interpolation \
      import standard_interpolation
 
 
@@ -317,6 +318,6 @@ class Mfg_prices:
             calibrated_prediction = calibrated_prediction.rename(columns={'calibrated_prediction': n})
             n_dfs.append(calibrated_prediction)
 
-        calibrated_prediction_all = df_utils.merge_df_list(n_dfs)
+        calibrated_prediction_all = df_utils().merge_df_list(n_dfs)
         return calibrated_prediction_all
 

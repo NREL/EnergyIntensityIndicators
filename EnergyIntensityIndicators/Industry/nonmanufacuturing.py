@@ -6,7 +6,7 @@ import numpy as np
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import Econ_census
-from EnergyIntensityIndicators.utilites.standard_interpolation import standard_interpolation
+from EnergyIntensityIndicators.utilities.standard_interpolation import standard_interpolation
 
 
 class NonManufacturing:

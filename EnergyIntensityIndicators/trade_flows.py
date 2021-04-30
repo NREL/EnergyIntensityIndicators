@@ -20,7 +20,8 @@ import pandas as pd
 from sklearn import linear_model
 
 from EnergyIntensityIndicators.industry import IndustrialIndicators
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 class TradeFlows(IndustrialIndicators):
 

@@ -1,5 +1,5 @@
 
-from EnergyIntensityIndicators.utilites import lmdi_utilities
+from EnergyIntensityIndicators.utilities import lmdi_utilities
 
 
 class TestLMDIUtilities:

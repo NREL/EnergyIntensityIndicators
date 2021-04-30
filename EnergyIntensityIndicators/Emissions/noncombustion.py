@@ -5,8 +5,8 @@ import requests
 import io
 import glob
 
-from EnergyIntensityIndicators.utilites \
-    import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 
 class NonCombustion:
@@ -358,23 +358,28 @@ class NonCombustion:
             if table[table.columns[0]].str.contains('Year').any():
 
                 year_row = table.index[table[table.columns[0]] == 'Year']
-
-                new_header = table.iloc[0]
-                table = table[1:]
+                year_row = year_row.to_list()[0]
+                print('year_row:', year_row)
+                try:
+                    new_header = table.iloc[year_row]
+                except IndexError:
+                    print('table with error:\n', table)
+                table = table[year_row + 1:]
                 table.columns = new_header
+
             else:
                 print('table:\n', table)
                 new_header = table.iloc[0]
-
                 table = table[1:]
 
                 table.columns = new_header
                 table = table.set_index(table.columns[0])
                 table = table.transpose()
                 print('table:\n', table)
-                table.index = table.index.astype(int)
-                table.columns.name = None
-                table.index.name = 'Year'
+        
+        table.index = table.index.astype(int)
+        table.columns.name = None
+        table.index.name = 'Year'
 
         return table
 
@@ -445,7 +450,7 @@ class NonCombustion:
                                              'CH4 Emissions (MMT CO2 Eq.)'})
                                 # print(f'{s} {t} table:\n', table)
                             iron_and_steel.append(table)
-                        iron_and_steel = df_utils.merge_df_list(iron_and_steel)
+                        iron_and_steel = df_utils().merge_df_list(iron_and_steel)
                     elif s == 'Metallurgical coke':
                         table = self.noncombustion_activity_epa(tables)
                         table = table[['Total']].rename(
@@ -474,7 +479,7 @@ class NonCombustion:
                             print(f'{s} activity table {t}:\n', table)
                             metallurgical_coke.append(table)
 
-                        metallurgical_coke = df_utils.merge_df_list(
+                        metallurgical_coke = df_utils().merge_df_list(
                             metallurgical_coke)
 
             elif c == 'Non-Energy Use of Fuels':
@@ -599,11 +604,11 @@ class NonCombustion:
         emissions_tables = [n2o_mineral, carbon_stock_organic,
                             n2o_organic, carbon_stock_organic_drain,
                             rice_methane, indirect_emissions]
-        emissions = df_utils.merge_df_list(emissions_tables)
+        emissions = df_utils().merge_df_list(emissions_tables)
         emissions['Agricultural Soil Management'] = emissions.sum(axis=1)
         emissions = emissions[['Agricultural Soil Management']]
 
-        activity = df_utils.merge_df_list([organic_mineral_managed,
+        activity = df_utils().merge_df_list([organic_mineral_managed,
                                            rice_cultivation])
         activity['Agricultural Soil Management'] = activity.sum(axis=1)
         activity = activity[['Agricultural Soil Management']]

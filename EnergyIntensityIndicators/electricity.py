@@ -224,7 +224,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         fuels_list = [consumption_combustible_fuels_electricity_generation_distillate_fuel_oil, consumption_combustible_fuels_electricity_generation_residual_fuel_oil,
                     consumption_combustible_fuels_electricity_generation_other_liquids, consumption_combustible_fuels_electricity_generation_petroleum_coke]
-        elec_only_plants_petroleum = df_utils.merge_df_list(fuels_list)
+        elec_only_plants_petroleum = df_utils().merge_df_list(fuels_list)
         
         consumption_combustible_fuels_useful_thermal_output_distillate_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.DKEIPUS.A', id_type='series')# Table86b11 column D, F, G, I
         consumption_combustible_fuels_useful_thermal_output_residual_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.RFEIPUS.A', id_type='series')

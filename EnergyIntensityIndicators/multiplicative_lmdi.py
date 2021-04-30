@@ -9,8 +9,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 import math
 
-from EnergyIntensityIndicators.utilites import lmdi_utilities
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities import lmdi_utilities
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 
 class MultiplicativeLMDI():
@@ -71,7 +72,7 @@ class MultiplicativeLMDI():
         """Format component data, collect overall effect, return indexed 
         dataframe of the results for the multiplicative LMDI model.
         """
-        ASI_df = df_utils.merge_df_list(list(ASI.values()))
+        ASI_df = df_utils().merge_df_list(list(ASI.values()))
         results = ASI_df.apply(lambda col: np.exp(col), axis=1)
         for col in results.columns:
             results[col] = self.compute_index(results[col], self.base_year)

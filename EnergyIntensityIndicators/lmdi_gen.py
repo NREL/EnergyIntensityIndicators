@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
-from EnergyIntensityIndicators.utilites import lmdi_utilities
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
+from EnergyIntensityIndicators.utilities import lmdi_utilities
 
 
 class GeneralLMDI:
@@ -323,10 +324,10 @@ class GeneralLMDI:
         name = input_data['total_label']
 
         print('lhs:\n', lhs)
-        lhs_total = df_utils.create_total_column(lhs,
+        lhs_total = df_utils().create_total_column(lhs,
                                                  total_label=name)
         print('lhs_total:\n', lhs_total)
-        lhs_share = df_utils.calculate_shares(lhs_total,
+        lhs_share = df_utils().calculate_shares(lhs_total,
                                               total_label=name)
         print('lhs_share:\n', lhs_share)
 
@@ -349,7 +350,7 @@ class GeneralLMDI:
             print('units:', units)
             if self.all_equal(units):
                 total_df = \
-                    df_utils.create_total_column(input_data[cols],
+                    df_utils().create_total_column(input_data[cols],
                                                  total_label=name)
                 total_col = total_df[[name]]
             else:
@@ -372,7 +373,7 @@ class GeneralLMDI:
                 denominator = input_data[denominator]
 
                 numerator, denominator = \
-                    df_utils.ensure_same_indices(numerator, denominator)
+                    df_utils().ensure_same_indices(numerator, denominator)
                 print('numerator:\n', numerator)
                 print('denominator:\n', denominator)
 
@@ -396,7 +397,7 @@ class GeneralLMDI:
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
         elif self.model == 'multiplicative':
-            results = df_utils.calculate_log_changes(results)
+            results = df_utils().calculate_log_changes(results)
             expression = self.decomposition_multiplicative(results)
 
         print('expression:\n', expression)

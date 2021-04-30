@@ -10,7 +10,8 @@ from EnergyIntensityIndicators.electricity import ElectricityIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 
 class CO2EmissionsDecomposition(CalculateLMDI):
@@ -66,9 +67,9 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         """
         region_data = region_data.drop('Census Region',
                                        axis=1, errors='ignore')
-        region_data = df_utils.create_total_column(region_data,
+        region_data = df_utils().create_total_column(region_data,
                                                    total_label='total')
-        fuel_mix = df_utils.calculate_shares(region_data, total_label='total')
+        fuel_mix = df_utils().calculate_shares(region_data, total_label='total')
         return fuel_mix
 
     @staticmethod
@@ -489,7 +490,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
             region_data = region_data.groupby('Year').sum()
             fuels_data.append(region_data)
 
-        fuels_data = df_utils.merge_df_list(fuels_data)
+        fuels_data = df_utils().merge_df_list(fuels_data)
         return fuels_data
 
     def seds_energy_data(self, sector):

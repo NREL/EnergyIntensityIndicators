@@ -12,9 +12,10 @@ from EnergyIntensityIndicators.electricity import ElectricityIndicators
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 from EnergyIntensityIndicators.Industry.asm_price_fit import Mfg_prices
-from EnergyIntensityIndicators.utilites.standard_interpolation \
+from EnergyIntensityIndicators.utilities.standard_interpolation \
      import standard_interpolation
 
 
@@ -439,7 +440,7 @@ class Manufacturing:
         mecs42_df = mecs42_df[(mecs42_df['region'] == region) 
                               & ~(mecs42_df['NAICS'] == 'RSE Column Factors:')]
         mecs42_df = mecs42_df.set_index(['region', 'NAICS', 'Subsector and Industry', 'Year'])
-        quantity_shares = df_utils.calculate_shares(mecs42_df,
+        quantity_shares = df_utils().calculate_shares(mecs42_df,
                                                     total_label=['Total'])
         quantity_shares = quantity_shares.reset_index()
          

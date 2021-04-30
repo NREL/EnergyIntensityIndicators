@@ -1,8 +1,9 @@
 import pandas as pd
 import plotly.graph_objects as go
 
-from EnergyIntensityIndicators.utilites import lmdi_utilities
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities import lmdi_utilities
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 
 class AdditiveLMDI:
@@ -112,7 +113,7 @@ class AdditiveLMDI:
         dataframe of the results for the additive LMDI model.
         """
         # ASI.pop('lower_level_structure', None)
-        ASI_df = df_utils.merge_df_list(list(ASI.values()))
+        ASI_df = df_utils().merge_df_list(list(ASI.values()))
 
         df = self.calculate_effect(ASI_df)
         df = df.reset_index()

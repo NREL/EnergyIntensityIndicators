@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn
 
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-from EnergyIntensityIndicators.utilites import dataframe_utilities as df_utils
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 class EmissionsDataExploration:
     """Class to visualize changes over time in Emissions and 
@@ -111,7 +112,7 @@ class EmissionsDataExploration:
         for s in sectors:
             em = emissions[f'{s}_co2']
             en = energy[f'{s}_energy']
-            em, en = df_utils.ensure_same_indices(em, en)
+            em, en = df_utils().ensure_same_indices(em, en)
             factor = em.divide(en.values, axis=1)
             factor = factor.rename(columns={'CO2 Emissions': 'Million Metric Tons per Trillion Btu'})
             emissions_factors[s] = factor
