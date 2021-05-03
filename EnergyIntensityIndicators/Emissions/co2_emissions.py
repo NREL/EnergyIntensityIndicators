@@ -14,7 +14,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 
 
-class CO2EmissionsDecomposition(CalculateLMDI):
+class CO2EmissionsDecomposition:  # CalculateLMDI
     """Class to decompose CO2 emissions by
     sector of the U.S. economy.
 
@@ -96,7 +96,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                                        var_name='Unit')
 
             unit_data = unit_data.rename(columns={'Units': 'Category'})
-            unit_data['Variable'] = unit_data['Unit'].map(units_dict)
+            unit_data.loc[:, 'Variable'] = unit_data['Unit'].map(units_dict)
 
             dfs.append(unit_data)
         emissions_factors = pd.concat(dfs, axis=0)
@@ -147,6 +147,70 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         return mecs_data
 
     @staticmethod
+    def tedb_epa_mapping(tedb_data):
+
+        # tedb_data = tedb_data.drop('Total Energy (Tbtu) - old series')
+        print('tedb_data:\n', tedb_data)
+        print('tedb_data cols:\n', tedb_data.columns)
+
+        print('tedb_data fuel types:\n', tedb_data['Fuel Type'].unique())
+
+        # tedb_data = tedb_data.replace({'Gasoline (million gallons)': 'Gasoline',
+        #                                'Diesel (million gallons)': 'Diesel',
+        #                                'Diesel fuel': 'Diesel',
+        #                                'LPG': 'Liquefied petroleum gas',
+        #                                })
+        # mapping = {'All Fuel':
+        #            'Gasoline': 'Motor Gasoline'
+        #            'Gasohol': ['Motor Gasoline', 'Ethanol (100%)']
+        #            'Diesel': 'Diesel Fuel'
+        #            'CNG': 'Compressed Natural Gas (CNG)',
+        #            'LNG': 'Liquefied Natural Gas (LNG)',
+        #            'Bio Diesel ': 'Biodiesel (100%)'
+        #            'Other':
+        #            'School':
+        #            'School (million bbl)':
+        #            'Intercity':
+        #             'Diesel Fuel & Distillate (1,000 bbl)': 
+        #                                     ['Diesel Fuel',
+        #                                      'Distillate Fuel Oil No. 1',
+        #                                      'Distillate Fuel Oil No. 2',
+        #                                      'Distillate Fuel Oil No. 4']  # Take Average
+        #              'Residual Fuel Oil (1,000 bbl)'
+        #             'Domestic Operations ':
+        #             'International Operations ':
+        #              'Jet fuel (million gallons)':
+        #             'Electricity (GWhrs)':
+        #              'Total Energy (Tbtu) ':
+        #              'Total Energy (Tbtu)':
+        #             'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
+        #                                     'Distillate Fuel Oil No. 2',
+        #                                     'Distillate Fuel Oil No. 4']  # Take Average
+        #              'Natural Gas (million cu. ft.)': 'Natural Gas',
+        #             'Electricity (million kWh)': 'US Average'  # From table 6
+        #             'Diesel fuel':
+        #             'Liquefied petroleum gas': 'Liquefied Petroleum Gases (LPG)'
+        #             'Jet fuel':
+        #              'Residual fuel oil': 'Residual Fuel Oil'
+        #              'Natural gas': 'Natural Gas',
+        #               'Electricity': 'US Average'  # From table 6
+        #             }
+
+        # mapping_ = {'Jet fuel': 'Aviation Gasoline',
+        #             'Bio Diesel ': 'Biodiesel (100%)',
+        #             'Natural gas': 'Compressed Natural Gas (CNG)'
+        #             'Diesel fuel': 'Diesel Fuel',
+        #             'Gasohol': 'Ethanol (100%)',
+        #             'Kerosene-Type Jet Fuel',
+        #             'Liquefied Natural Gas (LNG)',
+        #             'Liquefied Petroleum Gases (LPG)',
+        #             'Motor Gasoline',
+        #             'Residual Fuel Oil'}
+
+        tedb_data = tedb_data.rename(columns=mapping_)
+        return tedb_data
+
+    @staticmethod
     def get_factor(factors_df, emissions_type):
         """Lookup emissions factor for given fuel and emissions
         type
@@ -161,7 +225,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         """
         factors_df = factors_df[factors_df['Variable'] == emissions_type]
         fuel_factor_df = factors_df[['Fuel Type', 'value']]
-        fuel_factor_df['value'] = fuel_factor_df['value'].astype(float)
+        fuel_factor_df.loc[:, 'value'] = fuel_factor_df['value'].astype(float)
         new_row = {'Fuel Type': 'Census Region', 'value': 1}
         fuel_factor_df = fuel_factor_df.append(new_row, ignore_index=True)
         fuel_factor_df = fuel_factor_df.set_index('Fuel Type')
@@ -261,16 +325,26 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         print('energy_data:\n', energy_data)
         emissions_factors = self.get_factor(emissions_factors,
                                             emissions_type)
-        emissions_factors = emissions_factors.loc[energy_data.columns.tolist()]
+
+        emissions_factors = emissions_factors.to_frame(name='Emissions Factors')
+        emissions_factors = emissions_factors.transpose()
+        print('emissions_factors:\n', emissions_factors)
+        print('emissions_factors cols', emissions_factors.columns)
+        print('energy_data.columns.tolist():', energy_data.columns.tolist())
+        try:
+            emissions_factors = emissions_factors[energy_data.columns.tolist()]
+        except KeyError:
+            print('energy_data.columns.tolist() not in dataframe:', energy_data.columns.tolist())
+            return None
         print('emissions_factors:\n', emissions_factors)
 
         emissions_data = \
             energy_data.multiply(emissions_factors, axis='columns')
-        emissions_data['Census Region'] = \
+        emissions_data.loc[:, 'Census Region'] = \
             emissions_data['Census Region'].astype(int).astype(str)
         print('emissions_data:\n', emissions_data)
 
-        energy_data['Census Region'] = \
+        energy_data.loc[:, 'Census Region'] = \
             energy_data['Census Region'].astype(int).astype(str)
         fuel_mix = self.get_fuel_mix(energy_data)
         print(fuel_mix)
@@ -513,21 +587,36 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
             region_data = self.collect_seds(
                                         sector=sector_data[sector]['abbrev'],
                                         states=region_states['USPC'].unique())
-            region_data['Census Region'] = g
+            region_data.loc[:, 'Census Region'] = g
             all_data.append(region_data)
         all_data = pd.concat(all_data, axis=0)
         return all_data
 
 
 class ResidentialEmissions(SEDSEmissionsData):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, directory, output_directory):
+        super().__init__(directory, output_directory,
+                         sector='Residential')
+
+    def main(self):
+        energy = self.seds_energy_data(sector='residential')
+
+        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
+                                             datasource='SEDS')
+        pass 
 
 
 class CommercialEmissions(SEDSEmissionsData):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, directory, output_directory):
+        super().__init__(directory, output_directory,
+                         sector='Commercial')
 
+    def main(self):
+        energy = self.seds_energy_data(sector='commercial')
+
+        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
+                                             datasource='SEDS')
+        pass
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory):
@@ -567,6 +656,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          level_of_aggregation=None,
                          lmdi_model='multiplicative',
                          base_year=1985, end_year=2018)
+
+    def main(self):
+        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
+                                             datasource='MECS')
+        pass
 
 
 class TransportationEmssions(CO2EmissionsDecomposition):
@@ -619,8 +713,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc',
                       'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY',
         conditions = [(tedb_18['index'] == r) for r in categories]
-        tedb_18['Category'] = np.select(conditions, categories)
-        tedb_18['Category'] = \
+        tedb_18.loc[:, 'Category'] = np.select(conditions, categories)
+        tedb_18.loc[:, 'Category'] = \
             tedb_18['Category'].replace(to_replace='0',
                                         value=np.nan).fillna(method='ffill')
         tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
@@ -635,7 +729,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'],
                             value_vars=tedb_fuel_types, var_name='Fuel Type')
-        tedb_fuel['Year'] = 2018
+        tedb_fuel.loc[:, 'Year'] = 2018
         tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway',
                                        'Water': 'Waterborne'})
         print(tedb_fuel)
@@ -676,12 +770,19 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         return transport_fuel
 
+    def main(self):
+        energy_data = self.transportation_data()
+        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
+                                             datasource='TEDB')
+
 
 class ElectricPowerEmissions(CO2EmissionsDecomposition):
     """Class to decompose changes in Emissions from the electric
     power sector
     """
     def __init__(self, directory, output_directory):
+        self.directory = directory
+        self.output_directory = output_directory
         super().__init__(directory, output_directory,
                          sector='Electric Power',
                          level_of_aggregation=None,
@@ -712,8 +813,12 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
 
         Returns:
             [type]: [description]
-        """        
-        elec_data = ElectricityIndicators.collect_data()
+        """
+        elec_data = \
+            ElectricityIndicators(directory=self.directory,
+                                  output_directory=self.output_directory,
+                                  level_of_aggregation='Electric Power',
+                                  end_year=2018).collect_data()
         elec_gen_total = elec_data['Elec Generation Total']
         elec_power_sector = elec_gen_total['Elec Power Sector']
         elec_only = elec_power_sector['Electricity Only']
@@ -730,27 +835,58 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
                      ind_sector, chp_elec_power,
                      chp_comm, chp_ind]
 
+        emissions_data = dict()
         for d in data_cats:
-            d = d.rename(columns=self.electric_power_sector())
-            d_emissions = self.calculate_emissions(d,
-                                                   emissions_type='CO2 Factor',
-                                                   datasource='eia_elec')
-        return elec_data
+            print('d:\n', d)
+            for c in d.keys():
+                print('c:', c)
+                try:
+                    activity = d[c]['activity']
+                except KeyError:
+                    print('d[c] keys', d[c].keys())
+                print('activity:\n', activity)
+                try:
+                    energy = d[c]['energy']
+                except KeyError:
+                    print('d[c] keys', d[c].keys())
+                print('energy:\n', energy)
+                for e, e_df in energy.items():
+                    print('e:', e)
+                    # d = d.rename(columns=self.electric_power_sector())
+                    d_emissions = \
+                        self.calculate_emissions(e_df,
+                                                 emissions_type='CO2 Factor',
+                                                 datasource='eia_elec')
+                    emissions_data[c] = d_emissions
+        return emissions_data
+
+    def main(self):
+
+        return self.electric_power_co2()
 
 
 if __name__ == '__main__':
-    indicators = \
-        CO2EmissionsDecomposition(directory='./EnergyIntensityIndicators/Data',
-                                  output_directory='./Results',
-                                  level_of_aggregation=None,
-                                  end_year=2018,
-                                  lmdi_model=['multiplicative', 'additive'])
+    # indicators = \
+    #     CO2EmissionsDecomposition(directory='./EnergyIntensityIndicators/Data',
+    #                               output_directory='./Results',
+    #                               level_of_aggregation=None,
+    #                               end_year=2018,
+    #                               lmdi_model=['multiplicative', 'additive'])
 
-    indicators.mecs_sic_crosswalk()
-    indicators.mecs_data_by_year()
+    # indicators.mecs_sic_crosswalk()
+    # indicators.mecs_data_by_year()
+    directory = './EnergyIntensityIndicators/Data'
+    output_directory = './Results'
 
-    ElectricPowerEmissions(directory, output_directory)
-    TransportationEmssions(directory, output_directory)
-    IndustrialEmissions(directory, output_directory)
-    ResidentialEmissions()
-    CommercialEmissions()
+    module_dict = {'elec': ElectricPowerEmissions,
+                #    'transport': TransportationEmssions,
+                   'industry': IndustrialEmissions,
+                   'residential': ResidentialEmissions,
+                   'commercial': CommercialEmissions}
+    results = dict()
+    for sector, module_ in module_dict.items():
+        print('sector:', sector)
+        s = module_(directory, output_directory)
+        s_data = s.main()
+        print('s_data:\n', s_data)
+        results[sector] = s_data

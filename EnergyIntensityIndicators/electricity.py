@@ -7,7 +7,8 @@ import os
 
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-
+from EnergyIntensityIndicators.utilities.dataframe_utilities \
+    import DFUtilities as df_utils
 
 class ElectricityIndicators(CalculateLMDI):
     
@@ -90,11 +91,11 @@ class ElectricityIndicators(CalculateLMDI):
 
         net_generation = pd.pivot_table(eia_923_schedules, columns='EIA Sector Number', index='AERFuel Type Code', aggfunc='sum')  # page A-71,
                                                                                                     # 'Net Generation' lower right-hand quadrant?
-        net_generation['Grand_Total'] = net_generation.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
+        net_generation.loc[:, 'Grand_Total'] = net_generation.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
                                                                                     # plus one for 'Grand Total'. Note: rows is not an arg of pd.pivot_table
         elec_btu_consumption = pd.pivot_table(eia_923_schedules, columns='EIA Sector Number', index='AERFuel Type Code', aggfunc='sum')  # page A-71,
                                                                                                     # 'Elec Fuel ConsumptionMMBTU' lower right-hand quadrant?
-        elec_btu_consumption['Grand_Total'] = elec_btu_consumption.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
+        elec_btu_consumption.loc[:, 'Grand_Total'] = elec_btu_consumption.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
                                                                                     # plus one for 'Grand Total'
         previous_years_net_gen = pd.read_excel('./')
         previous_yeas_elec_btu_consumption = pd.read_excel('./')
@@ -260,15 +261,15 @@ class ElectricityIndicators(CalculateLMDI):
         """
         Format EII input data (that isn't from the API). The Month 13 represents annual data.
         """
-        table['YYYYMM'] = table['YYYYMM'].astype(str)
-        table['Month'] = table['YYYYMM'].apply(lambda x: x[-2:])
+        table.loc[:, 'YYYYMM'] = table['YYYYMM'].astype(str)
+        table.loc[:, 'Month'] = table['YYYYMM'].apply(lambda x: x[-2:])
         table = table[table['Month'] == '13']
-        table['Year'] = table['YYYYMM'].apply(lambda x: x[:-2]).astype(int)
+        table.loc[:, 'Year'] = table['YYYYMM'].apply(lambda x: x[:-2]).astype(int)
 
         table = table[['Year', 'Value']].set_index('Year')
         table = table.replace('Not Available', np.nan)
         try:
-            table['Value'] = table['Value'].astype(float)
+            table.loc[:, 'Value'] = table['Value'].astype(float)
             table = table.multiply(factor)
         except Exception as e:
             print('error:', e)
