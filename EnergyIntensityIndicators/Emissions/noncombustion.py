@@ -4,6 +4,7 @@ import zipfile
 import requests
 import io
 import glob
+import numpy as np
 
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
@@ -354,32 +355,50 @@ class NonCombustion:
                                 encoding='latin1').dropna(  # , header=2
                                     axis=1, how='all').dropna(
                                         axis=0, how='any')
+            # print('table before reshaping:\n', table)
+            if table_name == 'Table 3-20' or table_name == 'Table 3-21':
+                print(f'{table_name} raw:\n', table)
 
             if table[table.columns[0]].str.contains('Year').any():
-
-                year_row = table.index[table[table.columns[0]] == 'Year']
-                year_row = year_row.to_list()[0]
+                year_row = 0
                 print('year_row:', year_row)
-                try:
-                    new_header = table.iloc[year_row]
-                except IndexError:
-                    print('table with error:\n', table)
+                new_header = table.iloc[year_row]
                 table = table[year_row + 1:]
                 table.columns = new_header
 
+            if 'Year' in table.columns:
+                table = table.set_index('Year')
+                try:
+                    table.index = table.index.astype(int)
+                except TypeError:
+                    try:
+                        table.index = table.index.astype(int)
+                    except TypeError:
+                        table = table.transpose()
+                        table.index = table.index.astype(int)
             else:
-                print('table:\n', table)
-                new_header = table.iloc[0]
-                table = table[1:]
-
-                table.columns = new_header
                 table = table.set_index(table.columns[0])
                 table = table.transpose()
-                print('table:\n', table)
-        
-        table.index = table.index.astype(int)
+                try:
+                    table.index = table.index.astype(int)
+                except TypeError:
+                    table = table.set_index(table.columns[0])
+                    try:
+                        table.index = table.index.astype(int)
+                    except TypeError:
+                        table = table.transpose()
+                        table.index = table.index.astype(int)
+
+                    print('table failed to set index to int:\n', table)
+
         table.columns.name = None
         table.index.name = 'Year'
+        table = table.replace(to_replace='+', value=0.025)
+        table = table.replace(to_replace='C', value=np.nan)
+
+        table = table.ffill().bfill()
+
+        print('table:\n', table)
 
         return table
 
@@ -444,7 +463,7 @@ class NonCombustion:
                                     columns={'Total':
                                              'CO2 Emissions (MMT CO2 Eq.)'})
                                 # print(f'{s} emissions table {t}:\n', table)
-                            elif t == 'Table 4-64':
+                            elif t == 'Table 4-64':  # + Does not exceed 0.05 MMT CO₂ Eq.
                                 table = table.rename(
                                     columns={'Total':
                                              'CH4 Emissions (MMT CO2 Eq.)'})
@@ -494,8 +513,6 @@ class NonCombustion:
                 a_table = a_table[['Total']].rename(
                     columns={'Total': 'Non-Energy Use of Fuels (TBtu)'})
 
-        exit()
-
         print('data_dict:\n', data_dict)
         return data_dict
 
@@ -521,8 +538,6 @@ class NonCombustion:
             columns={'Total': 'Organic and Mineral Soil Managed'})
         print('organic_mineral_managed:\n', organic_mineral_managed)
         rice_cultivation = self.noncombustion_activity_epa('Table A-202')
-        rice_cultivation = rice_cultivation.set_index('Year')
-        rice_cultivation.columns.name = None
 
         print('rice_cultivation:\n', rice_cultivation)
 
@@ -609,7 +624,7 @@ class NonCombustion:
         emissions = emissions[['Agricultural Soil Management']]
 
         activity = df_utils().merge_df_list([organic_mineral_managed,
-                                           rice_cultivation])
+                                             rice_cultivation])
         activity['Agricultural Soil Management'] = activity.sum(axis=1)
         activity = activity[['Agricultural Soil Management']]
         print('activity:\n', activity)
@@ -742,9 +757,10 @@ class NonCombustion:
 
     def main(self):
         activity_level1 = self.noncombustion_activity_level1()
-        activity_level2 = self.noncombustion_activity_level2()
-        # self.agricultural_soil_management()
         level3 = self.noncombustion_level_3()
+
+        activity_level2 = self.noncombustion_activity_level2()
+        # # self.agricultural_soil_management()
         # results = self.landfills()
         # print('results:\n', results)
 

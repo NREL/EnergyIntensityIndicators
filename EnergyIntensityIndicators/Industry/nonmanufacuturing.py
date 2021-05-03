@@ -6,30 +6,35 @@ import numpy as np
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import Econ_census
-from EnergyIntensityIndicators.utilities.standard_interpolation import standard_interpolation
+from EnergyIntensityIndicators.utilities.standard_interpolation \
+    import standard_interpolation
 
 
 class NonManufacturing:
     """ Prior to 2012, total nonmanufacturing
-    energy consumption (electricity and fuels) was estimated as a residual between the supply-side
-    estimates of industrial consumption published by EIA and the end-user estimates for manufacturing
-    based upon the MECS (supplemented by census-based data, as described above). The residual-based
-    method produced very unsatisfactory results; year-to-year changes in energy consumption were
-    implausible in a large number of instances. A complicating factor for fuels is that industrial consumption
-    estimates published by EIA include energy products used as chemical feedstocks and other nonfuel
-    purposes. As a result, a preliminary effort was undertaken in mid-2012 to estimate energy consumption
-    from the user side for these sectors.   
-
-
-    """    
-    def __init__(self, naics_digits):        
+    energy consumption (electricity and fuels) was estimated as a residual
+    between the supply-side estimates of industrial consumption published
+    by EIA and the end-user estimates for manufacturing based upon the MECS
+    (supplemented by census-based data, as described above). The residual-based
+    method produced very unsatisfactory results; year-to-year changes in
+    energy consumption were implausible in a large number of instances.
+    A complicating factor for fuels is that industrial consumption
+    estimates published by EIA include energy products used as chemical
+    feedstocks and other nonfuel purposes. As a result, a preliminary
+    effort was undertaken in mid-2012 to estimate energy consumption
+    from the user side for these sectors.
+    """
+    def __init__(self, naics_digits):
         self.currentYear = datetime.now().year
         self.naics_digits = naics_digits
         self.BEA_data = BEA_api(years=list(range(1949, self.currentYear + 1)))
         self.BEA_go_nominal = self.BEA_data.get_data(table_name='go_nominal')
-        self.BEA_go_quant_index = self.BEA_data.get_data(table_name='go_quant_index')
-        self.BEA_va_nominal = self.BEA_data.get_data(table_name='va_nominal')
-        self.BEA_va_quant_index = self.BEA_data.get_data(table_name='va_quant_index')
+        self.BEA_go_quant_index = \
+            self.BEA_data.get_data(table_name='go_quant_index')
+        self.BEA_va_nominal = \
+            self.BEA_data.get_data(table_name='va_nominal')
+        self.BEA_va_quant_index = \
+            self.BEA_data.get_data(table_name='va_quant_index')
 
     @staticmethod
     def indicators_nonman_2018_bea():

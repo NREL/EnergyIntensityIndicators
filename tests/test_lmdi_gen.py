@@ -53,9 +53,9 @@ class TestLMDIGen:
         LHS = input_data['E_i']
         name = input_data['total_label']
         lhs_total = df_utils().create_total_column(LHS,
-                                                 total_label=name)
+                                                   total_label=name)
         LHS_share = df_utils().calculate_shares(lhs_total,
-                                              total_label=name)
+                                                total_label=name)
         return LHS, LHS_share
 
     def pnnl_weights(self, model):

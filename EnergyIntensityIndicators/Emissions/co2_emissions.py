@@ -68,7 +68,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         region_data = region_data.drop('Census Region',
                                        axis=1, errors='ignore')
         region_data = df_utils().create_total_column(region_data,
-                                                   total_label='total')
+                                                     total_label='total')
         fuel_mix = df_utils().calculate_shares(region_data, total_label='total')
         return fuel_mix
 
@@ -117,23 +117,25 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                                    labels
         """
         mapping_ = {
-                    # 'Blast Furnace/Coke Oven Gases':
-                    #   ['Blast Furnace Gas',
-                    #    'Coke Oven Gas'],
-                    # 'Waste Gas', ??
+                    'Blast Furnace/Coke Oven Gases':
+                       ['Blast Furnace Gas',
+                        'Coke Oven Gas'], # take average
+                    'Waste Gas': 'Fuel Gas',
                     'Petroleum Coke': 'Petroleum Coke',
-                    # 'Pulping Liquor or Black Liquor', ??
+                    'Pulping Liquor or Black Liquor': 
+                        ['North American Softwood',
+                         'North American Hardwood'],  # take average
                     'Wood Chips, Bark': 'Wood and Wood Residuals',
-                    # 'Waste Oils/Tars and Waste Materials', ??
-                    # 'steam', ??
-                    # 'Net Electricity', ??
-                    # 'Residual Fuel Oil':
-                    #   ['Residual Fuel Oil No. 5',
-                    #    'Residual Fuel Oil No. 6'],
-                    # 'Distillate Fuel Oil':
-                    #   ['Distillate Fuel Oil No. 1',
-                    #    'Distillate Fuel Oil No. 2',
-                    #    'Distillate Fuel Oil No. 4'],
+                    'Waste Oils/Tars and Waste Materials': [], ??
+                    'steam': [], ??
+                    'Net Electricity': [], ??
+                    'Residual Fuel Oil':
+                       ['Residual Fuel Oil No. 5', # take average
+                        'Residual Fuel Oil No. 6'],
+                    'Distillate Fuel Oil':
+                      ['Distillate Fuel Oil No. 1', # take average
+                       'Distillate Fuel Oil No. 2',
+                       'Distillate Fuel Oil No. 4'],
                     'Natural Gas': 'Natural Gas',
                     'HGL (excluding natural gasoline)':
                         'Liquefied Petroleum Gases (LPG)',
@@ -318,7 +320,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         return cw
 
     @staticmethod
-    def epa_eia_crosswalk(eia_data):
+    def epa_eia_crosswalk(eia_data, sector):
         """[summary]
 
         Args:
@@ -332,12 +334,12 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         """
         mapping_ = {'Coal':
                         'Mixed (Commercial Sector)',  # what about residential??
-                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
-                    #                         'Distillate Fuel Oil No. 2',
-                    #                         'Distillate Fuel Oil No. 4'],
+                    'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
+                                            'Distillate Fuel Oil No. 2',
+                                            'Distillate Fuel Oil No. 4'],
                     'Fuel Ethanol including Denaturant':
                         'Ethanol (100%)',  # is this the correct handling of the two ethanol categories?
-                    # 'Fuel Ethanol excluding Denaturant':,
+                    'Fuel Ethanol excluding Denaturant': [],
                     'Hydrocarbon gas liquids':
                         'Liquefied Petroleum Gases (LPG)',
                     'Kerosene':
@@ -349,12 +351,10 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                     'Petroleum Coke':
                         'Petroleum Coke',
                     'Propane': 'Propane',
-                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
-                    #                       'Residual Fuel Oil No. 6'],
+                    'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
+                                          'Residual Fuel Oil No. 6'],
                     'Waste': 'Municipal Solid Waste',
-                    'Wood': 'Wood and Wood Residuals'}  #,
-                    # 'Wood and Waste': ['Wood and Wood Residuals',
-                    #                    'Municipal Solid Waste']}
+                    'Wood': 'Wood and Wood Residuals'}
 
         irrelevant_fuels = [f for f in eia_data.columns if f not in
                             mapping_.keys() and f != 'Census Region']
