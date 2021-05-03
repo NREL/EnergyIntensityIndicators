@@ -119,21 +119,21 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         mapping_ = {
                     'Blast Furnace/Coke Oven Gases':
                        ['Blast Furnace Gas',
-                        'Coke Oven Gas'], # take average
+                        'Coke Oven Gas'],  # take average
                     'Waste Gas': 'Fuel Gas',
                     'Petroleum Coke': 'Petroleum Coke',
-                    'Pulping Liquor or Black Liquor': 
+                    'Pulping Liquor or Black Liquor':
                         ['North American Softwood',
                          'North American Hardwood'],  # take average
                     'Wood Chips, Bark': 'Wood and Wood Residuals',
-                    'Waste Oils/Tars and Waste Materials': [], ??
-                    'steam': [], ??
-                    'Net Electricity': [], ??
+                    'Waste Oils/Tars and Waste Materials': 'Used Oil',
+                    'steam': 'Steam and Heat',  # From Table 7
+                    'Net Electricity': 'Us Average',  # From Table 6,  Total Output Emissions Factors CO2 Factor
                     'Residual Fuel Oil':
-                       ['Residual Fuel Oil No. 5', # take average
+                       ['Residual Fuel Oil No. 5',  # take average
                         'Residual Fuel Oil No. 6'],
                     'Distillate Fuel Oil':
-                      ['Distillate Fuel Oil No. 1', # take average
+                      ['Distillate Fuel Oil No. 1',  # take average
                        'Distillate Fuel Oil No. 2',
                        'Distillate Fuel Oil No. 4'],
                     'Natural Gas': 'Natural Gas',
@@ -333,13 +333,13 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
             - Handle fuel types with multiple factors
         """
         mapping_ = {'Coal':
-                        'Mixed (Commercial Sector)',  # what about residential??
+                      'Mixed (Commercial Sector)',
                     'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
                                             'Distillate Fuel Oil No. 2',
-                                            'Distillate Fuel Oil No. 4'],
+                                            'Distillate Fuel Oil No. 4'], # take average
                     'Fuel Ethanol including Denaturant':
-                        'Ethanol (100%)',  # is this the correct handling of the two ethanol categories?
-                    'Fuel Ethanol excluding Denaturant': [],
+                        'Ethanol (100%)',
+                    'Fuel Ethanol excluding Denaturant': 'Ethanol (100%)',
                     'Hydrocarbon gas liquids':
                         'Liquefied Petroleum Gases (LPG)',
                     'Kerosene':
@@ -352,7 +352,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                         'Petroleum Coke',
                     'Propane': 'Propane',
                     'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
-                                          'Residual Fuel Oil No. 6'],
+                                          'Residual Fuel Oil No. 6'],  # take average
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
 
@@ -441,7 +441,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                         'Fuel Ethanol including Denaturant',
                         'Fuel Ethanol excluding Denaturant',
                         'Geothermal',
-                        'Hydrocarbon gas liquids',  # is the Lpg factor right for HGL?
+                        'Hydrocarbon gas liquids',
                         'Hydroelectricity',
                         'Kerosene',
                         'Motor Gasoline',
@@ -530,7 +530,7 @@ class CommercialEmissions(SEDSEmissionsData):
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
-    def __init__(self, directory, output_directory, sector):
+    def __init__(self, directory, output_directory):
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
@@ -562,15 +562,17 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         # {'aluminum': {'noncombustion': None, 'combustion': None}}
         # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
 
-        super().__init__(directory, output_directory, sector,
+        super().__init__(directory, output_directory,
+                         sector='Industry',
                          level_of_aggregation=None,
                          lmdi_model='multiplicative',
                          base_year=1985, end_year=2018)
 
 
 class TransportationEmssions(CO2EmissionsDecomposition):
-    def __init__(self, directory, output_directory, sector):
-        super().__init__(directory, output_directory, sector,
+    def __init__(self, directory, output_directory):
+        super().__init__(directory, output_directory,
+                         sector='Transportation',
                          level_of_aggregation=None,
                          lmdi_model='multiplicative',
                          base_year=1985, end_year=2018)
@@ -679,8 +681,9 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
     """Class to decompose changes in Emissions from the electric
     power sector
     """
-    def __init__(self, directory, output_directory, sector):
-        super().__init__(directory, output_directory, sector,
+    def __init__(self, directory, output_directory):
+        super().__init__(directory, output_directory,
+                         sector='Electric Power',
                          level_of_aggregation=None,
                          lmdi_model='multiplicative',
                          base_year=1985, end_year=2018)
@@ -691,10 +694,15 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         Returns:
             [type]: [description]
         """
-        mapping_ = {'Coal': 'Mixed (Electric Power Sector)',  # for industrial/commercial use 'Mixed (Commercial Sector)', 'Mixed (Industrial Coking)' or 'Mixed (Industrial Sector)'??
-                    'Petroleum': '',
+        mapping_ = {'Coal': 'Mixed (Electric Power Sector)',
+                    'Petroleum':
+                        ['Distillate Fuel Oil No. 1',
+                         'Distillate Fuel Oil No. 2',
+                         'Distillate Fuel Oil No. 4',
+                         'Residual Fuel Oil No. 5',
+                         'Residual Fuel Oil No. 6'],  # take average
                     'Natural Gas': 'Natural Gas',
-                    'Other Gases': '',
+                    'Other Gases': 'Fuel Gas',
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
         return mapping_
@@ -731,9 +739,18 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
 
 
 if __name__ == '__main__':
-    indicators = CO2EmissionsDecomposition(directory='./EnergyIntensityIndicators/Data', 
-                                           output_directory='./Results', level_of_aggregation=None, 
-                                           end_year=2018, lmdi_model=['multiplicative', 'additive'])
+    indicators = \
+        CO2EmissionsDecomposition(directory='./EnergyIntensityIndicators/Data',
+                                  output_directory='./Results',
+                                  level_of_aggregation=None,
+                                  end_year=2018,
+                                  lmdi_model=['multiplicative', 'additive'])
 
     indicators.mecs_sic_crosswalk()
     indicators.mecs_data_by_year()
+
+    ElectricPowerEmissions(directory, output_directory)
+    TransportationEmssions(directory, output_directory)
+    IndustrialEmissions(directory, output_directory)
+    ResidentialEmissions()
+    CommercialEmissions()

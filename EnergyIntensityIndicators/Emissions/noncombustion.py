@@ -269,12 +269,12 @@ class NonCombustion:
                 print('split_', split_)
                 pass
 
-        print('tables_dict:\n', table_dict)
+        # print('tables_dict:\n', table_dict)
         tables_df = pd.DataFrame.from_dict(table_dict,
                                            orient='index',
                                            columns=['Table Name'])
         tables_df.to_csv(f'{base_dir}/table_names.csv')
-        print('tables_df:\n', tables_df)
+        # print('tables_df:\n', tables_df)
 
     def walk_folders(self, directory):
         """Append file information from sub-directories
@@ -286,7 +286,7 @@ class NonCombustion:
             of Emissions data
         """
         walk = [x[0] for x in os.walk(directory)]
-        print('walk:\n', walk)
+        # print('walk:\n', walk)
         names = []
         for w in walk:
             # self.noncombustion_emissions(base_dir=w)
@@ -294,7 +294,7 @@ class NonCombustion:
             table_names['folder'] = w
             # table_names['columns'] = '/'.join(table_names.columns.tolist())
             names.append(table_names)
-            print('table_names:\n', table_names)
+            # print('table_names:\n', table_names)
 
         all_names = pd.concat(names)
         all_names.to_csv(
@@ -355,9 +355,6 @@ class NonCombustion:
                                 encoding='latin1').dropna(  # , header=2
                                     axis=1, how='all').dropna(
                                         axis=0, how='any')
-            # print('table before reshaping:\n', table)
-            if table_name == 'Table 3-20' or table_name == 'Table 3-21':
-                print(f'{table_name} raw:\n', table)
 
             if table[table.columns[0]].str.contains('Year').any():
                 year_row = 0
@@ -389,16 +386,22 @@ class NonCombustion:
                         table = table.transpose()
                         table.index = table.index.astype(int)
 
-                    print('table failed to set index to int:\n', table)
+                    # print('table failed to set index to int:\n', table)
 
         table.columns.name = None
         table.index.name = 'Year'
-        table = table.replace(to_replace='+', value=0.025)
-        table = table.replace(to_replace='C', value=np.nan)
+
+        replace_dict = {'+': 0.025, '+ ': 0.025, 'C': np.nan,
+                        ' NA ': np.nan, 'NE': np.nan, 'NO': np.nan,
+                        '-': np.nan, ' -   ': np.nan}
+        table = table.replace(to_replace=replace_dict, value=None)
+        table = \
+            table.applymap(
+                lambda x: float(
+                    str(x).replace("(", "-").replace(
+                        ",", "").replace('%', '').rstrip(")")))
 
         table = table.ffill().bfill()
-
-        print('table:\n', table)
 
         return table
 
@@ -469,12 +472,13 @@ class NonCombustion:
                                              'CH4 Emissions (MMT CO2 Eq.)'})
                                 # print(f'{s} {t} table:\n', table)
                             iron_and_steel.append(table)
-                        iron_and_steel = df_utils().merge_df_list(iron_and_steel)
+                        iron_and_steel = \
+                            df_utils().merge_df_list(iron_and_steel)
                     elif s == 'Metallurgical coke':
                         table = self.noncombustion_activity_epa(tables)
                         table = table[['Total']].rename(
                             columns={'Total': 'CO2 Emissions (MMT CO2 Eq.)'})
-                        print(f'{s} emissions table {tables}:\n', table)
+                        # print(f'{s} emissions table {tables}:\n', table)
 
                 a_tables = var_info['activity']['table']
                 for s, tables in a_tables.items():
@@ -513,7 +517,7 @@ class NonCombustion:
                 a_table = a_table[['Total']].rename(
                     columns={'Total': 'Non-Energy Use of Fuels (TBtu)'})
 
-        print('data_dict:\n', data_dict)
+        # print('data_dict:\n', data_dict)
         return data_dict
 
     def agricultural_soil_management(self):
