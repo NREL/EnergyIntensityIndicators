@@ -665,7 +665,7 @@ class Manufacturing:
 
         mecs['Year'] = mecs['Year'].astype(int)
 
-        dataset = mecs.merge(asm_data, how='outer', on=['Year', 'NAICS']).set_index('Year')        
+        dataset = mecs.merge(asm_data, how='outer', on=['Year', 'NAICS']).set_index('Year')
         dataset.index = dataset.index.astype(int)
         dataset['NAICS'] = dataset['NAICS'].astype(int)
 
