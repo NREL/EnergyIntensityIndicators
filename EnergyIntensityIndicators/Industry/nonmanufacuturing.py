@@ -1,7 +1,6 @@
 import pandas as pd
 from functools import reduce
 from datetime import datetime
-import os
 import numpy as np
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api

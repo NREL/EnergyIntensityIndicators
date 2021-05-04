@@ -15,9 +15,12 @@ class NonCombustion:
     zipped Emissions data from the EPA
     """
     def __init__(self):
-        self.annex = 'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
-        self.chapter_0 = 'https://www.epa.gov/sites/production/files/2020-08/chapter_0.zip'
-        self.archive = "https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip"
+        self.annex = \
+            'https://www.epa.gov/sites/production/files/2020-07/annex_1.zip'
+        self.chapter_0 = \
+            'https://www.epa.gov/sites/production/files/2020-08/chapter_0.zip'
+        self.archive = \
+            "https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip"
         self.years = list(range(1990, 2018 + 1))
         self.categories_level1 = \
                             {'Liming':
@@ -343,8 +346,8 @@ class NonCombustion:
                                         axis=0, how='all')
             table = table.rename(
                 columns={'Number of Mines': 'Number of Underground Mines',
-                         'Production': 'Underground Production', 
-                         'Number of Mines.1': 'Number of Surface Mines', 
+                         'Production': 'Underground Production',
+                         'Number of Mines.1': 'Number of Surface Mines',
                          'Production.1': 'Surface Production',
                          'Number of Mines.2': 'Total Number of Mines',
                          'Production.2': 'Total Production'})
@@ -391,10 +394,8 @@ class NonCombustion:
         table.columns.name = None
         table.index.name = 'Year'
 
-        replace_dict = {'+': 0.025, '+ ': 0.025, 'C': np.nan,
-                        ' NA ': np.nan, 'NE': np.nan, 'NO': np.nan,
-                        '-': np.nan, ' -   ': np.nan}
-        table = table.replace(to_replace=replace_dict, value=None)
+        table = table.applymap(lambda x: self.replace_value(x))
+
         table = \
             table.applymap(
                 lambda x: float(
@@ -404,6 +405,23 @@ class NonCombustion:
         table = table.ffill().bfill()
 
         return table
+
+    @staticmethod
+    def replace_value(value):
+        replace_dict = {'+': 0.025, '+ ': 0.025,
+                        'C': np.nan, ' NA ': np.nan,
+                        'NE': np.nan, 'NO': np.nan,
+                        '-': np.nan, ' -   ': np.nan,
+                        '          -   ': np.nan,
+                        'NA': np.nan}
+        if isinstance(value, str):
+            value = value.strip()
+
+        if value in replace_dict.keys():
+            new_val = replace_dict[value]
+        else:
+            new_val = value
+        return new_val
 
     def noncombustion_activity_level1(self):
         categories = self.categories_level1
@@ -466,7 +484,9 @@ class NonCombustion:
                                     columns={'Total':
                                              'CO2 Emissions (MMT CO2 Eq.)'})
                                 # print(f'{s} emissions table {t}:\n', table)
-                            elif t == 'Table 4-64':  # + Does not exceed 0.05 MMT CO₂ Eq.
+
+                            # + Does not exceed 0.05 MMT CO₂ Eq.
+                            elif t == 'Table 4-64':
                                 table = table.rename(
                                     columns={'Total':
                                              'CH4 Emissions (MMT CO2 Eq.)'})
@@ -493,7 +513,7 @@ class NonCombustion:
                                 table = table[['Iron and Steel Production']]
                                 # print(f'{s} emissions table {t}:\n', table)
                             elif t == 'Table 4-73':
-                                # heat_content = 
+                                # heat_content =
                                 print(f'{s} activity table {t}:\n', table)
                     elif s == 'Metallurgical coke':
                         metallurgical_coke = []
@@ -508,12 +528,13 @@ class NonCombustion:
             elif c == 'Non-Energy Use of Fuels':
                 e_table = var_info['emissions']['table']
                 e_table = self.noncombustion_activity_epa(e_table)
-                e_table = e_table.transpose()
+                print('e_table:\n', e_table)
                 e_table = e_table[['Emissions']].rename(
                     columns={'Emissions': 'CO2 Emissions (MMT CO2 Eq)'})
                 a_table = var_info['activity']['table']
                 a_table = self.noncombustion_activity_epa(a_table)
-                a_table = a_table.transpose()
+                print('a_table:\n', a_table)
+
                 a_table = a_table[['Total']].rename(
                     columns={'Total': 'Non-Energy Use of Fuels (TBtu)'})
 
@@ -754,16 +775,27 @@ class NonCombustion:
         enteric_fermentation = self.enteric_fermentation()
         landfills = self.landfills()
         manure_management = self.manure_management()
-        return {'manure_management': manure_management,
-                'enteric_fermentation': enteric_fermentation,
-                'landfills': landfills,
-                'agricultural_soil_management': agricultural_soil_management}
+        return {'Manure Management': manure_management,
+                'Enteric Fermentation': enteric_fermentation,
+                'Lanfills': landfills,
+                'Agricultural Soil Management': agricultural_soil_management}
 
     def main(self):
         activity_level1 = self.noncombustion_activity_level1()
         level3 = self.noncombustion_level_3()
 
         activity_level2 = self.noncombustion_activity_level2()
+        print('type(activity_level1):', type(activity_level1))
+        print('type(level3):', type(level3))
+        print('type(activity_level2):', type(activity_level2))
+
+        noncombustion_data = activity_level1.copy()
+        noncombustion_data.update(activity_level2)
+        print('type(noncombustion_data):', type(noncombustion_data))
+        noncombustion_data.update(level3)
+        print('noncombustion_data:\n', noncombustion_data)
+        print('noncombustion_data.keys():\n', noncombustion_data.keys())
+
         # # self.agricultural_soil_management()
         # results = self.landfills()
         # print('results:\n', results)
@@ -773,7 +805,10 @@ class NonCombustion:
         # results = self.manure_management()
         # print('results:\n', results)
 
+        # {'aluminum': {'noncombustion': None, 'combustion': None}}
+        # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
 
+        
 if __name__ == '__main__':
     com = NonCombustion()
     # chapter_0 = com.chapter_0

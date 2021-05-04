@@ -396,7 +396,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         return cw
 
     @staticmethod
-    def epa_eia_crosswalk(eia_data, sector):
+    def epa_eia_crosswalk(eia_data):
         """[summary]
 
         Args:
@@ -601,13 +601,14 @@ class ResidentialEmissions(SEDSEmissionsData):
                          sector='Residential')
 
     def main(self):
-        energy = self.seds_energy_data(sector='residential')
+        energy_data = self.seds_energy_data(sector='residential')
 
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='SEDS')
-        pass 
+        return {'energy': energy_data,
+                'emissions': emissions}
 
 
 class CommercialEmissions(SEDSEmissionsData):
@@ -616,13 +617,16 @@ class CommercialEmissions(SEDSEmissionsData):
                          sector='Commercial')
 
     def main(self):
-        energy = self.seds_energy_data(sector='commercial')
+        energy_data = self.seds_energy_data(sector='commercial')
 
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='SEDS')
-        pass
+
+        return {'energy': energy_data,
+                'emissions': emissions}
+
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory):
@@ -664,12 +668,13 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          base_year=1985, end_year=2018)
 
     def main(self):
-        energy_data = 
+        energy_data = []
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='MECS')
-        pass
+        return {'energy': energy_data,
+                'emissions': emissions}
 
 
 class TransportationEmssions(CO2EmissionsDecomposition):
@@ -785,6 +790,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='TEDB')
+        return {'energy': energy_data,
+                'emissions': emissions}
 
 
 class ElectricPowerEmissions(CO2EmissionsDecomposition):
@@ -891,7 +898,7 @@ if __name__ == '__main__':
 
     module_dict = {'elec': ElectricPowerEmissions,
                 #    'transport': TransportationEmssions,
-                   'industry': IndustrialEmissions,
+                #    'industry': IndustrialEmissions,
                    'residential': ResidentialEmissions,
                    'commercial': CommercialEmissions}
     results = dict()

@@ -1,14 +1,7 @@
 import pandas as pd
-import os
 import numpy as np
-import zipfile
-import requests
-import io
-import glob
 from datetime import datetime
 from functools import reduce
-
-from EnergyIntensityIndicators.electricity import ElectricityIndicators
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
