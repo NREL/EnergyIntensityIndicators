@@ -351,8 +351,11 @@ class NonManufacturing:
                                   'value_added': value_added}}
         return data_dict
 
-    def crude_petroleum_natgas(self, bea_bls_output, value_added, nea_elec, nea_fuels, sector_estimates):
-        """Collect crude petroleum and natural gas data for the mining subsector"""
+    def crude_petroleum_natgas(self, bea_bls_output, value_added,
+                               nea_elec, nea_fuels, sector_estimates):
+        """Collect crude petroleum and natural gas data for
+        the mining subsector
+        """
 
 
         factor = 0.0001

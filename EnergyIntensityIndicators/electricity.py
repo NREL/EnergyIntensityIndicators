@@ -1,124 +1,192 @@
 import pandas as pd
-from sklearn import linear_model
-import requests 
-import win32com.client as win32
 import numpy as np
-import os
 
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 
+
 class ElectricityIndicators(CalculateLMDI):
-    
-    def __init__(self, directory, output_directory, level_of_aggregation, end_year, lmdi_model=['multiplicative'], base_year=1985):
-        self.sub_categories_list = {'Elec Generation Total': 
-                                        {'Elec Power Sector': 
-                                            {'Electricity Only':
-                                                {'Fossil Fuels': 
-                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                                'Nuclear': None, 
-                                                'Hydro Electric': None, 
-                                                'Renewable':
-                                                    {'Wood': None, 'Waste': None, 'Geothermal': None, 'Solar': None, 'Wind': None}},
-                                            'Combined Heat & Power': 
-                                                {'Fossil Fuels':
-                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                                'Renewable':
-                                                    {'Wood': None, 'Waste': None}}}, 
-                                        'Commercial Sector': None, 
-                                        'Industrial Sector': None},
-                                    'All CHP':
-                                        {'Elec Power Sector': 
-                                            {'Combined Heat & Power':
-                                                {'Fossil Fuels':
-                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                                'Renewable':
-                                                    {'Wood': None, 'Waste': None},
-                                                'Other': None}},
-                                        'Commercial Sector':
-                                            {'Combined Heat & Power':
-                                                {'Fossil Fuels':
-                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                                'Hydroelectric': None,
-                                                'Renewable':
-                                                    {'Wood': None, 'Waste': None},
-                                                'Other': None}}, 
-                                        'Industrial Sector':
-                                            {'Combined Heat & Power':
-                                                {'Fossil Fuels':
-                                                    {'Coal': None, 'Petroleum': None, 'Natural Gas': None, 'Other Gasses': None},
-                                                'Hydroelectric': None,
-                                                'Renewable':
-                                                    {'Wood': None, 'Waste': None},
-                                                'Other': None}}}}
+
+    def __init__(self, directory, output_directory,
+                 level_of_aggregation, end_year,
+                 lmdi_model=['multiplicative'],
+                 base_year=1985):
+        self.sub_categories_list = \
+            {'Elec Generation Total':
+                {'Elec Power Sector':
+                    {'Electricity Only':
+                        {'Fossil Fuels':
+                            {'Coal': None,
+                             'Petroleum': None,
+                             'Natural Gas': None,
+                             'Other Gasses': None},
+                         'Nuclear': None,
+                         'Hydro Electric': None,
+                         'Renewable':
+                            {'Wood': None,
+                             'Waste': None,
+                             'Geothermal': None,
+                             'Solar': None,
+                             'Wind': None}},
+                     'Combined Heat & Power':
+                        {'Fossil Fuels':
+                            {'Coal': None,
+                             'Petroleum': None,
+                             'Natural Gas': None,
+                             'Other Gasses': None},
+                         'Renewable':
+                            {'Wood': None,
+                             'Waste': None}}},
+                 'Commercial Sector': None,
+                 'Industrial Sector': None},
+             'All CHP':
+                {'Elec Power Sector':
+                    {'Combined Heat & Power':
+                        {'Fossil Fuels':
+                            {'Coal': None,
+                             'Petroleum': None,
+                             'Natural Gas': None,
+                             'Other Gasses': None},
+                         'Renewable':
+                            {'Wood': None,
+                             'Waste': None},
+                         'Other': None}},
+                 'Commercial Sector':
+                    {'Combined Heat & Power':
+                        {'Fossil Fuels':
+                            {'Coal': None,
+                             'Petroleum': None,
+                             'Natural Gas': None,
+                             'Other Gasses': None},
+                         'Hydroelectric': None,
+                         'Renewable':
+                            {'Wood': None,
+                             'Waste': None},
+                         'Other': None}},
+                 'Industrial Sector':
+                    {'Combined Heat & Power':
+                        {'Fossil Fuels':
+                            {'Coal': None,
+                             'Petroleum': None,
+                             'Natural Gas': None,
+                             'Other Gasses': None},
+                         'Hydroelectric': None,
+                         'Renewable':
+                            {'Wood': None,
+                             'Waste': None},
+                         'Other': None}}}}
         self.elec_power_eia = GetEIAData(sector='electricity')
         self.energy_types = ['primary']
-        self.Table84c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03C') # Consumption of combustible fuels for electricity generation: Commercial and industrial sectors (selected fuels) # elec_power_eia.eia_api(id_='456') 
-        self.Table85c = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03B') # Consumption of combustible fuels for electricity generation: Electric power sector
-        self.Table82d = pd.read_csv('https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.02C')
+        # Consumption of combustible fuels for electricity generation:
+        # Commercial and industrial sectors (selected fuels)
+        # # elec_power_eia.eia_api(id_='456')
+        self.Table84c = \
+            pd.read_csv(
+                'https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03C')
+        # Consumption of combustible fuels for electricity generation:
+        # Electric power sector
+        self.Table85c = \
+            pd.read_csv(
+                'https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.03B')
+        self.Table82d = \
+            pd.read_csv(
+                'https://www.eia.gov/totalenergy/data/browser/csv.php?tbl=T07.02C')
 
-        super().__init__(sector='electric', level_of_aggregation=level_of_aggregation, lmdi_models=lmdi_model, categories_dict=self.sub_categories_list, \
-                         energy_types=self.energy_types, directory=directory, output_directory=output_directory, base_year=base_year, end_year=end_year)
+        super().__init__(sector='electric',
+                         level_of_aggregation=level_of_aggregation,
+                         lmdi_models=lmdi_model,
+                         categories_dict=self.sub_categories_list,
+                         energy_types=self.energy_types,
+                         directory=directory,
+                         output_directory=output_directory,
+                         base_year=base_year,
+                         end_year=end_year)
     @staticmethod
     def get_eia_aer():
-        """Prior to 2012, the data for the indicators were taken directly from tables published (and downloaded in 
-        Excel format) from EIA's Annual Energy Review. 
-        """  
-        pass      
-    
+        """Prior to 2012, the data for the indicators were taken
+        directly from tables published (and downloaded in
+        Excel format) from EIA's Annual Energy Review.
+        """
+        pass
+
     @staticmethod
     def get_reconciles():
-        """ The EIA Annual Energy Review data (pre 2012) for energy consumption to produce
-        electricity were generally supplied in physical units only (e.g., mcf of natural gas, tons of coal, etc.) The
-        values needed to be converted to Btu, and still be consistent with aggregate energy consumption for
-        this sector as published by EIA. For each major fossil fuel, a separate worksheet was developed; these
-        worksheets are identified with the suffix “reconcile.” Thus, the worksheet “NatGas Reconcile” seeks to
-        produce an estimate of the Btu consumption of natural gas used to generate electricity. Similar
-        worksheets were developed for coal, petroleum, and other fuels. 
+        """ The EIA Annual Energy Review data (pre 2012) for energy
+        consumption to produce electricity were generally supplied
+        in physical units only (e.g., mcf of natural gas, tons of
+        coal, etc.) The values needed to be converted to Btu, and
+        still be consistent with aggregate energy consumption for
+        this sector as published by EIA. For each major fossil fuel,
+        a separate worksheet was developed; these worksheets are
+        identified with the suffix “reconcile.” Thus, the worksheet
+        “NatGas Reconcile” seeks to produce an estimate of the Btu
+        consumption of natural gas used to generate electricity.
+        Similar worksheets were developed for coal, petroleum,
+        and other fuels.
 
-        ///   Does this need to be done or can download Btu directly instead of converting physical units to Btu --> no     
-        """        
+        ///   Does this need to be done or can download Btu directly instead
+        of converting physical units to Btu --> no
+        """
         pass
 
 
     def process_utility_level_data(self):
-        """The indicators for electricity are derived entirely from data collected by EIA. Since 2012, the indicators
+        """The indicators for electricity are derived entirely from data
+        collected by EIA. Since 2012, the indicators
         are based entirely upon te EIA-923 survey
-        """        
+        """
         eia_923_schedules = pd.read_excel('./')
 
-        net_generation = pd.pivot_table(eia_923_schedules, columns='EIA Sector Number', index='AERFuel Type Code', aggfunc='sum')  # page A-71,
-                                                                                                    # 'Net Generation' lower right-hand quadrant?
-        net_generation.loc[:, 'Grand_Total'] = net_generation.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
-                                                                                    # plus one for 'Grand Total'. Note: rows is not an arg of pd.pivot_table
-        elec_btu_consumption = pd.pivot_table(eia_923_schedules, columns='EIA Sector Number', index='AERFuel Type Code', aggfunc='sum')  # page A-71,
-                                                                                                    # 'Elec Fuel ConsumptionMMBTU' lower right-hand quadrant?
-        elec_btu_consumption.loc[:, 'Grand_Total'] = elec_btu_consumption.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns 
-                                                                                    # plus one for 'Grand Total'
+        net_generation = pd.pivot_table(eia_923_schedules,
+                                        columns='EIA Sector Number',
+                                        index='AERFuel Type Code',
+                                        aggfunc='sum')  # page A-71,
+                                                        # 'Net Generation' lower right-hand quadrant?
+        net_generation.loc[:, 'Grand_Total'] = \
+            net_generation.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns
+                                                    # plus one for 'Grand Total'. Note: rows is not an arg of pd.pivot_table
+        elec_btu_consumption = pd.pivot_table(eia_923_schedules,
+                                              columns='EIA Sector Number',
+                                              index='AERFuel Type Code',
+                                              aggfunc='sum')  # page A-71,
+                                                              # 'Elec Fuel ConsumptionMMBTU' lower right-hand quadrant?
+        elec_btu_consumption.loc[:, 'Grand_Total'] = \
+            elec_btu_consumption.sum(axis=1, skipna=True)  # Should have 18 rows
+                                                           # labeled by type of fuel
+                                                           # and seven columns
+                                                           # plus one for 'Grand Total'
         previous_years_net_gen = pd.read_excel('./')
         previous_yeas_elec_btu_consumption = pd.read_excel('./')
         master_net_gen = previous_years_net_gen.concat(net_generation)
-        maseter_elec_btu_consumption = previous_yeas_elec_btu_consumption.concat(elec_btu_consumption)
+        maseter_elec_btu_consumption = \
+            previous_yeas_elec_btu_consumption.concat(elec_btu_consumption)
         # Aggregate data?? page A-72 fpr net generation and elec btu consumption
         return None
 
     @staticmethod
-    def reconcile(total, elec_gen, elec_only_plants, chp_elec, assumed_conv_factor, chp_heat):
+    def reconcile(total, elec_gen, elec_only_plants, chp_elec,
+                  assumed_conv_factor, chp_heat):
         """total: df, Btu
-        elec_gen: df, Btu 
+        elec_gen: df, Btu
         elec_only_plants: df, Short tons
         chp_elec: df, Short tons
         assumed_conv_factor: float, MMBtu/Ton
-        chp_heat  
+        chp_heat
         """
-        difference = total.subtract(elec_gen) # Btu
-        implied_conversion_factor = total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
-        elec_only_billionbtu = elec_only_plants.multiply(assumed_conv_factor[0]).multiply(1000) # Billion Btu
-        chp_elec_billionbtu = chp_elec.multiply(assumed_conv_factor[1]).multiply(0.001) # Billion Btu 
-        chp_heat_billionbtu = chp_heat.multiply(assumed_conv_factor[2]).multiply(0.001) # Billion Btu
-        total_fuel = elec_only_billionbtu.add(chp_elec_billionbtu).add(chp_heat_billionbtu)
+        difference = \
+            total.subtract(elec_gen)  # Btu
+        implied_conversion_factor = \
+            total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
+        elec_only_billionbtu = \
+            elec_only_plants.multiply(assumed_conv_factor[0]).multiply(1000)  # Billion Btu
+        chp_elec_billionbtu = \
+            chp_elec.multiply(assumed_conv_factor[1]).multiply(0.001)  # Billion Btu
+        chp_heat_billionbtu = \
+            chp_heat.multiply(assumed_conv_factor[2]).multiply(0.001)  # Billion Btu
+        total_fuel = \
+            elec_only_billionbtu.add(chp_elec_billionbtu).add(chp_heat_billionbtu)
 
         # Cross Check
         total_short_tons = elec_only_plants + chp_elec + chp_heat # Short Tons
