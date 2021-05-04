@@ -131,38 +131,39 @@ class ElectricityIndicators(CalculateLMDI):
         """
         pass
 
-
     def process_utility_level_data(self):
         """The indicators for electricity are derived entirely from data
         collected by EIA. Since 2012, the indicators
         are based entirely upon te EIA-923 survey
         """
         eia_923_schedules = pd.read_excel('./')
-
+        # page A-71, 'Net Generation' lower right-hand quadrant?
         net_generation = pd.pivot_table(eia_923_schedules,
                                         columns='EIA Sector Number',
                                         index='AERFuel Type Code',
-                                        aggfunc='sum')  # page A-71,
-                                                        # 'Net Generation' lower right-hand quadrant?
+                                        aggfunc='sum')
+        # Should have 18 rows labeled by type of fuel and seven columns
+        # plus one for 'Grand Total'. Note: rows is not an arg
+        # of pd.pivot_table
         net_generation.loc[:, 'Grand_Total'] = \
-            net_generation.sum(axis=1, skipna=True) # Should have 18 rows labeled by type of fuel and seven columns
-                                                    # plus one for 'Grand Total'. Note: rows is not an arg of pd.pivot_table
+            net_generation.sum(axis=1, skipna=True)
+        # page A-71, 'Elec Fuel ConsumptionMMBTU' lower
+        # right-hand quadrant?
         elec_btu_consumption = pd.pivot_table(eia_923_schedules,
                                               columns='EIA Sector Number',
                                               index='AERFuel Type Code',
-                                              aggfunc='sum')  # page A-71,
-                                                              # 'Elec Fuel ConsumptionMMBTU' lower right-hand quadrant?
+                                              aggfunc='sum')
+        # Should have 18 rows labeled by type of fuel
+        # and seven columns plus one for 'Grand Total'
         elec_btu_consumption.loc[:, 'Grand_Total'] = \
-            elec_btu_consumption.sum(axis=1, skipna=True)  # Should have 18 rows
-                                                           # labeled by type of fuel
-                                                           # and seven columns
-                                                           # plus one for 'Grand Total'
+            elec_btu_consumption.sum(axis=1, skipna=True)
         previous_years_net_gen = pd.read_excel('./')
         previous_yeas_elec_btu_consumption = pd.read_excel('./')
         master_net_gen = previous_years_net_gen.concat(net_generation)
         maseter_elec_btu_consumption = \
             previous_yeas_elec_btu_consumption.concat(elec_btu_consumption)
-        # Aggregate data?? page A-72 fpr net generation and elec btu consumption
+        # Aggregate data?? page A-72 fpr net generation and elec btu
+        # consumption
         return None
 
     @staticmethod
@@ -229,26 +230,43 @@ class ElectricityIndicators(CalculateLMDI):
         assumed_conversion_factor = 20.9
         total = energy_consumption_coal
         elec_gen = consumption_for_electricity_generation_coal
-        elec_only_plants = consumption_combustible_fuels_electricity_generation_coal # should be separate part?
-        chp_elec= consumption_combustible_fuels_electricity_generation_coal # should be separate part?
+        # should be separate part?
+        elec_only_plants = \
+            consumption_combustible_fuels_electricity_generation_coal
+        # should be separate part?
+        chp_elec = \
+            consumption_combustible_fuels_electricity_generation_coal
         assumed_conv_factor = assumed_conversion_factor
         chp_heat = consumption_combustible_fuels_useful_thermal_output_coal
         # eia-923 pivot table
 
-        difference = total.subtract(elec_gen) # Btu
-        implied_conversion_factor = total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
-        elec_only_billionbtu = elec_only_plants.multiply(assumed_conv_factor).multiply(1000) # Billion Btu
-        chp_elec_billionbtu = chp_elec.multiply(assumed_conv_factor).multiply(0.001) # Billion Btu 
-        chp_heat_billionbtu = chp_heat.multiply(assumed_conv_factor).multiply(0.001) # Billion Btu
-        total_fuel = elec_only_billionbtu.add(chp_elec_billionbtu).add(chp_heat_billionbtu)
+        difference = total.subtract(elec_gen)  # Btu
+        implied_conversion_factor = \
+            total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
+        elec_only_billionbtu = \
+            elec_only_plants.multiply(assumed_conv_factor).multiply(1000)  # Billion Btu
+        chp_elec_billionbtu = \
+            chp_elec.multiply(assumed_conv_factor).multiply(0.001)  # Billion Btu
+        chp_heat_billionbtu = \
+            chp_heat.multiply(assumed_conv_factor).multiply(0.001)  # Billion Btu
+        total_fuel = \
+            elec_only_billionbtu.add(
+                chp_elec_billionbtu).add(
+                    chp_heat_billionbtu)
 
         # Cross Check
-        total_short_tons = elec_only_plants + chp_elec + chp_heat # Short Tons
-        implied_conversion_factor_cross = total.divide(total_short_tons).multiply(1000)  # MMBtu/Ton
-        implied_conversion_factor_revised = elec_gen.divide(chp_elec.add(elec_only_plants)).multiply(1000) # MMBtu/Ton
+        total_short_tons = \
+            elec_only_plants + chp_elec + chp_heat # Short Tons
+        implied_conversion_factor_cross = \
+            total.divide(total_short_tons).multiply(1000)  # MMBtu/Ton
+        implied_conversion_factor_revised = \
+            elec_gen.divide(
+                chp_elec.add(elec_only_plants)).multiply(1000) # MMBtu/Ton
 
-        chp_plants_fuel = implied_conversion_factor_revised.multiply(chp_elec).multiply(0.000001)  # Trillion Btu
-        elec_only_fuel =  elec_gen.multiply(.001).subtract(chp_plants_fuel)  # Trillion Btu
+        chp_plants_fuel = implied_conversion_factor_revised.multiply(
+            chp_elec).multiply(0.000001)  # Trillion Btu
+        elec_only_fuel =  elec_gen.multiply(.001).subtract(
+            chp_plants_fuel)  # Trillion Btu
         resulting_total = chp_plants_fuel.add(elec_only_fuel)
         return chp_plants_fuel, elec_only_fuel
 
