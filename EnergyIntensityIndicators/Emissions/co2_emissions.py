@@ -33,6 +33,7 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
     def __init__(self, directory, output_directory, sector,
                  level_of_aggregation=None, lmdi_model='multiplicative',
                  base_year=1985, end_year=2018):
+
         self.sector = sector
         self.eia = GetEIAData('emissions')
 
@@ -69,7 +70,8 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
                                        axis=1, errors='ignore')
         region_data = df_utils().create_total_column(region_data,
                                                      total_label='total')
-        fuel_mix = df_utils().calculate_shares(region_data, total_label='total')
+        fuel_mix = \
+            df_utils().calculate_shares(region_data, total_label='total')
         return fuel_mix
 
     @staticmethod
@@ -410,7 +412,7 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                       'Mixed (Commercial Sector)',
                     'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
                                             'Distillate Fuel Oil No. 2',
-                                            'Distillate Fuel Oil No. 4'], # take average
+                                            'Distillate Fuel Oil No. 4'],  # take average
                     'Fuel Ethanol including Denaturant':
                         'Ethanol (100%)',
                     'Fuel Ethanol excluding Denaturant': 'Ethanol (100%)',
@@ -601,8 +603,10 @@ class ResidentialEmissions(SEDSEmissionsData):
     def main(self):
         energy = self.seds_energy_data(sector='residential')
 
-        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
-                                             datasource='SEDS')
+        emissions = \
+            self.calculate_emissions(energy_data,
+                                     emissions_type='CO2 Factor',
+                                     datasource='SEDS')
         pass 
 
 
@@ -614,8 +618,10 @@ class CommercialEmissions(SEDSEmissionsData):
     def main(self):
         energy = self.seds_energy_data(sector='commercial')
 
-        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
-                                             datasource='SEDS')
+        emissions = \
+            self.calculate_emissions(energy_data,
+                                     emissions_type='CO2 Factor',
+                                     datasource='SEDS')
         pass
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
@@ -658,8 +664,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          base_year=1985, end_year=2018)
 
     def main(self):
-        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
-                                             datasource='MECS')
+        energy_data = 
+        emissions = \
+            self.calculate_emissions(energy_data,
+                                     emissions_type='CO2 Factor',
+                                     datasource='MECS')
         pass
 
 
@@ -720,7 +729,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
         tedb_18 = tedb_18.rename(columns={'index':
                                           'Mode',
-                                          ' Residual fuel oil': 
+                                          ' Residual fuel oil':
                                           'Residual fuel oil'})
         print(tedb_18.columns)
         tedb_fuel_types = ['Gasoline', 'Diesel fuel', 'Liquefied petroleum gas',
@@ -772,8 +781,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
     def main(self):
         energy_data = self.transportation_data()
-        emissions = self.calculate_emissions(energy_data, emissions_type='CO2 Factor',
-                                             datasource='TEDB')
+        emissions = \
+            self.calculate_emissions(energy_data,
+                                     emissions_type='CO2 Factor',
+                                     datasource='TEDB')
 
 
 class ElectricPowerEmissions(CO2EmissionsDecomposition):

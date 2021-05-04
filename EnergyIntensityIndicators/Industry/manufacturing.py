@@ -34,50 +34,145 @@ class Manufacturing:
         # Energy Consumption as a Fuel
         # Table 3.1 : By Mfg. Industry & Region (physical units)
         # Table 3.2 : By Mfg. Industry & Region (trillion Btu)
-        # Table 3.5 : Byproducts in Fuel Consumption by Mfg. Industry & Region (trillion Btu)
-        mecs_data = {2018: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xlsx', 'skiprows': 9, 'skip_footer': 20}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xlsx', 'skiprows': 9, 'skip_footer': 14}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xlsx', 'skiprows': 9, 'skip_footer': 12},
-                         'table_4_2': {'endpoint': 'Table4_2.xlsx', 'skiprows': 0, 'skip_footer': 13}},
-                     2014: 
-                        {'table_3_1': {'endpoint': 'table3_1.xlsx', 'skiprows': 9, 'skip_footer': 20}, 
-                         'table_3_2': {'endpoint': 'table3_2.xlsx', 'skiprows': 9, 'skip_footer': 14}, 
-                         'table_3_5': {'endpoint': 'table3_5.xlsx', 'skiprows': 9, 'skip_footer': 12},
-                         'table_4_2': {'endpoint': 'table4_2.xlsx', 'skiprows': 0, 'skip_footer': 13}},
-                     2010: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xls', 'skiprows': 9, 'skip_footer': 47}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xls', 'skiprows': 8, 'skip_footer': 47}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xls', 'skiprows': 9, 'skip_footer': 29},
-                         'table_4_2': {'endpoint': 'Table4_2.xls', 'skiprows': 0, 'skip_footer': 34}},
-                     2006: 
-                        {'table_3_1': {'endpoint': 'Table3_1.xls', 'skiprows': 10, 'skip_footer': 49}, 
-                         'table_3_2': {'endpoint': 'Table3_2.xls', 'skiprows': 9, 'skip_footer': 49}, 
-                         'table_3_5': {'endpoint': 'Table3_5.xls', 'skiprows': 10, 'skip_footer': 31},
-                         'table_4_2': {'endpoint': 'Table4_2.xls', 'skiprows': 0, 'skip_footer': 36}},
-                     2002: 
-                        {'table_3_1': {'endpoint': 'Table3.1_02.xls', 'skiprows': 7, 'skip_footer': 49}, 
-                         'table_3_2': {'endpoint': 'Table3.2_02.xls', 'skiprows': 6, 'skip_footer': 49}, 
-                         'table_3_5': {'endpoint': 'Table3.5_02.xls', 'skiprows': 7, 'skip_footer': 55},
-                         'table_4_2': {'endpoint': 'Table4.2_02.xls', 'skiprows': 0, 'skip_footer': 36}},
-                     1998: 
-                        {'table_3_1': {'endpoint': 'd98n3_1.xls', 'skiprows': 7, 'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Physical Units or Btu
-                         'table_3_2': {'endpoint': 'd98n3_2.xls', 'skiprows': 6, 'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
-                         'table_3_5': {'endpoint': 'd98n5_1.xls', 'skiprows': 7, 'skip_footer': 59},  # Selected Byproducts in Fuel Consumption, 1998; Level: National Data and Regional Totals; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
-                         'table_4_2': {'endpoint': 'd98n4_2.xls', 'skiprows': 0, 'skip_footer': 40}}, 
-                     1994: 
-                        {'table_3_1': {'endpoint': 'm94_04a.xls', 'skiprows': 6, 'skip_footer': 34}, 
-                         'table_3_2': {'endpoint': 'm94_04b.xls', 'skiprows': 5, 'skip_footer': 34}, 
-                         'table_3_5': {'endpoint': 'm94_06.xls', 'skiprows': 7, 'skip_footer': 21},
-                         'table_4_2': {'endpoint': 'm94_05b.xls', 'skiprows': 0, 'skip_footer': 31}},
-                     1991: 
-                        {'table_3_1': {'endpoint': 'mecs04a.xls', 'skiprows': 6, 'skip_footer': 36}, 
-                         'table_3_2': {'endpoint': 'mecs04b.xls', 'skiprows': 5, 'skip_footer': 38}, 
-                         'table_3_5': None,
-                         'table_4_2': {'endpoint': 'mecs05b.xls', 'skiprows': 0, 'skip_footer': 34}},
-                     1985: 
-                        {'table_3_1': None, 
-                         'table_3_2': None, 
+        # Table 3.5 : Byproducts in Fuel Consumption by Mfg.
+        #             Industry & Region (trillion Btu)
+        mecs_data = {2018:
+                        {'table_3_1':
+                            {'endpoint': 'Table3_1.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 20},
+                         'table_3_2':
+                            {'endpoint': 'Table3_2.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 14},
+                         'table_3_5':
+                            {'endpoint': 'Table3_5.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 12},
+                         'table_4_2':
+                            {'endpoint': 'Table4_2.xlsx',
+                             'skiprows': 0,
+                             'skip_footer': 13}},
+                     2014:
+                        {'table_3_1':
+                            {'endpoint': 'table3_1.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 20},
+                         'table_3_2':
+                            {'endpoint': 'table3_2.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 14},
+                         'table_3_5':
+                            {'endpoint': 'table3_5.xlsx',
+                             'skiprows': 9,
+                             'skip_footer': 12},
+                         'table_4_2':
+                            {'endpoint': 'table4_2.xlsx',
+                             'skiprows': 0,
+                             'skip_footer': 13}},
+                     2010:
+                        {'table_3_1':
+                            {'endpoint': 'Table3_1.xls',
+                             'skiprows': 9,
+                             'skip_footer': 47},
+                         'table_3_2':
+                            {'endpoint': 'Table3_2.xls',
+                             'skiprows': 8,
+                             'skip_footer': 47},
+                         'table_3_5':
+                            {'endpoint': 'Table3_5.xls',
+                             'skiprows': 9,
+                             'skip_footer': 29},
+                         'table_4_2':
+                            {'endpoint': 'Table4_2.xls',
+                             'skiprows': 0,
+                             'skip_footer': 34}},
+                     2006:
+                        {'table_3_1':
+                            {'endpoint': 'Table3_1.xls',
+                             'skiprows': 10,
+                             'skip_footer': 49},
+                         'table_3_2':
+                            {'endpoint': 'Table3_2.xls',
+                             'skiprows': 9,
+                             'skip_footer': 49},
+                         'table_3_5':
+                            {'endpoint': 'Table3_5.xls',
+                             'skiprows': 10,
+                             'skip_footer': 31},
+                         'table_4_2':
+                            {'endpoint': 'Table4_2.xls',
+                             'skiprows': 0,
+                             'skip_footer': 36}},
+                     2002:
+                        {'table_3_1':
+                            {'endpoint': 'Table3.1_02.xls',
+                             'skiprows': 7,
+                             'skip_footer': 49},
+                         'table_3_2':
+                            {'endpoint': 'Table3.2_02.xls',
+                             'skiprows': 6,
+                             'skip_footer': 49},
+                         'table_3_5':
+                            {'endpoint': 'Table3.5_02.xls',
+                             'skiprows': 7,
+                             'skip_footer': 55},
+                         'table_4_2':
+                            {'endpoint': 'Table4.2_02.xls',
+                             'skiprows': 0,
+                             'skip_footer': 36}},
+                     1998:
+                        {'table_3_1':
+                            {'endpoint': 'd98n3_1.xls',
+                             'skiprows': 7,
+                             'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Physical Units or Btu
+                         'table_3_2':
+                            {'endpoint': 'd98n3_2.xls',
+                             'skiprows': 6,
+                             'skip_footer': 53},  # Fuel Consumption, 1998; Level: National and Regional Data; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
+                         'table_3_5':
+                            {'endpoint': 'd98n5_1.xls',
+                             'skiprows': 7,
+                             'skip_footer': 59},  # Selected Byproducts in Fuel Consumption, 1998; Level: National Data and Regional Totals; Row: NAICS Codes; Column: Energy Sources; Unit: Trillion Btu
+                         'table_4_2':
+                            {'endpoint': 'd98n4_2.xls',
+                             'skiprows': 0,
+                             'skip_footer': 40}},
+                     1994:
+                        {'table_3_1':
+                            {'endpoint': 'm94_04a.xls',
+                             'skiprows': 6,
+                             'skip_footer': 34},
+                         'table_3_2':
+                            {'endpoint': 'm94_04b.xls',
+                             'skiprows': 5,
+                             'skip_footer': 34},
+                         'table_3_5':
+                            {'endpoint': 'm94_06.xls',
+                             'skiprows': 7,
+                             'skip_footer': 21},
+                         'table_4_2':
+                            {'endpoint': 'm94_05b.xls',
+                             'skiprows': 0,
+                             'skip_footer': 31}},
+                     1991:
+                        {'table_3_1':
+                            {'endpoint': 'mecs04a.xls',
+                             'skiprows': 6,
+                             'skip_footer': 36},
+                         'table_3_2':
+                            {'endpoint': 'mecs04b.xls',
+                             'skiprows': 5,
+                             'skip_footer': 38},
+                         'table_3_5':
+                            None,
+                         'table_4_2':
+                            {'endpoint': 'mecs05b.xls',
+                             'skiprows': 0,
+                             'skip_footer': 34}},
+                     1985:
+                        {'table_3_1': None,
+                         'table_3_2': None,
                          'table_3_5': None,
                          'table_4_2': None}}
 
@@ -106,11 +201,13 @@ class Manufacturing:
                     general_df = pd.read_excel(general_url, index_col=0)
                     col_labels = general_df.loc[:'Code(a)'].tail(4)
 
-                    index_label = general_df.iloc[general_df.index.get_loc('Code(a)')-1].name
+                    index_label = \
+                        general_df.iloc[general_df.index.get_loc('Code(a)')-1].name
 
                     col_labels = col_labels.apply(lambda c: c.str.cat(sep=' '), axis=0)
                     col_labels = col_labels.apply(lambda s: s.strip())
-                    col_labels = col_labels.to_frame(name=index_label).transpose()
+                    col_labels = \
+                        col_labels.to_frame(name=index_label).transpose()
 
                     df = pd.read_excel(general_url, skiprows=t_dict['skiprows'],
                                        skipfooter=t_dict['skip_footer'], 
@@ -122,15 +219,25 @@ class Manufacturing:
 
                     df = df.dropna(axis=1, how='all')
 
-                    df = df.rename(columns={'Total (trillion Btu)': 'Total',
-                                            'Industry Group and Industry': 'Subsector and Industry',
-                                            'Industry Groups and Industry': 'Subsector and Industry',
-                                            'LPG and NGL(e) (million bbl)': 'HGL (excluding natural gasoline)(e) (million bbl)',
-                                            'LPG and NGL(e)': 'HGL (excluding natural gasoline)(e)'})
+                    df = \
+                        df.rename(
+                            columns={'Total (trillion Btu)':
+                                        'Total',
+                                     'Industry Group and Industry':
+                                        'Subsector and Industry',
+                                     'Industry Groups and Industry':
+                                        'Subsector and Industry',
+                                     'LPG and NGL(e) (million bbl)':
+                                        'HGL (excluding natural gasoline)(e) (million bbl)',
+                                     'LPG and NGL(e)':
+                                        'HGL (excluding natural gasoline)(e)'})
                     df = df.drop(['RSE Row Factors', ''], axis=1, errors='ignore')
 
                     if t == 'table_3_1':
-                        mecs_3_1 = self.clean_industrial_data(df, table_3_1=True, sic=sic)
+                        mecs_3_1 = \
+                            self.clean_industrial_data(df,
+                                                       table_3_1=True,
+                                                       sic=sic)
                         mecs_3_1['Year'] = year
                         # print('mecs_3_1:\n', mecs_3_1)
                         # print('mecs_3_1 cols:\n', mecs_3_1.columns)
@@ -274,7 +381,7 @@ class Manufacturing:
         Returns:
            cw [DataFrame]: [description]
         """        
-        #  Use crosswalk 1987 SIC to 1997 NAICS from 
+        #  Use crosswalk 1987 SIC to 1997 NAICS from
         #  https://www.census.gov/eos/www/naics/concordances/concordances.html
         cw = pd.read_excel('https://www.census.gov/eos/www/naics/concordances/1987_SIC_to_1997_NAICS.xls')
         cw = cw.astype(int, errors='ignore')
@@ -302,8 +409,10 @@ class Manufacturing:
                                          'Total',
                                          'Net Electricity(b)']]
         historical_mecs_31_32 = mecs_3_1.merge(mecs_3_2,
-                                               on=['Year', 'region',
-                                                   'NAICS', 'Subsector and Industry'],
+                                               on=['Year',
+                                                   'region',
+                                                   'NAICS',
+                                                   'Subsector and Industry'],
                                                how='outer')
         mecs_fuel = mecs_3_2.copy()
         mecs_fuel['Fuel'] = mecs_fuel['Total'].subtract(mecs_fuel['Net Electricity(b)'])
@@ -378,7 +487,7 @@ class Manufacturing:
         physical units used for emissions factors
         """        
         industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
-        industrial_renamed = self.mecs_epa_mapping(industrial_data_btu) 
+        industrial_renamed = self.mecs_epa_mapping(industrial_data_btu)
         return industrial_renamed
 
     def manufacturing_prices(self):
@@ -503,8 +612,11 @@ class Manufacturing:
                 fuel_df = mecs_data_qty_shares[['Year', 'NAICS', fuel_type]]
                 for n in fuel_df['NAICS'].unique():
                     fuel_naics = fuel_df[fuel_df['NAICS'] == n]
-                    fuel_naics = self.interpolate_mecs(fuel_naics, fuel_type, 
-                                                    reindex=mecs_years_prices_and_interpolations['Year'].unique())
+                    fuel_naics = \
+                        self.interpolate_mecs(
+                            fuel_naics,
+                            fuel_type, 
+                            reindex=mecs_years_prices_and_interpolations['Year'].unique())
                     fuel_type_data.append(fuel_naics)
                 
             df = pd.concat(fuel_type_data, axis=0)
@@ -545,8 +657,11 @@ class Manufacturing:
 
         Returns:
            mecs_based_expenditure [DataFrame]: [description]
-        """        
-        mecs = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mecs_calc_purchased_fuels_historical.csv') # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/J (also called EXPFUEL)
+        """
+        # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/J (also called EXPFUEL)
+        mecs = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Industry/Data/mecs_calc_purchased_fuels_historical.csv')
 
         mecs['Year'] = mecs['Year'].astype(int)
 
@@ -554,15 +669,29 @@ class Manufacturing:
         dataset.index = dataset.index.astype(int)
         dataset['NAICS'] = dataset['NAICS'].astype(int)
 
-        dataset['mecs_asm_ratio'] = dataset['Calc. Cost of Fuels'].divide(dataset['EXPFUEL'], axis='index').multiply(1000) # G
+        dataset['mecs_asm_ratio'] = \
+            dataset['Calc. Cost of Fuels'].divide(
+                dataset['EXPFUEL'], axis='index').multiply(1000) # G
 
-        dataset_ = self.interpolate_mecs(dataset, col_name='mecs_asm_ratio').rename(columns={'mecs_asm_ratio': 'mecs_asm_ratio_interp'})
-        interpolated_ratios_filler = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mecs_asm_interpolated_ratio.csv')
-        dataset_ = dataset_.merge(interpolated_ratios_filler, how='outer', on=['Year', 'NAICS'])
-        dataset_['mecs_asm_ratio_interp'] = dataset_['mecs_asm_ratio_interp'].fillna(dataset_['interpolated_ratio'])
+        dataset_ = \
+            self.interpolate_mecs(
+                dataset, col_name='mecs_asm_ratio').rename(
+                    columns={'mecs_asm_ratio': 'mecs_asm_ratio_interp'})
+        interpolated_ratios_filler = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Industry/Data/mecs_asm_interpolated_ratio.csv')
+        dataset_ = \
+            dataset_.merge(interpolated_ratios_filler,
+                           how='outer',
+                           on=['Year', 'NAICS'])
+        dataset_['mecs_asm_ratio_interp'] = \
+            dataset_['mecs_asm_ratio_interp'].fillna(
+                dataset_['interpolated_ratio'])
         dataset_ = dataset_.drop('interpolated_ratio', axis=1)
 
-        dataset =  dataset_.merge(dataset, how='outer', on=['Year', 'NAICS']).set_index('Year')       
+        dataset =  dataset_.merge(dataset,
+                                  how='outer',
+                                  on=['Year', 'NAICS']).set_index('Year')       
 
         dataset['mecs_based_expenditure'] = dataset['Calc. Cost of Fuels'].multiply(1000) # I depends on MECS year/not
         dataset['fill_values'] = dataset['EXPFUEL'].multiply(dataset['mecs_asm_ratio_interp'], axis='index')
@@ -604,7 +733,9 @@ class Manufacturing:
         prices (calcualted using asm_price_fit.py), by 3-digit NAICS for a
         given MECS year.
         """
-        composite_price = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_composite_prices.csv').rename(columns={'Composite Price ': 'composite_price'})
+        composite_price = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Industry/Data/historical_composite_prices.csv').rename(columns={'Composite Price ': 'composite_price'})
 
         return composite_price
 
@@ -614,7 +745,9 @@ class Manufacturing:
         Returns:
            mecs_based_expenditure_hist [DataFrame]: [description]
         """
-        mecs_based_expenditure_hist = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Expend_ratios_revised_1985-97.csv')  
+        mecs_based_expenditure_hist = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Industry/Data/Expend_ratios_revised_1985-97.csv')  
         return mecs_based_expenditure_hist
     
     @staticmethod
@@ -623,8 +756,11 @@ class Manufacturing:
 
         Returns:
            mecs_data_sic [DataFrame]: [description]
-        """        
-        mecs_data_sic = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_data_SIC.csv') # from [MECS_prices_101116b.xlsx]MECS_data_SIC BA
+        """
+        # from [MECS_prices_101116b.xlsx]MECS_data_SIC BA
+        mecs_data_sic = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Industry/Data/MECS_data_SIC.csv')
         mecs_data_sic = mecs_data_sic[mecs_data_sic['Year'].notnull()]
         mecs_data_sic['Year'] = mecs_data_sic['Year'].astype(int)
         mecs_data_sic['NAICS'] = mecs_data_sic['NAICS'].astype(int)
@@ -704,19 +840,29 @@ class Manufacturing:
         quantities_1998_forward = quantities_1998_forward.replace({'NAICS': {331: 328, 332: 329}})
         print('quantities_1998_forward:\n', quantities_1998_forward)
 
-        quantities_1998_forward = quantities_1998_forward.rename(columns={c: 'composite_price' for c in quantities_1998_forward.columns if 'rice' in c})
+        quantities_1998_forward = \
+            quantities_1998_forward.rename(
+                columns={c: 'composite_price' for c in quantities_1998_forward.columns if 'rice' in c})
 
         quantities = pd.concat([pre_1998_quantities, quantities_1998_forward], axis=0, sort=True)
         quantities = quantities.sort_values(by='Year')
 
-        quantities['jan_2020_estimate'] = quantities['mecs_based_expenditure'].divide(quantities['composite_price'], axis='index').multiply(0.001)
+        quantities['jan_2020_estimate'] = \
+            quantities['mecs_based_expenditure'].divide(
+                quantities['composite_price'], axis='index').multiply(0.001)
+        
+        # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
+        quantities['final_quantities_asm_85'] = \
+            quantities['jan_2020_estimate'].multiply(
+                quantities['ratio_fuel_to_offsite'], axis='index')
 
-        quantities['final_quantities_asm_85'] = quantities['jan_2020_estimate'].multiply(quantities['ratio_fuel_to_offsite'], axis='index') # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
+        final_quantities_asm_85 = \
+            quantities[pd.notnull(quantities['final_quantities_asm_85'])]
+        final_quantities_asm_85 = \
+            final_quantities_asm_85[~final_quantities_asm_85[['NAICS', 'Year']].duplicated()]
 
-        final_quantities_asm_85 = quantities[pd.notnull(quantities['final_quantities_asm_85'])]
-        final_quantities_asm_85 = final_quantities_asm_85[~final_quantities_asm_85[['NAICS', 'Year']].duplicated()]
-
-        final_quantities_asm_85_agg = self.aggregate_naics(final_quantities_asm_85, values='final_quantities_asm_85')
+        final_quantities_asm_85_agg = \
+            self.aggregate_naics(final_quantities_asm_85, values='final_quantities_asm_85')
         return final_quantities_asm_85_agg
     
     @staticmethod
@@ -779,7 +925,8 @@ class Manufacturing:
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
         """
         # NAICS ARE ALREADY AGGREGATED
-        historical_mecs = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_Fuel_Historical.csv')
+        historical_mecs = \
+            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_Fuel_Historical.csv')
         return historical_mecs
 
     def mecs_fuel(self, asm_elec_data, historical_mecs):
@@ -792,7 +939,8 @@ class Manufacturing:
         Returns:
             [type]: [description]
         """        
-        historical_mecs_31_32 = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
+        historical_mecs_31_32 = \
+            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
         mecs_fuel = historical_mecs.set_index('NAICS')
         mecs_fuel = mecs_fuel.rename(columns={c: int(c) for c in mecs_fuel.columns})
         mecs_fuel = mecs_fuel.reset_index()
@@ -862,20 +1010,24 @@ class Manufacturing:
         electricity_consumption = electricity_consumption.rename(columns={'328': '331', '329': '332'})
 
         fuels_consumption = self.get_manufacturing_fuels(asm)
-      
-        return electricity_consumption, fuels_consumption # Transfered to industrial_indicators_060220.xlsx[Manufacturing_Energy_Data]
+        # Transfered to industrial_indicators_060220.xlsx[Manufacturing_Energy_Data]
+        return electricity_consumption, fuels_consumption
 
     # Data used in industrial_indicators[Manufacturing]
     def call_activity_data(self):
         """
         Call BEA API for gross ouput and value add by 3-digit NAICS.
         """
-        va_quant_index, go_quant_index = BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
+        va_quant_index, go_quant_index = \
+            BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
         return va_quant_index, go_quant_index
 
     def manufacturing(self):
-        """Main datasource is the Manufacturing Energy Consumption Survey (MECS), conducted by the EIA since 1985 (supplemented for non-MECS years by
-        estimates derived from the Annual Survey of Manufactures (ASM) and the Economic Census (EC) conducted every five years)
+        """Main datasource is the Manufacturing Energy Consumption
+        Survey (MECS), conducted by the EIA since 1985 (supplemented
+        for non-MECS years by estimates derived from the Annual Survey
+        of Manufactures (ASM) and the Economic Census (EC)
+        conducted every five years)
         https://www.eia.gov/consumption/manufacturing/data/2014/
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4
         """
