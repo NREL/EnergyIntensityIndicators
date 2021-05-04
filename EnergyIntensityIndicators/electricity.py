@@ -186,15 +186,22 @@ class ElectricityIndicators(CalculateLMDI):
         chp_heat_billionbtu = \
             chp_heat.multiply(assumed_conv_factor[2]).multiply(0.001)  # Billion Btu
         total_fuel = \
-            elec_only_billionbtu.add(chp_elec_billionbtu).add(chp_heat_billionbtu)
+            elec_only_billionbtu.add(
+                chp_elec_billionbtu).add(chp_heat_billionbtu)
 
         # Cross Check
-        total_short_tons = elec_only_plants + chp_elec + chp_heat # Short Tons
-        implied_conversion_factor_cross = total.divide(total_short_tons).multiply(1000)  # MMBtu/Ton
-        implied_conversion_factor_revised = elec_gen.divide(chp_elec.add(elec_only_plants)).multiply(1000) # MMBtu/Ton
+        total_short_tons = \
+            elec_only_plants + chp_elec + chp_heat  # Short Tons
+        implied_conversion_factor_cross = \
+            total.divide(total_short_tons).multiply(1000)  # MMBtu/Ton
+        implied_conversion_factor_revised = \
+            elec_gen.divide(chp_elec.add(elec_only_plants)).multiply(1000)  # MMBtu/Ton
 
-        chp_plants_fuel = implied_conversion_factor_revised.multiply(chp_elec).multiply(0.000001)  # Trillion Btu
-        elec_only_fuel =  elec_gen.multiply(.001).subtract(chp_plants_fuel)  # Trillion Btu
+        chp_plants_fuel = \
+            implied_conversion_factor_revised.multiply(
+                chp_elec).multiply(0.000001)  # Trillion Btu
+        elec_only_fuel = \
+            elec_gen.multiply(.001).subtract(chp_plants_fuel)  # Trillion Btu
         resulting_total = chp_plants_fuel.add(elec_only_fuel)
         return chp_plants_fuel, elec_only_fuel
 
@@ -202,21 +209,31 @@ class ElectricityIndicators(CalculateLMDI):
         """Reconcile coal data from physical units into Btu
         """
 
-        energy_consumption_coal = self.elec_power_eia.eia_api(id_='TOTAL.CLEIBUS.A', id_type='series')# Table21f11 column b
-        consumption_for_electricity_generation_coal = self.elec_power_eia.eia_api(id_='TOTAL.CLEIBUS.A', id_type='series')# Table84b11 column b
+        energy_consumption_coal = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.CLEIBUS.A', id_type='series')  # Table21f11 column b
+        consumption_for_electricity_generation_coal = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.CLEIBUS.A', id_type='series')  # Table84b11 column b
 
-        consumption_combustible_fuels_electricity_generation_coal = self.elec_power_eia.eia_api(id_='TOTAL.CLL1PUS.A', id_type='series')# Table85c11 column B SHOULD BE separated Elec-only/CHP
+        consumption_combustible_fuels_electricity_generation_coal = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.CLL1PUS.A', id_type='series')  # Table85c11 column
+                                                          # B SHOULD BE
+                                                          # separated Elec-only/CHP
 
-        consumption_combustible_fuels_useful_thermal_output_coal = self.elec_power_eia.eia_api(id_='TOTAL.CLEIPUS.A', id_type='series')# Table86b11 column B
+        consumption_combustible_fuels_useful_thermal_output_coal = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.CLEIPUS.A', id_type='series')  # Table86b11 column B
 
         assumed_conversion_factor = 20.9
         total = energy_consumption_coal
         elec_gen = consumption_for_electricity_generation_coal
-        elec_only_plants = consumption_combustible_fuels_electricity_generation_coal # should be separate part?  
-        chp_elec= consumption_combustible_fuels_electricity_generation_coal # should be separate part?  
+        elec_only_plants = consumption_combustible_fuels_electricity_generation_coal # should be separate part?
+        chp_elec= consumption_combustible_fuels_electricity_generation_coal # should be separate part?
         assumed_conv_factor = assumed_conversion_factor
-        chp_heat = consumption_combustible_fuels_useful_thermal_output_coal    
-        # eia-923 pivot table 
+        chp_heat = consumption_combustible_fuels_useful_thermal_output_coal
+        # eia-923 pivot table
 
         difference = total.subtract(elec_gen) # Btu
         implied_conversion_factor = total.divide(elec_only_plants).multiply(1000)  # MMBtu/Ton
@@ -239,15 +256,22 @@ class ElectricityIndicators(CalculateLMDI):
         """Reconcile natural gas data from physical units into Btu
         """
 
-        energy_consumption_natgas = self.elec_power_eia.eia_api(id_='TOTAL.NNEIBUS.A', id_type='series')# Table21f11 column d
-        consumption_for_electricity_generation_natgas = self.elec_power_eia.eia_api(id_='TOTAL.NNEIBUS.A', id_type='series')# Table84b11 column f
-        consumption_combustible_fuels_electricity_generation_natgas= self.elec_power_eia.eia_api(id_='TOTAL.NGL1PUS.A', id_type='series')# Table85c11 column N
-        consumption_combustible_fuels_useful_thermal_output_natgas = self.elec_power_eia.eia_api(id_='TOTAL.NGEIPUS.A', id_type='series')# Table86b11 column M
+        energy_consumption_natgas = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.NNEIBUS.A', id_type='series')  # Table21f11 column d
+        consumption_for_electricity_generation_natgas = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.NNEIBUS.A', id_type='series')  # Table84b11 column f
+        consumption_combustible_fuels_electricity_generation_natgas = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.NGL1PUS.A', id_type='series')  # Table85c11 column N
+        consumption_combustible_fuels_useful_thermal_output_natgas = \
+            self.elec_power_eia.eia_api(
+                id_='TOTAL.NGEIPUS.A', id_type='series')  # Table86b11 column M
 
-        
         # eia-923 pivot table
         """total: df, Billion Btu
-        elec_gen: df, Billion Btu 
+        elec_gen: df, Billion Btu
         elec_only_plants: df, Thou. Cu. Ft.
         chp_elec: df, Thou. CF
         assumed_conv_factor: float, MMBtu/Ton
@@ -264,7 +288,7 @@ class ElectricityIndicators(CalculateLMDI):
         difference = total.subtract(elec_gen) # Billion Btu
         implied_conversion_factor = elec_gen.divide(elec_only_plants).multiply(1000)  # kBtu/CF  * different from coal_reconcile
         elec_only_trillionbtu = elec_only_plants.multiply(assumed_conv_factor).multiply(0.001) # Trillion Btu
-        chp_elec_trillionbtu = chp_elec.multiply(assumed_conv_factor).multiply(0.001) # Trillion Btu 
+        chp_elec_trillionbtu = chp_elec.multiply(assumed_conv_factor).multiply(0.001) # Trillion Btu
         chp_heat_trillionbtu = chp_heat.multiply(assumed_conv_factor).multiply(0.001) # Trillion Btu
         total_fuel = elec_only_trillionbtu.add(chp_elec_trillionbtu).add(chp_heat_trillionbtu)
 
