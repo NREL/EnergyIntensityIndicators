@@ -492,17 +492,18 @@ class NonCombustion:
                                              'CH4 Emissions (MMT CO2 Eq.)'})
                                 # print(f'{s} {t} table:\n', table)
                             iron_and_steel.append(table)
-                        iron_and_steel = \
+                        iron_and_steel_emissions = \
                             df_utils().merge_df_list(iron_and_steel)
                     elif s == 'Metallurgical coke':
                         table = self.noncombustion_activity_epa(tables)
-                        table = table[['Total']].rename(
+                        met_coke_emissions = table[['Total']].rename(
                             columns={'Total': 'CO2 Emissions (MMT CO2 Eq.)'})
                         # print(f'{s} emissions table {tables}:\n', table)
 
                 a_tables = var_info['activity']['table']
                 for s, tables in a_tables.items():
                     if s == 'Iron and Steel':
+                        iron_and_steel_activity = []
                         for t in tables:
                             table = self.noncombustion_activity_epa(t)
                             if t == 'Table 4-72':
@@ -515,15 +516,18 @@ class NonCombustion:
                             elif t == 'Table 4-73':
                                 # heat_content =
                                 print(f'{s} activity table {t}:\n', table)
+                                continue
+                            iron_and_steel_activity.append(table)
+                            iron_and_steel_activity = df_utils().merge_df_list(
+                                iron_and_steel_activity)
                     elif s == 'Metallurgical coke':
-                        metallurgical_coke = []
+                        metallurgical_coke_activity = []
                         for t in tables:
                             table = self.noncombustion_activity_epa(t)
-                            print(f'{s} activity table {t}:\n', table)
-                            metallurgical_coke.append(table)
-
-                        metallurgical_coke = df_utils().merge_df_list(
-                            metallurgical_coke)
+                            metallurgical_coke_activity.append(table)
+                            
+                        metallurgical_coke_activity = df_utils().merge_df_list(
+                            metallurgical_coke_activity)
 
             elif c == 'Non-Energy Use of Fuels':
                 e_table = var_info['emissions']['table']
@@ -538,7 +542,20 @@ class NonCombustion:
                 a_table = a_table[['Total']].rename(
                     columns={'Total': 'Non-Energy Use of Fuels (TBtu)'})
 
-        # print('data_dict:\n', data_dict)
+                data_dict['Non-Energy Use of Fuels'] = \
+                    {'emissions': e_table,
+                     'activity': a_table}
+
+            metallurgical_coke = {'Metallurgical coke':
+                                    {'emissions': met_coke_emissions,
+                                     'activity': metallurgical_coke_activity}}
+            iron_and_steel = {'Iron and Steel':
+                                {'emissions': iron_and_steel_emissions,
+                                 'activity': iron_and_steel_activity}}
+
+        data_dict.update(metallurgical_coke)
+        data_dict.update(iron_and_steel)
+
         return data_dict
 
     def agricultural_soil_management(self):

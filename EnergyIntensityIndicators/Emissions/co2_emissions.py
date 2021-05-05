@@ -672,7 +672,9 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          'combustion': None},
                      'Fabricated metal products':
                         {'noncombustion':
-                            {'Ferroalloy Production': None},
+                            {'Ferroalloy Production': None,
+                             'Metallurgical coke': None,
+                             'Iron and Steel': None},
                          'combustion': None},
                      'Machinery': None,
                      'Computer and electronic products': None,
@@ -704,7 +706,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                             {'noncombustion': None}},
                      'Energy':
                         {'noncombustion':
-                            {'Stationary Combustion': None},
+                            {'Stationary Combustion': None,
+                             'Non-Energy Use of Fuels': None},
                          'combustion': None}}}}
 
         super().__init__(directory, output_directory,
