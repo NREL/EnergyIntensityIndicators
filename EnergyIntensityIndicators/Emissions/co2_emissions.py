@@ -12,9 +12,20 @@ from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
+from EnergyIntensityIndicators.utilities.standard_interpolation \
+    import standard_interpolation
+from EnergyIntensityIndicators.commercial \
+    import CommercialIndicators
+from EnergyIntensityIndicators.residential \
+    import ResidentialIndicators
+from EnergyIntensityIndicators.Emissions.noncombustion \
+    import NonCombustion
+from EnergyIntensityIndicators.industry \
+    import IndustrialIndicators
+from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 
 
-class CO2EmissionsDecomposition:  # CalculateLMDI
+class CO2EmissionsDecomposition(CalculateLMDI):
     """Class to decompose CO2 emissions by
     sector of the U.S. economy.
 
@@ -75,7 +86,33 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
         return fuel_mix
 
     @staticmethod
-    def epa_emissions_data():
+    def get_mean_factor(emissions_factors, input_cols, new_name):
+        """[summary]
+
+        Args:
+            emissions_factors (DataFrame): emissions factors
+            input_cols (list): List of emissions
+                               factors to average
+            new_name (str): Name of resulting factor
+
+        """
+        emissions_factors['value'] = \
+            emissions_factors['value'].apply(lambda x: str(x).replace(',', ''))
+        emissions_factors['value'] = emissions_factors['value'].astype(float)
+
+        subset = \
+            emissions_factors[emissions_factors['Fuel Type'].isin(input_cols)]
+
+        grouped = \
+            subset.groupby(by=['Category', 'Unit', 'Variable'])
+
+        mean_df = grouped.mean()
+        mean_df.loc[:, 'Fuel Type'] = new_name
+
+        ef = pd.concat([emissions_factors, mean_df], axis=0)
+        return ef
+
+    def epa_emissions_data(self):
         """Read and process EPA emissions factors data
 
         Returns:
@@ -102,7 +139,45 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
 
             dfs.append(unit_data)
         emissions_factors = pd.concat(dfs, axis=0)
-        print('emissions_factors:\n', emissions_factors)
+        ef = self.get_mean_factor(emissions_factors,
+                                  input_cols=['Distillate Fuel Oil No. 1',
+                                              'Distillate Fuel Oil No. 2',
+                                              'Distillate Fuel Oil No. 4'],
+                                  new_name='Distillate Fuel Oil')
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Residual Fuel Oil No. 5',
+                                              'Residual Fuel Oil No. 6'],
+                                  new_name='Residual Fuel Oil')
+
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Blast Furnace Gas',
+                                              'Coke Oven Gas'],
+                                  new_name='Blast Furnace/Coke Oven Gases')
+
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['North American Softwood',
+                                              'North American Hardwood'],
+                                  new_name='Pulping Liquor or Black Liquor')
+
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Motor Gasoline',
+                                              'Ethanol (100%)'],
+                                  new_name='Gasohol')
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Diesel Fuel',
+                                              'Distillate Fuel Oil No. 1',
+                                              'Distillate Fuel Oil No. 2',
+                                              'Distillate Fuel Oil No. 4'],
+                                  new_name='Diesel Fuel & Distillate')
+
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Distillate Fuel Oil No. 1',
+                                              'Distillate Fuel Oil No. 2',
+                                              'Distillate Fuel Oil No. 4',
+                                              'Residual Fuel Oil No. 5',
+                                              'Residual Fuel Oil No. 6'],
+                                  new_name='Petroleum')
+
         return emissions_factors
 
     @staticmethod
@@ -119,25 +194,25 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
                                    labels
         """
         mapping_ = {
-                    'Blast Furnace/Coke Oven Gases':
-                       ['Blast Furnace Gas',
-                        'Coke Oven Gas'],  # take average
+                    # 'Blast Furnace/Coke Oven Gases':
+                    #    ['Blast Furnace Gas',
+                    #     'Coke Oven Gas'],  # take average
                     'Waste Gas': 'Fuel Gas',
                     'Petroleum Coke': 'Petroleum Coke',
-                    'Pulping Liquor or Black Liquor':
-                        ['North American Softwood',
-                         'North American Hardwood'],  # take average
+                    # 'Pulping Liquor or Black Liquor':
+                    #     ['North American Softwood',
+                    #      'North American Hardwood'],  # take average
                     'Wood Chips, Bark': 'Wood and Wood Residuals',
                     'Waste Oils/Tars and Waste Materials': 'Used Oil',
                     'steam': 'Steam and Heat',  # From Table 7
                     'Net Electricity': 'Us Average',  # From Table 6,  Total Output Emissions Factors CO2 Factor
-                    'Residual Fuel Oil':
-                       ['Residual Fuel Oil No. 5',  # take average
-                        'Residual Fuel Oil No. 6'],
-                    'Distillate Fuel Oil':
-                      ['Distillate Fuel Oil No. 1',  # take average
-                       'Distillate Fuel Oil No. 2',
-                       'Distillate Fuel Oil No. 4'],
+                    # 'Residual Fuel Oil':
+                    #    ['Residual Fuel Oil No. 5',  # take average
+                    #     'Residual Fuel Oil No. 6'],
+                    # 'Distillate Fuel Oil':
+                    #   ['Distillate Fuel Oil No. 1',  # take average
+                    #    'Distillate Fuel Oil No. 2',
+                    #    'Distillate Fuel Oil No. 4'],
                     'Natural Gas': 'Natural Gas',
                     'HGL (excluding natural gasoline)':
                         'Liquefied Petroleum Gases (LPG)',
@@ -157,15 +232,15 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
 
         print('tedb_data fuel types:\n', tedb_data['Fuel Type'].unique())
 
-        # tedb_data = tedb_data.replace({'Gasoline (million gallons)': 'Gasoline',
-        #                                'Diesel (million gallons)': 'Diesel',
-        #                                'Diesel fuel': 'Diesel',
-        #                                'LPG': 'Liquefied petroleum gas',
-        #                                })
+        tedb_data = tedb_data.replace({'Gasoline (million gallons)': 'Gasoline',
+                                       'Diesel (million gallons)': 'Diesel',
+                                       'Diesel fuel': 'Diesel',
+                                       'LPG': 'Liquefied petroleum gas',
+                                       })
         # mapping = {'All Fuel':
-        #            'Gasoline': 'Motor Gasoline'
-        #            'Gasohol': ['Motor Gasoline', 'Ethanol (100%)']
-        #            'Diesel': 'Diesel Fuel'
+        #            'Gasoline': 'Motor Gasoline',
+        #         #    'Gasohol': ['Motor Gasoline', 'Ethanol (100%)']
+        #            'Diesel': 'Diesel Fuel',
         #            'CNG': 'Compressed Natural Gas (CNG)',
         #            'LNG': 'Liquefied Natural Gas (LNG)',
         #            'Bio Diesel ': 'Biodiesel (100%)'
@@ -173,21 +248,22 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
         #            'School':
         #            'School (million bbl)':
         #            'Intercity':
-        #             'Diesel Fuel & Distillate (1,000 bbl)': 
-        #                                     ['Diesel Fuel',
-        #                                      'Distillate Fuel Oil No. 1',
-        #                                      'Distillate Fuel Oil No. 2',
-        #                                      'Distillate Fuel Oil No. 4']  # Take Average
-        #              'Residual Fuel Oil (1,000 bbl)'
+        #            'Diesel Fuel & Distillate (1,000 bbl)':
+        #             'Diesel Fuel & Distillate',
+        #                                     # ['Diesel Fuel',
+        #                                     #  'Distillate Fuel Oil No. 1',
+        #                                     #  'Distillate Fuel Oil No. 2',
+        #                                     #  'Distillate Fuel Oil No. 4']  # Take Average
+        #              'Residual Fuel Oil (1,000 bbl)': 'Residual Fuel Oil',
         #             'Domestic Operations ':
         #             'International Operations ':
         #              'Jet fuel (million gallons)':
         #             'Electricity (GWhrs)':
         #              'Total Energy (Tbtu) ':
         #              'Total Energy (Tbtu)':
-        #             'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
-        #                                     'Distillate Fuel Oil No. 2',
-        #                                     'Distillate Fuel Oil No. 4']  # Take Average
+        #             # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
+        #             #                         'Distillate Fuel Oil No. 2',
+        #             #                         'Distillate Fuel Oil No. 4']  # Take Average
         #              'Natural Gas (million cu. ft.)': 'Natural Gas',
         #             'Electricity (million kWh)': 'US Average'  # From table 6
         #             'Diesel fuel':
@@ -209,7 +285,8 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
         #             'Motor Gasoline',
         #             'Residual Fuel Oil'}
 
-        tedb_data = tedb_data.rename(columns=mapping_)
+        tedb_data = tedb
+        _data.rename(columns=mapping_)
         return tedb_data
 
     @staticmethod
@@ -324,11 +401,12 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
         elif datasource == 'TEDB':
             energy_data = self.tedb_epa_mapping(energy_data)
 
-        print('energy_data:\n', energy_data)
+        # print('energy_data:\n', energy_data)
         emissions_factors = self.get_factor(emissions_factors,
                                             emissions_type)
 
-        emissions_factors = emissions_factors.to_frame(name='Emissions Factors')
+        emissions_factors = \
+            emissions_factors.to_frame(name='Emissions Factors')
         emissions_factors = emissions_factors.transpose()
         print('emissions_factors:\n', emissions_factors)
         print('emissions_factors cols', emissions_factors.columns)
@@ -336,18 +414,21 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
         try:
             emissions_factors = emissions_factors[energy_data.columns.tolist()]
         except KeyError:
-            print('energy_data.columns.tolist() not in dataframe:', energy_data.columns.tolist())
+            print('energy_data.columns.tolist() not in dataframe:',
+                  energy_data.columns.tolist())
             return None
         print('emissions_factors:\n', emissions_factors)
 
         emissions_data = \
-            energy_data.multiply(emissions_factors, axis='columns')
+            energy_data.multiply(emissions_factors.to_numpy())
+        print('emissions_data:\n', emissions_data)
+
         emissions_data.loc[:, 'Census Region'] = \
             emissions_data['Census Region'].astype(int).astype(str)
         print('emissions_data:\n', emissions_data)
 
         energy_data.loc[:, 'Census Region'] = \
-            energy_data['Census Region'].astype(int).astype(str)
+            energy_data.loc[:, 'Census Region'].astype(int).astype(str)
         fuel_mix = self.get_fuel_mix(energy_data)
         print(fuel_mix)
         return emissions_data, fuel_mix
@@ -365,7 +446,7 @@ class CO2EmissionsDecomposition:  # CalculateLMDI
             self.get_nested_lmdi(
                 level_of_aggregation=self.level_of_aggregation,
                 breakout=breakout, calculate_lmdi=calculate_lmdi,
-                raw_data=data_dict, lmdi_type='LMDI-I')
+                raw_data=data_dict, lmdi_type='LMDI-I', new_style=True)
         return results_dict
 
 
@@ -408,14 +489,19 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         TODO:
             - Handle fuel types with multiple factors
         """
-        mapping_ = {'Coal':
-                      'Mixed (Commercial Sector)',
-                    'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
-                                            'Distillate Fuel Oil No. 2',
-                                            'Distillate Fuel Oil No. 4'],  # take average
-                    'Fuel Ethanol including Denaturant':
-                        'Ethanol (100%)',
-                    'Fuel Ethanol excluding Denaturant': 'Ethanol (100%)',
+        ethanol_cols = ['Fuel Ethanol excluding Denaturant',
+                        'Fuel Ethanol including Denaturant']
+        eia_data['Ethanol (100%)'] = eia_data[ethanol_cols].sum(axis=1)
+        eia_data = eia_data.drop(ethanol_cols, axis=1)
+        mapping_ = {'Coal': 'Mixed (Commercial Sector)',
+                    'Distillate Fuel Oil': 'Distillate Fuel Oil',
+                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
+                    #                         'Distillate Fuel Oil No. 2',
+                    #                         'Distillate Fuel Oil No. 4'],  # take average
+                    # 'Fuel Ethanol including Denaturant':
+                    #     'Ethanol (100%)',
+                    # 'Fuel Ethanol excluding Denaturant': 'Ethanol (100%)',
+                    'Ethanol (100%)': 'Ethanol (100%)',
                     'Hydrocarbon gas liquids':
                         'Liquefied Petroleum Gases (LPG)',
                     'Kerosene':
@@ -427,8 +513,9 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                     'Petroleum Coke':
                         'Petroleum Coke',
                     'Propane': 'Propane',
-                    'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
-                                          'Residual Fuel Oil No. 6'],  # take average
+                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
+                    #                       'Residual Fuel Oil No. 6'],  # take average
+                    'Residual Fuel Oil': 'Residual Fuel Oil',
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
 
@@ -601,14 +688,27 @@ class ResidentialEmissions(SEDSEmissionsData):
                          sector='Residential')
 
     def main(self):
+        res = \
+            ResidentialIndicators(directory='./EnergyIntensityIndicators/Data',
+                                  output_directory='./Results',
+                                  level_of_aggregation='National',
+                                  lmdi_model=self.model,
+                                  end_year=self.end_year,
+                                  base_year=self.base_year)
+        res_data = res.collect_data()['National']
+
         energy_data = self.seds_energy_data(sector='residential')
+        activity = res_data['activity']
+        weather_factors = res_data['weather_factors']
 
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='SEDS')
-        return {'energy': energy_data,
-                'emissions': emissions}
+        return {'E_i_j': energy_data,
+                'A_i': activity,
+                'C_i_j': emissions,
+                'WF_i': weather_factors}
 
 
 class CommercialEmissions(SEDSEmissionsData):
@@ -618,14 +718,25 @@ class CommercialEmissions(SEDSEmissionsData):
 
     def main(self):
         energy_data = self.seds_energy_data(sector='commercial')
-
+        comm = \
+            CommercialIndicators(directory='./EnergyIntensityIndicators/Data',
+                                 output_directory='./Results',
+                                 level_of_aggregation='Commercial_Total',
+                                 lmdi_model=self.model,
+                                 end_year=self.end_year,
+                                 base_year=self.base_year)
+        comm_data = comm.collect_data()['Commercial_Total']
+        weather_factors = comm_data['weather_factors']
+        activity = comm_data['activity']
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='SEDS')
 
-        return {'energy': energy_data,
-                'emissions': emissions}
+        return {'E_j': energy_data,
+                'C_j': emissions,
+                'WF': weather_factors,
+                'A': activity}
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
@@ -651,7 +762,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'Carbide Production and Consumption': None,
                              'Soda Ash Production': None,
                              'N2O from Product Uses': None,
-                             'Urea Consumption for NonAgricultural Purposes': None,
+                             'Urea Consumption for NonAgricultural Purposes':
+                                None,
                              'Caprolactam, Glyoxal, and Glyoxylic Acid Production':
                                 None},
                          'combustion': None},
@@ -700,15 +812,13 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          'Support Activities': None},
                      'Construction': None,
                      'Waste':
-                        {'Landfills':
-                            {'noncombustion': None},
-                         'Composting':
-                            {'noncombustion': None}},
+                        {'noncombustion':
+                            {'Landfills': None,
+                             'Composting': None}},
                      'Energy':
                         {'noncombustion':
                             {'Stationary Combustion': None,
-                             'Non-Energy Use of Fuels': None},
-                         'combustion': None}}}}
+                             'Non-Energy Use of Fuels': None}}}}}
 
         super().__init__(directory, output_directory,
                          sector='Industry',
@@ -716,14 +826,140 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          lmdi_model='multiplicative',
                          base_year=1985, end_year=2018)
 
+    @staticmethod
+    def energy_data():
+        data_dir = './EnergyIntensityIndicators/Industry/Data/'
+        construction_elec_fuels = \
+            pd.read_csv(
+                f'{data_dir}construction_elec_fuels.csv').set_index('Year')
+        agriculture = \
+            pd.read_excel(
+                f'{data_dir}miranowski_data.xlsx',
+                sheet_name='Ag Cons by Use', skiprows=4, skipfooter=9,
+                usecols='A:F', index_col=0,
+                names=['Year', 'Gasoline', 'Diesel', 'LP Gas',
+                       'Natural Gas', 'Electricity'])
+        # Mining
+        mining = \
+            pd.read_csv(
+                f'{data_dir}mining_energy.csv').set_index(['Year', 'NAICS'])
+        mining = mining.apply(
+            lambda col: standard_interpolation(mining, name_to_interp=col.name,
+                                               axis=1))
+        manufacturing = pd.read_csv(
+            f'{data_dir}mecs_table42.csv').set_index(['Year', 'NAICS'])
+        manufacturing = mining.apply(
+            lambda col: standard_interpolation(manufacturing,
+                                               name_to_interp=col.name,
+                                               axis=1))
+
+    def collect_manufacturing_data(self, noncombustion_data, manufacturing,
+                                   combustion_activity):
+        cats = self.sub_categories_list['Industry']
+        man = cats['Manufacturing']
+        combustion_activity_m = combustion_activity['Manufacturing']
+        manufacturing_dict = dict()
+        for naics in man.keys():
+            combustion_energy_data = \
+                manufacturing[manufacturing['Industry'] == naics]
+            combustion_activity_naics = \
+                combustion_activity_m[combustion_activity_m[''] == naics]
+            naics_dict = dict()
+            noncombustion_activity = []
+            noncombustion_emissions = []
+            naics_emissions = \
+                self.calculate_emissions(combustion_energy_data,
+                                         emissions_type='CO2 Factor',
+                                         datasource='MECS')
+            naics_dict['combustion'] = {'E_i_j': combustion_energy_data,
+                                         'A_i_k': combustion_activity_naics,
+                                         'C_i_j_k': naics_emissions}
+
+            if not man[naics]:
+                continue
+            else:
+                for sub_category in man[naics]['noncombustion'].keys():
+                    noncombustion_cat_data = noncombustion_data[sub_category]
+                    e_ = noncombustion_cat_data['emissions']
+                    a_ = noncombustion_cat_data['activity']
+
+                    e_ = \
+                        df_utils.create_total_column(e_, sub_category)
+                    e_ = e_[[sub_category]]
+                    noncombustion_emissions.append(e_)
+                    a_ = \
+                        df_utils.create_total_column(a_, sub_category)
+                    a_ = a_[[sub_category]]
+                    noncombustion_activity.append(a_)
+
+                noncombustion_activity = \
+                    df_utils.merge_df_list(noncombustion_activity)
+                noncombustion_emissions = \
+                    df_utils.merge_df_list(noncombustion_emissions)
+
+                naics_dict['noncombustion'] = \
+                    {'A_i_k': noncombustion_activity,
+                     'C_i_j_k': noncombustion_emissions}
+                manufacturing_dict[naics] = naics_dict
+
+    def collect_nonmanufacturing_data(self, combustion_activity,
+                                      nonman_data, noncombustion_data):
+        cats = self.sub_categories_list['Industry']['Manufacturing']
+        nonmanufacturing_dict = dict()
+        noncombustion_activity = []
+        noncombustion_emissions = []
+        for subcategory in cats.keys():
+            if subcategory.isin(['Agriculture', 'Mining', 'Construction']):
+                sub_data_combustion = nonman_data[subcategory]
+                sub_energy_data_combustion = sub_data_combustion['energy']
+                sub_activity_data_combustion = sub_data_combustion['activity']
+            else:
+                for s in cats['subcategory']['noncombustion'].keys():
+                    e_ = noncombustion_cat_data['emissions']
+                    a_ = noncombustion_cat_data['activity']
+
+                    e_ = \
+                        df_utils.create_total_column(e_, sub_category)
+                    e_ = e_[[sub_category]]
+                    noncombustion_emissions.append(e_)
+                    a_ = \
+                        df_utils.create_total_column(a_, sub_category)
+                    a_ = a_[[sub_category]]
+                    noncombustion_activity.append(a_)
+
+                noncombustion_activity = \
+                    df_utils.merge_df_list(noncombustion_activity)
+                noncombustion_emissions = \
+                    df_utils.merge_df_list(noncombustion_emissions)
+
     def main(self):
-        energy_data = []
+        noncombustion_data = NonCombustion().main()
+        yaml_dir = 'C:/Users/irabidea/Desktop/yamls/'
+        fname = 'combustion_noncombustion_test'
+        gen = GeneralLMDI(yaml_dir)
+        gen.read_yaml(fname)
+
+        combustion = \
+            IndustrialIndicators(directory='./EnergyIntensityIndicators/Data',
+                                 output_directory='./Results',
+                                 level_of_aggregation='Industry',
+                                 lmdi_model=gen.model,
+                                 end_year=gen.end_year,
+                                 base_year=gen.base_year)
+
+        combustion_activity = combustion.collect_data()
+        activity = noncombustion_data.copy()
+        activity.update(combustion_activity)
+        energy_data = self.energy_data()
         emissions = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='MECS')
-        return {'energy': energy_data,
-                'emissions': emissions}
+        data = {'A_i_k': activity,
+                'E_i_j_k': energy_data,
+                'C_i_j_k': emissions,
+                'total_label': 'NonManufacturing'}
+        return data
 
 
 class TransportationEmssions(CO2EmissionsDecomposition):
@@ -863,12 +1099,12 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
             [type]: [description]
         """
         mapping_ = {'Coal': 'Mixed (Electric Power Sector)',
-                    'Petroleum':
-                        ['Distillate Fuel Oil No. 1',
-                         'Distillate Fuel Oil No. 2',
-                         'Distillate Fuel Oil No. 4',
-                         'Residual Fuel Oil No. 5',
-                         'Residual Fuel Oil No. 6'],  # take average
+                    # 'Petroleum':
+                    #     ['Distillate Fuel Oil No. 1',
+                    #      'Distillate Fuel Oil No. 2',
+                    #      'Distillate Fuel Oil No. 4',
+                    #      'Residual Fuel Oil No. 5',
+                    #      'Residual Fuel Oil No. 6'],  # take average
                     'Natural Gas': 'Natural Gas',
                     'Other Gases': 'Fuel Gas',
                     'Waste': 'Municipal Solid Waste',
@@ -945,11 +1181,13 @@ if __name__ == '__main__':
     directory = './EnergyIntensityIndicators/Data'
     output_directory = './Results'
 
-    module_dict = {'elec': ElectricPowerEmissions,
+    module_dict = {
+        # 'elec': ElectricPowerEmissions,
                 #    'transport': TransportationEmssions,
-                #    'industry': IndustrialEmissions,
-                   'residential': ResidentialEmissions,
-                   'commercial': CommercialEmissions}
+                   'industry': IndustrialEmissions}
+                #    ,
+                #    'residential': ResidentialEmissions,
+                #    'commercial': CommercialEmissions}
     results = dict()
     for sector, module_ in module_dict.items():
         print('sector:', sector)

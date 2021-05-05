@@ -525,7 +525,7 @@ class NonCombustion:
                         for t in tables:
                             table = self.noncombustion_activity_epa(t)
                             metallurgical_coke_activity.append(table)
-                            
+
                         metallurgical_coke_activity = df_utils().merge_df_list(
                             metallurgical_coke_activity)
 
@@ -812,7 +812,6 @@ class NonCombustion:
         noncombustion_data.update(level3)
         print('noncombustion_data:\n', noncombustion_data)
         print('noncombustion_data.keys():\n', noncombustion_data.keys())
-
         # # self.agricultural_soil_management()
         # results = self.landfills()
         # print('results:\n', results)
@@ -824,6 +823,7 @@ class NonCombustion:
 
         # {'aluminum': {'noncombustion': None, 'combustion': None}}
         # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
+        return noncombustion_data
 
 
 if __name__ == '__main__':

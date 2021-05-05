@@ -14,9 +14,10 @@ from EnergyIntensityIndicators.utilities.standard_interpolation \
 
 class Manufacturing:
 
-    def __init__(self):
+    def __init__(self, naics_digits):
         self.eia = GetEIAData('Industry')
         self.end_year = datetime.now().year
+        self.naics_digits = naics_digits
 
     def mecs_data_by_year(self):
         """[summary]
@@ -388,7 +389,7 @@ class Manufacturing:
         Returns:
            historical_mecs_31_32 [type]: [description]
            mecs_fuel [type]: [description]
-        """        
+        """
         mecs = self.mecs_data_by_year()
         mecs_3_1 = mecs['NAICS']['3_1'][['Year',
                                          'region',
@@ -504,8 +505,8 @@ class Manufacturing:
         for f in fuel_types: 
             try:
                 predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year,
-                                                        fuel_type=f, naics=naics,
-                                                        asm_col_map=asm_cols)
+                                                         fuel_type=f, naics=naics,
+                                                         asm_col_map=asm_cols)
                 predicted_fuel_price['fuel_type'] = f
                 predicted_fuel_price = predicted_fuel_price.reset_index()                      
             except Exception as e:

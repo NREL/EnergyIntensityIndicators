@@ -855,23 +855,22 @@ class CalculateLMDI(LMDI):
                 lower_level_structure_df = lower_level_structure_df.fillna(1)
 
             if not lower_level_intensity_list:
-                lower_level_intensity_df =  pd.DataFrame()
+                lower_level_intensity_df = pd.DataFrame()
             else:
                 lower_level_intensity_df = df_utils().merge_df_list(lower_level_intensity_list)
             return lower_level_structure_df, lower_level_intensity_df
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data,
                         lmdi_type, calculate_lmdi=False,
-                        breakout=False, old_style=False,
-                        new_style=True):
+                        breakout=False, new_style=True):
         """
         Collect LMDI decomposition according to user specifications
 
-        TODO: 
+        TODO:
             - Build in weather capabilities
         """
         categories = self.deep_get(self.categories_dict, level_of_aggregation)
-        
+
         if len(self.categories_dict) == 1 and not categories:
             categories = self.categories_dict
 
@@ -888,7 +887,7 @@ class CalculateLMDI(LMDI):
                                             level1_name=level1_name):
             continue
 
-        if old_style:
+        if not new_style:
             final_results = self.calculate_breakout_lmdi(results_dict,
                                                         level_of_aggregation_,
                                                         breakout,
@@ -897,7 +896,7 @@ class CalculateLMDI(LMDI):
         elif new_style:
             yaml_directory = 'C:/Users/irabidea/Desktop/yamls/'
             gen = GeneralLMDI(yaml_directory)
-            fname = 'combustion_noncombustion_test'  # 'test1'
+            fname = 'nonmanufacturing_emissions'  # 'test1'
             # input_data = gen.input_data()
             input_data = results_dict
             expression = gen.main(fname=fname, input_data=input_data)

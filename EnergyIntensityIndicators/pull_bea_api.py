@@ -46,7 +46,6 @@ class BEA_api:
             api_params[k] = v
 
         r = requests.get(self.base_url, params=api_params)
-        print('r:\n', type(r.json()['BEAAPI']['Results']), type(r.json()['BEAAPI']['Results'][0]))
 
         try:
             data_json = r.json()['BEAAPI']['Results']

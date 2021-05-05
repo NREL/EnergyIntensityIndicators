@@ -416,9 +416,8 @@ class GeneralLMDI:
             pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv').set_index('Year')
         print('energy cols:', energy.columns)
 
-        data = {'A_i': activity,
-                'E_i': energy,
-                'E_i_j': energy,
+        data = {'E_i_j': energy,
+                'A_i': activity,
                 'C_i_j': emissions,
                 'total_label': 'NonManufacturing'}
         return data

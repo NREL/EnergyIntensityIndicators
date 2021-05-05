@@ -7,13 +7,13 @@ def standard_interpolation(dataframe, name_to_interp=None, axis=1):
         dataframe (df): dataset to interpolate
         name_to_interp (str): name of columm if dataframe has
                               year index
-        axis (int or str): if 1 or "columns" interpolate 
-                            over column, if 0 or "index", 
+        axis (int or str): if 1 or "columns" interpolate
+                            over column, if 0 or "index",
                             interpolate over row
 
 
     Returns:
-        dataframe [df]: dataframe with 
+        dataframe [df]: dataframe with
                         interpolated data
     """   
     if axis == 1 or axis == 'columns': 
@@ -22,12 +22,12 @@ def standard_interpolation(dataframe, name_to_interp=None, axis=1):
         else:
             raise AttributeError('standard_interpolation method missing name_to_interp')
 
-    elif axis == 0 or axis == 'index': 
+    elif axis == 0 or axis == 'index':
         increment_years = list(dataframe.dropna(axis=1, how='all').columns)
-    
+
     else:
         raise AttributeError(f'standard_interpolation method missing valid axis, given {axis}')
-    
+
     for index, y_ in enumerate(increment_years):
 
         if index > 0:

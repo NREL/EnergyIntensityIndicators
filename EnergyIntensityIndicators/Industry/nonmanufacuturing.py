@@ -323,7 +323,7 @@ class NonManufacturing:
         if allfos:
             mapping_df['Year'] = mapping_df['Year'].subtract(1)
 
-        mapping_df['Year']= mapping_df['Year'].astype(int)
+        mapping_df['Year'] = mapping_df['Year'].astype(int)
 
         mining_df = mining_df.merge(mapping_df, how='right', on='Year')
         mining_df = mining_df.drop(
