@@ -5,6 +5,7 @@ from functools import reduce
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.multiplicative_lmdi import MultiplicativeLMDI
 from EnergyIntensityIndicators.additive_lmdi import AdditiveLMDI
+from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 
@@ -162,7 +163,7 @@ class LMDI():
             fmt_loa = [l.replace(" ", "_") for l in loa]
             results['@filter|Model'] = model.capitalize()
             results['@filter|EnergyType'] = energy_type
-            data_to_plot, rename_dict = self.data_visualization(results, 
+            data_to_plot, rename_dict = self.data_visualization(results,
                                         fmt_loa, energy_type, total_label)
 
             if '@timeseries|Year' not in data_to_plot.columns:
@@ -703,7 +704,7 @@ class CalculateLMDI(LMDI):
 
         return categories_list
 
-    def calculate_breakout_lmdi(self, raw_results, level_of_aggregation, 
+    def calculate_breakout_lmdi(self, raw_results, level_of_aggregation,
                                 breakout, categories, lmdi_type):
         """If breakout=True, calculate LMDI for each lower aggregation
         level contained in raw_results.
@@ -861,7 +862,8 @@ class CalculateLMDI(LMDI):
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data,
                         lmdi_type, calculate_lmdi=False,
-                        breakout=False):
+                        breakout=False, old_style=False,
+                        new_style=True):
         """
         Collect LMDI decomposition according to user specifications
 
@@ -886,11 +888,19 @@ class CalculateLMDI(LMDI):
                                             level1_name=level1_name):
             continue
 
-        final_results = self.calculate_breakout_lmdi(results_dict,
-                                                     level_of_aggregation_,
-                                                     breakout,
-                                                     categories_pre_breakout,
-                                                     lmdi_type)
+        if old_style:
+            final_results = self.calculate_breakout_lmdi(results_dict,
+                                                        level_of_aggregation_,
+                                                        breakout,
+                                                        categories_pre_breakout,
+                                                        lmdi_type)
+        elif new_style:
+            yaml_directory = 'C:/Users/irabidea/Desktop/yamls/'
+            gen = GeneralLMDI(yaml_directory)
+            fname = 'combustion_noncombustion_test'  # 'test1'
+            # input_data = gen.input_data()
+            input_data = results_dict
+            expression = gen.main(fname=fname, input_data=input_data)
 
         
         final_results.to_csv(f'{self.output_directory}/{self.sector}_{level1_name}_decomposition.csv', index=False)
