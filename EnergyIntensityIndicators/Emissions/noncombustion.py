@@ -777,7 +777,7 @@ class NonCombustion:
         manure_management = self.manure_management()
         return {'Manure Management': manure_management,
                 'Enteric Fermentation': enteric_fermentation,
-                'Lanfills': landfills,
+                'Landfills': landfills,
                 'Agricultural Soil Management': agricultural_soil_management}
 
     def main(self):
@@ -808,7 +808,7 @@ class NonCombustion:
         # {'aluminum': {'noncombustion': None, 'combustion': None}}
         # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
 
-        
+
 if __name__ == '__main__':
     com = NonCombustion()
     # chapter_0 = com.chapter_0

@@ -636,14 +636,44 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     {'Food and beverage and tobacco products': None,
                      'Textile mills and textile product mills': None,
                      'Apparel and leather and allied products': None,
-                     'Wood products': None, 'Paper products': None,
+                     'Wood products': None,
+                     'Paper products': None,
                      'Printing and related support activities': None,
                      'Petroleum and coal products': None,
-                     'Chemical products': None,
+                     'Chemical products':
+                        {'noncombustion':
+                            {'Petrochemical Production': None,
+                             'Titanium Dioxide Production': None,
+                             'Nitric Acid Production': None,
+                             'Phosphoric Acid Production': None,
+                             'Adipic Acid Production': None,
+                             'Ammonia Production': None,
+                             'Carbide Production and Consumption': None,
+                             'Soda Ash Production': None,
+                             'N2O from Product Uses': None,
+                             'Urea Consumption for NonAgricultural Purposes': None,
+                             'Caprolactam, Glyoxal, and Glyoxylic Acid Production':
+                                None},
+                         'combustion': None},
                      'Plastics and rubber products': None,
-                     'Nonmetallic mineral products': None,
-                     'Primary metals': None,
-                     'Fabricated metal products': None,
+                     'Nonmetallic mineral products':
+                        {'noncombustion':
+                            {'Cement Production': None,
+                             'Glass Production': None,
+                             'Lime Production': None,
+                             'Other Process Uses of Carbonates': None,
+                             'Carbon Dioxide Consumption': None},
+                         'combustion': None},
+                     'Primary metals':
+                        {'noncombustion':
+                            {'Lead Production': None,
+                             'Zinc Production': None,
+                             'Aluminum Production': None},
+                         'combustion': None},
+                     'Fabricated metal products':
+                        {'noncombustion':
+                            {'Ferroalloy Production': None},
+                         'combustion': None},
                      'Machinery': None,
                      'Computer and electronic products': None,
                      'Electrical equipment, appliances, and components': None,
@@ -651,15 +681,31 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                      'Furniture and related products': None,
                      'Miscellaneous manufacturing': None},
                  'Nonmanufacturing':
-                    {'Agriculture, Forestry & Fishing': None,
+                    {'Agriculture, Forestry & Fishing':
+                        {'noncombustion':
+                            {'Urea Fertilization': None,
+                             'Agricultural Soil Management': None,
+                             'Manure Management': None,
+                             'Enteric Fermentation': None,
+                             'Liming': None},
+                         'combustion': None},
                      'Mining':
                         {'Petroleum and Natural Gas': None,
-                         'Other Mining': None,
+                         'Other Mining':
+                            {'noncombustion':
+                                {'Coal Mining': None},
+                             'combustion': None},
                          'Support Activities': None},
-                     'Construction': None}}}
-
-        # {'aluminum': {'noncombustion': None, 'combustion': None}}
-        # {'noncombustion': {'aluminum': None, 'iron': None, 'magnesium': None}, 'combustion': None} # This one
+                     'Construction': None,
+                     'Waste':
+                        {'Landfills':
+                            {'noncombustion': None},
+                         'Composting':
+                            {'noncombustion': None}},
+                     'Energy':
+                        {'noncombustion':
+                            {'Stationary Combustion': None},
+                         'combustion': None}}}}
 
         super().__init__(directory, output_directory,
                          sector='Industry',
