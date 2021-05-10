@@ -26,32 +26,40 @@ class ResidentialFloorspace:
         Extract and process American Housing Survey (AHS, formerly Annual Housing Survey) 
         web: https://www.census.gov/programs-surveys/ahs/data.html
         ? https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html 
-        """    
+        """
         ahs_url_folder = 'http://www2.census.gov/programs-surveys/ahs/2017/AHS%202017%20National%20PUF%20v3.0%20CSV.zip?#' 
         print('os.getcwd()', os.getcwd())
-        if os.path.exists('../../Indicators_Spreadsheets_2020/household.csv'):
+        if os.path.exists('./Indicators_Spreadsheets_2020/household.csv'):
             print('AHS data already ready')
             pass
-        else: 
+        else:
             r = requests.get(ahs_url_folder, stream=True)
             print('AHS data get successful:', r.ok)
             z = ZipFile(io.BytesIO(r.content))
-            z.extract('household.csv', path='../../Indicators_Spreadsheets_2020/')
+            z.extract('household.csv', path='./Indicators_Spreadsheets_2020/')
 
-        ahs_household_data = pd.read_csv('../../Indicators_Spreadsheets_2020/household.csv')
+        ahs_household_data = \
+            pd.read_csv('./Indicators_Spreadsheets_2020/household.csv')
 
-        columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT', 'DIVISION', 'BLD', 'UNITSIZE', 'VACANCY']
+        columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT',
+                   'DIVISION', 'BLD', 'UNITSIZE',
+                   'VACANCY']
         extract_ahs = ahs_household_data[columns]
-        os.remove('../../Indicators_Spreadsheets_2020/household.csv')
+        # os.remove('./Indicators_Spreadsheets_2020/household.csv')
         extract_ahs = extract_ahs.replace(to_replace={"'": ""})
-        extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
-        extract_ahs['DIVISION'] = extract_ahs['DIVISION'].replace(to_replace="'", value='')
-        extract_ahs['UNITSIZE'] = extract_ahs['UNITSIZE'].replace(to_replace="'", value='')
-        extract_ahs['BLD'] = extract_ahs['BLD'].replace(to_replace="'", value='')
+        extract_ahs['BLD'] = \
+            extract_ahs['BLD'].replace(to_replace="'", value='')
+        extract_ahs['DIVISION'] = \
+            extract_ahs['DIVISION'].replace(to_replace="'", value='')
+        extract_ahs['UNITSIZE'] = \
+            extract_ahs['UNITSIZE'].replace(to_replace="'", value='')
+        extract_ahs['BLD'] = \
+            extract_ahs['BLD'].replace(to_replace="'", value='')
 
-        vals_list = ["'04'", "'05'", "'06'", "'07'", "'08'", "'09'"]
+        vals_list = ["'04'", "'05'", "'06'",
+                     "'07'", "'08'", "'09'"]
 
-        extract_ahs= extract_ahs[extract_ahs['BLD'].isin(vals_list)]
+        extract_ahs = extract_ahs[extract_ahs['BLD'].isin(vals_list)]
         housing_types = ['single_family', 'multifamily', 'manufactured_homes']
         housing_occupancy_types = [f'{h}_total' for h in housing_types] + [f'{h}_occupied' for h in housing_types]
         housing_type_number = dict(zip()) # match the numbers in ['04', '05', '06', '07', '08', '09'] to housing/occupancy type

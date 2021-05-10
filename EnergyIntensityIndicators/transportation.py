@@ -24,31 +24,44 @@ class TransportationIndicators(CalculateLMDI):
                                                         id_type='category')
         self.tedb_date = tedb_date
         self.energy_types = ['deliv']
-        self.sub_categories_list = {'All_Transportation': {'All_Passenger':
-                                                                {'Highway': 
-                                                                    {'Passenger Cars and Trucks': 
-                                                                        {'Passenger Car – SWB Vehicles': 
-                                                                            {'Passenger Car': None, 'SWB Vehicles': None},
-                                                                        'Light Trucks – LWB Vehicles': 
-                                                                            {'Light Trucks': None, 'LWB Vehicles': None},
-                                                                        'Motorcycles': None}, 
-                                                                    'Buses': 
-                                                                        {'Urban Bus': None, 'Intercity Bus': None, 'School Bus': None}, 
-                                                                    'Paratransit':
-                                                                        None}, 
-                                                                'Rail': 
-                                                                    {'Urban Rail': 
-                                                                        {'Commuter Rail': None, 'Heavy Rail': None, 'Light Rail': None}, 
-                                                                    'Intercity Rail': None}, 
-                                                                'Air': {'Commercial Carriers': None, 'General Aviation': None}}, 
-                                                            'All_Freight': 
-                                                                {'Highway': 
-                                                                        {'Single-Unit Truck': None, 'Combination Truck': None}, 
-                                                                'Rail': None, 
-                                                                'Air': None, 
-                                                                'Waterborne': None,
-                                                                'Pipeline': 
-                                                                    {'Oil Pipeline': None, 'Natural Gas Pipeline': None}}}}
+        self.sub_categories_list = \
+            {'All_Transportation':
+                {'All_Passenger':
+                    {'Highway':
+                        {'Passenger Cars and Trucks':
+                            {'Passenger Car – SWB Vehicles':
+                                {'Passenger Car': None,
+                                 'SWB Vehicles': None},
+                             'Light Trucks – LWB Vehicles':
+                                {'Light Trucks': None,
+                                 'LWB Vehicles': None},
+                             'Motorcycles': None},
+                         'Buses':
+                            {'Urban Bus': None,
+                             'Intercity Bus': None,
+                             'School Bus': None},
+                         'Paratransit':
+                            None},
+                     'Rail':
+                        {'Urban Rail':
+                            {'Commuter Rail': None,
+                             'Heavy Rail': None,
+                             'Light Rail': None},
+                         'Intercity Rail': None},
+                     'Air':
+                        {'Commercial Carriers': None,
+                         'General Aviation': None}},
+                 'All_Freight':
+                    {'Highway':
+                        {'Single-Unit Truck': None,
+                         'Combination Truck': None},
+                     'Rail': None,
+                     'Air': None,
+                     'Waterborne': None,
+                     'Pipeline':
+                        {'Oil Pipeline': None,
+                         'Natural Gas Pipeline': None}}}}
+
         super().__init__(sector='transportation',
                          level_of_aggregation=level_of_aggregation,
                          lmdi_models=lmdi_model,

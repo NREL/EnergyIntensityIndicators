@@ -363,21 +363,26 @@ class Manufacturing:
         raw_data = raw_data[~raw_data['Total'].isin(regions)]
         raw_data = raw_data.dropna(axis=0, how='all')
 
-        raw_data[code] = raw_data[code].fillna(raw_data['Subsector and Industry'])
-        raw_data = raw_data.set_index(['region', code, 'Subsector and Industry'])
-        raw_data = raw_data.replace({'*': 0.25, 'Q': np.nan, 'D': np.nan, 'W': np.nan})
+        raw_data[code] = raw_data[code].fillna(
+            raw_data['Subsector and Industry'])
+        raw_data = raw_data.set_index(
+            ['region', code, 'Subsector and Industry'])
+        raw_data = raw_data.replace({'*': 0.25, 'Q': np.nan,
+                                     'D': np.nan, 'W': np.nan})
         return raw_data
 
     @staticmethod
-    def mecs_sic_crosswalk():
+    def mecs_sic_crosswalk(
+            data_dir='./EnergyIntensityIndicators/Industry/Data/'):
         """[summary]
 
         Returns:
            cw [DataFrame]: [description]
-        """        
+        """
         #  Use crosswalk 1987 SIC to 1997 NAICS from
         #  https://www.census.gov/eos/www/naics/concordances/concordances.html
-        cw = pd.read_excel('https://www.census.gov/eos/www/naics/concordances/1987_SIC_to_1997_NAICS.xls')
+        # cw: 'https://www.census.gov/eos/www/naics/concordances/1987_SIC_to_1997_NAICS.xls'
+        cw = pd.read_excel(f'{data_dir}1987_SIC_to_1997_NAICS.xlsx')
         cw = cw.astype(int, errors='ignore')
         cw = cw[['SIC', '1997 NAICS']]
         print('cw:\n', cw)
@@ -409,7 +414,8 @@ class Manufacturing:
                                                    'Subsector and Industry'],
                                                how='outer')
         mecs_fuel = mecs_3_2.copy()
-        mecs_fuel['Fuel'] = mecs_fuel['Total'].subtract(mecs_fuel['Net Electricity(b)'])
+        mecs_fuel['Fuel'] = \
+            mecs_fuel['Total'].subtract(mecs_fuel['Net Electricity(b)'])
         mecs_fuel = mecs_fuel.drop(['Total', 'Net Electricity(b)'], axis=1)
         return historical_mecs_31_32, mecs_fuel
 
@@ -444,21 +450,21 @@ class Manufacturing:
 
     #     mecs_3_2 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_2.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (trillion Btu)
     #     mecs_3_2 = self.clean_industrial_data(mecs_3_2)
-    #     rename_dict_3_1 = {'Electricity(b)': 'Net Electricity', 
-    #                    'Fuel Oil': 'Residual Fuel Oil', 
-    #                    'Fuel Oil(c)': 'Distillate Fuel Oil', 
+    #     rename_dict_3_1 = {'Electricity(b)': 'Net Electricity',
+    #                    'Fuel Oil': 'Residual Fuel Oil',
+    #                    'Fuel Oil(c)': 'Distillate Fuel Oil',
     #                    'Gas(d)': 'Natural Gas',
-    #                    'natural gasoline)(e)': 'HGL (excluding natural gasoline)', 
+    #                    'natural gasoline)(e)': 'HGL (excluding natural gasoline)',
     #                    'and Breeze': 'Coke Coal and Breeze'}
     #     mecs_3_2 = mecs_3_2.rename(columns=rename_dict_3_1)
 
     #     mecs_3_5 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_5.xlsx', skiprows=10, index_col=0).dropna(axis=0, how='all') # Byproducts in Fuel Consumption By Manufacturing Industry and Region
     #                 # (trillion Btu)
-    #     rename_dict_3_5 = {'Oven Gases': 'Blast Furnace/Coke Oven Gases', 
-    #                        'Gas': 'Waste Gas', 
+    #     rename_dict_3_5 = {'Oven Gases': 'Blast Furnace/Coke Oven Gases',
+    #                        'Gas': 'Waste Gas',
     #                        'Coke': 'Petroleum Coke',
-    #                        'Black Liquor': 'Pulping Liquor or Black Liquor', 
-    #                        'Bark': 'Wood Chips, Bark', 
+    #                        'Black Liquor': 'Pulping Liquor or Black Liquor',
+    #                        'Bark': 'Wood Chips, Bark',
     #                        'Materials': 'Waste Oils/Tars and Waste Materials'}
     #     mecs_3_5 = mecs_3_5.rename(columns=rename_dict_3_5)
     #     mecs_3_5 = self.clean_industrial_data(mecs_3_5)
@@ -477,9 +483,9 @@ class Manufacturing:
     #     return industrial_btu
 
     def industrial_sector_energy(self):
-        """TODO: do further processing to bridge Btu energy data with 
+        """TODO: do further processing to bridge Btu energy data with
         physical units used for emissions factors
-        """        
+        """
         industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
         industrial_renamed = self.mecs_epa_mapping(industrial_data_btu)
         return industrial_renamed
@@ -502,13 +508,14 @@ class Manufacturing:
                  325, 326, 327, 331, 332, 333, 334, 335, 336, 337, 339]
 
         asm_price_data = []
-        for f in fuel_types: 
+        for f in fuel_types:
             try:
-                predicted_fuel_price = Mfg_prices().main(latest_year=self.end_year,
-                                                         fuel_type=f, naics=naics,
-                                                         asm_col_map=asm_cols)
+                predicted_fuel_price = \
+                    Mfg_prices().main(latest_year=self.end_year,
+                                      fuel_type=f, naics=naics,
+                                      asm_col_map=asm_cols)
                 predicted_fuel_price['fuel_type'] = f
-                predicted_fuel_price = predicted_fuel_price.reset_index()                      
+                predicted_fuel_price = predicted_fuel_price.reset_index()              
             except Exception as e:
                 print(f'fuel type {f} failed with error {e}')
                 continue

@@ -33,13 +33,14 @@ class GeneralLMDI:
     the decomposition (terms are the variables that are weighted by
     the log mean divisia weights in the final decomposition)
     """
-    def __init__(self, directory):
+    def __init__(self, directory, class_):
         """
         Args:
             directory (str): Path to folder containing YAML
                              files with LMDI input parameters
         """
         self.directory = directory
+        self.class_ = class_
 
     def create_yaml(self, fname):
         """Create YAML containing input data
@@ -80,7 +81,7 @@ class GeneralLMDI:
             input_dict = yaml.load(file, Loader=yaml.FullLoader)
             print('input_dict:\n', input_dict)
             for k, v in input_dict.items():
-                setattr(GeneralLMDI, k, v)
+                setattr(self.class_, k, v)
 
     @staticmethod
     def test_expression(expression, lhs):
