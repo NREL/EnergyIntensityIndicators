@@ -83,7 +83,7 @@ class MultiplicativeLMDI():
         return results
 
     def visualizations(self, data, base_year, end_year, loa, model,
-                       energy_type, rename_dict): 
+                       energy_type=None, rename_dict=None): 
         """Visualize multiplicative LMDI results in a line plot
         """
         data = data[(data['@timeseries|Year'] >= base_year) &
@@ -137,7 +137,10 @@ class MultiplicativeLMDI():
         else:
             loa_ = [loa_[0], loa_[-1]]
 
-        title = f"Change in {energy_type.capitalize()} Energy Use {' '.join([l.title() for l in loa_])}"
+        if energy_type:
+            title = f"Change in {energy_type.capitalize()} Energy Use {' '.join([l.title() for l in loa_])}"
+        else:
+            title = f"Change in Energy Use {' '.join([l.title() for l in loa_])}"
 
         fig_name = "_".join(loa) + f"{model}_{energy_type}_{base_year}" 
 

@@ -510,24 +510,27 @@ class CalculateLMDI(LMDI):
             weather = False
 
         energy = self.collect_energy_data(raw_energy_dict)
-        energy_data = self.process_type_data('Energy_Type', energy, 
+        energy_data = self.process_type_data('Energy_Type', energy,
                                              d_type_list=self.energy_types)
 
         if isinstance(activity_data, pd.DataFrame):
             activity_data['activity_type'] = 'only_activity'
         elif isinstance(activity_data, dict):
-            activity_data = self.process_type_data('activity_type',
-                                                   activity_data,
-                                                   d_type_list=activity_data.keys())
+            activity_data = \
+                self.process_type_data('activity_type',
+                                       activity_data,
+                                       d_type_list=activity_data.keys())
 
         if level_name in results_dict:
-            energy_data = self.merge_input_data([energy_data,
-                                                results_dict[level_name]['energy']],
-                                                'Energy_Type')
-            activity_data = self.merge_input_data([activity_data,
-                                                  results_dict[level_name]['activity']],
-                                                  'activity_type')
-        
+            energy_data = \
+                self.merge_input_data([energy_data,
+                                       results_dict[level_name]['energy']],
+                                      'Energy_Type')
+            activity_data = \
+                self.merge_input_data([activity_data,
+                                       results_dict[level_name]['activity']],
+                                      'activity_type')
+
         data_dict_ = {'energy': energy_data, 'activity': activity_data,
                       'level_total': level_name}
 
@@ -535,6 +538,92 @@ class CalculateLMDI(LMDI):
             data_dict_['weather_factors'] = weather_data_
 
         results_dict[level_name] = data_dict_
+
+        return results_dict
+
+    def gen_process_results_dict(self, data, select_categories,
+                                 results_dict, level_name, key):
+        if all(v in data for v in data.keys()):
+            level_data = data
+        elif all(v in data[key] for v in data):
+            level_data = data[key]
+        else:
+            return None
+
+        if self.energy_types != 'all' and 'E_i' in level_data:
+            energy = self.collect_energy_data(level_data['E_i'])
+            energy_data = self.process_type_data('Energy_Type', energy,
+                                                 d_type_list=self.energy_types)
+            level_data['E_i'] = energy_data
+
+        if 'A_i' in level_data:
+            activity_data = level_data['A_i']
+            if isinstance(level_data['A_i'], pd.DataFrame):
+                activity_data['activity_type'] = 'only_activity'
+            elif isinstance(level_data['A_i'], dict):
+                activity_data = \
+                    self.process_type_data('activity_type',
+                                           activity_data,
+                                           d_type_list=activity_data.keys())
+            level_data['A_i'] = activity_data
+
+        if level_name in results_dict:
+            data_dict = \
+                {v: self.merge_input_data([level_data[v],
+                                           results_dict[level_name][v]])
+                 for v in self.variables}
+
+        results_dict[level_name] = data_dict
+
+        return results_dict
+
+    def gen_nesting(self, level_name, results_dict, select_categories):
+
+        aggregations = {v: [] for v in self.variables}
+        if level_name in results_dict:
+            for v in self.variables:
+                if v in results_dict[level_name].keys():
+                    aggregate_v = [results_dict[level_name][v]]
+                    aggregations[v] = aggregate_v
+
+        for v, aggregate_v in aggregations.items():
+            for key, value in select_categories.items():
+                if key == np.nan:
+                    raise ValueError('select_categories key is NAN')
+                try:
+                    lower_level_v = results_dict[key][v]
+                    for w_, w_data in lower_level_v.items():
+                        if isinstance(w_data, pd.DataFrame):
+                            lower_level_v = lower_level_v
+                        elif isinstance(w_data, dict):
+                            lower_level_v = results_dict[key][v][key]
+
+                    if isinstance(value, dict):
+                        if len(lower_level_v.columns.tolist()) > 1:
+                            lower_level_v = \
+                                df_utils().create_total_column(lower_level_v,
+                                                               key)[[key]]
+
+                    else:
+                        if key in lower_level_v.columns:
+                            lower_level_v = lower_level_v[[key]]
+
+                    aggregate_v.append(lower_level_v)
+
+                except KeyError:
+                    print(f'lower level key: {key} failed on level : \
+                          {level_name}')
+                    continue
+
+            aggregations[v] = aggregate_v
+
+        data_dict = dict()
+        for v in self.variables:
+            v_df = self.merge_input_data(aggregations[v])
+            v_df = df_utils().create_total_column(v_df, level_name)
+            data_dict[v] = v_df
+
+        results_dict[f'{level_name}'] = data_dict
 
         return results_dict
 
@@ -592,7 +681,7 @@ class CalculateLMDI(LMDI):
                     base_col_a = 'activity_type'
                     if len(lower_level_a.columns.difference([base_col_a]).tolist()) > 1:
                         lower_level_a = df_utils().create_total_column(lower_level_a, 
-                                                                     key)[[base_col_a, key]]     
+                                                                     key)[[base_col_a, key]]
 
                     base_col_e = 'Energy_Type'
                     if len(lower_level_e.columns.difference([base_col_e]).tolist()) > 1:
@@ -631,7 +720,7 @@ class CalculateLMDI(LMDI):
         return results_dict
 
     def build_nest(self, data, select_categories, results_dict,
-                   level1_name, level_name=None):
+                   level1_name, new_style, level_name=None):
         """Process and organize raw data"""
 
         if isinstance(select_categories, dict):
@@ -642,15 +731,24 @@ class CalculateLMDI(LMDI):
                                                select_categories=value,
                                                results_dict=results_dict,
                                                level1_name=level1_name,
+                                               new_style=new_style,
                                                level_name=key)
 
-                else: 
+                else:
                     if not level_name:
                         level_name = level1_name
-                    results_dict = self.process_results_dict(data,
-                                                             select_categories,
-                                                             results_dict,
-                                                             level_name, key)
+                    if new_style:
+                        results_dict = \
+                            self.gen_process_results_dict(data,
+                                                          select_categories,
+                                                          results_dict,
+                                                          level_name, key)
+                    else:
+                        results_dict = \
+                            self.process_results_dict(data,
+                                                      select_categories,
+                                                      results_dict,
+                                                      level_name, key)
 
         else:
             results_dict = results_dict
@@ -658,12 +756,16 @@ class CalculateLMDI(LMDI):
         if not level_name:
             level_name = level1_name
 
-        results_dict = self.nesting(level_name, results_dict,
-                                    select_categories)
+        if new_style:
+            results_dict = self.nesting(level_name, results_dict,
+                                        select_categories)
+        else:
+            results_dict = self.gen_nesting(level_name, results_dict,
+                                            selected_categories)
 
         yield results_dict
 
-    def merge_input_data(self, list_dfs, second_index):
+    def merge_input_data(self, list_dfs, second_index=None):
         """Merge dataframes of same variable type"""
 
         list_dfs = [df_utils().int_index(l) for l in list_dfs]
@@ -675,13 +777,20 @@ class CalculateLMDI(LMDI):
             return list_dfs[0]
         else:
             list_dfs = [l.reset_index() for l in list_dfs]
-
-            df = \
-                reduce(lambda df1, df2: 
-                    df1.merge(df2[list(df2.columns.difference(df1.columns)) +
-                                  ['Year', second_index]], how='outer',
-                                  on=['Year', second_index]), 
-                       list_dfs).set_index('Year')
+            if second_index:
+                df = \
+                    reduce(lambda df1, df2: 
+                        df1.merge(df2[list(df2.columns.difference(df1.columns)) +
+                                    ['Year', second_index]], how='outer',
+                                    on=['Year', second_index]), 
+                        list_dfs).set_index('Year')
+            else:
+                df = \
+                    reduce(lambda df1, df2: 
+                        df1.merge(df2[list(df2.columns.difference(df1.columns)) +
+                                    ['Year']], how='outer',
+                                    on='Year'), 
+                        list_dfs).set_index('Year')
             return df
 
     def order_categories(self, level_of_aggregation, raw_results):
@@ -874,32 +983,32 @@ class CalculateLMDI(LMDI):
         if len(self.categories_dict) == 1 and not categories:
             categories = self.categories_dict
 
-        data = reduce(lambda d, key: d.get(key, d) if isinstance(d, dict) else d, level_of_aggregation.split("."), raw_data)
+        data = reduce(lambda d, key: d.get(key, d) if isinstance(d, dict)
+                      else d, level_of_aggregation.split("."), raw_data)
 
         level_of_aggregation_ = level_of_aggregation.split(".")
         level1_name = level_of_aggregation_[-1]
 
         categories_pre_breakout = categories
-
+        print('data:\n', data)
         results_dict = dict()
-        for results_dict in self.build_nest(data=data, select_categories=categories,
+        for results_dict in self.build_nest(data=data,
+                                            select_categories=categories,
                                             results_dict=results_dict,
-                                            level1_name=level1_name):
+                                            level1_name=level1_name,
+                                            new_style=new_style):
             continue
 
         if not new_style:
-            final_results = self.calculate_breakout_lmdi(results_dict,
-                                                        level_of_aggregation_,
-                                                        breakout,
-                                                        categories_pre_breakout,
-                                                        lmdi_type)
+            final_results = \
+                self.calculate_breakout_lmdi(results_dict,
+                                             level_of_aggregation_,
+                                             breakout,
+                                             categories_pre_breakout,
+                                             lmdi_type)
         elif new_style:
-            yaml_directory = 'C:/Users/irabidea/Desktop/yamls/'
-            gen = GeneralLMDI(yaml_directory)
-            fname = 'nonmanufacturing_emissions'  # 'test1'
-            # input_data = gen.input_data()
             input_data = results_dict
-            expression = gen.main(fname=fname, input_data=input_data)
+            final_results = self.gen.main(input_data=input_data)
 
         
         final_results.to_csv(f'{self.output_directory}/{self.sector}_{level1_name}_decomposition.csv', index=False)

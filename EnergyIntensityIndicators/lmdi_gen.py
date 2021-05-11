@@ -6,6 +6,8 @@ import yaml
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities import lmdi_utilities
+from EnergyIntensityIndicators.multiplicative_lmdi \
+    import MultiplicativeLMDI
 
 
 class GeneralLMDI:
@@ -450,28 +452,37 @@ class GeneralLMDI:
 
         return results_df
 
-    def main(self, fname, input_data):
+    def main(self, input_data):
         """Calculate LMDI decomposition
 
         Args:
-            fname (str): Name of YAML file containing
-                         LMDI input parameters
             input_data (dict): Dictionary containing dataframes
                                for each variable defined in the YAML
         """
-        self.read_yaml(fname)
         results = self.general_expr(input_data)
         formatted_results = self.prepare_for_viz(results)
         formatted_results.to_csv(f'{self.directory}/example2.csv',
                                  index=False, mode='a', header=False)
         print('formatted_results:\n', formatted_results)
+        
+        if self.model == 'multiplicative':
+            MultiplicativeLMDI().visualizations(data=formatted_results,
+                                                base_year=self.base_year,
+                                                end_year=self.end_year,
+                                                model=self.model,
+                                                loa=self.total_label)
+        return formatted_results
 
 
 if __name__ == '__main__':
     directory = 'C:/Users/irabidea/Desktop/yamls/'
     symb = GeneralLMDI(directory)
+    """fname (str): Name of YAML file containing
+                         LMDI input parameters
+    """
     fname = 'combustion_noncombustion_test'  # 'test1'
+    # self.read_yaml(fname)
     input_data = symb.input_data()
-    expression = symb.main(fname=fname, input_data=input_data)
+    expression = symb.main(input_data=input_data)
     # subs_ = symb.eval_expression()
     # c = IndexedVersion(directory=directory).main(fname='test1')

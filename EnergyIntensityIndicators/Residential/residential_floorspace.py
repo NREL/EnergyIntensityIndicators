@@ -23,23 +23,27 @@ class ResidentialFloorspace:
     @staticmethod
     def update_ahs_data():
         """Spreadsheet equivalent: AHS_2017_extract
-        Extract and process American Housing Survey (AHS, formerly Annual Housing Survey) 
+        Extract and process American Housing Survey (AHS, formerly Annual Housing Survey)
         web: https://www.census.gov/programs-surveys/ahs/data.html
         ? https://www.census.gov/programs-surveys/ahs/data/2017/ahs-2017-public-use-file--puf-/ahs-2017-national-public-use-file--puf-.html 
         """
         ahs_url_folder = 'http://www2.census.gov/programs-surveys/ahs/2017/AHS%202017%20National%20PUF%20v3.0%20CSV.zip?#' 
         print('os.getcwd()', os.getcwd())
-        if os.path.exists('./Indicators_Spreadsheets_2020/household.csv'):
+        print("os.path.abspath:", os.path.abspath('../../Indicators_Spreadsheets_2020/household.csv'))
+        if os.path.exists('../../Indicators_Spreadsheets_2020/household.csv'):
             print('AHS data already ready')
             pass
         else:
             r = requests.get(ahs_url_folder, stream=True)
             print('AHS data get successful:', r.ok)
             z = ZipFile(io.BytesIO(r.content))
-            z.extract('household.csv', path='./Indicators_Spreadsheets_2020/')
+            z.extract('household.csv',
+                      path='../../Indicators_Spreadsheets_2020/')
 
+        # This file is not in the repo because it is too large for GitHub
+        # (do not move)
         ahs_household_data = \
-            pd.read_csv('./Indicators_Spreadsheets_2020/household.csv')
+            pd.read_csv('../../Indicators_Spreadsheets_2020/household.csv')
 
         columns = ['JYRBUILT', 'WEIGHT', 'YRBUILT',
                    'DIVISION', 'BLD', 'UNITSIZE',
