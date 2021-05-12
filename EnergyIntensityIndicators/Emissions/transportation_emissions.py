@@ -163,18 +163,14 @@ if __name__ == '__main__':
     directory = './EnergyIntensityIndicators/Data'
     output_directory = './Results'
 
-    module_dict = {'transport': TransportationEmssions}
-    levels = {'transport': 'All_Transportation'}
-    results = dict()
-    for sector, module_ in module_dict.items():
-        print('sector:', sector)
-        s = module_(directory, output_directory,
-                    level_of_aggregation=levels[sector])
-        s_data = s.main()
-        results = s.calc_lmdi(breakout=True,
-                              calculate_lmdi=True,
-                              data_dict=s_data)
-        print('s_data:\n', s_data)
-        print('results:\n', results)
+    module_ = TransportationEmssions
+    level = 'All_Transportation'
 
-        results[sector] = s_data
+    s = module_(directory, output_directory,
+                level_of_aggregation=level)
+    s_data = s.main()
+    results = s.calc_lmdi(breakout=True,
+                          calculate_lmdi=True,
+                          data_dict=s_data)
+    print('s_data:\n', s_data)
+    print('results:\n', results)
