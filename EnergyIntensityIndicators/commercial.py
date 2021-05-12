@@ -29,6 +29,7 @@ Data Sources: New construction is based on data from Dodge Data and Analytics, a
 Methodology: Perpetual inventory model, where estimates of new additions and removals are added to the previous year's estimate of stock
              to update the current year"""
 
+
 class CommercialIndicators(CalculateLMDI):
     """
     Data Sources: 
@@ -38,14 +39,22 @@ class CommercialIndicators(CalculateLMDI):
     2014 to 2018". 
     """    
 
-    def __init__(self, directory, output_directory, level_of_aggregation, lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
+    def __init__(self, directory, output_directory, level_of_aggregation,
+                 lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
         self.end_year = end_year
-        self.sub_categories_list = {'Commercial_Total': None} #, 'Total_Commercial_LMDI_UtilAdj': None}
+        self.sub_categories_list = {'Commercial_Total': None}  #, 'Total_Commercial_LMDI_UtilAdj': None}
         self.eia_comm = GetEIAData('commercial')
-        self.energy_types = ['elec', 'fuels', 'deliv', 'source', 'source_adj']
-        super().__init__(sector='commercial', level_of_aggregation=level_of_aggregation,lmdi_models=lmdi_model, 
-                         directory=directory, output_directory=output_directory, categories_dict=self.sub_categories_list, energy_types=self.energy_types, 
-                         base_year=base_year, end_year=end_year)
+        self.energy_types = ['elec', 'fuels', 'deliv',
+                             'source', 'source_adj']
+        super().__init__(sector='commercial',
+                         level_of_aggregation=level_of_aggregation,
+                         lmdi_models=lmdi_model, 
+                         directory=directory,
+                         output_directory=output_directory,
+                         categories_dict=self.sub_categories_list,
+                         energy_types=self.energy_types,
+                         base_year=base_year,
+                         end_year=end_year)
         # self.cbecs = 
         # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
@@ -55,44 +64,55 @@ class CommercialIndicators(CalculateLMDI):
         # self.AER11_Table21C_Update = GetEIAData.eia_api(id_='711251')  # Estimates?
 
     def collect_input_data(self, dataset_name):
-        datasets = {'national_calibration': self.eia_comm.national_calibration(), 'SEDS_CensusRgn': self.eia_comm.get_seds(), 
-                    'mer_data_23': self.eia_comm.eia_api(id_='711251', id_type='category')}
+        datasets = \
+            {'national_calibration':
+                self.eia_comm.national_calibration(),
+             'SEDS_CensusRgn':
+                self.eia_comm.get_seds(),
+             'mer_data_23':
+                self.eia_comm.eia_api(id_='711251', id_type='category')}
         return datasets[dataset_name]
 
     def adjusted_supplier_data(self):
         """
         This worksheet adjusts some of commercial energy consumption data
-        as reported in the Annual Energy Review.  These adjustments are 
-        based upon state-by-state analysis of energy consumption in the 
-        industrial and commercial sectors.  For electricity, there have been 
-        a number of reclassifications by utilities since 1990 that has moved 
-        sales from the industrial sector to the commercial sector. 
+        as reported in the Annual Energy Review.  These adjustments are
+        based upon state-by-state analysis of energy consumption in the
+        industrial and commercial sectors.  For electricity, there have been
+        a number of reclassifications by utilities since 1990 that has moved
+        sales from the industrial sector to the commercial sector.
 
         The adjustment for electricity consumption is based upon a
-        state-by-state examination of commercial and electricity 
+        state-by-state examination of commercial and electricity
         sales from 1990 through 2011.  This data is collected
         by EIA via Survey EIA-861.  Significant discontinuities
-        in the sales data from one year to the next were removed.  
+        in the sales data from one year to the next were removed.
         In most cases, these adjustments caused industrial consumption
         to increase and commercial consumption to decrease.  The
-        spreadsheet with these adjustments is Sectoral_reclassification5.xls  (10/25/2012).
+        spreadsheet with these adjustments is
+        Sectoral_reclassification5.xls  (10/25/2012).
 
         In 2009, there was a significant decline in commercial
-        electricity sales in MA and a corresponding increase in industrial sales
+        electricity sales in MA and a corresponding increase in industrial
+        sales
         Assuming that industrial consumption would have
         fallen by 2% between 2008 and 2009, the adjustment
         to both the commercial (+) and industrial sectors (-) was
         estimated to be 7.61 TWh.  .
-        The 7.61 TWh converted to Tbtu is 26.0.  This value is then added 
-        to the negative 164.0 Tbtu in 2009 and subsequent years.  
+        The 7.61 TWh converted to Tbtu is 26.0.  This value is then added
+        to the negative 164.0 Tbtu in 2009 and subsequent years.
 
-        State Energy Data System (Jan. 2017) via National Calibration worksheet 
+        State Energy Data System (Jan. 2017) via National Calibration worksheet
 
         """
 
-        # 1949-1969 
-        published_consumption_trillion_btu = self.eia_comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')  # Column W (electricity retail sales to the commercial sector) # for years 1949-69
-        published_consumption_trillion_btu = published_consumption_trillion_btu.rename(columns={'Electricity Retail Sales to the Commercial Sector, Annual, Trillion Btu': 'published_consumption_trillion_btu'})
+        # 1949-1969
+        published_consumption_trillion_btu = \
+            self.eia_comm.eia_api(id_='TOTAL.ESCCBUS.A', id_type='series')  # Column W (electricity retail sales to the commercial sector) # for years 1949-69
+        published_consumption_trillion_btu = \
+            published_consumption_trillion_btu.rename(
+                columns={'Electricity Retail Sales to the Commercial Sector, Annual, Trillion Btu':
+                         'published_consumption_trillion_btu'})
         # 1970-2018
         national_calibration = self.collect_input_data('national_calibration')
         published_consumption_trillion_btu.loc['1970':, ['published_consumption_trillion_btu']] = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_elec']].values  # Column G (electricity final est) # for years 1970-2018
@@ -101,25 +121,33 @@ class CommercialIndicators(CalculateLMDI):
         years = list(range(1977, max(published_consumption_trillion_btu.index.astype(int)) + 1))
         years = [str(y) for y in years]
         # adjustment_to_commercial_trillion_btu_early = number_for_1990
-        adjustment_to_commercial_trillion_btu = [9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975,
-                                                 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975,
-                                                 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340654000005, 
-                                                 29.77918535999970, 10.21012680399960, 1.70263235599987, -40.63866012000020, -40.63865670799990, 
-                                                 -117.72073870000000, -117.72073528800000, -117.72073187600000, -117.72072846400000, -162.61452790400100, 
-                                                 -136.25241618800100, -108.91594645600000, -125.97594304400000, -125.97593963200100, -163.95020989600000,
-                                                 -163.95020648400000, -163.95020307200000, -137.98708428968000, -137.98487966000100, -137.98487966000100, 
-                                                 -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100, 
-                                                 -137.98487966000100, -137.98487966000100] # First value is for 1977 - 2018
-        adjustment_df = pd.DataFrame([years, adjustment_to_commercial_trillion_btu]).transpose()
-        adjustment_df.columns = ['Year', 'adjustment_to_commercial_trillion_btu']
+        adjustment_to_commercial_trillion_btu = \
+            [9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975,
+            9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975,
+            9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340312799975, 9.21340654000005,
+            29.77918535999970, 10.21012680399960, 1.70263235599987, -40.63866012000020, -40.63865670799990,
+            -117.72073870000000, -117.72073528800000, -117.72073187600000, -117.72072846400000, -162.61452790400100,
+            -136.25241618800100, -108.91594645600000, -125.97594304400000, -125.97593963200100, -163.95020989600000,
+            -163.95020648400000, -163.95020307200000, -137.98708428968000, -137.98487966000100, -137.98487966000100,
+            -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100, -137.98487966000100,
+            -137.98487966000100, -137.98487966000100] # First value is for 1977 - 2018
+        adjustment_df = \
+            pd.DataFrame([years, adjustment_to_commercial_trillion_btu]).transpose()
+        adjustment_df.columns = \
+            ['Year', 'adjustment_to_commercial_trillion_btu']
 
-        adjusted_supplier_data = adjustment_df.merge(published_consumption_trillion_btu, how='outer', on='Year')
-        adjusted_supplier_data['adjustment_to_commercial_trillion_btu'] = adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].fillna(0)
+        adjusted_supplier_data = \
+            adjustment_df.merge(published_consumption_trillion_btu, how='outer', on='Year')
+        adjusted_supplier_data['adjustment_to_commercial_trillion_btu'] = \
+            adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].fillna(0)
 
         adjusted_supplier_data = adjusted_supplier_data.set_index('Year')
-        adjusted_supplier_data['adjusted_consumption_trillion_btu'] = adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].add(adjusted_supplier_data['published_consumption_trillion_btu'])
-        adjusted_supplier_data['adjusted_consumption_trillion_btu'] = adjusted_supplier_data['adjusted_consumption_trillion_btu'].astype(float)
-        adjusted_supplier_data = adjusted_supplier_data.sort_index(ascending=True)
+        adjusted_supplier_data['adjusted_consumption_trillion_btu'] = \
+            adjusted_supplier_data['adjustment_to_commercial_trillion_btu'].add(adjusted_supplier_data['published_consumption_trillion_btu'])
+        adjusted_supplier_data['adjusted_consumption_trillion_btu'] = \
+            adjusted_supplier_data['adjusted_consumption_trillion_btu'].astype(float)
+        adjusted_supplier_data = \
+            adjusted_supplier_data.sort_index(ascending=True)
 
         return adjusted_supplier_data[['adjusted_consumption_trillion_btu']]
 
@@ -130,31 +158,36 @@ class CommercialIndicators(CalculateLMDI):
         """        
         print('os.getcwd():', os.getcwd())
         try:
-            saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+            saus_2002 = \
+                pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
         except FileNotFoundError:
             os.chdir('..')
-            saus_2002 = pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+            saus_2002 = \
+                pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
 
         saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
                     1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
         saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
                     1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700, 
                     1996: 723, 1997: 855, 1998: 1106, 1999: 1117, 2000: 1176}
-        saus_merged = dict() 
+        saus_merged = dict()
         for (year, value) in saus_2001.items():
-            if value == None: 
+            if value == None:
                 set_value = saus_1994[year]
-            else: 
+            else:
                 set_value = value
             saus_merged[year] = set_value
 
-        saus_merged_df = pd.DataFrame.from_dict(saus_merged, orient='index', columns=['Value'])
+        saus_merged_df = \
+            pd.DataFrame.from_dict(
+                saus_merged, orient='index', columns=['Value'])
         return saus_2002, saus_merged_df
 
     @staticmethod
     def dod_compare_old():
         """
-        DODCompareOld Note from PNNL (David B. Belzer): "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
+        DODCompareOld Note from PNNL (David B. Belzer):
+        "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
 
         """        
         dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
@@ -527,18 +560,24 @@ class CommercialIndicators(CalculateLMDI):
         energy_data = self.fuel_electricity_consumption()
         print('Energy data collected without issue')
 
-        weather_factors = self.collect_weather(comm_activity=activity_data) 
+        weather_factors = \
+            self.collect_weather(comm_activity=activity_data) 
 
-        data_dict = {'Commercial_Total': {'energy': energy_data, 'activity': activity_data, 'weather_factors': weather_factors}}
+        data_dict = {'Commercial_Total':
+                        {'energy': energy_data,
+                         'activity': activity_data,
+                         'weather_factors': weather_factors}}
         return data_dict
 
     def main(self, breakout, calculate_lmdi):
         """Decompose energy use for the Commercial sector"""
         data_dict = self.collect_data()
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout,
-                                                               calculate_lmdi=calculate_lmdi, raw_data=data_dict,
-                                                               lmdi_type='LMDI-I')
+        results_dict, formatted_results = \
+            self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+                                 breakout=breakout,
+                                 calculate_lmdi=calculate_lmdi,
+                                 raw_data=data_dict,
+                                 lmdi_type='LMDI-I')
 
         return results_dict
 

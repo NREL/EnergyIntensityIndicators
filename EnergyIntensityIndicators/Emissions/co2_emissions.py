@@ -41,17 +41,17 @@ class CO2EmissionsDecomposition(CalculateLMDI):
     """
     def __init__(self, directory, output_directory,
                  sector, fname, categories_dict,
-                 level_of_aggregation=None):
-
+                 level_of_aggregation):
         self.sector = sector
         self.eia = GetEIAData('emissions')
         self.yaml_dir = 'C:/Users/irabidea/Desktop/yamls/'
 
         self.gen = GeneralLMDI(self.yaml_dir, class_=CO2EmissionsDecomposition)
         self.gen.read_yaml(fname)
+        self.level_of_aggregation = level_of_aggregation
 
         super().__init__(sector,
-                         level_of_aggregation=level_of_aggregation,
+                         level_of_aggregation=self.level_of_aggregation,
                          lmdi_models=self.model,
                          categories_dict=categories_dict,
                          energy_types=self.energy_types,
@@ -175,7 +175,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                                   input_cols=['Blast Furnace Gas',
                                               'Coke Oven Gas'],
                                   new_name='Blast Furnace/Coke Oven Gases')
-
+        print('ef:\n', ef)
+        # exit()
         ef = self.get_mean_factor(ef,
                                   input_cols=['North American Softwood',
                                               'North American Hardwood'],
@@ -235,13 +236,20 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     #   ['Distillate Fuel Oil No. 1',  # take average
                     #    'Distillate Fuel Oil No. 2',
                     #    'Distillate Fuel Oil No. 4'],
+                    'Electricity': 'US Average',
+                    'Residual': 'Residual Fuel Oil',
+                    'Distillate': 'Distillate Fuel Oil',
+                    'Nat. Gas': 'Natural Gas',
+
                     'Natural Gas': 'Natural Gas',
                     'HGL (excluding natural gasoline)':
                         'Liquefied Petroleum Gases (LPG)',
                     'Coal':
                         'Mixed (Industrial Sector)',  # OR Mixed (Industrial Coking)?
                     'Coke Coal and Breeze':
-                        'Coal Coke'}
+                        'Coal Coke',
+                    'Coke': 'Coal Coke',
+                    'LPG': 'Liquefied Petroleum Gases (LPG)'}
         mecs_data = mecs_data.rename(columns=mapping_)
         return mecs_data
 
@@ -263,8 +271,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Other Gases': 'Fuel Gas',
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
-        energy_data = energy_data.rename(columns=mapping_)
-        return energy_data
+        elec_data = elec_data.rename(columns=mapping_)
+        return elec_data
 
     @staticmethod
     def tedb_epa_mapping(tedb_data):
@@ -323,6 +331,16 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         new_row = {'Fuel Type': 'Census Region', 'value': 1}
         fuel_factor_df = fuel_factor_df.append(new_row, ignore_index=True)
         fuel_factor_df = fuel_factor_df.set_index('Fuel Type')
+        no_emissions = ['Solar', 'Wind',
+                        'Nuclear', 'Geothermal',
+                        'Hydroelectric']
+        e_data = [0]*len(no_emissions)
+        no_emissions_df = pd.DataFrame(data=e_data,
+                                       index=no_emissions,
+                                       columns=['value'])
+
+        no_emissions_df.index.name = 'Fuel Type'
+        fuel_factor_df = pd.concat([fuel_factor_df, no_emissions_df], axis=0)
         fuel_factor_df = fuel_factor_df['value']
         return fuel_factor_df
 
@@ -411,7 +429,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             energy_data = self.epa_eia_crosswalk(energy_data)
         elif datasource == 'MECS':
             energy_data = self.mecs_epa_mapping(energy_data)
-            energy_data = energy_data.reset_index()
+            # energy_data = energy_data.reset_index()
         elif datasource == 'eia_elec':
             energy_data = self.electric_epa_mapping(energy_data)
         elif datasource == 'TEDB':
@@ -424,30 +442,49 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         emissions_factors = \
             emissions_factors.to_frame(name='Emissions Factors')
         emissions_factors = emissions_factors.transpose()
+
         print('emissions_factors:\n', emissions_factors)
         print('emissions_factors cols', emissions_factors.columns)
         print('energy_data.columns.tolist():', energy_data.columns.tolist())
         try:
-            emissions_factors = emissions_factors[energy_data.columns.tolist()]
+            emissions_factors = \
+                emissions_factors[energy_data.columns.tolist()]
         except KeyError:
             print('energy_data.columns.tolist() not in dataframe:',
                   energy_data.columns.tolist())
+            for t in energy_data.columns.tolist():
+                if t not in emissions_factors.columns.tolist():
+                    print('t not in list:', t)
             return None
+            # pass
         print('emissions_factors:\n', emissions_factors)
 
         emissions_data = \
             energy_data.multiply(emissions_factors.to_numpy())
         print('emissions_data:\n', emissions_data)
 
-        emissions_data.loc[:, 'Census Region'] = \
-            emissions_data['Census Region'].astype(int).astype(str)
-        print('emissions_data:\n', emissions_data)
+        try:
+            energy_data.loc[:, 'Census Region'] = \
+                energy_data.loc[:, 'Census Region'].astype(int).astype(str)
+            census_region = False
 
-        energy_data.loc[:, 'Census Region'] = \
-            energy_data.loc[:, 'Census Region'].astype(int).astype(str)
+        except KeyError:
+            census_region = False
+        try:
+            # ensure string Census Regions are ints (at least some
+            # start as floats-- need to match)
+            emissions_data.loc[:, 'Census Region'] = \
+                emissions_data['Census Region'].astype(int).astype(str)
+            print('emissions_data:\n', emissions_data)
+        except KeyError:
+            if census_region:
+                energy_data = energy_data[energy_data['Census Region'] == '0']
+            else:
+                pass
+
         fuel_mix = self.get_fuel_mix(energy_data)
-        print(fuel_mix)
-        return emissions_data, fuel_mix
+        print('fuel_mix:\n', fuel_mix)
+        return emissions_data  # , fuel_mix
 
     def calc_lmdi(self, breakout, calculate_lmdi, data_dict):
         """Calculate decomposition of CO2 emissions for the U.S. economy
@@ -462,7 +499,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             self.get_nested_lmdi(
                 level_of_aggregation=self.level_of_aggregation,
                 breakout=breakout, calculate_lmdi=calculate_lmdi,
-                raw_data=data_dict, lmdi_type='LMDI-I', new_style=True)
+                raw_data=data_dict, lmdi_type=self.lmdi_type,
+                new_style=True)
         return results_dict
 
 
@@ -472,14 +510,15 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
     """
     def __init__(self, directory,
                  output_directory, sector,
-                 fname, categories_dict):
+                 fname, categories_dict,
+                 level_of_aggregation):
 
         super().__init__(directory=directory,
                          output_directory=output_directory,
                          sector=sector,
                          fname=fname,
                          categories_dict=categories_dict,
-                         level_of_aggregation=None)
+                         level_of_aggregation=level_of_aggregation)
 
     @staticmethod
     def state_census_crosswalk():
@@ -718,817 +757,32 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         return all_data
 
 
-class ResidentialEmissions(SEDSEmissionsData):
-    def __init__(self, directory, output_directory,
-                 level_of_aggregation='National'):
-        if level_of_aggregation == 'National':
-            fname = 'residential_all_emissions'
-        else:
-            fname = 'residential_regional'
-
-        self.sub_categories_list = \
-            {'National':
-                {'Northeast':
-                    {'Single-Family': None,
-                     'Multi-Family': None,
-                     'Manufactured-Homes': None},
-                 'Midwest':
-                    {'Single-Family': None,
-                     'Multi-Family': None,
-                     'Manufactured-Homes': None},
-                 'South':
-                    {'Single-Family': None,
-                     'Multi-Family': None,
-                     'Manufactured-Homes': None},
-                 'West':
-                    {'Single-Family': None,
-                     'Multi-Family': None,
-                     'Manufactured-Homes': None}}}
-
-        super().__init__(directory, output_directory,
-                         sector='Residential',
-                         fname=fname,
-                         categories_dict=self.sub_categories_list)
-
-        self.res = \
-            ResidentialIndicators(directory='./EnergyIntensityIndicators/Data',
-                                  output_directory='./Results',
-                                  level_of_aggregation=level_of_aggregation,
-                                  lmdi_model=self.model,
-                                  end_year=self.end_year,
-                                  base_year=self.base_year)
-
-    def main(self):
-
-        res_data = self.res.collect_data()['National']
-        all_data = dict()
-
-        energy_data = self.seds_energy_data(sector='residential')
-        for r in res_data.keys():
-            r_activity = res_data[r]['activity']
-            r_weather_factors = \
-                res_data[r]['weather_factors']
-            print('energy_data:\n', energy_data)
-            print('energy_data type:', type(energy_data))
-            print('energy_data keys:', energy_data.keys())
-
-            r_energy = energy_data[r]
-            r_emissions = \
-                self.calculate_emissions(r_energy,
-                                         emissions_type='CO2 Factor',
-                                         datasource='SEDS')
-            r_data = {'E_i_j': r_energy,
-                      'A_i': r_activity,
-                      'C_i_j': r_emissions,
-                      'WF_i': r_weather_factors}
-            all_data[r] = r_data
-        data_dict = {'National': all_data}
-        return data_dict
-
-
-class CommercialEmissions(SEDSEmissionsData):
-    def __init__(self, directory, output_directory):
-        fname = 'commercial_total'
-        self.sub_categories_list = {'Commercial_Total': None}
-        super().__init__(directory, output_directory,
-                         sector='Commercial',
-                         fname=fname,
-                         categories_dict=self.sub_categories_list)
-        self.level_of_aggregation = 'Commercial_Total'
-        self.comm = \
-            CommercialIndicators(
-                directory='./EnergyIntensityIndicators/Data',
-                output_directory='./Results',
-                level_of_aggregation=self.level_of_aggregation,
-                lmdi_model=self.model,
-                end_year=self.end_year,
-                base_year=self.base_year)
-
-    def main(self):
-
-        energy_data = self.seds_energy_data(sector='commercial')
-
-        comm_data = self.comm.collect_data()['Commercial_Total']
-        weather_factors = comm_data['weather_factors']
-        activity = comm_data['activity']
-        emissions = \
-            self.calculate_emissions(energy_data,
-                                     emissions_type='CO2 Factor',
-                                     datasource='SEDS')
-
-        return {'Commercial_Total':
-                {'E_j': energy_data,
-                 'C_j': emissions,
-                 'WF': weather_factors,
-                 'A': activity}}
-
-
-class IndustrialEmissions(CO2EmissionsDecomposition):
-    def __init__(self, directory, output_directory, level_of_aggregation):
-        if level_of_aggregation == 'Manufacturing':
-            fname = 'combustion_noncombustion_test'
-        elif level_of_aggregation == 'NonManufacturing':
-            fname = 'combustion_noncombustion_test'
-        elif level_of_aggregation == 'Industry':
-            fname = 'industrial_emissions'
-        self.sub_categories_list = \
-            {'Industry':
-                {'Manufacturing':
-                    {'Food and beverage and tobacco products': None,
-                     'Textile mills and textile product mills': None,
-                     'Apparel and leather and allied products': None,
-                     'Wood products': None,
-                     'Paper products': None,
-                     'Printing and related support activities': None,
-                     'Petroleum and coal products': None,
-                     'Chemical products':
-                        {'noncombustion':
-                            {'Petrochemical Production': None,
-                             'Titanium Dioxide Production': None,
-                             'Nitric Acid Production': None,
-                             'Phosphoric Acid Production': None,
-                             'Adipic Acid Production': None,
-                             'Ammonia Production': None,
-                             'Carbide Production and Consumption': None,
-                             'Soda Ash Production': None,
-                             'N2O from Product Uses': None,
-                             'Urea Consumption for NonAgricultural Purposes':
-                                None,
-                             'Caprolactam, Glyoxal, and Glyoxylic Acid Production':
-                                None},
-                         'combustion': None},
-                     'Plastics and rubber products': None,
-                     'Nonmetallic mineral products':
-                        {'noncombustion':
-                            {'Cement Production': None,
-                             'Glass Production': None,
-                             'Lime Production': None,
-                             'Other Process Uses of Carbonates': None,
-                             'Carbon Dioxide Consumption': None},
-                         'combustion': None},
-                     'Primary metals':
-                        {'noncombustion':
-                            {'Lead Production': None,
-                             'Zinc Production': None,
-                             'Aluminum Production': None},
-                         'combustion': None},
-                     'Fabricated metal products':
-                        {'noncombustion':
-                            {'Ferroalloy Production': None,
-                             'Metallurgical coke': None,
-                             'Iron and Steel': None},
-                         'combustion': None},
-                     'Machinery': None,
-                     'Computer and electronic products': None,
-                     'Electrical equipment, appliances, and components': None,
-                     'Motor vehicles, bodies and trailers, and parts': None,
-                     'Furniture and related products': None,
-                     'Miscellaneous manufacturing': None},
-                 'Nonmanufacturing':
-                    {'Agriculture, Forestry & Fishing':
-                        {'noncombustion':
-                            {'Urea Fertilization': None,
-                             'Agricultural Soil Management': None,
-                             'Manure Management': None,
-                             'Enteric Fermentation': None,
-                             'Liming': None},
-                         'combustion': None},
-                     'Mining':
-                        {'Petroleum and Natural Gas':
-                            {'combustion': None},
-                         'Other Mining':
-                            {'noncombustion':
-                                {'Coal Mining': None},
-                             'combustion': None},
-                         'Support Activities':
-                            {'combustion': None}},
-                     'Construction':
-                        {'combustion': None},
-                     'Waste':
-                        {'noncombustion':
-                            {'Landfills': None,
-                             'Composting': None}},
-                     'Energy':
-                        {'noncombustion':
-                            {'Stationary Combustion': None,
-                             'Non-Energy Use of Fuels': None}}}}}
-
-        super().__init__(directory, output_directory,
-                         sector='Industry',
-                         level_of_aggregation=level_of_aggregation,
-                         fname=fname,
-                         categories_dict=self.sub_categories_list)
-
-    @staticmethod
-    def energy_data():
-        data_dir = './EnergyIntensityIndicators/Industry/Data/'
-        construction_elec_fuels = \
-            pd.read_csv(
-                f'{data_dir}construction_elec_fuels.csv').set_index('Year')
-        agriculture = \
-            pd.read_excel(
-                f'{data_dir}miranowski_data.xlsx',
-                sheet_name='Ag Cons by Use', skiprows=4, skipfooter=9,
-                usecols='A:F', index_col=0,
-                names=['Year', 'Gasoline', 'Diesel', 'LP Gas',
-                       'Natural Gas', 'Electricity'])
-        # Mining
-        mining = \
-            pd.read_csv(
-                f'{data_dir}mining_energy.csv')
-        print('mining:\n', mining)
-        mining = mining.fillna(np.nan)
-        mining = mining.dropna(how='all', axis=1)
-        mining = mining[mining['NAICS'].notnull()]
-        mining = mining.astype({'Year': int,
-                                'NAICS': int})
-        all_mining = []
-        for n in mining['NAICS'].unique():
-            mining_naics = mining[mining['NAICS'] == n]
-            mining_naics = mining_naics.drop('NAICS', axis=1)
-            mining_naics = mining_naics.set_index(['Year'])
-            mining_naics = \
-                mining_naics.apply(
-                    lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
-            print('mining:\n', mining)
-
-            for c in mining_naics.columns:
-                mining_naics = \
-                    standard_interpolation(mining_naics,
-                                           name_to_interp=c,
-                                           axis=1)
-            mining_naics['NAICS'] = n
-            all_mining.append(mining_naics)
-        all_mining = pd.concat(all_mining, axis=0)
-
-        manufacturing = pd.read_csv(
-            f'{data_dir}mecs_table42.csv')
-        print('manufacturing:\n', manufacturing)
-        manufacturing = manufacturing.dropna(how='all', axis=1)
-        manufacturing = manufacturing.fillna(np.nan)
-        manufacturing = manufacturing[manufacturing['NAICS'].notnull()]
-        manufacturing = manufacturing.astype({'Year': int,
-                                              'NAICS': int})
-        all_manufacturing = []
-        for n in manufacturing['NAICS'].unique():
-            manufacturing_naics = manufacturing[manufacturing['NAICS'] == n]
-            manufacturing_naics = manufacturing_naics.drop('NAICS', axis=1)
-            manufacturing_naics = manufacturing_naics.set_index(['Year'])
-            manufacturing_naics = \
-                manufacturing_naics.apply(
-                    lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
-
-            print('manufacturing_naics:\n', manufacturing_naics)
-            for c in manufacturing_naics.columns:
-                manufacturing_naics = \
-                    standard_interpolation(manufacturing_naics,
-                                           name_to_interp=c,
-                                           axis=1)
-            manufacturing_naics['NAICS'] = n
-            all_manufacturing.append(manufacturing_naics)
-
-        all_manufacturing = pd.concat(all_manufacturing, axis=0)
-        return {'Manufacturing': all_manufacturing,
-                'NonManufacturing':
-                    {'Mining': all_mining,
-                     'Construction': construction_elec_fuels,
-                     'Agriculture, Forestry & Fishing': agriculture}}
-
-    def collect_manufacturing_data(self, energy_data, noncombustion_data,
-                                   manufacturing, combustion_activity):
-        man = self.sub_categories_list['Industry']['Manufacturing']
-        combustion_activity_m = combustion_activity['Manufacturing']
-        manufacturing_dict = dict()
-        for naics in man.keys():
-            if man[naics]:
-                combustion_energy_data = \
-                    energy_data[energy_data['NAICS'] == naics]
-                combustion_activity_naics = \
-                    combustion_activity_m[naics]
-                naics_dict = dict()
-                noncombustion_activity = []
-                noncombustion_emissions = []
-                naics_emissions = \
-                    self.calculate_emissions(combustion_energy_data,
-                                             emissions_type='CO2 Factor',
-                                             datasource='MECS')
-                naics_dict['combustion'] = {'E_i_j': combustion_energy_data,
-                                            'A_i_k': combustion_activity_naics,
-                                            'C_i_j_k': naics_emissions}
-
-            elif not man[naics]:
-                continue
-            else:
-                for sub_category in man[naics]['noncombustion'].keys():
-                    noncombustion_cat_data = noncombustion_data[sub_category]
-                    c_ = noncombustion_cat_data['emissions']
-                    a_ = noncombustion_cat_data['activity']
-
-                    c_ = \
-                        df_utils.create_total_column(c_, sub_category)
-                    c_ = c_[[sub_category]]
-                    noncombustion_emissions.append(c_)
-                    a_ = \
-                        df_utils.create_total_column(a_, sub_category)
-                    a_ = a_[[sub_category]]
-                    noncombustion_activity.append(a_)
-
-                noncombustion_activity = \
-                    df_utils.merge_df_list(noncombustion_activity)
-                noncombustion_emissions = \
-                    df_utils.merge_df_list(noncombustion_emissions)
-
-                naics_dict['noncombustion'] = \
-                    {'A_i_k': noncombustion_activity,
-                     'C_i_j_k': noncombustion_emissions}
-                manufacturing_dict[naics] = naics_dict
-
-    def collect_nonmanufacturing_data(self, energy_data, combustion_activity,
-                                      nonman_data, noncombustion_data):
-        cats = self.sub_categories_list['Industry']['Manufacturing']
-
-        nonmanufacturing_dict = dict()
-        for subcategory in cats.keys():
-            subcategory_dict = dict()
-            noncombustion_activity = []
-            noncombustion_emissions = []
-
-            if subcategory in \
-                    ['Agriculture, Forestry & Fishing', 'Construction']:
-                sub_energy_data_combustion = energy_data[subcategory]
-                sub_activity_data_combustion = \
-                   combustion_activity[subcategory]['activity']
-
-                sub_emissions_data_combustion = \
-                    self.calculate_emissions(sub_energy_data_combustion,
-                                             emissions_type='CO2 Factor',
-                                             datasource='MECS')
-                subcategory_dict['combustion'] = \
-                    {'A_i_k': sub_activity_data_combustion,
-                     'E_i_k_j': sub_energy_data_combustion,
-                     'C_i_j_k': sub_emissions_data_combustion}
-
-                sub_data_noncombustion = \
-                    nonman_data[subcategory]['noncombustion']
-
-                # s_data = cats[subcategory]
-                noncombustion_activity, noncombustion_emissions = \
-                    self.handle_noncombustion(sub_data_noncombustion,
-                                              noncombustion_data,
-                                              subcategory)
-
-                subcategory_dict['noncombustion'] = \
-                    {'A_i_k': noncombustion_activity,
-                     'C_i_j_k': noncombustion_emissions}
-
-            elif subcategory == 'Mining':
-                mining_dict = dict()
-                s_data = cats[subcategory]
-                for lower in s_data.keys():
-                    if lower == 'Other Mining':
-                        other_mining_dict = dict()
-
-                        noncombustion = s_data[lower]['noncombustion']
-                        noncombustion_activity = noncombustion['activity']
-                        noncombustion_emissions = noncombustion['emissions']
-                        other_mining_dict['noncombustion'] = \
-                            {'A_i_k': noncombustion_activity,
-                             'C_i_j_k': noncombustion_emissions}
-
-                        combustion_activity = \
-                            combustion_activity[subcategory][lower]['activity']
-                        combustion_energy = \
-                            energy_data[subcategory][[lower]]
-                        combustion_emissions = \
-                            self.calculate_emissions(
-                                combustion_energy,
-                                emissions_type='CO2 Factor',
-                                datasource='MECS')
-                        other_mining_dict['combustion'] = \
-                            {'A_i_k': combustion_activity,
-                             'C_i_j_k': combustion_emissions,
-                             'E_i_j_k': combustion_energy}
-
-                        mining_dict[lower] = other_mining_dict
-                    else:
-                        mining_combustion_activity = \
-                            combustion_activity[subcategory][lower]['activity']
-                        mining_combustion_energy = \
-                            energy_data[subcategory][[lower]]
-                        mining_combustion_emissions = \
-                            self.calculate_emissions(
-                                                mining_combustion_energy,
-                                                emissions_type='CO2 Factor',
-                                                datasource='MECS')
-                        mining_dict[lower] = \
-                            {'combustion':
-                                {'A_i_k': mining_combustion_activity,
-                                 'C_i_j_k': mining_combustion_emissions,
-                                 'E_i_j_k': mining_combustion_energy}}
-            else:
-                s_data = cats[subcategory]
-                noncombustion_activity, noncombustion_emissions = \
-                    self.handle_noncombustion(s_data,
-                                              noncombustion_data,
-                                              subcategory)
-                if noncombustion_activity is not None and \
-                        noncombustion_emissions is not None:
-                    subcategory_dict['noncombustion'] = \
-                        {'A_i_k': noncombustion_activity,
-                         'C_i_j_k': noncombustion_emissions}
-                else:
-                    pass
-
-            nonmanufacturing_dict[subcategory] = subcategory_dict
-
-    @staticmethod
-    def handle_noncombustion(s_data, noncombustion_data,
-                             sub_category):
-        noncombustion_activity = []
-        noncombustion_emissions = []
-        if s_data:
-            for s in s_data['noncombustion'].keys():
-                print('s:', s)
-                noncombustion_cat_data = noncombustion_data[s]
-                e_ = noncombustion_cat_data['emissions']
-                a_ = noncombustion_cat_data['activity']
-                e_ = e_.drop('Total', axis=1, errors='ignore')
-                if e_.empty:
-                    return None, None
-                e_ = \
-                    df_utils().create_total_column(e_, s)
-                e_ = e_[[s]]
-                noncombustion_emissions.append(e_)
-                print('a_:\n', a_)
-                if a_.empty:
-                    return None, None
-                a_ = a_.drop('Total', axis=1, errors='ignore')
-                a_ = \
-                    df_utils().create_total_column(a_, s)
-                print('a_:\n', a_)
-                a_ = a_[[s]]
-                noncombustion_activity.append(a_)
-
-            noncombustion_activity = \
-                df_utils().merge_df_list(noncombustion_activity)
-            noncombustion_emissions = \
-                df_utils().merge_df_list(noncombustion_emissions)
-        else:
-            if sub_category in noncombustion_data:
-                noncombustion_cat_data = noncombustion_data[sub_category]
-                noncombustion_emissions = noncombustion_cat_data['emissions']
-                noncombustion_activity = noncombustion_cat_data['activity']
-            else:
-                return None, None
-
-        return noncombustion_activity, noncombustion_emissions
-
-    # @staticmethod
-    # def handle_combustion():
-
-    def main(self):
-        noncombustion_data = NonCombustion().main()
-
-        combustion = \
-            IndustrialIndicators(directory='./EnergyIntensityIndicators/Data',
-                                 output_directory='./Results',
-                                 level_of_aggregation='Industry',
-                                 lmdi_model=self.model,
-                                 end_year=self.end_year,
-                                 base_year=self.base_year)
-
-        combustion_activity = combustion.collect_data()['Industry']
-        manufacturing_combustion = combustion_activity['Manufacturing']
-        nonmanufacturing_combustion = combustion_activity['Nonmanufacturing']
-
-        energy_data = self.energy_data()
-
-        manufacturing_data = \
-            self.collect_manufacturing_data(energy_data['Manufacturing'],
-                                            noncombustion_data,
-                                            manufacturing_combustion,
-                                            combustion_activity)
-        nonmanufacturing_data = \
-            self.collect_nonmanufacturing_data(energy_data['NonManufacturing'],
-                                               combustion_activity,
-                                               nonmanufacturing_combustion,
-                                               noncombustion_data)
-
-        data = {'NonManufacturing': nonmanufacturing_data,
-                'Manufacturing': manufacturing_data}
-        return data
-
-
-class TransportationEmssions(CO2EmissionsDecomposition):
-    def __init__(self, directory, output_directory, level_of_aggregation):
-        fname = 'transportation_emissions'
-        self.sub_categories_list = \
-            {'All_Transportation':
-                {'All_Passenger':
-                    {'Highway':
-                        {'Passenger Cars and Trucks':
-                            {'Passenger Car – SWB Vehicles':
-                                {'Passenger Car': None,
-                                 'SWB Vehicles': None},
-                             'Light Trucks – LWB Vehicles':
-                                {'Light Trucks': None,
-                                 'LWB Vehicles': None},
-                             'Motorcycles': None},
-                         'Buses':
-                            {'Urban Bus': None,
-                             'Intercity Bus': None,
-                             'School Bus': None},
-                         'Paratransit':
-                            None},
-                     'Rail':
-                        {'Urban Rail':
-                            {'Commuter Rail': None,
-                             'Heavy Rail': None,
-                             'Light Rail': None},
-                         'Intercity Rail': None},
-                     'Air':
-                        {'Commercial Carriers': None,
-                         'General Aviation': None}},
-                 'All_Freight':
-                    {'Highway':
-                        {'Single-Unit Truck': None,
-                         'Combination Truck': None},
-                     'Rail': None,
-                     'Air': None,
-                     'Waterborne': None,
-                     'Pipeline':
-                        {'Oil Pipeline': None,
-                         'Natural Gas Pipeline': None}}}}
-
-        super().__init__(directory, output_directory,
-                         sector='Transportation',
-                         level_of_aggregation=level_of_aggregation,
-                         fname=fname,
-                         categories_dict=self.sub_categories_list)
-        self.transport = \
-            TransportationIndicators(directory=directory,
-                                     output_directory=output_directory,
-                                     level_of_aggregation=level_of_aggregation,
-                                     lmdi_models=self.model,
-                                     base_year=self.base_year,
-                                     end_year=self.end_year)
-
-    @staticmethod
-    def transportation_data():
-        """[summary]
-
-        Returns:
-            [type]: [description]
-        """
-        tedb_18 = \
-            pd.read_excel(
-                "https://tedb.ornl.gov/wp-content/uploads/2021/02/Table2_07_01312021.xlsx",
-                skiprows=9, skipfooter=10, index_col=0, usecols='B:J')
-        tedb_18 = tedb_18.rename(columns={'Electricityb': 'Electricity',
-                                          'Totalc': 'Total'})
-        tedb_18.index = tedb_18.index.str.strip()
-        tedb_18 = tedb_18.reset_index()
-        print(tedb_18)
-        categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc',
-                      'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY',
-        conditions = [(tedb_18['index'] == r) for r in categories]
-        tedb_18.loc[:, 'Category'] = np.select(conditions, categories)
-        tedb_18.loc[:, 'Category'] = \
-            tedb_18['Category'].replace(to_replace='0',
-                                        value=np.nan).fillna(method='ffill')
-        tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
-        tedb_18 = tedb_18.rename(columns={'index':
-                                          'Mode',
-                                          ' Residual fuel oil':
-                                          'Residual fuel oil'})
-        print(tedb_18.columns)
-        tedb_fuel_types = ['Gasoline', 'Diesel fuel', 'Liquefied petroleum gas',
-                           'Jet fuel',  'Residual fuel oil', 'Natural gas',
-                           'Electricity', 'Total']
-
-        tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'],
-                            value_vars=tedb_fuel_types, var_name='Fuel Type')
-        tedb_fuel.loc[:, 'Year'] = 2018
-        tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway',
-                                       'Water': 'Waterborne'})
-        print(tedb_fuel)
-        historical_fuel_consump = \
-            pd.read_excel(
-                './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
-                skipfooter=196, skiprows=2, usecols='A:BQ')
-        historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
-        historical_fuel_consump.loc[0:2, :] = \
-            historical_fuel_consump.loc[0:2, :].ffill(axis=1)
-        historical_fuel_consump.loc[0, 'Unnamed: 0'] = 'Category'
-        historical_fuel_consump.loc[1, 'Unnamed: 0'] = 'Mode'
-
-        historical_fuel_consump = \
-            historical_fuel_consump.set_index('Unnamed: 0')
-
-        historical_fuel_consump = historical_fuel_consump.transpose()
-        historical_fuel_consump = \
-            historical_fuel_consump.rename(columns={'Year': 'Fuel Type'})
-        historical_fuel_consump = \
-            historical_fuel_consump.reset_index().drop('index', axis=1)
-
-        year_cols = \
-            [c for c in historical_fuel_consump.columns if isinstance(c, int)]
-        fuel = pd.melt(historical_fuel_consump, id_vars=['Category', 'Mode',
-                                                         'Fuel Type'],
-                       value_vars=year_cols)
-
-        fuel = fuel.rename(columns={'Unnamed: 0': 'Year'})
-        fuel = fuel[(fuel['Fuel Type'] != 'Year') &
-                    (fuel['Mode'] != 'Not Used')]
-
-        transport_fuel = pd.concat([fuel, tedb_fuel], axis=0)
-
-        return transport_fuel
-
-    def main(self):
-        energy_data = self.transportation_data()
-        print('transport energy_data:\n', energy_data)
-        print('transport energy_data fuels:\n',
-              energy_data['Fuel Type'].unique())
-
-        energy_decomp_data = self.transport.collect_data()
-
-
-        emissions = \
-            self.calculate_emissions(energy_data,
-                                     emissions_type='CO2 Factor',
-                                     datasource='TEDB')
-        return {'energy': energy_data,
-                'emissions': emissions}
-
-
-class ElectricPowerEmissions(CO2EmissionsDecomposition):
-    """Class to decompose changes in Emissions from the electric
-    power sector
-    """
-    def __init__(self, directory, output_directory, level_of_aggregation):
-        self.directory = directory
-        self.output_directory = output_directory
-        fname = 'electric_power_sector_emissions'
-        self.sub_categories_list = \
-            {'Elec Generation Total':
-                {'Elec Power Sector':
-                    {'Electricity Only':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Nuclear': None,
-                         'Hydro Electric': None,
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None,
-                             'Geothermal': None,
-                             'Solar': None,
-                             'Wind': None}},
-                     'Combined Heat & Power':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None}}},
-                 'Commercial Sector': None,
-                 'Industrial Sector': None},
-             'All CHP':
-                {'Elec Power Sector':
-                    {'Combined Heat & Power':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None},
-                         'Other': None}},
-                 'Commercial Sector':
-                    {'Combined Heat & Power':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Hydroelectric': None,
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None},
-                         'Other': None}},
-                 'Industrial Sector':
-                    {'Combined Heat & Power':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Hydroelectric': None,
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None},
-                         'Other': None}}}}
-        super().__init__(self.directory,
-                         self.output_directory,
-                         sector='Electric Power',
-                         level_of_aggregation=level_of_aggregation,
-                         fname=fname,
-                         categories_dict=self.sub_categories_list)
-        self.elec_data = \
-            ElectricityIndicators(directory=self.directory,
-                                  output_directory=self.output_directory,
-                                  level_of_aggregation='Electric Power',
-                                  end_year=2018).collect_data()
-
-    def electric_power_co2(self):
-        """[summary]
-
-        Returns:
-            [type]: [description]
-        """
-
-        elec_gen_total = \
-            self.elec_data['Elec Generation Total']
-        elec_power_sector = elec_gen_total['Elec Power Sector']
-        elec_only = elec_power_sector['Electricity Only']
-
-        comm_sector = elec_gen_total['Commercial Sector']
-        ind_sector = elec_gen_total['Industrial Sector']
-
-        all_chp = self.elec_data['All CHP']
-        chp_elec_power = all_chp['Elec Power Sector']['Combined Heat & Power']
-        chp_comm = all_chp['Commercial Sector']['Combined Heat & Power']
-        chp_ind = all_chp['Industrial Sector']['Combined Heat & Power']
-
-        data_cats = [elec_only, comm_sector,
-                     ind_sector, chp_elec_power,
-                     chp_comm, chp_ind]
-
-        emissions_data = dict()
-        for d in data_cats:
-            print('d:\n', d)
-            for c in d.keys():
-                print('c:', c)
-                try:
-                    activity = d[c]['activity']
-                except KeyError:
-                    print('d[c] keys', d[c].keys())
-                print('activity:\n', activity)
-                try:
-                    energy = d[c]['energy']
-                except KeyError:
-                    print('d[c] keys', d[c].keys())
-                print('energy:\n', energy)
-                for e, e_df in energy.items():
-                    print('e:', e)
-                    # d = d.rename(columns=self.electric_power_sector())
-                    no_emissions = ['solar', 'wind', 'nuclear', 'geothermal']
-                    d_emissions = \
-                        self.calculate_emissions(e_df,
-                                                 emissions_type='CO2 Factor',
-                                                 datasource='eia_elec')
-                    e_df[no_emissions] = e_df[no_emissions].multiply(0)
-
-                    emissions_data[c] = d_emissions
-        print('emissions_data:\n', emissions_data)
-        return emissions_data
-
-    def main(self):
-
-        return self.electric_power_co2()
-
-
 if __name__ == '__main__':
-    directory = './EnergyIntensityIndicators/Data'
-    output_directory = './Results'
+    pass
+    # directory = './EnergyIntensityIndicators/Data'
+    # output_directory = './Results'
 
-    module_dict = {
-        # 'elec': ElectricPowerEmissions}
-                #    'transport': TransportationEmssions,
-                #    'industry': IndustrialEmissions} #,
-                   'residential': ResidentialEmissions,
-                   'commercial': CommercialEmissions}
-    levels = {'elec': 'Electric Power',
-              'transport': 'Transportation',
-              'industry': 'Industry',
-              'residential': 'National',
-              'commercial': 'Commercial_Total'}
-    results = dict()
-    for sector, module_ in module_dict.items():
-        print('sector:', sector)
-        s = module_(directory, output_directory,
-                    level_of_aggregation=levels[sector])
-        s_data = s.main()
-        results = s.calc_lmdi(breakout=True,
-                              calculate_lmdi=True,
-                              data_dict=s_data)
-        print('s_data:\n', s_data)
-        print('results:\n', results)
+    # module_dict = {
+    #     # 'elec': ElectricPowerEmissions}
+    #             #    'transport': TransportationEmssions}  #,
+    #             #    'industry': IndustrialEmissions} #,
+    #             #    'residential': ResidentialEmissions}  #,
+    #                'commercial': CommercialEmissions}
+    # levels = {'elec': 'Elec Generation Total',
+    #           'transport': 'All_Transportation',
+    #           'industry': 'Industry',
+    #           'residential': 'National',
+    #           'commercial': 'Commercial_Total'}
+    # results = dict()
+    # for sector, module_ in module_dict.items():
+    #     print('sector:', sector)
+    #     s = module_(directory, output_directory,
+    #                 level_of_aggregation=levels[sector])
+    #     s_data = s.main()
+    #     results = s.calc_lmdi(breakout=True,
+    #                           calculate_lmdi=True,
+    #                           data_dict=s_data)
+    #     print('s_data:\n', s_data)
+    #     print('results:\n', results)
 
-        results[sector] = s_data
+    #     results[sector] = s_data

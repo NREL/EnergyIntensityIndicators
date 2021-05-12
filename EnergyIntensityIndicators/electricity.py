@@ -23,7 +23,7 @@ class ElectricityIndicators(CalculateLMDI):
                              'Natural Gas': None,
                              'Other Gasses': None},
                          'Nuclear': None,
-                         'Hydro Electric': None,
+                         'Hydroelectric': None,
                          'Renewable':
                             {'Wood': None,
                              'Waste': None,
@@ -636,7 +636,7 @@ class ElectricityIndicators(CalculateLMDI):
         nuclear_activity = self.elec_power_eia.eia_api(id_='TOTAL.NUEGPUS.A', id_type='series').multiply(0.001) # 8.2b L
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVEGPUS.A', id_type='series').multiply(0.001)  # 8.2b O
 
-        data_dict = {'Hydro Electric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
+        data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
                      'Nuclear': {'energy': {'primary': nuclear_energy}, 'activity': nuclear_activity}}
         return data_dict
 
