@@ -452,7 +452,7 @@ class WeatherFactors:
             prediction2_weights = self.adjust_data(subregions=subregions, hdd_by_division=heating_degree_days, 
                                                    hdd_activity_weights=hdd_activity_weights_dict, cooling=False,
                                                    use_weights_1961_90=True)
-            predicted_value_intensity_ltaveragesdd = intercept + coefficients[0] * prediction2_weights['heating'] + coefficients[1] * data['Time'] + \
+            predicted_value_intensity_ltaveragesdd = intercept + coefficients[0] * prediction2_weights['heating'] + coefficients[1] * data['Time'] * prediction2_weights['heating'] + \
                                                      coefficients[2] * data['Time'] + coefficients[3] * data['Time^2'] + coefficients[4] * data['Price'] # Predicted value of the intensity based on the long-term averages of the degree days
 
         weather_factor = predicted_value_intensity_actualdd.flatten() / predicted_value_intensity_ltaveragesdd.values.flatten()

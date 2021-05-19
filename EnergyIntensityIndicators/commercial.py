@@ -538,7 +538,9 @@ class CommercialIndicators(CalculateLMDI):
         res = ResidentialIndicators(directory=self.directory, output_directory=self.output_directory, base_year=self.base_year)
         residential_activity_data = res.get_floorspace()
         residential_floorspace = residential_activity_data['floorspace_square_feet']
-        weather = WeatherFactors(sector='commercial', directory=self.directory, activity_data=comm_activity, residential_floorspace=residential_floorspace)
+        weather = WeatherFactors(sector='commercial', directory=self.directory,
+                                 activity_data=comm_activity,
+                                 residential_floorspace=residential_floorspace)
         weather_factors = weather.get_weather(seds_data=seds)
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
         
