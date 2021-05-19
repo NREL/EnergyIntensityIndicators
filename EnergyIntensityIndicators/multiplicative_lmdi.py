@@ -16,7 +16,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 
 class MultiplicativeLMDI():
 
-    def __init__(self, output_directory, energy_data=None, energy_shares=None, 
+    def __init__(self, output_directory=None, energy_data=None, energy_shares=None, 
                  base_year=None, end_year=None, total_label=None, lmdi_type=None):
         self.energy_data = energy_data
         self.energy_shares = energy_shares
@@ -148,8 +148,9 @@ class MultiplicativeLMDI():
         plt.xlabel('Year')
         plt.ylabel('Trillion British thermal units [TBtu]')
         plt.legend(loc=2, ncol=2)
-        try:
-            plt.savefig(f"{self.output_directory}/{fig_name}.png")
-        except FileNotFoundError:
-            plt.savefig(f".{self.output_directory}/{fig_name}.png")
+        if self.output_directory:
+            try:
+                plt.savefig(f"{self.output_directory}/{fig_name}.png")
+            except FileNotFoundError:
+                plt.savefig(f".{self.output_directory}/{fig_name}.png")
         plt.show()

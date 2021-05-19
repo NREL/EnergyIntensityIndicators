@@ -352,6 +352,23 @@ class NonCombustion:
                          'Number of Mines.2': 'Total Number of Mines',
                          'Production.2': 'Total Production'})
             table.index.name = 'Year'
+        elif table_name == 'Table 4-54':
+            total_name = \
+                'Total CO2 Production from Extraction and Capture Facilities (kt)'
+            new_name = 'Carbon Dioxide Consumption'
+            rename_ = \
+                {total_name: new_name}
+            table = pd.read_csv(f'{f_path}{table_name}.csv',
+                                encoding='latin1', header=2,
+                                index_col=1, skipfooter=4).dropna(
+                                    axis=1, how='all')
+            table = table[[total_name]].rename(columns=rename_)
+            table[new_name] = \
+                table[new_name].apply(lambda s:
+                    str(s).replace(' b', '').replace(',', ''))
+            table[new_name] = table[new_name].astype(float)
+            print('table:\n', table)
+            print('table cols:\n', table.columns)
 
         else:
             table = pd.read_csv(f'{f_path}{table_name}.csv',
@@ -735,12 +752,18 @@ class NonCombustion:
         # Total (Direct and Indirect) Nitrous Oxide Emissions from
         #  Livestock Manure Management (kt)
         nitrous_oxide = self.noncombustion_activity_epa('Table A-196')
-
+        utils = df_utils()
+        methane, nitrous_oxide = \
+            utils.ensure_same_indices(methane, nitrous_oxide)
+        emissions = utils.merge_df_list([methane, nitrous_oxide])
+        name = 'Manure Management'
+        emissions = utils.create_total_column(emissions, name)
+        emissions = emissions[[name]]
         # Table 5-7 CH4 and N2O Emissions from Manure Management
         # (MMT CO2 Eq.) ?
         print('nitrous_oxide:\n', nitrous_oxide)
 
-        # return {'activity': activity, 'emissions': emissions}
+        return {'activity': activity, 'emissions': emissions}
 
     def petroleum_systems(self):
         """Activity is number of wells (Oil and HF Oil)
@@ -812,6 +835,9 @@ class NonCombustion:
         noncombustion_data.update(level3)
         print('noncombustion_data:\n', noncombustion_data)
         print('noncombustion_data.keys():\n', noncombustion_data.keys())
+        for k in noncombustion_data.keys():
+            print('k:', k)
+            print(f'noncombustion {k} keys:', noncombustion_data[k].keys())
         # # self.agricultural_soil_management()
         # results = self.landfills()
         # print('results:\n', results)

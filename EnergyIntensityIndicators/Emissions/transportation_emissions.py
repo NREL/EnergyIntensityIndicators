@@ -19,6 +19,8 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         fname = 'transportation_emissions'
+        config_path = f'C:/Users/irabidea/Desktop/yamls/{fname}.yaml'
+
         self.sub_categories_list = \
             {'All_Transportation':
                 {'All_Passenger':
@@ -59,14 +61,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         super().__init__(directory, output_directory,
                          sector='Transportation',
+                         config_path=config_path,
                          level_of_aggregation=level_of_aggregation,
-                         fname=fname,
                          categories_dict=self.sub_categories_list)
         self.transport = \
             TransportationIndicators(directory=directory,
                                      output_directory=output_directory,
                                      level_of_aggregation=level_of_aggregation,
-                                     lmdi_model=self.model,
+                                     lmdi_model=self.lmdi_models,
                                      base_year=self.base_year,
                                      end_year=self.end_year)
 
@@ -139,22 +141,66 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     (fuel['Mode'] != 'Not Used')]
 
         transport_fuel = pd.concat([fuel, tedb_fuel], axis=0)
-
+        transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
         return transport_fuel
+
+    def nest_iter(self, d, key_path):
+        print('start')
+        print('d:', d)
+        for k, v in d.items():
+            print(k)
+            print(key_path)
+            print(type(v))
+            if isinstance(v, dict):
+                print('v is dict')
+                key_path.append(k)
+                print('key_path:', key_path)
+                print('running nest iter again')
+                yield from self.nest_iter(v, key_path)
+            elif v is None:
+                print('v is None')
+                yield key_path
+            else:
+                print('FAILURE')
 
     def main(self):
         energy_data = self.transportation_data()
-        print('transport energy_data:\n', energy_data)
-        print('transport energy_data fuels:\n',
-              energy_data['Fuel Type'].unique())
+        energy_decomp_data = \
+            self.transport.collect_data(
+                )['All_Transportation']['All_Passenger']
+        print('energy_decomp_data keys:', energy_decomp_data.keys())
 
-        energy_decomp_data = self.transport.collect_data()
+        key_path = []
+        for path in self.nest_iter(self.sub_categories_list, key_path):
+            print(path)
+
+        for category in energy_data['Category'].unique():
+            print('category:', category)
+            print('energy_decomp_data category keys:', energy_decomp_data[category].keys())
+
+            category_data = energy_data[energy_data['Category'] == category]
+            for mode in category_data['Mode'].unique():
+                mode_data = category_data[category_data['Mode'] == mode]
+                print('mode:', mode)
+                data = mode_data.pivot(index='Year', 
+                                       columns='Fuel Type',
+                                       values='value')
+                print("energy data:\n", data)
+                combustion_ = energy_decomp_data[category][mode]
+                activity = combustion_['activity']
+                print('activity:\n', activity)
+        
+                # emissions, data = \
+                #     self.calculate_emissions(data,
+                #                              emissions_type='CO2 Factor',
+                #                              datasource='TEDB')
+                # print("emissions:\n", emissions)
+
+        exit()
 
 
-        emissions = \
-            self.calculate_emissions(energy_data,
-                                     emissions_type='CO2 Factor',
-                                     datasource='TEDB')
+
+
         return {'energy': energy_data,
                 'emissions': emissions}
 

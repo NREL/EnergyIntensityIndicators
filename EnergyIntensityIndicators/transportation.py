@@ -75,15 +75,17 @@ class TransportationIndicators(CalculateLMDI):
     def import_tedb_data(self, table_number, skip_footer=None,
                          skiprows=None, sheet_name=None,
                          usecols=None, index_col=None):
+
         try:
+            
             file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'
-            xls = pd.read_excel(file_url, skipfooter=skip_footer, 
-                                skiprows=skiprows, sheet_name=sheet_name, 
+            xls = pd.read_excel(file_url, skipfooter=skip_footer,
+                                skiprows=skiprows, sheet_name=sheet_name,
                                 usecols=usecols, index_col=index_col)
             return xls
-        except urllib.error.HTTPError:
-            print('error with table', table_number)
-            return 
+        except urllib.error.HTTPError as e:
+            print('error with table', table_number, e)
+            raise e
 
     def adjust_truck_freight(self, parameter_list):
         """purpose
@@ -133,10 +135,12 @@ class TransportationIndicators(CalculateLMDI):
 
         # Paratransit
         paratransit_activity_1984_2017 = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheet_name='3', skiprows=7, skipfooter=42, usecols='A,G', index_col=0) # 1997-2017 apta_table3
-        
-        # Commercial Air Carrier
 
-        commercial_air_carrier = self.import_tedb_data(table_number='10_02')
+        # Commercial Air Carrier
+        commercial_air_carrier = \
+            pd.read_excel(
+                'https://tedb.ornl.gov/wp-content/uploads/2021/02/Table10_02_01312021.xlsx',
+                 skiprows=9, skip_footer=42, index_col=0, use_cols='B:D')
 
         # Urban Rail (Commuter)
         urban_rail_commuter = pd.read_excel('https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx', sheet_name='3', skiprows=7, skipfooter=42, index_col=0,
@@ -251,8 +255,15 @@ class TransportationIndicators(CalculateLMDI):
         class_1_rail = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_04_25_112219.xlsx', skiprows=1, skipfooter=9, index_col=0) # USDOT, Bureau of Transportation Statistics			https://www.bts.gov/content/energy-intensity-class-i-railroad-freight-service					Table 4-25
         class_1_rail = class_1_rail.transpose()
         class_1_rail = class_1_rail[['Revenue freight ton-miles (millions)']]
-        air_carrier = self.import_tedb_data(table_number='09_02')
-        waterborne_vessles = self.import_tedb_data(table_number='10_05')
+        air_carrier = \
+            pd.read_excel(
+                'https://tedb.ornl.gov/wp-content/uploads/2021/02/Table10_02_01312021.xlsx',
+                 skiprows=9, skip_footer=42, index_col=1, use_cols='B,H')
+        waterborne_vessles = \
+            pd.read_excel(
+                'https://tedb.ornl.gov/wp-content/uploads/2021/02/Table10_05_01312021.xlsx',
+                 skiprows=9, skip_footer=42, index_col=1, use_cols='B,D')
+        
         gas_pipeline = self.mer_table_43_nov2019
 
         return freight_based_activity

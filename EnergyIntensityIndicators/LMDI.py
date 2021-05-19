@@ -273,12 +273,14 @@ class LMDI():
 
 class CalculateLMDI(LMDI):
 
-    def __init__(self, sector, level_of_aggregation, lmdi_models,
-                 categories_dict, energy_types, directory,
-                 output_directory, primary_activity=None,
+    def __init__(self, sector, level_of_aggregation, lmdi_models=None,
+                 categories_dict=None, energy_types=None, directory=None,
+                 output_directory=None, primary_activity=None,
                  base_year=1985, end_year=2017,
                  unit_conversion_factor=1,
-                 weather_activity=None):
+                 weather_activity=None,
+                 use_yaml_config=False,
+                 config_path=None):
 
         super().__init__(sector=sector, lmdi_models=lmdi_models,
                          primary_activity=primary_activity,
@@ -296,6 +298,12 @@ class CalculateLMDI(LMDI):
                                           #  to come before the others
         self.unit_conversion_factor = unit_conversion_factor
         self.weather_activity = weather_activity
+
+        self.use_yaml_config = use_yaml_config
+        self.config_path = config_path
+
+        if self.use_yaml_config:
+            setattr(self, 'gen', GeneralLMDI(self.config_path))
 
     @staticmethod
     def get_elec(elec):
@@ -579,13 +587,24 @@ class CalculateLMDI(LMDI):
             level_data['A_i'] = activity_data
 
         if level_name in results_dict:
-
-            data_dict = \
-                {v: self.merge_input_data([level_data[v],
-                                           results_dict[level_name][v]])
-                 for v in self.variables}
+            data_dict = dict()
+            for v in self.gen.variables:
+                if isinstance(level_data[v], pd.DataFrame) and \
+                        isinstance(results_dict[level_name][v], pd.DataFrame):
+                    data_dict[v] = \
+                        self.merge_input_data([level_data[v],
+                                              results_dict[level_name][v]])
+                elif isinstance(level_data[v], dict) and \
+                        isinstance(results_dict[level_name][v], dict):
+                    k_dict = dict()
+                    for k in level_data[v].keys():
+                        k_dict[k] = \
+                            self.merge_input_data(
+                                [level_data[v][k],
+                                 results_dict[level_name][v][k]])
+                    data_dict[v] = k_dict
         else:
-            data_dict = {v: level_data[v] for v in self.variables}
+            data_dict = {v: level_data[v] for v in self.gen.variables}
 
         results_dict[level_name] = data_dict
 
@@ -593,14 +612,11 @@ class CalculateLMDI(LMDI):
 
     def gen_nesting(self, level_name, results_dict, select_categories):
 
-        aggregations = {v: [] for v in self.variables}
+        aggregations = {v: [] for v in self.gen.variables}
         if level_name in results_dict:
-            for v in self.variables:
+            for v in self.gen.variables:
                 if v in results_dict[level_name].keys():
-                    if v == 'WF':
-                        aggregate_v = [results_dict[level_name][v]['elec']]
-                    else:
-                        aggregate_v = [results_dict[level_name][v]]
+                    aggregate_v = [results_dict[level_name][v]]
                     aggregations[v] = aggregate_v
         print('select_categories:', select_categories)
         for v, aggregate_v in aggregations.items():
@@ -608,15 +624,16 @@ class CalculateLMDI(LMDI):
                 if key == np.nan:
                     raise ValueError('select_categories key is NAN')
                 if isinstance(value, dict):
-                    for l, lower in value.items():
+                    for l_, lower in value.items():
                         try:
-                            lower_level_v = results_dict[key][l][v]
+                            lower_level_v = results_dict[key][l_][v]
                             if lower_level_v is not None:
                                 for w_, w_data in lower_level_v.items():
                                     if isinstance(w_data, pd.DataFrame):
                                         lower_level_v = lower_level_v
                                     elif isinstance(w_data, dict):
-                                        lower_level_v = results_dict[key][v][key]
+                                        lower_level_v = \
+                                            results_dict[key][v][key]
 
                                 if isinstance(value, dict):
                                     if len(lower_level_v.columns.tolist()) > 1:
@@ -631,32 +648,61 @@ class CalculateLMDI(LMDI):
                                 aggregate_v.append(lower_level_v)
                             else:
                                 continue
-                        except KeyError:
+                        except Exception as e:
                             print(f'lower level key: {key} failed on level : \
                                 {level_name}')
-                            continue
+                            # raise e
+                            pass
 
                         aggregations[v] = aggregate_v
 
         data_dict = dict()
-        for v in self.variables:
-            print('v_df:\n', aggregations[v])
-            if len(aggregations[v]) == 0:
-                continue
-            elif len(aggregations[v]) == 1:
-                v_df = aggregations[v][0]
-            elif len(aggregations[v]) > 1:
-                v_df = self.merge_input_data(aggregations[v])
+        for v in self.gen.variables:
+            if isinstance(aggregations[v], list):
+                iter_ = aggregations[v]
+                print('v_df:\n', aggregations[v])
+                v_data = self.combine_data(iter_)
+                if v_data is None:
+                    continue
+            elif isinstance(aggregations[v], dict):
+                v_data = dict()
+                for k in aggregations[v].keys():
+                    k_data = self.combine_data(aggregations[v][k])
+                    if not k_data:
+                        continue
+                    v_data[k] = k_data
 
-            if v_df is None:
-                continue
-            else:
-                v_df = df_utils().create_total_column(v_df, level_name)
-                data_dict[v] = v_df
+            data_dict[v] = v_data
 
         results_dict[level_name] = data_dict
 
         return results_dict
+
+    def combine_data(self, iter_):
+        """
+        Args:
+            iter_ (list): contains dataframes
+                          to combine into one
+
+        Returns:
+            v_df (DataFrame): All dataframes in iter_ merged
+        """
+        if isinstance(iter_, list):
+            if len(iter_) == 0:
+                v_df = None
+            elif len(iter_) == 1:
+                v_df = iter_[0]
+            elif len(iter_) > 1:
+                v_df = self.merge_input_data(iter_)
+        else:
+            raise TypeError('combine_data take list as input')
+
+        # if v_df is None:
+        #     pass
+        # else:
+        #     v_df = df_utils().create_total_column(v_df, level_name)
+
+        return v_df
 
     def nesting(self, level_name, results_dict, select_categories):
         """Aggregate data from lower level
@@ -752,9 +798,9 @@ class CalculateLMDI(LMDI):
         return results_dict
 
     def build_nest(self, data, select_categories, results_dict,
-                   level1_name, new_style, level_name=None):
+                   level1_name, level_name=None):
         """Process and organize raw data"""
-
+        print('data:\n', data)
         if isinstance(select_categories, dict):
             for key, value in select_categories.items():
                 print('select_categories:\n', select_categories)
@@ -763,13 +809,12 @@ class CalculateLMDI(LMDI):
                                                select_categories=value,
                                                results_dict=results_dict,
                                                level1_name=level1_name,
-                                               new_style=new_style,
                                                level_name=key)
 
                 else:
                     if not level_name:
                         level_name = level1_name
-                    if new_style:
+                    if self.use_yaml_config:
                         results_dict = \
                             self.gen_process_results_dict(data,
                                                           select_categories,
@@ -789,7 +834,7 @@ class CalculateLMDI(LMDI):
         if not level_name:
             level_name = level1_name
 
-        if new_style:
+        if self.use_yaml_config:
             results_dict = self.gen_nesting(level_name,
                                             results_dict,
                                             select_categories)
@@ -1038,7 +1083,7 @@ class CalculateLMDI(LMDI):
 
     def get_nested_lmdi(self, level_of_aggregation, raw_data,
                         lmdi_type, calculate_lmdi=False,
-                        breakout=False, new_style=True):
+                        breakout=False):
         """
         Collect LMDI decomposition according to user specifications
 
@@ -1071,18 +1116,17 @@ class CalculateLMDI(LMDI):
         for results_dict in self.build_nest(data=data,
                                             select_categories=categories,
                                             results_dict=results_dict,
-                                            level1_name=level1_name,
-                                            new_style=new_style):
+                                            level1_name=level1_name):
             continue
 
-        if not new_style:
+        if not self.use_yaml_config:
             final_results = \
                 self.calculate_breakout_lmdi(results_dict,
                                              level_of_aggregation_,
                                              breakout,
                                              categories_pre_breakout,
                                              lmdi_type)
-        elif new_style:
+        elif self.use_yaml_config:
             input_data = results_dict
             final_results = self.gen.main(input_data=input_data)
 

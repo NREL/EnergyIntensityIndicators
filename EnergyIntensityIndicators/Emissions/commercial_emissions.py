@@ -20,7 +20,7 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 class CommercialEmissions(SEDSEmissionsData):
     def __init__(self, directory, output_directory,
                  level_of_aggregation='Commercial_Total'):
-        fname = 'commercial_total'
+        fname = 'C:/Users/irabidea/Desktop/yamls/commercial_total.yaml'
         self.level_of_aggregation = level_of_aggregation
 
         self.sub_categories_list = {'Commercial_Total': None}
@@ -29,33 +29,41 @@ class CommercialEmissions(SEDSEmissionsData):
                          fname=fname,
                          categories_dict=self.sub_categories_list,
                          level_of_aggregation=self.level_of_aggregation)
-
+        print('commmerical emissions attributes:', dir(self))
         self.comm = \
             CommercialIndicators(
                 directory='./EnergyIntensityIndicators/Data',
                 output_directory='./Results',
                 level_of_aggregation=self.level_of_aggregation,
-                lmdi_model=self.model,
+                lmdi_model=self.lmdi_models,
                 end_year=self.end_year,
                 base_year=self.base_year)
 
     def main(self):
 
         energy_data = self.seds_energy_data(sector='commercial')['US']
+        energy_data = energy_data.drop('Census Region', axis=1)
+        print('energy_data:\n', energy_data)
 
-        comm_data = self.comm.collect_data()['Commercial_Total']
-        weather_factors = comm_data['weather_factors']
-        activity = comm_data['activity']
-        emissions = \
+        emissions_data, energy_data = \
             self.calculate_emissions(energy_data,
                                      emissions_type='CO2 Factor',
                                      datasource='SEDS')
+        print('emissions:\n', emissions_data)
+
+        comm_data = self.comm.collect_data()['Commercial_Total']
+        weather_factors = comm_data['weather_factors']['fuels']
+        print('weather_factors:\n', weather_factors)
+
+        activity = comm_data['activity']
+        print('activity:\n', activity)
 
         return {'Commercial_Total':
                 {'E_j': energy_data,
-                 'C_j': emissions,
+                 'C_j': emissions_data,
                  'WF': weather_factors,
-                 'A': activity}}
+                 'A': activity,
+                 'total_label': 'Commerical'}}
 
 
 if __name__ == '__main__':
@@ -67,6 +75,7 @@ if __name__ == '__main__':
 
     s = module_(directory, output_directory,
                 level_of_aggregation=level)
+
     s_data = s.main()
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,

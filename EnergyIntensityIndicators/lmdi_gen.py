@@ -2,12 +2,11 @@ import sympy as sp
 import numpy as np
 import pandas as pd
 import yaml
+import matplotlib.pyplot as plt
 
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities import lmdi_utilities
-from EnergyIntensityIndicators.multiplicative_lmdi \
-    import MultiplicativeLMDI
 
 
 class GeneralLMDI:
@@ -35,21 +34,18 @@ class GeneralLMDI:
     the decomposition (terms are the variables that are weighted by
     the log mean divisia weights in the final decomposition)
     """
-    def __init__(self, directory, class_):
+    def __init__(self, config_path):
         """
         Args:
             directory (str): Path to folder containing YAML
                              files with LMDI input parameters
         """
-        self.directory = directory
-        self.class_ = class_
+        self.config_path = config_path
+        self.read_yaml()
 
-    def create_yaml(self, fname):
+    def create_yaml(self):
         """Create YAML containing input data
         from dictionary
-
-        Args:
-            fname ([type]): [description]
         """
         input_ = {'variables': ['E_i', 'A_i'],
                   'LHS_var': 'E_i',
@@ -67,23 +63,23 @@ class GeneralLMDI:
                   'base_year': 1990,
                   'end_year': 2018}
 
-        with open(f'{self.directory}/{fname}.yaml', 'w') as file:
+        with open(self.config_path, 'w') as file:
             yaml.dump(input_, file)
 
-    def read_yaml(self, fname):
+    def read_yaml(self):
         """Read YAML containing input data, create attribute
         for each item in resulting dictionary
 
         Parameters:
             fname (str): YAML file containing input data
         """
-        with open(f'{self.directory}/{fname}.yaml', 'r') as file:
+        with open(self.config_path, 'r') as file:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
             input_dict = yaml.load(file, Loader=yaml.FullLoader)
             print('input_dict:\n', input_dict)
             for k, v in input_dict.items():
-                setattr(self.class_, k, v)
+                setattr(self, k, v)
 
     @staticmethod
     def test_expression(expression, lhs):
@@ -188,7 +184,6 @@ class GeneralLMDI:
 
         results['Effect'] = results.product(axis=1)
 
-        results["Base Year"] = self.base_year
         return results
 
     def additive_weights(self, LHS, LHS_share):
@@ -226,10 +221,9 @@ class GeneralLMDI:
 
             # apply generally not preferred for row-wise operations but?
             log_mean_values = \
-                LHS_data[[col, f"{col}_shift"]].apply(lambda row:
-                                                 lmdi_utilities.logarithmic_average(row[col],
-                                                 row[f"{col}_shift"]),
-                                                 axis=1)
+                LHS_data[[col, f"{col}_shift"]].apply(
+                    lambda row: lmdi_utilities.logarithmic_average(
+                        row[col], row[f"{col}_shift"]), axis=1)
 
             log_mean_values_df[col] = log_mean_values.values
 
@@ -238,10 +232,9 @@ class GeneralLMDI:
                                                              fill_value=0)
             # apply generally not preferred for row-wise operations but?
             log_mean_shares = \
-                LHS_share[[col, f"{col}_shift"]].apply(lambda row:
-                                                       lmdi_utilities.logarithmic_average(row[col],
-                                                       row[f"{col}_shift"]),
-                                                       axis=1)
+                LHS_share[[col, f"{col}_shift"]].apply(
+                    lambda row: lmdi_utilities.logarithmic_average(
+                        row[col], row[f"{col}_shift"]), axis=1)
 
             LHS_share[f"log_mean_shares_{col}"] = log_mean_shares
 
@@ -303,6 +296,44 @@ class GeneralLMDI:
         """
         return len(set(iterator)) <= 1
 
+    @staticmethod
+    def process_term(t, input_data):
+
+        try:
+            input_data['A'] = \
+                input_data['A'][['floorspace_bsf']].rename(
+                    columns={'floorspace_bsf': 'A'})
+        except KeyError:
+            pass
+
+        try:
+            input_data['WF'] = \
+                input_data['WF'][['fuels_weather_factor']].rename(
+                    columns={'fuels_weather_factor': 'WF'})
+        except KeyError:
+            pass
+
+        if '/' in t:
+            parts = t.split('/')
+            first_df = parts[0]
+            first_df = input_data[first_df]
+            numerator = first_df.copy()
+
+            for i in range(1, len(parts)):
+                denominator = parts[i]
+                denominator = input_data[denominator]
+                numerator, denominator = \
+                    df_utils().ensure_same_indices(numerator, denominator)
+                print('numerator:\n', numerator)
+                print('denominator:\n', denominator)
+                numerator = numerator.divide(denominator.values, axis=0)
+
+            f = numerator
+        else:
+            f = input_data[t]
+
+        return f
+
     def general_expr(self, input_data):
         """Decompose changes in LHS variable
 
@@ -317,21 +348,39 @@ class GeneralLMDI:
         Returns:
             results (dataframe): LMDI decomposition results
         """
+        print('gen expr attributes:', dir(self))
         self.check_eval_str(self.decomposition)
+        # if hasattr('GeneralLMDI', 'terms'):
+        #     terms_ = True
         for t in self.terms:
             self.check_eval_str(t)
+        # else:
+        #     terms_ = False
 
         self.test_expression(self.decomposition, self.LHS_var)
+        print('input_data.keys()', input_data.keys())
+        try:
+            lhs = input_data[self.LHS_var]
+            name = input_data['total_label']
+        except KeyError:
+            temp_label = 'Northeast'  # 'Commercial_Total', 'National', 'Industry''Northeast'
+            # print('input_data["National"].keys():', input_data["National"].keys())
+            # print('input_data["Northeast"].keys():', input_data["Northeast"].keys())
 
-        lhs = input_data[self.LHS_var]
-        name = input_data['total_label']
+            input_data = input_data[temp_label]
+            lhs = input_data[self.LHS_var]
+            print("input_data[temp_label]:", input_data)
+            try:
+                name = input_data['total_label']
+            except KeyError:
+                name = temp_label
 
         print('lhs:\n', lhs)
         lhs_total = df_utils().create_total_column(lhs,
-                                                 total_label=name)
+                                                   total_label=name)
         print('lhs_total:\n', lhs_total)
         lhs_share = df_utils().calculate_shares(lhs_total,
-                                              total_label=name)
+                                                total_label=name)
         print('lhs_share:\n', lhs_share)
 
         if self.model == 'additive':
@@ -339,7 +388,10 @@ class GeneralLMDI:
         elif self.model == 'multiplicative':
             weights = self.multiplicative_weights(lhs, lhs_share)
 
-        for total, cols in self.totals.items():
+        totals = list(self.totals.keys())
+        sorted_totals = sorted(totals, key=len, reverse=True)
+        for total in sorted_totals:
+            cols = self.totals[total]
             cols_subscript = cols.split('_')
             total_subscript = total.split('_')
             subscripts = [s for s in cols_subscript
@@ -347,15 +399,18 @@ class GeneralLMDI:
             if len(subscripts) == 1:
                 subscript = subscripts[0]
             else:
-                raise ValueError(('Method not currently able to accomodate'
-                                 'summing over multiple subscripts'))
+                raise ValueError('Method not currently able to accomodate'
+                                 'summing over multiple subscripts')
             units = self.subscripts[subscript]['names'].values()
             print('units:', units)
             if self.all_equal(units):
                 total_df = \
                     df_utils().create_total_column(input_data[cols],
-                                                 total_label=name)
+                                                   total_label=name)
+                print('total_df:\n', total_df)
                 total_col = total_df[[name]]
+                print('total_col:\n', total_col)
+
             else:
                 total_col = input_data[cols].multiply(weights.values,
                                                       axis=1).sum(axis=1)
@@ -363,38 +418,43 @@ class GeneralLMDI:
             input_data[total] = total_col
 
         results = pd.DataFrame(index=lhs.index)
+        print('self.decomposition:', self.decomposition)
 
+        results = []
         for t in self.decomposition.split('*'):
-            if '/' in t:
-                parts = t.split('/')
-                numerator = parts[0]
-                denominator = parts[1]
-                print('numerator name:\n', numerator)
-                print('denominator name:\n', denominator)
 
-                numerator = input_data[numerator]
-                denominator = input_data[denominator]
-
-                numerator, denominator = \
-                    df_utils().ensure_same_indices(numerator, denominator)
-                print('numerator:\n', numerator)
-                print('denominator:\n', denominator)
-
-                f = numerator.divide(denominator.values, axis=0)
-            else:
-                f = input_data[t]
+            f = self.process_term(t, input_data)
 
             if t in self.terms:
+                print('t in terms!')
                 print(f'f {t}:\n', f)
-                component = f.multiply(weights.values, axis=1).sum(axis=1)
+                print('f cols:', f.columns)
+                print('weights cols:', weights.columns)
+                if f.shape[1] > 1:
+                    if name in f.columns:
+                        f = f.drop(name, axis=1, errors='ignore')
+                    component = f.multiply(weights.values, axis=1).sum(axis=1)
+                else:
+                    component = f
+                if isinstance(component, pd.Series):
+                    component = component.to_frame(name=t)
                 print(f'component {t}:\n', component)
-
             else:
                 component = f
+                print(f'{t} not in terms')
 
-            results[t] = component
             print(f'component {t}:\n', component)
+            print('component type', type(component))
+            print('type t:', type(t))
 
+            if component.shape[1] == 2 and name in component.columns:
+                component = component.drop(name, axis=1, errors='ignore')
+                print(f'component {t}:\n', component)
+
+            results.append(component)
+
+        results = df_utils().merge_df_list(results)
+        results = results.drop('Commercial_Total', axis=1, errors='ignore')
         results = results.rename(columns=self.term_labels)
         print('results:\n', results)
         if self.model == 'additive':
@@ -406,8 +466,85 @@ class GeneralLMDI:
         print('expression:\n', expression)
         return expression
 
+    def prepare_for_viz(self, results_df):
+        """Rename result columns for use in the OpenEI VizGen
+        tool (https://vizgen.openei.org/)
+
+        Args:
+            results_df (DataFrame): Results of LMDI decomposition
+
+        Returns:
+            results_df (DataFrame): Results with VizGen appropriate
+                                    headers
+        """
+        results_df["Base Year"] = self.base_year
+
+        cols = list(results_df.columns)
+
+        rename_dict = {c: f'@value|Category|{c}#Units' for c in cols}
+        rename_dict['Base Year'] = '@scenario|Base Year'
+        rename_dict['Year'] = '@timeseries|Year'
+
+        results_df = results_df.reset_index()
+        results_df = results_df.rename(columns=rename_dict)
+        results_df['@filter|Sector'] = self.sector
+        results_df['@filter|Sub-Sector'] = self.total_label
+        results_df['@filter|Model'] = self.model
+        results_df['@filter|LMDI Type'] = self.lmdi_type
+        # results_df['@scenario|Energy Type'] = self.energy_types ?
+
+        return results_df
+
+    def spaghetti_plot(self, data, output_directory=None):
+        """Visualize multiplicative LMDI results in a
+        line plot
+        """
+        data = data[data.index >= self.base_year]
+
+        plt.style.use('seaborn-darkgrid')
+        palette = plt.get_cmap('Set2')
+
+        for i, l in enumerate(data.columns):
+            plt.plot(data.index, data[l], marker='',
+                        color=palette(i), linewidth=1,
+                        alpha=0.9, label=data[l].name)
+
+        else:
+            if self.LHS_var.startswith('E'):
+                title = f"Change in Energy Use {self.total_label}"
+            elif self.LHS_var.startswith('C'):
+                title = f"Change in Emissions {self.total_label}"
+
+        fig_name = self.total_label + str(self.base_year) + 'decomposition'
+
+        plt.title(title, fontsize=12, fontweight=0)
+        plt.xlabel('Year')
+        plt.ylabel('Emissions MMT CO2 eq.')
+        plt.legend(loc=2, ncol=2)
+        # if output_directory:
+        #     try:
+        #         plt.savefig(f"{output_directory}/{fig_name}.png")
+        #     except FileNotFoundError:
+        #         plt.savefig(f".{output_directory}/{fig_name}.png")
+        plt.show()
+
+    def main(self, input_data):
+        """Calculate LMDI decomposition
+
+        Args:
+            input_data (dict): Dictionary containing dataframes
+                               for each variable defined in the YAML
+        """
+        results = self.general_expr(input_data)
+        if self.model == 'multiplicative':
+            self.spaghetti_plot(data=results)
+
+        formatted_results = self.prepare_for_viz(results)
+        print('formatted_results:\n', formatted_results)
+        return formatted_results
+
     @staticmethod
-    def input_data():
+    def example_input_data():
         """Collect dictionary containing dataframes
         for each variable in the LMDI model
         """
@@ -425,54 +562,6 @@ class GeneralLMDI:
                 'total_label': 'NonManufacturing'}
         return data
 
-    def prepare_for_viz(self, results_df):
-        """Rename result columns for use in the OpenEI VizGen
-        tool (https://vizgen.openei.org/)
-
-        Args:
-            results_df (DataFrame): Results of LMDI decomposition
-
-        Returns:
-            results_df (DataFrame): Results with VizGen appropriate
-                                    headers
-        """
-        cols = list(results_df.columns)
-
-        rename_dict = {c: f'@value|Category|{c}#Units' for c in cols}
-        rename_dict['Base Year'] = '@scenario|Base Year'
-        rename_dict['Year'] = '@timeseries|Year'
-
-        results_df = results_df.reset_index()
-        results_df = results_df.rename(columns=rename_dict)
-        results_df['@filter|Sector'] = self.sector
-        results_df['@filter|Sub-Sector'] = self.total_label
-        results_df['@filter|Model'] = self.model
-        results_df['@filter|LMDI Type'] = self.lmdi_type
-        # results_df['@scenario|Energy Type'] = self.energy_types ?
-
-        return results_df
-
-    def main(self, input_data):
-        """Calculate LMDI decomposition
-
-        Args:
-            input_data (dict): Dictionary containing dataframes
-                               for each variable defined in the YAML
-        """
-        results = self.general_expr(input_data)
-        formatted_results = self.prepare_for_viz(results)
-        formatted_results.to_csv(f'{self.directory}/example2.csv',
-                                 index=False, mode='a', header=False)
-        print('formatted_results:\n', formatted_results)
-        
-        if self.model == 'multiplicative':
-            MultiplicativeLMDI().visualizations(data=formatted_results,
-                                                base_year=self.base_year,
-                                                end_year=self.end_year,
-                                                model=self.model,
-                                                loa=self.total_label)
-        return formatted_results
-
 
 if __name__ == '__main__':
     directory = 'C:/Users/irabidea/Desktop/yamls/'
@@ -481,8 +570,8 @@ if __name__ == '__main__':
                          LMDI input parameters
     """
     fname = 'combustion_noncombustion_test'  # 'test1'
-    # self.read_yaml(fname)
-    input_data = symb.input_data()
+    symb.read_yaml(fname)
+    input_data = symb.example_input_data()
     expression = symb.main(input_data=input_data)
     # subs_ = symb.eval_expression()
     # c = IndexedVersion(directory=directory).main(fname='test1')

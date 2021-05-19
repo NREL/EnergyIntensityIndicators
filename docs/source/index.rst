@@ -50,11 +50,13 @@ Relevant Background Literature
    :caption: Contents:
 
    EnergyIntensityIndicators/LMDI/lmdi
+   EnergyIntensityIndicators/lmdi_gen
    EnergyIntensityIndicators/Commercial/commercial
    EnergyIntensityIndicators/Electricity/electricity
    EnergyIntensityIndicators/Industry/industry
    EnergyIntensityIndicators/Residential/residential
    EnergyIntensityIndicators/Transportation/transportation
+   EnergyIntensityIndicators/Emissions/emissions
    EnergyIntensityIndicators/supporting_files
    EnergyIntensityIndicators/results
   

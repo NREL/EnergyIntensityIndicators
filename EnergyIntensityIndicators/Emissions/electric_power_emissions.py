@@ -25,6 +25,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         self.output_directory = output_directory
         self.level_of_aggregation = level_of_aggregation
         fname = 'electric_power_sector_emissions'
+        config_path = f'C:/Users/irabidea/Desktop/yamls/{fname}.yaml'
         fossil_fuels = {'Coal': None,
                         'Petroleum': None,
                         'Natural Gas': None,
@@ -81,13 +82,48 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
                          self.output_directory,
                          sector='Electric Power',
                          level_of_aggregation=self.level_of_aggregation,
-                         fname=fname,
+                         config_path=config_path,
                          categories_dict=self.sub_categories_list)
         self.elec_data = \
             ElectricityIndicators(directory=self.directory,
                                   output_directory=self.output_directory,
                                   level_of_aggregation='Electric Power',
                                   end_year=2018).collect_data()
+
+    def process_e_data(self, data_dict):
+        
+        if isinstance(data_dict, dict):
+            print('data_dict keys:', data_dict.keys())
+            activity = data_dict['activity']
+            energy = data_dict['energy']['primary']
+            print('energy_:\n', energy)
+        else:
+            raise TypeError('data_dict is not dictionary')
+
+        no_emissions = ['Solar', 'Wind',
+                        'Nuclear', 'Geothermal',
+                        'Hydroelectric']
+        rename_ = dict()
+
+        for type_ in no_emissions:
+            cols = {c: type_ for c in energy.columns if type_ in c}
+            rename_.update(cols)
+
+        energy = energy.rename(columns=rename_)
+
+        d_emissions, d_energy = \
+            self.calculate_emissions(energy,
+                                        emissions_type='CO2 Factor',
+                                        datasource='eia_elec')
+        print('d_emissions:\n', d_emissions)
+        print('d_energy:\n', d_energy)
+
+        emissions_data = {'E_i_j': d_energy,
+                          'A_i': activity,
+                          'C_i_j': d_emissions}
+
+        print('emissions_data:\n', emissions_data)
+        return emissions_data
 
     def electric_power_co2(self):
         """[summary]
@@ -98,64 +134,50 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
 
         elec_gen_total = \
             self.elec_data['Elec Generation Total']
-        elec_power_sector = elec_gen_total['Elec Power Sector']
-        elec_only = elec_power_sector['Electricity Only']
 
-        comm_sector = elec_gen_total['Commercial Sector']
-        ind_sector = elec_gen_total['Industrial Sector']
+        all_data_dict = dict()
+        for sub, sub_dict in self.sub_categories_list['Elec Generation Total'].items(): # electric power sector, all_chp
+            if isinstance(sub_dict, dict):
+                for gen_type, gen_data in sub_dict.items(): ## elec only, commercial, industrial
+                    gen_dict = dict()
+                    if isinstance(gen_data, dict):
+                        for fuel_category, category_data in gen_data.items(): # Fossil fuels, nuclear etc
+                            category_dict = dict()
+                            if isinstance(category_data, dict):
+                                type_dict = dict()
+                                for fuel_type, type_data in category_data.items(): # wood, waste, etc
+                                    if isinstance(type_data, dict):
+                                        raise TypeError('Type data should be None')
+                                    elif type_data is None:
+                                        data = elec_gen_total[sub][gen_type][fuel_category][fuel_type]
+                                        data = self.process_e_data(data)
+                                    type_dict[fuel_type] = data
+                                category_dict[fuel_category] = type_dict
+                            elif category_data is None:
+                                data = elec_gen_total[sub][gen_type][fuel_category]
+                                data = self.process_e_data(data)
+                                category_dict[fuel_category] = data
+                        gen_dict[gen_type] = category_dict
+                    elif gen_data is None:
+                        data = elec_gen_total[sub][gen_type]
+                        data = self.process_e_data(data)
+                        gen_dict[gen_type] = data
 
-        all_chp = self.elec_data['All CHP']
-        chp_elec_power = all_chp['Elec Power Sector']['Combined Heat & Power']
-        chp_comm = all_chp['Commercial Sector']['Combined Heat & Power']
-        chp_ind = all_chp['Industrial Sector']['Combined Heat & Power']
+                all_data_dict[sub] = gen_dict
 
-        data_cats = [elec_only, comm_sector,
-                     ind_sector, chp_elec_power,
-                     chp_comm, chp_ind]
+            elif sub_dict is None:
+                data = elec_gen_total[sub]
+                data = self.process_e_data(data)
+                all_data_dict[sub] = data
 
-        emissions_data = dict()
-        for d in data_cats:
-            print('d:\n', d)
-            for c in d.keys():
-                print('c:', c)
-                try:
-                    activity = d[c]['activity']
-                except KeyError:
-                    print('d[c] keys', d[c].keys())
-                print('activity:\n', activity)
-                try:
-                    energy = d[c]['energy']
-                except KeyError:
-                    print('d[c] keys', d[c].keys())
-                print('energy:\n', energy)
-                for e, e_df in energy.items():
-                    print('e:', e)
-                    # d = d.rename(columns=self.electric_power_sector())
-                    print('e_df.columns:', e_df.columns)
-                    no_emissions = ['Solar', 'Wind',
-                                    'Nuclear', 'Geothermal',
-                                    'Hydroelectric']
-                    rename_ = dict()
-                    for type_ in no_emissions:
-                        cols = {c: type_ for c in e_df.columns if type_ in c}
-                        rename_.update(cols)
-
-                    e_df = e_df.rename(columns=rename_)
-
-                    print('e_df:\n', e_df)
-                    d_emissions = \
-                        self.calculate_emissions(e_df,
-                                                 emissions_type='CO2 Factor',
-                                                 datasource='eia_elec')
-                    print('d_emissions:\n', d_emissions)
-
-                    emissions_data[c] = d_emissions
-        print('emissions_data:\n', emissions_data)
-        return emissions_data
+        emissions_input = {'Elec Generation Total': all_data_dict}
+        return emissions_input
 
     def main(self):
-
-        return self.electric_power_co2()
+        emissions_data = self.electric_power_co2()
+        print('emissions_data:\n', emissions_data)
+        exit()
+        return emissions_data
 
 
 if __name__ == '__main__':
