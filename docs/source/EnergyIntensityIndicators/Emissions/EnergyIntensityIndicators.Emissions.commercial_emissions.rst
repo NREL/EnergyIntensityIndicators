@@ -5,3 +5,5 @@ Commercial Sector Emissions Decomposition
    :members:
    :undoc-members:
    :show-inheritance:
+
+   EnergyIntensityIndicators.Emissions.commerical_emissions.CommercialEmissions
