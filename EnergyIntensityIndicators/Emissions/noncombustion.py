@@ -369,6 +369,16 @@ class NonCombustion:
             table[new_name] = table[new_name].astype(float)
             print('table:\n', table)
             print('table cols:\n', table.columns)
+        elif table_name == 'Table A-236':
+            table = pd.read_csv(f'{f_path}{table_name}.csv',
+                                encoding='latin1', skiprows=1,
+                                skipfooter=4)
+            table = table.set_index('Unnamed: 0')
+            table = table.transpose()
+            table.index.name = 'Year'
+            table.index = table.index.astype(int)
+            table.columns.name = None
+            table = table[['Total Industrial Waste Landfilled']]
 
         else:
             table = pd.read_csv(f'{f_path}{table_name}.csv',
@@ -595,11 +605,8 @@ class NonCombustion:
             self.noncombustion_activity_epa('Table A-199')
         organic_mineral_managed = organic_mineral_managed.rename(
             columns={'Total': 'Organic and Mineral Soil Managed'})
-        print('organic_mineral_managed:\n', organic_mineral_managed)
+
         rice_cultivation = self.noncombustion_activity_epa('Table A-202')
-
-        print('rice_cultivation:\n', rice_cultivation)
-
         # Land Areas (Million Hectares)
         rice_cultivation = rice_cultivation[['Total']].rename(
             columns={'Total': 'Rice Cultivation'})
@@ -682,12 +689,17 @@ class NonCombustion:
         emissions['Agricultural Soil Management'] = emissions.sum(axis=1)
         emissions = emissions[['Agricultural Soil Management']]
 
+        organic_mineral_managed.index = \
+            organic_mineral_managed.index.astype(int)
+        organic_mineral_managed = \
+            organic_mineral_managed.drop(
+                'Organic and Mineral Soil Managed', axis=1)
+        rice_cultivation.index = rice_cultivation.index.astype(int)
+
         activity = df_utils().merge_df_list([organic_mineral_managed,
                                              rice_cultivation])
         activity['Agricultural Soil Management'] = activity.sum(axis=1)
         activity = activity[['Agricultural Soil Management']]
-        print('activity:\n', activity)
-        print('emissions:\n', emissions)
 
         return {'activity': activity, 'emissions': emissions}
 
@@ -728,6 +740,7 @@ class NonCombustion:
         # Solid Waste in MSW and Industrial Waste Landfills Contributing
         # to CH4 Emissions (MMT unless otherwise noted)
         activity = self.noncombustion_activity_epa('Table A-236')
+
         print('activity:\n', activity)
 
         # CH4 Emissions from Landfills (MMT CO2 Eq.)
