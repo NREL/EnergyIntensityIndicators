@@ -238,6 +238,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Gas': 'Motor Gasoline'}
 
         mecs_data = mecs_data.rename(columns=mapping_)
+        mecs_data = mecs_data.drop('Total Fuel', axis=1, errors='ignore')
+
         return mecs_data
 
     @staticmethod
@@ -331,6 +333,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
         no_emissions_df.index.name = 'Fuel Type'
         fuel_factor_df = pd.concat([fuel_factor_df, no_emissions_df], axis=0)
+        fuel_factor_df = fuel_factor_df.transpose()
         return fuel_factor_df
 
     def calculate_emissions(self, energy_data, emissions_type='CO2 Factor',
@@ -362,7 +365,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                                        errors='ignore')
 
         ## TEMPORARY!! (need to add these factors to csv)
-        energy_data = energy_data.drop(['US Average', 'Other'], axis=1,
+        energy_data = energy_data.drop(['Other'], axis=1,
                                        errors='ignore')
 
         emissions_factors = self.get_factor(emissions_factors,

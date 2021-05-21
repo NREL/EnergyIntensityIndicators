@@ -75,6 +75,7 @@ class DFUtilities:
         else:
             df.index.name = 'Year'
 
+        df = df[df.index.notna()]
         df.index = df.index.astype(int)
         return df
 

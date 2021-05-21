@@ -363,7 +363,7 @@ class GeneralLMDI:
             lhs = input_data[self.LHS_var]
             name = input_data['total_label']
         except KeyError:
-            temp_label = 'Northeast'  # 'Commercial_Total', 'National', 'Industry''Northeast'
+            temp_label = 'Industry'  # 'Commercial_Total', 'National', 'Industry''Northeast'
             # print('input_data["National"].keys():', input_data["National"].keys())
             # print('input_data["Northeast"].keys():', input_data["Northeast"].keys())
 

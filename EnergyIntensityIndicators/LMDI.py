@@ -557,38 +557,68 @@ class CalculateLMDI(LMDI):
 
     def gen_process_results_dict(self, data, select_categories,
                                  results_dict, level_name, key):
-        print('gen_process_results_dict')
-        print('results_dict:\n', results_dict)
-        print('results_dict:\n', results_dict)
-        print('data:\n', data)
-        # exit()
-        if all(v in data for v in data.keys()):
+        print('self.gen.variables:', self.gen.variables)
+        print('data keys:', data.keys())
+        if all(v in data for v in self.gen.variables):
+            vars = self.gen.variables
             level_data = data
-        elif all(v in data[key] for v in data):
+        elif any(v in data for v in self.gen.variables):
+            print('not all vars in data')
+            vars = [v for v in self.gen.variables if v in data]
+            level_data = data
+        elif all(v in data[key] for v in self.gen.variables):
+            vars = self.gen.variables
+            level_data = data[key]
+        elif any(v in data[key] for v in self.gen.variables):
+            vars = [v for v in self.gen.variables if v in data[key]]
+            print('not all vars in data[key]')
             level_data = data[key]
         else:
-            return None
+            for v in self.gen.variables:
+                if v not in data:
+                    print(f'{v} not in data keys {data.keys()}')
+                if v not in data[key]:
+                    print(f'{v} not in data[key] keys {data[key].keys()}')
+            raise ValueError('Something Wrong')
 
-        if self.energy_types != 'all' and 'E_i' in level_data:
-            energy = self.collect_energy_data(level_data['E_i'])
-            energy_data = self.process_type_data('Energy_Type', energy,
-                                                 d_type_list=self.energy_types)
-            level_data['E_i'] = energy_data
+        if 'E_i' in level_data:
+            energy_var = 'E_i'
+        elif 'E_i_j' in level_data:
+            energy_var = 'E_i_j'
+        elif 'E_i_j_k' in level_data:
+            energy_var = 'E_i_j_k'
+        else:
+            energy_var = None
 
         if 'A_i' in level_data:
-            activity_data = level_data['A_i']
-            if isinstance(level_data['A_i'], pd.DataFrame):
-                activity_data['activity_type'] = 'only_activity'
-            elif isinstance(level_data['A_i'], dict):
-                activity_data = \
-                    self.process_type_data('activity_type',
-                                           activity_data,
-                                           d_type_list=activity_data.keys())
-            level_data['A_i'] = activity_data
+            activity_var = 'A_i'
+        elif 'A_i_k' in level_data:
+            activity_var = 'A_i_k'
+        else:
+            activity_var = None
+
+        if energy_var and self.energy_types is not None:
+            if self.energy_types != 'all' and energy_var in level_data:
+                energy = self.collect_energy_data(level_data[energy_var])
+                energy_data = \
+                    self.process_type_data('Energy_Type', energy,
+                                           d_type_list=self.energy_types)
+                level_data[energy_var] = energy_data
+        if activity_var:
+            if activity_var in level_data:
+                activity_data = level_data[activity_var]
+                if isinstance(level_data[activity_var], pd.DataFrame):
+                    activity_data['activity_type'] = 'only_activity'
+                elif isinstance(level_data[activity_var], dict):
+                    activity_data = \
+                        self.process_type_data('activity_type',
+                                            activity_data,
+                                            d_type_list=activity_data.keys())
+                level_data[activity_var] = activity_data
 
         if level_name in results_dict:
             data_dict = dict()
-            for v in self.gen.variables:
+            for v in vars:
                 if isinstance(level_data[v], pd.DataFrame) and \
                         isinstance(results_dict[level_name][v], pd.DataFrame):
                     data_dict[v] = \
@@ -604,7 +634,7 @@ class CalculateLMDI(LMDI):
                                  results_dict[level_name][v][k]])
                     data_dict[v] = k_dict
         else:
-            data_dict = {v: level_data[v] for v in self.gen.variables}
+            data_dict = level_data
 
         results_dict[level_name] = data_dict
 
@@ -626,6 +656,8 @@ class CalculateLMDI(LMDI):
                 if isinstance(value, dict):
                     for l_, lower in value.items():
                         try:
+                            print('results_dict.keys()', results_dict.keys())
+                            print('results_dict[key].keys()', results_dict[key].keys())
                             lower_level_v = results_dict[key][l_][v]
                             if lower_level_v is not None:
                                 for w_, w_data in lower_level_v.items():
@@ -651,28 +683,29 @@ class CalculateLMDI(LMDI):
                         except Exception as e:
                             print(f'lower level key: {key} failed on level : \
                                 {level_name}')
-                            # raise e
-                            pass
+                            raise e
+                            # pass
 
                         aggregations[v] = aggregate_v
 
         data_dict = dict()
         for v in self.gen.variables:
-            if isinstance(aggregations[v], list):
-                iter_ = aggregations[v]
-                print('v_df:\n', aggregations[v])
-                v_data = self.combine_data(iter_)
-                if v_data is None:
-                    continue
-            elif isinstance(aggregations[v], dict):
-                v_data = dict()
-                for k in aggregations[v].keys():
-                    k_data = self.combine_data(aggregations[v][k])
-                    if not k_data:
+            if len(aggregations[v]) > 0:
+                if isinstance(aggregations[v], list):
+                    iter_ = aggregations[v]
+                    print('v_df:\n', aggregations[v])
+                    v_data = self.combine_data(iter_)
+                    if v_data is None:
                         continue
-                    v_data[k] = k_data
+                elif isinstance(aggregations[v], dict):
+                    v_data = dict()
+                    for k in aggregations[v].keys():
+                        k_data = self.combine_data(aggregations[v][k])
+                        if not k_data:
+                            continue
+                        v_data[k] = k_data
 
-            data_dict[v] = v_data
+                data_dict[v] = v_data
 
         results_dict[level_name] = data_dict
 
@@ -811,10 +844,11 @@ class CalculateLMDI(LMDI):
                                                level1_name=level1_name,
                                                level_name=key)
 
-                else:
+                elif value is None:
                     if not level_name:
                         level_name = level1_name
                     if self.use_yaml_config:
+                        # print(f'value is None for key {key} with data with keys {data[key].keys()}')
                         results_dict = \
                             self.gen_process_results_dict(data,
                                                           select_categories,

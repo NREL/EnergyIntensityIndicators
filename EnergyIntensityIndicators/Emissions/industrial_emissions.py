@@ -30,13 +30,13 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
-                    {'Food and beverage and tobacco products': None,
-                     'Textile mills and textile product mills': None,
-                     'Apparel and leather and allied products': None,
-                     'Wood products': None,
-                     'Paper products': None,
-                     'Printing and related support activities': None,
-                     'Petroleum and coal products': None,
+                    {'Food and beverage and tobacco products': {'combustion': None},
+                     'Textile mills and textile product mills': {'combustion': None},
+                     'Apparel and leather and allied products': {'combustion': None},
+                     'Wood products': {'combustion': None},
+                     'Paper products': {'combustion': None},
+                     'Printing and related support activities': {'combustion': None},
+                     'Petroleum and coal products': {'combustion': None},
                      'Chemical products':
                         {'noncombustion':
                             {'Petrochemical Production': None,
@@ -53,7 +53,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'Caprolactam, Glyoxal, and Glyoxylic Acid Production':
                                 None},
                          'combustion': None},
-                     'Plastics and rubber products': None,
+                     'Plastics and rubber products': {'combustion': None},
                      'Nonmetallic mineral products':
                         {'noncombustion':
                             {'Cement Production': None,
@@ -74,12 +74,12 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'Metallurgical coke': None,
                              'Iron and Steel': None},
                          'combustion': None},
-                     'Machinery': None,
-                     'Computer and electronic products': None,
-                     'Electrical equipment, appliances, and components': None,
-                     'Motor vehicles, bodies and trailers, and parts': None,
-                     'Furniture and related products': None,
-                     'Miscellaneous manufacturing': None},
+                     'Machinery': {'combustion': None},
+                     'Computer and electronic products': {'combustion': None},
+                     'Electrical equipment, appliances, and components': {'combustion': None},
+                     'Motor vehicles, bodies and trailers, and parts': {'combustion': None},
+                     'Furniture and related products': {'combustion': None},
+                     'Miscellaneous manufacturing': {'combustion': None}},
                  'Nonmanufacturing':
                     {'Agriculture, Forestry & Fishing':
                         {'noncombustion':
@@ -89,15 +89,15 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'Enteric Fermentation': None,
                              'Liming': None},
                          'combustion': None},
-                     'Mining':
-                        {'Petroleum and Natural Gas':
-                            {'combustion': None},
-                         'Other Mining':
-                            {'noncombustion':
-                                {'Coal Mining': None},
-                             'combustion': None},
-                         'Support Activities':
-                            {'combustion': None}},
+                    #  'Mining': 
+                    #     # {'Petroleum and Natural Gas':
+                    #     #     {'combustion': None},
+                    #      {'Other Mining':
+                    #         {'noncombustion':
+                    #             {'Coal Mining': None},
+                    #          'combustion': None},
+                    #      'Support Activities':
+                    #         {'combustion': None}},
                      'Construction':
                         {'combustion': None},
                      'Waste':
@@ -244,11 +244,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                 self.calculate_emissions(combustion_energy_data,
                                          emissions_type='CO2 Factor',
                                          datasource='MECS')
-            naics_dict['combustion'] = {'E_i_j': combustion_energy_data,
+            naics_dict['combustion'] = {'E_i_j_k': combustion_energy_data,
                                         'A_i_k': gross_output,
                                         'V_i_k': value_added,
                                         'C_i_j_k': naics_emissions}
-            if man[label] is not None:
+            if 'noncombustion' in man[label]:
                 noncombustion_activity, noncombustion_emissions = \
                     self.handle_noncombustion(
                         s_data=man[label],
@@ -327,7 +327,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                         combustion_energy = \
                             energy_data[subcategory]
                         combustion_energy = \
-                            combustion_energy.drop(['Total Fuel', 'NAICS'],
+                            combustion_energy.drop('NAICS',
                                                    axis=1, errors='ignore')
                         combustion_emissions, combustion_energy = \
                             self.calculate_emissions(
@@ -347,8 +347,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                             energy_data[subcategory]
                         mining_combustion_energy = \
                             mining_combustion_energy.drop(
-                                ['Total Fuel', 'NAICS'],
-                                 axis=1, errors='ignore')
+                                'NAICS', axis=1, errors='ignore')
                         mining_combustion_emissions, \
                             mining_combustion_energy = \
                                 self.calculate_emissions(

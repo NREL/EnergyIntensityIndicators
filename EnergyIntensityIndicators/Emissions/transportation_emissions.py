@@ -64,7 +64,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                          config_path=config_path,
                          level_of_aggregation=level_of_aggregation,
                          categories_dict=self.sub_categories_list)
-        self.transport = \
+        self.transport_data = \
             TransportationIndicators(directory=directory,
                                      output_directory=output_directory,
                                      level_of_aggregation=level_of_aggregation,
@@ -144,65 +144,100 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
         return transport_fuel
 
-    def nest_iter(self, d, key_path):
-        print('start')
-        print('d:', d)
-        for k, v in d.items():
-            print(k)
-            print(key_path)
-            print(type(v))
-            if isinstance(v, dict):
-                print('v is dict')
-                key_path.append(k)
-                print('key_path:', key_path)
-                print('running nest iter again')
-                yield from self.nest_iter(v, key_path)
-            elif v is None:
-                print('v is None')
-                yield key_path
-            else:
-                print('FAILURE')
+    def transport(self, data):
+        sector_ = 'All_Transportation'
+        all_data = data[sector_]
+        energy_data = self.transportation_data()
+        print('energy_data:\n', energy_data)
+
+        all_data_dict = dict()
+
+        for cargo, cargo_data in self.sub_categories_list[sector_].items():  # Passenger/Freight
+            cargo_dict = dict()
+
+            for category, category_data in cargo_data.items():  # Highway/Rail/etc.
+                category_dict = dict()
+                if category_data is None:
+                    category_data_ = \
+                        all_data[cargo][category]
+                    mode_group_dict = \
+                        self.wrap_data(
+                            energy_data, category_data_,
+                            category, category)
+
+                elif isinstance(category_data, dict):
+                    for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
+                        mode_group_dict = dict()
+                        if mode_group_data is None:
+                            mode_group_data_ = \
+                                all_data[cargo][category][mode_group]
+                            mode_group_dict = \
+                                self.wrap_data(
+                                    energy_data, mode_group_data_,
+                                    mode_group, category)
+
+                        elif isinstance(mode_group_data, dict):
+                            for mode, mode_data in mode_group_data.items(): #'Passenger Car – SWB Vehicles', 'Motorcycles'
+                                mode_dict = dict()
+                                if mode_data is None:
+                                    mode_data_ = \
+                                        all_data[cargo][category][mode_group][mode]
+                                    mode_dict = \
+                                        self.wrap_data(
+                                            energy_data, mode_data_,
+                                            mode, category)
+
+                                elif isinstance(mode_data, dict):
+                                    for sub_mode, sub_mode_d in mode_data.items():
+                                        if sub_mode_d is None:
+                                            sub_mode_data = \
+                                                all_data[cargo][category][mode_group][mode][sub_mode]
+                                            sub_mode_dict = \
+                                                self.wrap_data(
+                                                    energy_data, sub_mode_data,
+                                                    sub_mode, category)
+                                            mode_dict[sub_mode] = sub_mode_dict
+
+                        mode_group_dict[mode] = mode_dict
+                    category_dict[mode_group] = mode_group_dict
+                cargo_dict[category] = category_dict
+            all_data_dict[cargo] = cargo_dict
+        transportation_data = {sector_: all_data_dict}
+        return transportation_data
+
+    def wrap_data(self, energy_data, activity_data,
+                  mode, category):
+        wrapped_data = dict()
+        wrapped_data['A_i_k'] = activity_data['activity']
+
+        energy_data = \
+            energy_data[
+                (energy_data['Mode'] == mode) &
+                (energy_data['Category'] == category)]
+
+        energy = \
+            energy_data.pivot(index='Year',
+                              columns='Fuel Type',
+                              values='value')
+
+        emissions, energy = \
+            self.calculate_emissions(energy,
+                                     emissions_type='CO2 Factor',
+                                     datasource='TEDB')
+
+        wrapped_data['E_i_j_k'] = energy
+        wrapped_data['C_i_j_k'] = emissions
+        return wrapped_data
 
     def main(self):
         energy_data = self.transportation_data()
+        print('energy_data:\n', energy_data)
         energy_decomp_data = \
-            self.transport.collect_data(
-                )['All_Transportation']['All_Passenger']
-        print('energy_decomp_data keys:', energy_decomp_data.keys())
-
-        key_path = []
-        for path in self.nest_iter(self.sub_categories_list, key_path):
-            print(path)
-
-        for category in energy_data['Category'].unique():
-            print('category:', category)
-            print('energy_decomp_data category keys:', energy_decomp_data[category].keys())
-
-            category_data = energy_data[energy_data['Category'] == category]
-            for mode in category_data['Mode'].unique():
-                mode_data = category_data[category_data['Mode'] == mode]
-                print('mode:', mode)
-                data = mode_data.pivot(index='Year', 
-                                       columns='Fuel Type',
-                                       values='value')
-                print("energy data:\n", data)
-                combustion_ = energy_decomp_data[category][mode]
-                activity = combustion_['activity']
-                print('activity:\n', activity)
-        
-                # emissions, data = \
-                #     self.calculate_emissions(data,
-                #                              emissions_type='CO2 Factor',
-                #                              datasource='TEDB')
-                # print("emissions:\n", emissions)
-
+            self.transport_data.collect_data(
+                )
+        transportation_data = self.transport(energy_decomp_data)
         exit()
-
-
-
-
-        return {'energy': energy_data,
-                'emissions': emissions}
+        return transportation_data
 
 
 if __name__ == '__main__':
