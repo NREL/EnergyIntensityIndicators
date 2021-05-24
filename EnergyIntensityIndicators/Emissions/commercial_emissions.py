@@ -41,12 +41,11 @@ class CommercialEmissions(SEDSEmissionsData):
 
     def main(self):
         comm_data = self.comm.collect_data()['Commercial_Total']
-        weather_factors = comm_data['weather_factors']['fuels']
-        # print('weather_factors elec:\n', weather_factors['elec'])
+        weather_data = comm_data['weather_factors']
 
-        # print('weather_factors fuels:\n', weather_factors['fuels'])
         energy_data = self.seds_energy_data(sector='commercial')['US']
         energy_data = energy_data.drop('Census Region', axis=1)
+
         print('energy_data:\n', energy_data)
 
         emissions_data, energy_data = \
@@ -55,12 +54,20 @@ class CommercialEmissions(SEDSEmissionsData):
                                      datasource='SEDS')
         print('emissions:\n', emissions_data)
 
-
-        print('weather_factors:\n', weather_factors)
-
         activity = comm_data['activity']
-        print('activity:\n', activity)
 
+
+        print('activity:\n', activity)
+    
+        weather_factors = \
+            self.collect_weather_data(comm_data['energy'],
+                                      activity,
+                                      weather_data,
+                                      total_label='Commercial_Total')
+        print('weather_factors elec:\n', weather_factors['elec'])
+        print('weather_factors fuels:\n', weather_factors['fuels'])
+        print('weather_factors deliv:\n', weather_factors)
+        exit()
         return {'Commercial_Total':
                 {'E_j': energy_data,
                  'C_j': emissions_data,

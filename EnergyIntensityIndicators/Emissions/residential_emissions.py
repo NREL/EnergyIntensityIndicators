@@ -66,12 +66,19 @@ class ResidentialEmissions(SEDSEmissionsData):
             print('region:', r)
             r_activity = res_data[r]['activity']
 
-            r_weather_factors = \
-                res_data[r]['weather_factors']['elec']
-            print('r_weather_factors:\n', r_weather_factors)
-
             r_energy = energy_data[r]
             r_energy = r_energy.drop('Census Region', axis=1)
+
+            r_weather_data = \
+                res_data[r]['weather_factors']
+
+            r_weather_factors = \
+                self.collect_weather_data(res_data[r]['energy'],
+                                          r_activity,
+                                          r_weather_data,
+                                          total_label=r)
+        
+            print('r_weather_factors:\n', r_weather_factors)
 
             print('r_energy:\n', r_energy)
             print('r_energy:\n', r_energy.info())

@@ -99,8 +99,7 @@ class DFUtilities:
         """Select value from dataframe as in Excel's @index function"""
         return dataframe.iloc[base_row, base_column].values()
 
-    @staticmethod
-    def calculate_shares(dataset, total_label):
+    def calculate_shares(self, df, total_label):
         """"sum row, calculate each type of energy as percentage of total
         Parameters
         ----------
@@ -112,7 +111,9 @@ class DFUtilities:
         shares: dataframe
             contains shares of each energy category relative to total energy
         """
+        dataset = df.copy()
         dataset[total_label] = dataset[total_label].replace(0, np.nan)
+
         shares = dataset.drop(total_label, axis=1).divide(
             dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares

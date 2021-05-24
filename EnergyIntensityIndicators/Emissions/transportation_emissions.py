@@ -144,6 +144,54 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
         return transport_fuel
 
+    @staticmethod
+    def rename_modes(mode_df):
+        rename_dict = \
+            {'Passenger Car',
+             'Short Wheelbase Vehicles': ,
+             'Motorcycles': ,
+             'Light Trucks' : ,
+             'Long Wheelbase Vehicles': ,
+             'Other Single-Unit Truck, Adjusted (see columns BR-BU)': ,
+             'Combination Truck, Adjusted (See column BV-BY)': ,
+             'Bus - Urban': ,
+             'Paratransit (demand response, "dial-a-ride")': ,
+             'Bus - School': ,
+             'Bus - Intercity': ,
+             'Domestic & Foreign Commerce in U.S. Waters': ,
+             'Commercial Carrier': ,
+             'General Aviation': ,
+             'Intercity (Amtrak)': ,
+             'Commuter Rail': ,
+             'Heavy Rail': ,
+             'Light Rail': ,
+             'Class I Freight': ,
+             'Natural Gas Pipeline': ,
+             'Oil Pipeline': ,
+             'Light vehicles': ,
+             'Cars': ,
+             'Light trucksd': ,
+             'Buses': ,
+             'Transit': ,
+             'Intercity': ,
+             'School': ,
+             'Medium/heavy trucks': ,
+             'Class 3-6 trucks': ,
+             'Class 7-8 trucks': ,
+             'NONHIGHWAY': ,
+             'General aviation': ,
+             'Domestic air carriers': ,
+             'International air carrierse': ,
+             'Freight': ,
+             'Recreational': ,
+             'Freight (Class I)': ,
+             'Passenger': ,
+             'Commuter': ,
+             'Intercityf': ,}
+
+            mode_df['Mode'] = mode_df['Mode'].replace(rename_dict)
+    return mode_df
+
     def transport(self, data):
         sector_ = 'All_Transportation'
         all_data = data[sector_]
@@ -232,6 +280,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
     def main(self):
         energy_data = self.transportation_data()
         print('energy_data:\n', energy_data)
+        print('energy_data modes:\n', energy_data['Mode'].unique())
+        exit()
         energy_decomp_data = \
             self.transport_data.collect_data(
                 )

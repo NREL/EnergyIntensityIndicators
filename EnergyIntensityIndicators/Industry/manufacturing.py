@@ -542,7 +542,7 @@ class Manufacturing:
             quantity_shares [DataFrame]: 
         """
 
-        mecs_data, industrial_btu = self.mecs_data_by_year()
+        mecs_data, __ = self.mecs_data_by_year()
         mecs42_df = mecs_data['NAICS']['4_2']
         print('mecs42_df:\n', mecs42_df)
         print('mecs42_df cols', mecs42_df.columns)

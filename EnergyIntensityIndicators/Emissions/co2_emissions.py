@@ -235,7 +235,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Diesel': 'Diesel Fuel',
                     'LP Gas': 'Liquefied Petroleum Gases (LPG)',
                     'Gasoline': 'Motor Gasoline',
-                    'Gas': 'Motor Gasoline'}
+                    'Gas': 'Natural Gas'}
 
         mecs_data = mecs_data.rename(columns=mapping_)
         mecs_data = mecs_data.drop('Total Fuel', axis=1, errors='ignore')
@@ -647,6 +647,36 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
         fuels_data = df_utils().merge_df_list(fuels_data)
         return fuels_data
+
+    def collect_weather_data(self,
+                             energy_data,
+                             activity_input_data,
+                             weather_data, total_label):
+
+        energy_type = 'deliv'
+        energy_input_data = \
+            self.calculate_energy_data(energy_type, energy_data)
+        energy_input_data = energy_input_data.drop('Energy_Type', axis=1)
+        # energy_input_data = \
+        #     df_utils().create_total_column(
+        #         energy_input_data, total_label)
+
+        for a, a_df in activity_input_data.items():
+            if isinstance(a_df, pd.Series):
+                a_df = a_df.to_frame()
+            a_df = \
+                df_utils().create_total_column(
+                    a_df, total_label)
+            activity_input_data[a] = a_df
+
+        lower_level_intensity_df = pd.DataFrame()
+        data = self.prepare_lmdi_inputs(energy_type,
+                                        energy_input_data,
+                                        activity_input_data,
+                                        lower_level_intensity_df,
+                                        total_label, weather_data)
+        weather_data = data['structure']['weather']
+        return weather_data
 
     def seds_energy_data(self, sector):
         """[summary]

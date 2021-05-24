@@ -89,15 +89,15 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'Enteric Fermentation': None,
                              'Liming': None},
                          'combustion': None},
-                    #  'Mining': 
-                    #     # {'Petroleum and Natural Gas':
-                    #     #     {'combustion': None},
-                    #      {'Other Mining':
-                    #         {'noncombustion':
-                    #             {'Coal Mining': None},
-                    #          'combustion': None},
-                    #      'Support Activities':
-                    #         {'combustion': None}},
+                     'Mining':
+                        {'Petroleum and Natural Gas':
+                            {'combustion': None},
+                         'Other Mining':
+                            {'noncombustion':
+                                {'Coal Mining': None},
+                             'combustion': None},
+                         'Support Activities':
+                            {'combustion': None}},
                      'Construction':
                         {'combustion': None},
                      'Waste':
@@ -157,11 +157,12 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         mining = mining[mining['NAICS'].notnull()]
         mining = mining.astype({'Year': int,
                                 'NAICS': int})
+
         all_mining = []
         for n in mining['NAICS'].unique():
             mining_naics = mining[mining['NAICS'] == n]
             mining_naics = mining_naics.drop('NAICS', axis=1)
-            mining_naics = mining_naics.set_index(['Year'])
+            mining_naics = mining_naics.set_index('Year')
             mining_naics = \
                 mining_naics.apply(
                     lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
@@ -172,9 +173,41 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     standard_interpolation(mining_naics,
                                            name_to_interp=c,
                                            axis=1)
-            mining_naics['NAICS'] = n
-            all_mining.append(mining_naics)
+                mining_naics['NAICS 4 Digit'] = int(str(n)[:4])
+                all_mining.append(mining_naics)
+
         all_mining = pd.concat(all_mining, axis=0)
+        all_mining = all_mining.reset_index()
+        print('all_mining:\n', all_mining)
+        all_mining = all_mining.groupby(['Year', 'NAICS 4 Digit']).sum()
+
+        all_mining = all_mining.reset_index()
+        print("all_mining['NAICS 4 Digit']:\n", all_mining['NAICS 4 Digit'].unique())
+        print('all_mining:\n', all_mining)
+
+        industry_names = \
+            {2111: 'Petroleum and Natural Gas',
+             2121: 'Coal Mining',
+             2122: 'Metal Ore Mining',
+             2123: 'Nonmetallic Mineral Mining and Quarrying',
+             2131: 'Support Activities'}
+
+        all_mining_data = dict()
+        other_mining_data = []
+        for number, name in industry_names.items():
+            mining_df = all_mining[all_mining['NAICS 4 Digit'] == number]
+            mining_df = mining_df.drop(['Total Fuel', 'NAICS 4 Digit'],
+                                       axis=1,
+                                       errors='ignore')
+            if number in [2121, 2122, 2123]:
+                other_mining_data.append(mining_df)
+            else:
+                mining_df = mining_df.set_index('Year')
+                all_mining_data[name] = mining_df
+
+        other_mining_data = pd.concat(other_mining_data, axis=0)
+        other_mining_data = other_mining_data.groupby('Year').sum()
+        all_mining_data['Other Mining'] = other_mining_data
 
         manufacturing = pd.read_csv(
             f'{data_dir}mecs_table42.csv')
@@ -207,7 +240,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
         return {'Manufacturing': all_manufacturing,
                 'NonManufacturing':
-                    {'Mining': all_mining,
+                    {'Mining': all_mining_data,
                      'Construction': construction_elec_fuels,
                      'Agriculture, Forestry & Fishing': agriculture}}
 
@@ -308,6 +341,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             elif subcategory == 'Mining':
                 mining_dict = dict()
                 s_data = cats[subcategory]
+                combustion_energy = \
+                    energy_data[subcategory]
                 for lower in s_data.keys():
                     if lower == 'Other Mining':
                         other_mining_dict = dict()
@@ -324,18 +359,19 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
                         combustion_activity = \
                             nonman_data[subcategory][lower]['activity']
-                        combustion_energy = \
-                            energy_data[subcategory]
-                        combustion_energy = \
-                            combustion_energy.drop('NAICS',
-                                                   axis=1, errors='ignore')
+                        gross_output = combustion_activity['gross_output']
+                        value_added = combustion_activity['value_added']
+
+                        combustion_energy = combustion_energy[lower]
+
                         combustion_emissions, combustion_energy = \
                             self.calculate_emissions(
                                 combustion_energy,
                                 emissions_type='CO2 Factor',
                                 datasource='MECS')
                         other_mining_dict['combustion'] = \
-                            {'A_i_k': combustion_activity,
+                            {'A_i_k': gross_output,
+                             'V_i_k': value_added,
                              'C_i_j_k': combustion_emissions,
                              'E_i_j_k': combustion_energy}
 
@@ -343,11 +379,12 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     else:
                         mining_combustion_activity = \
                             nonman_data[subcategory][lower]['activity']
+                        mining_gross_output = \
+                            mining_combustion_activity['gross_output']
+                        mining_value_added = \
+                            mining_combustion_activity['value_added']
                         mining_combustion_energy = \
-                            energy_data[subcategory]
-                        mining_combustion_energy = \
-                            mining_combustion_energy.drop(
-                                'NAICS', axis=1, errors='ignore')
+                            energy_data[subcategory][lower]
                         mining_combustion_emissions, \
                             mining_combustion_energy = \
                                 self.calculate_emissions(
@@ -356,7 +393,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                                                     datasource='MECS')
                         mining_dict[lower] = \
                             {'combustion':
-                                {'A_i_k': mining_combustion_activity,
+                                {'A_i_k': mining_gross_output,
+                                 'V_i_k': mining_value_added,
                                  'C_i_j_k': mining_combustion_emissions,
                                  'E_i_j_k': mining_combustion_energy}}
 
