@@ -1,4 +1,5 @@
 
+from numpy.core.fromnumeric import mean
 import pandas as pd
 import numpy as np
 import os
@@ -92,9 +93,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         fuel_mix = \
             df_utils().calculate_shares(region_data, total_label='total')
         return fuel_mix
-
+    
     @staticmethod
-    def get_mean_factor(emissions_factors, input_cols, new_name):
+    def weighted(x, cols, w="weights"):
+        return pd.Series(np.average(x[cols], weights=x[w], axis=0), cols)
+
+    def get_mean_factor(self, emissions_factors,
+                        input_cols, new_name, portions=None):
         """[summary]
 
         Args:
@@ -102,21 +107,45 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             input_cols (list): List of emissions
                                factors to average
             new_name (str): Name of resulting factor
-
+            portions (dict): Optional. Weights for weighted average
+                             (keys are cols)
         """
         subset = \
             emissions_factors[emissions_factors['Fuel Type'].isin(input_cols)]
+        subset['weights'] = np.nan
+        if portions:
+            subset_ = []
+            for k, v in portions.items():
+                fuel_ = subset[subset['Fuel Type'] == k]
+                fuel_['weights'] = v
+                subset_.append(fuel_)
 
-        grouped = \
-            subset.groupby(by=['Category', 'Unit', 'Variable'])
-        mean_df = grouped.mean()
+            subset = pd.concat(subset_, axis=0)
+            subset.loc[:, 'weighted_value'] = \
+                subset['value'].multiply(subset['weights'].values)
+
+            grouped = \
+                subset.groupby(by=['Unit', 'Variable'])
+            mean_df = grouped.sum()
+            mean_df = mean_df.drop('value', axis=1)
+
+            mean_df['value'] = \
+                mean_df['weighted_value'].divide(mean_df['weights'].values)
+            mean_df = mean_df.drop('weighted_value', axis=1)
+
+        else:
+            grouped = \
+                subset.groupby(by=['Unit', 'Variable'])
+            mean_df = grouped.mean()
+
         mean_df.loc[:, 'Fuel Type'] = new_name
+        mean_df.loc[:, 'Category'] = 'Merged Category'
+
         mean_df = mean_df.reset_index()
         mean_df = mean_df[['Category', 'Fuel Type',
                            'Unit', 'value', 'Variable']]
 
         ef = pd.concat([emissions_factors, mean_df], axis=0)
-
         return ef
 
     def epa_emissions_data(self):
@@ -180,7 +209,16 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         ef = self.get_mean_factor(ef,
                                   input_cols=['Motor Gasoline',
                                               'Ethanol (100%)'],
-                                  new_name='Gasohol')
+                                  new_name='Gasohol',
+                                  portions={'Ethanol (100%)': 0.16,
+                                            'Motor Gasoline': 0.84})
+        ef = self.get_mean_factor(ef,
+                                  input_cols=['Diesel Fuel',
+                                              'Motor Gasoline'],
+                                  new_name='School',
+                                  portions={'Diesel Fuel': 0.9,
+                                            'Motor Gasoline': 0.1})
+
         ef = self.get_mean_factor(ef,
                                   input_cols=['Diesel Fuel',
                                               'Distillate Fuel Oil No. 1',
@@ -220,9 +258,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'steam': 'Steam and Heat',  # From Table 7
                     'Net Electricity': 'Us Average',  # From Table 6,  Total Output Emissions Factors CO2 Factor
                     'Electricity': 'US Average',
+                    'Net Electricity(b)': 'US Average',
                     'Residual': 'Residual Fuel Oil',
                     'Distillate': 'Distillate Fuel Oil',
+                    'Distillate Fuel Oil(c)': 'Distillate Fuel Oil',
+
                     'Nat. Gas': 'Natural Gas',
+                    'Natural Gas(d)': 'Natural Gas',
                     'Natural Gas': 'Natural Gas',
                     'HGL (excluding natural gasoline)':
                         'Liquefied Petroleum Gases (LPG)',
@@ -230,10 +272,12 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                         'Mixed (Industrial Sector)',
                     'Coke Coal and Breeze':
                         'Coal Coke',
+                    'Coke and Breeze': 'Coal Coke',
                     'Coke': 'Coal Coke',
                     'LPG': 'Liquefied Petroleum Gases (LPG)',
                     'Diesel': 'Diesel Fuel',
                     'LP Gas': 'Liquefied Petroleum Gases (LPG)',
+                    'HGL (excluding natural gasoline)(e)': 'Liquefied Petroleum Gases (LPG)',
                     'Gasoline': 'Motor Gasoline',
                     'Gas': 'Natural Gas'}
 
@@ -249,23 +293,42 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         Returns:
             [type]: [description]
         """
+        print('elec_data before:\n', elec_data)
+        print('elec_data original cols:\n', elec_data.columns)
 
         rename_dict = {col: col[:col.find('Consumption')].strip()
                        for col in elec_data.columns if 'Consumption' in col}
+        print('rename_dict:\n', rename_dict)
         rename_dict2 = {col: col[:col.find('Consumed')].strip()
                         for col in elec_data.columns if 'Consumed' in col}
+        print('rename_dict2:\n', rename_dict2)
+        intersect = []
+        for key, value in rename_dict2.items():
+            print('key:', key)
+            print('value:', value)
+            if value in rename_dict.values():
+                print('value in rename_dict')
+                intersect.append(key)
+
+        print('intersect:', intersect)
+        elec_data = elec_data.drop(intersect, axis=1)
         rename_dict.update(rename_dict2)
-        others = {'Electricity Net Generation From Wood, Electric Power Sector, Annual, Million Kilowatthours': 'Wood'}
+        others = {'Electricity Net Generation From Wood, Electric Power Sector, Annual, Million Kilowatthours': 'Wood',
+                  'Electricity Net Generation From Waste, Electric Power Sector, Annual, Million Kilowatthours': 'Waste'}
         rename_dict.update(others)
         elec_data = elec_data.rename(columns=rename_dict)
-
+        print('elec_data:\n', elec_data)
         mapping_ = {'Coal': 'Mixed (Electric Power Sector)',
                     'Natural Gas': 'Natural Gas',
                     'Other Gases': 'Fuel Gas',
+                    'Other Gas': 'Fuel Gas',
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals',
-                    'hydroelectric': 'Hydroelectric'}
+                    'hydroelectric': 'Hydroelectric',
+                    'Other': 'US Average',
+                    'Other Petroleum Liquids': 'Liquefied Petroleum Gases (LPG)'}  # might be wrong
         elec_data = elec_data.rename(columns=mapping_)
+        elec_data = elec_data.drop('Total Petroleum', axis=1, errors='ignore')
         return elec_data
 
     @staticmethod
@@ -275,10 +338,17 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         Args:
             tedb_data ([type]): [description]
         """
-        # tedb_data = tedb_data.drop('Total Energy (Tbtu) - old series')
+        unit_coversion = {'Diesel Fuel & Distillate (1,000 bbl)': 1000/42,
+                          'Residual Fuel Oil (1,000 bbl)': 1000/42}
+        unit_coversion = {k: unit_coversion[k] for k in
+                          unit_coversion.keys() if k in tedb_data.columns}
+        if len(unit_coversion) > 0:
+            tedb_data = tedb_data.assign(**unit_coversion).mul(tedb_data)
 
         mapping = {'Gasoline': 'Motor Gasoline',  # ef is in gallon
+                   'Gasoline (million gallons)': 'Motor Gasoline',  # ef is in gallon
                     'Gasohol': 'Gasohol',  # ef is in gallon
+                    'Diesel (million gallons)': 'Diesel Fuel', # ef is in gallon
                     'Diesel': 'Diesel Fuel', # ef is in gallon
                     'CNG': 'Compressed Natural Gas (CNG)', # ef is in scf
                     'LNG': 'Liquefied Natural Gas (LNG)', # ef is in gallons
@@ -294,14 +364,26 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Diesel fuel': 'Diesel Fuel',  # ef is per gallon
                     'Liquefied petroleum gas':
                         'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
+                    'LPG': 'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
+                    'Domestic Operations ': 'Aviation Gasoline',  # ef is per gallon
+                    'International Operations ': 'Aviation Gasoline',  # ef is per gallon
                     'Jet fuel': 'Aviation Gasoline',  # ef is per gallon
                     'Residual fuel oil': 'Residual Fuel Oil',  # ef is per gallon
                     'Natural gas': 'Natural Gas',  # ef is per scf
-                    'Electricity': 'US Average'}  # ef is /MWh
+                    'Electricity': 'US Average',  # ef is /MWh
+                    'Intercity': 'Diesel Fuel'}  # ef is in gallon
         # irrelevant_fuels = [f for f in tedb_data.columns
         #                     if f not in mapping.keys()]
         # tedb_data = tedb_data[~tedb_data['Fuel Type'].isin(irrelevant_fuels)]
         tedb_data = tedb_data.rename(columns=mapping)
+        tedb_data = tedb_data.drop('School (million bbl)',
+                                   axis=1, errors='ignore')
+        tedb_data = \
+            tedb_data.drop(['Total Energy (Tbtu)',
+                            'Total Energy (Tbtu) ',
+                            'Total Energy (Tbtu) - old series'],
+                           axis=1, errors='ignore')
+
         return tedb_data
 
     @staticmethod
@@ -317,8 +399,17 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         Returns:
             emissions_factor (float): emissions factor for given params
         """
-        factors_df = factors_df[factors_df['Variable'] == emissions_type]
+        factors_df = \
+            factors_df[factors_df['Variable'].isin(
+                ['Heat Content (HHV)', emissions_type])]
+
+        factors_df['value'] = factors_df['value'].fillna(1)
+
+        factors_df = \
+            factors_df.groupby(['Category', 'Fuel Type']).prod()
+        factors_df = factors_df.reset_index()
         fuel_factor_df = factors_df[['Fuel Type', 'value']]
+
         fuel_factor_df.loc[:, 'value'] = fuel_factor_df['value'].astype(float)
         new_row = {'Fuel Type': 'Census Region', 'value': 1}
         fuel_factor_df = fuel_factor_df.append(new_row, ignore_index=True)
@@ -349,6 +440,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             emissions_data (df):
         """
         print('energy_data:\n', energy_data)
+        energy_data = energy_data.drop('region', axis=1, errors='ignore')
         emissions_factors = self.epa_emissions_data()
 
         if datasource == 'SEDS':
@@ -390,6 +482,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         print('energy_data cols:\n', energy_data.columns)
         emissions_data = \
             energy_data.multiply(emissions_factors.to_numpy())
+
         print('emissions_data:\n', emissions_data)
 
         try:
@@ -651,15 +744,18 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
     def collect_weather_data(self,
                              energy_data,
                              activity_input_data,
-                             weather_data, total_label):
+                             weather_data, total_label,
+                             weather_activity, sector='Residential'):
 
         energy_type = 'deliv'
         energy_input_data = \
             self.calculate_energy_data(energy_type, energy_data)
         energy_input_data = energy_input_data.drop('Energy_Type', axis=1)
-        # energy_input_data = \
-        #     df_utils().create_total_column(
-        #         energy_input_data, total_label)
+        energy_data['deliv'] = energy_input_data
+        if total_label not in energy_input_data.columns:
+            energy_input_data = \
+                df_utils().create_total_column(
+                    energy_input_data, total_label)
 
         for a, a_df in activity_input_data.items():
             if isinstance(a_df, pd.Series):
@@ -668,14 +764,34 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                 df_utils().create_total_column(
                     a_df, total_label)
             activity_input_data[a] = a_df
+        setattr(self, 'energy_types', ['elec', 'fuels', 'deliv'])
+        base_weather = weather_data
 
-        lower_level_intensity_df = pd.DataFrame()
-        data = self.prepare_lmdi_inputs(energy_type,
-                                        energy_input_data,
-                                        activity_input_data,
-                                        lower_level_intensity_df,
-                                        total_label, weather_data)
-        weather_data = data['structure']['weather']
+        if self.sector == 'Commercial':
+            input_data = energy_data
+            weather_data = \
+                self.weather_adjustment(
+                    input_data,
+                    base_weather,
+                    energy_type)
+
+        elif self.sector == 'Residential':
+            input_data = dict()
+            for e in self.energy_types:
+                type_df = energy_data[e]
+                print(f'type df for {e}:\n', type_df)
+                activity_df = activity_input_data[weather_activity]
+                nominal_intensity = \
+                    self.nominal_energy_intensity(type_df, activity_df)
+                input_data[e] = nominal_intensity
+
+            weather_data = \
+                self.weather_adjustment(
+                    input_data,
+                    base_weather,
+                    energy_type)
+
+        setattr(self, 'energy_types', ['all'])
         return weather_data
 
     def seds_energy_data(self, sector):

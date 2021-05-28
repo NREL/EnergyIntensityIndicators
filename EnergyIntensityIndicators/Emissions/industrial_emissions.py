@@ -17,6 +17,8 @@ from EnergyIntensityIndicators.industry \
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
+from EnergyIntensityIndicators.Industry.manufacturing \
+    import Manufacturing
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
@@ -134,8 +136,9 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          config_path=fname,
                          categories_dict=self.sub_categories_list)
 
-    @staticmethod
-    def energy_data():
+    def energy_data(self):
+        all_manufacturing = self.manufacturing_energy_data()
+
         data_dir = './EnergyIntensityIndicators/Industry/Data/'
         construction_elec_fuels = \
             pd.read_csv(
@@ -209,66 +212,84 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         other_mining_data = other_mining_data.groupby('Year').sum()
         all_mining_data['Other Mining'] = other_mining_data
 
-        manufacturing = pd.read_csv(
-            f'{data_dir}mecs_table42.csv')
-        print('manufacturing:\n', manufacturing)
-        manufacturing = manufacturing.dropna(how='all', axis=1)
-        manufacturing = manufacturing.fillna(np.nan)
-        manufacturing = manufacturing[manufacturing['NAICS'].notnull()]
-        manufacturing = manufacturing.astype({'Year': int,
-                                              'NAICS': int})
-        all_manufacturing = []
-        for n in manufacturing['NAICS'].unique():
-            manufacturing_naics = manufacturing[manufacturing['NAICS'] == n]
-            manufacturing_naics = manufacturing_naics.drop('NAICS', axis=1)
-            manufacturing_naics = manufacturing_naics.set_index(['Year'])
-            manufacturing_naics = \
-                manufacturing_naics.apply(
-                    lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
-
-            print('manufacturing_naics:\n', manufacturing_naics)
-            for c in manufacturing_naics.columns:
-                manufacturing_naics_interp = \
-                    standard_interpolation(manufacturing_naics,
-                                           name_to_interp=c,
-                                           axis=1)
-            manufacturing_naics_interp['NAICS'] = n
-            all_manufacturing.append(manufacturing_naics_interp)
-
-        all_manufacturing = pd.concat(all_manufacturing, axis=0)
-        all_manufacturing = all_manufacturing.drop('Industry', axis=1)
-
         return {'Manufacturing': all_manufacturing,
                 'NonManufacturing':
                     {'Mining': all_mining_data,
                      'Construction': construction_elec_fuels,
                      'Agriculture, Forestry & Fishing': agriculture}}
 
+    def manufacturing_energy_data(self):
+        __, industrial_btu = \
+            Manufacturing(naics_digits=3).mecs_data_by_year()
+        industrial_btu = \
+            industrial_btu[
+                industrial_btu['region'] == 'Total United States']
+        manufacturing = \
+            industrial_btu.drop('region', axis=1, errors='ignore')
+        manufacturing = \
+            industrial_btu.drop('Total', axis=1, errors='ignore')
+        manufacturing = manufacturing.dropna(how='all', axis=1)
+        manufacturing = manufacturing.fillna(np.nan)
+        manufacturing = manufacturing[
+            (manufacturing['NAICS'].notnull()) & (manufacturing['NAICS'] != 'Total')
+            & (manufacturing['NAICS'] != 'RSE Column Factors:')]
+
+        all_manufacturing = []
+        for n in manufacturing['NAICS'].unique():
+            manufacturing_naics = manufacturing[manufacturing['NAICS'] == n]
+            manufacturing_naics = manufacturing_naics.drop('NAICS', axis=1)
+            manufacturing_naics = manufacturing_naics.set_index('Year')
+
+            manufacturing_naics = \
+                manufacturing_naics.apply(
+                    lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
+            manufacturing_naics.index = manufacturing_naics.index.astype(int)
+            manufacturing_naics = manufacturing_naics.sort_index()
+            for c in manufacturing_naics.columns:
+                manufacturing_naics = \
+                    standard_interpolation(manufacturing_naics,
+                                           name_to_interp=c,
+                                           axis=1)
+
+            manufacturing_naics['NAICS'] = n
+            all_manufacturing.append(manufacturing_naics)
+        all_manufacturing = pd.concat(all_manufacturing, axis=0)
+        print('all_manufacturing:\n', all_manufacturing)
+        for n in all_manufacturing['NAICS'].unique():
+            manufacturing_n = all_manufacturing[all_manufacturing['NAICS'] == n]
+            print('manufacturing_n:\n', manufacturing_n)
+        return all_manufacturing
+
     def collect_manufacturing_data(self, energy_data, noncombustion_data,
                                    manufacturing):
+        print('manufacturing_energy_data:\n', energy_data)
         man = self.sub_categories_list['Industry']['Manufacturing']
         manufacturing_dict = dict()
         labels_naics = \
             dict((value, key) for key, value in self.naics_labels.items())
         for label in man.keys():
             naics = labels_naics[label]
+            print('naics:\n', naics)
             naics_dict = dict()
             if '-' in naics:
                 naics_list = naics.split('-')
                 naics_list = [int(n) for n in naics_list]
                 n_energy_data = \
                     energy_data[energy_data['NAICS'].isin(naics_list)]
+                n_energy_data = n_energy_data.reset_index()
                 combustion_energy_data = n_energy_data.groupby('Year').sum()
             else:
                 combustion_energy_data = \
                     energy_data[energy_data['NAICS'] == int(naics)]
+                print('combustion_energy_data:\n', combustion_energy_data)
+
                 if combustion_energy_data.empty:
                     print('energy_data:\n', energy_data)
                     raise ValueError(f'energy_data missing naics code {naics}')
 
             combustion_energy_data = \
                 combustion_energy_data.drop(
-                    'NAICS', axis=1, errors='ignore')
+                    ['NAICS', 'index'], axis=1, errors='ignore')
             combustion_activity_naics = \
                 manufacturing[label]['activity']
             gross_output = combustion_activity_naics['gross_output']
@@ -337,6 +358,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     subcategory_dict['noncombustion'] = \
                         {'A_i_k': noncombustion_activity,
                          'C_i_j_k': noncombustion_emissions}
+                
+                nonmanufacturing_dict[subcategory] = subcategory_dict
 
             elif subcategory == 'Mining':
                 mining_dict = dict()
@@ -398,7 +421,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                                  'C_i_j_k': mining_combustion_emissions,
                                  'E_i_j_k': mining_combustion_energy}}
 
-                    subcategory_dict[subcategory] = mining_dict
+                    nonmanufacturing_dict[subcategory] = mining_dict
 
             else:
                 s_data = cats[subcategory]
@@ -410,7 +433,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                 subcategory_dict['noncombustion'] = \
                     {'A_i_k': noncombustion_activity,
                         'C_i_j_k': noncombustion_emissions}
-            nonmanufacturing_dict[subcategory] = subcategory_dict
+
+                nonmanufacturing_dict[subcategory] = subcategory_dict
 
         return nonmanufacturing_dict
 

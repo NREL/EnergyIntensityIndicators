@@ -1,3 +1,4 @@
+
 import sympy as sp
 import numpy as np
 import pandas as pd
@@ -97,8 +98,8 @@ class GeneralLMDI:
         if lhs == str(sp.simplify(expression)):
             print('Decomposition expression simplifies properly')
         else:
-            raise ValueError(('Decomposition expression does not simplify'
-                              'to LHS variable:'
+            raise ValueError(('Decomposition expression does not simplify '
+                              'to LHS variable: '
                               f'{lhs} != {str(sp.simplify(expression))}'))
 
     @staticmethod
@@ -296,6 +297,180 @@ class GeneralLMDI:
         """
         return len(set(iterator)) <= 1
 
+    def build_nest(self, data, select_categories, results_dict,
+                   previous_level, variable, level1_name, level_name=None):
+        """Process and organize raw data"""
+
+        if isinstance(select_categories, dict):
+            level_results = dict()
+            for key, value in select_categories.items():
+                print('select_categories:\n', select_categories)
+                print('data keys:\n', data.keys())
+
+                if isinstance(value, dict):
+                    yield from self.build_nest(data=data[key],
+                                               select_categories=value,
+                                               results_dict=results_dict,
+                                               previous_level=level_name,
+                                               variable=variable,
+                                               level1_name=level1_name,
+                                               level_name=key)
+                elif value is None:
+
+                    print('final_data:\n', data)
+                    print('final_data keys:\n', data.keys())
+                    try:
+                        final_data = data[variable]
+                    except KeyError:
+                        final_data = data[key][variable]
+
+                    print('final_data:\n', final_data)
+                    if isinstance(final_data, pd.DataFrame):
+                        level_results[key] = final_data
+                    else:
+                        raise ValueError(f'Final data is type {type(final_data)}')
+
+        if len(level_results) == 0:
+            yield results_dict
+        elif len(level_results) == 1:
+            level_data = list(level_results.values())[0]
+        elif len(level_results) > 1:
+            results_higher = \
+                [df_utils().create_total_column(df, k)[[k]]
+                 for k, df in level_results.items()]
+            level_data = \
+                df_utils().merge_df_list(results_higher)
+
+        results_dict[level_name] = level_data
+
+        yield results_dict
+
+    # def nesting(select_categories, results_dict):
+    #     for k, v in select_categories.items():
+    #         level_data = dict()
+    #         if isinstance(v, dict):
+    #             for l_, lower_data in v.items():
+    #                 if l_ in results_dict:
+    #                     level_data[l_] = results_dict[l_]
+    #                 else:
+    #                     self.nesting(v, results_dict)
+    #         if k in results_dict
+    def nesting(self, data, select_categories, results_dict,
+                previous_level, variable, level1_name, level_name=None):
+        """Process and organize raw data"""
+
+        if isinstance(select_categories, dict):
+            results_higher = []
+            for key, value in select_categories.items():
+                print('select_categories:\n', select_categories)
+                print('data keys:\n', data.keys())
+                if isinstance(value, dict):
+                    results_higher = \
+                        [df_utils().create_total_column(results_dict[k], k)[[k]]
+                            for k in value.keys() if k in results_dict]
+                    if len(results_higher) > 1:
+                        results_df_higher = \
+                            df_utils().merge_df_list(results_higher)
+                    elif len(results_dict) == 1:
+                        results_df_higher = results_higher.copy()
+                    else:
+                        results_df_higher = None
+
+                    if results_df_higher is not None:
+                        if previous_level in results_dict:
+                            existing_results = results_dict[previous_level]
+                            results_dict[previous_level] = \
+                                df_utils().merge_df_list([results_df_higher,
+                                                         existing_results])
+                        else:
+                            results_dict[previous_level] = results_df_higher
+                    try:
+                        data = data[key]
+                    except KeyError:
+                        continue
+
+                    yield from self.nesting(data=data,
+                                            select_categories=value,
+                                            results_dict=results_dict,
+                                            previous_level=level_name,
+                                            variable=variable,
+                                            level1_name=level1_name,
+                                            level_name=key)
+                elif value is None:
+                    yield results_dict
+
+    def group_lower(self, i, subscripts, results_dict, categories):
+
+        lower_names = \
+            list(self.subscripts[subscripts[i+1]]['names'].keys())
+        lower_names = \
+            [l_ for l_ in lower_names if l_ in categories.keys()]
+        lower = \
+            [df_utils().create_total_column(results_dict[l], l)[[l]]
+                for l in lower_names]
+        lower_df = df_utils().merge_df_list(lower)
+
+        return lower_df
+
+    def dict_iter(self, dict_, after):
+        for a in after:
+            if isinstance(dict_, dict):
+                if isinstance(dict_[a], dict):
+                    r = dict_[a]
+                    yield from self.dict_iter(dict_[a], a)
+                else:
+                    r = a
+            else:
+                r = a
+            yield r
+
+    def aggregate_data(self, raw_data, subscripts, variable, sub_categories):
+
+        results_dict = dict()
+        for results_dict in self.build_nest(data=raw_data,
+                                            select_categories=sub_categories,
+                                            results_dict=results_dict,
+                                            previous_level=self.sector,
+                                            variable=variable,
+                                            level1_name=self.total_label):
+            continue
+
+        print('results_dict:\n', results_dict)
+        subscripts_ = subscripts[:-1]
+        subscripts_.reverse()
+        lowest = subscripts[-1]
+        second_highest = subscripts[1]
+        highest = subscripts[0]
+        for i, s in enumerate(subscripts_):
+            names = list(self.subscripts[s]['names'].keys())
+            for n in names:
+                print('subcategories:\n', sub_categories)
+                print('name:\n', n)
+                after = subscripts_[i:]
+                after.reverse()
+                for cats in self.dict_iter(sub_categories, after):
+                    continue
+
+                categories = cats
+
+                if s == lowest:
+                    results_dict = results_dict
+                elif i > subscripts_.index(highest) and \
+                        i < subscripts_.index(lowest):
+                    lower_df = self.group_lower(i, subscripts_,
+                                                results_dict, categories)
+                    results_dict[n] = lower_df
+
+                elif s == highest:
+                    highest_level = \
+                        [df_utils().create_total_column(results_dict[n], n)[[n]]
+                            for n in names]
+                    highest_df = df_utils().merge_df_list(highest_level)
+                    results_dict[self.total_label] = highest_df
+
+        # final_input = {results_dict[level] for level in [self.total_label, second_highest]}
+        return results_dict[self.total_label]
+
     @staticmethod
     def process_term(t, input_data):
 
@@ -334,11 +509,11 @@ class GeneralLMDI:
 
         return f
 
-    def general_expr(self, input_data):
+    def general_expr(self, raw_data, sub_categories):
         """Decompose changes in LHS variable
 
         Args:
-            input_data (dict): Dictionary containing
+            raw_data (dict): Dictionary containing
                                dataframes for each variable
                                and a the total label
 
@@ -350,30 +525,47 @@ class GeneralLMDI:
         """
         print('gen expr attributes:', dir(self))
         self.check_eval_str(self.decomposition)
-        # if hasattr('GeneralLMDI', 'terms'):
-        #     terms_ = True
+
         for t in self.terms:
             self.check_eval_str(t)
-        # else:
-        #     terms_ = False
 
         self.test_expression(self.decomposition, self.LHS_var)
-        print('input_data.keys()', input_data.keys())
+
+        print('raw_data.keys()', raw_data.keys())
+
+        input_data = dict()
+        all_subscripts = dict()
+        for v in self.variables:
+            subscripts = v.split('_')[1:]
+            if len(subscripts) > 1:
+                v_data = \
+                    self.aggregate_data(raw_data, subscripts,
+                                        v, sub_categories)
+
+                var_name = v.split('_')[0]
+                input_data[var_name] = v_data
+
+                sub_names = {s: self.subscripts[s]['names'].keys()
+                             for s in subscripts}
+                all_subscripts[var_name] = sub_names
+            else:
+                input_data.update({v: raw_data[v]})
+        print('input_data:\n', input_data.keys())
+        for k in input_data.keys():
+            print('input_data key keys:\n', input_data[k].keys())
+
+        name = self.total_label
+
         try:
-            lhs = input_data[self.LHS_var]
-            name = input_data['total_label']
+            lhs = input_data[self.LHS_var.split('_')[0]][name]
+
         except KeyError:
-            temp_label = 'Industry'  # 'Commercial_Total', 'National', 'Industry''Northeast'
+            # 'Commercial_Total', 'National', 'Industry''Northeast'
             # print('input_data["National"].keys():', input_data["National"].keys())
             # print('input_data["Northeast"].keys():', input_data["Northeast"].keys())
-
-            input_data = input_data[temp_label]
+            input_data = input_data[name]
             lhs = input_data[self.LHS_var]
             print("input_data[temp_label]:", input_data)
-            try:
-                name = input_data['total_label']
-            except KeyError:
-                name = temp_label
 
         print('lhs:\n', lhs)
         lhs_total = df_utils().create_total_column(lhs,
@@ -396,26 +588,38 @@ class GeneralLMDI:
             total_subscript = total.split('_')
             subscripts = [s for s in cols_subscript
                           if s not in total_subscript]
+
             if len(subscripts) == 1:
                 subscript = subscripts[0]
             else:
                 raise ValueError('Method not currently able to accomodate'
                                  'summing over multiple subscripts')
+
             units = self.subscripts[subscript]['names'].values()
             print('units:', units)
-            if self.all_equal(units):
-                total_df = \
-                    df_utils().create_total_column(input_data[cols],
-                                                   total_label=name)
-                print('total_df:\n', total_df)
-                total_col = total_df[[name]]
-                print('total_col:\n', total_col)
+            sub_dfs = []
+            sub_names = self.subscripts[subscript]['names'].keys()
+            for s in sub_names:
+                if self.all_equal(units):
+                    print('total:\n', total)
+                    total_base_var = total.split('_')[0]
+                    print('total_base_var:\n', total_base_var)
 
-            else:
-                total_col = input_data[cols].multiply(weights.values,
-                                                      axis=1).sum(axis=1)
+                    total_df = \
+                        df_utils().create_total_column(
+                            input_data[total_base_var][s],
+                            total_label=s)
+                    print('total_df:\n', total_df)
+                    total_col = total_df[[s]]
+                    print('total_col:\n', total_col)
 
-            input_data[total] = total_col
+                else:
+                    total_col = input_data[s].multiply(weights.values,
+                                                        axis=1).sum(axis=1)
+                sub_dfs.append(total_col)
+            
+            total_data = df_utils().merge_df_list(sub_dfs)
+            input_data[total] = total_data
 
         results = pd.DataFrame(index=lhs.index)
         print('self.decomposition:', self.decomposition)
@@ -431,11 +635,19 @@ class GeneralLMDI:
                 print('f cols:', f.columns)
                 print('weights cols:', weights.columns)
                 if f.shape[1] > 1:
-                    if name in f.columns:
-                        f = f.drop(name, axis=1, errors='ignore')
-                    component = f.multiply(weights.values, axis=1).sum(axis=1)
+                    if f.shape[1] == weights.shape[1]:
+                        if name in f.columns:
+                            f = f.drop(name, axis=1, errors='ignore')
+                        component = f.multiply(weights.values, axis=1).sum(axis=1)
+                    elif f.shape[1] > 1:
+                        if name in f.columns:
+                            f = f[[name]]
+                        else:
+                            f = df_utils().create_total_column(f, name)[[name]]
+                        component = f
                 else:
                     component = f
+
                 if isinstance(component, pd.Series):
                     component = component.to_frame(name=t)
                 print(f'component {t}:\n', component)
@@ -528,14 +740,14 @@ class GeneralLMDI:
         #         plt.savefig(f".{output_directory}/{fig_name}.png")
         plt.show()
 
-    def main(self, input_data):
+    def main(self, input_data, sub_categories):
         """Calculate LMDI decomposition
 
         Args:
             input_data (dict): Dictionary containing dataframes
                                for each variable defined in the YAML
         """
-        results = self.general_expr(input_data)
+        results = self.general_expr(input_data, sub_categories)
         if self.model == 'multiplicative':
             self.spaghetti_plot(data=results)
 

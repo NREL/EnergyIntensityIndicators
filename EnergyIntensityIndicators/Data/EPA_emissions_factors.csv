@@ -27,7 +27,6 @@ Biomass Fuels - Gaseous,2,Landfill Gas,0.000485,52.07,3.2,0.63,0.025254,0.001552
 Biomass Fuels - Gaseous,2,Other Biomass Gases,0.000655,52.07,3.2,0.63,0.034106,0.002096,0.000413
 Units,3,Fuel Type,mmBtu per gallon,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mmBtu,kg CO2 per gallon,g CH4 per gallon,g N2O per gallon
  Petroleum Products ,3,Asphalt and Road Oil,0.158,75.36,3,0.6,11.91,0.47,0.09
- Petroleum Products ,3,Aviation Gasoline,0.12,69.25,3,0.6,8.31,0.36,0.07
  Petroleum Products ,3,Butane,0.103,64.77,3,0.6,6.67,0.31,0.06
  Petroleum Products ,3,Butylene,0.105,68.72,3,0.6,7.22,0.32,0.06
  Petroleum Products ,3,Crude Oil,0.138,74.54,3,0.6,10.29,0.41,0.08
@@ -43,7 +42,6 @@ Units,3,Fuel Type,mmBtu per gallon,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mm
  Petroleum Products ,3,Kerosene-Type Jet Fuel,0.135,72.22,3,0.6,9.75,0.41,0.08
  Petroleum Products ,3,Liquefied Petroleum Gases (LPG),0.092,61.71,3,0.6,5.68,0.28,0.06
  Petroleum Products ,3,Lubricants,0.144,74.27,3,0.6,10.69,0.43,0.09
- Petroleum Products ,3,Motor Gasoline,0.125,70.22,3,0.6,8.78,0.38,0.08
  Petroleum Products ,3,Naphtha (<401 deg F),0.125,68.02,3,0.6,8.5,0.38,0.08
  Petroleum Products ,3,Natural Gasoline,0.11,66.88,3,0.6,7.36,0.33,0.07
  Petroleum Products ,3,Other Oil (>401 deg F),0.139,76.22,3,0.6,10.59,0.42,0.08
@@ -58,7 +56,6 @@ Units,3,Fuel Type,mmBtu per gallon,kg CO2 per mmBtu,g CH4 per mmBtu,g N2O per mm
  Petroleum Products ,3,Unfinished Oils,0.139,74.54,3,0.6,10.36,0.42,0.08
  Petroleum Products ,3,Used Oil,0.138,74,3,0.6,10.21,0.41,0.08
  Biomass Fuels - Liquid ,3,Biodiesel (100%),0.128,73.84,1.1,0.11,9.45,0.14,0.01
- Biomass Fuels - Liquid ,3,Ethanol (100%),0.084,68.44,1.1,0.11,5.75,0.09,0.01
  Biomass Fuels - Liquid ,3,Rendered Animal Fat,0.125,71.06,1.1,0.11,8.88,0.14,0.01
  Biomass Fuels - Liquid ,3,Vegetable Oil,0.12,81.55,1.1,0.11,9.79,0.13,0.01
 " Biomass Fuels - 
@@ -71,13 +68,15 @@ Kraft Pulping Liquor, by Wood Furnish ",3,Bagasse,,95.5,1.9,0.42,,,
 Kraft Pulping Liquor, by Wood Furnish ",3,Bamboo,,93.7,1.9,0.42,,,
 " Biomass Fuels - 
 Kraft Pulping Liquor, by Wood Furnish ",3,Straw,,95.1,1.9,0.42,,,
-Units,4,Fuel Type,,CO2 Factor (lb/MWh),CH4 Factor (lb/MWh),,,,
+Units,4,Fuel Type,,CO2 Factor (lb/MWh),CH4 Factor (lb/MWh),N2O Factor (lb/MWh),,,
 Electricity,4,US Average,,884.2,0.075,0.011,,,
 Units,5,Fuel Type,,kg CO2 per unit,,,,,
 Mobile Combustion CO2,5,Aviation Gasoline,,8.31,,,,,
-Mobile Combustion CO2,5,Biodiesel (100%),,9.45,,,,,
 Mobile Combustion CO2,5,Compressed Natural Gas (CNG),,0.05444,,,,,
 Mobile Combustion CO2,5,Diesel Fuel,,10.21,,,,,
-Mobile Combustion CO2,5,Ethanol (100%),,5.75,,,,,
+Mobile Combustion CO2,5,Motor Gasoline,, 8.78 ,,,,,
+Mobile Combustion CO2,5,Ethanol (100%),, 5.75 ,,,,,
 Mobile Combustion CO2,5,Kerosene-Type Jet Fuel,,9.75,,,,,
 Mobile Combustion CO2,5,Liquefied Natural Gas (LNG),,4.5005492,,,,,
+Units,6,Fuel Type,,CO2 Factor (kg/mmBtu),CH4 Factor (g/mmBtu),N2O Factor (g/mmBtu),,,
+Steam and Heat,6,Steam and Heat,,66.33,1.25,0.125,,,

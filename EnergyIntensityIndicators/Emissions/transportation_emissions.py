@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from pandas.core.base import DataError
+
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
@@ -72,8 +74,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                      base_year=self.base_year,
                                      end_year=self.end_year)
 
-    @staticmethod
-    def transportation_data():
+    def transportation_data(self):
         """[summary]
 
         Returns:
@@ -139,58 +140,65 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         fuel = fuel.rename(columns={'Unnamed: 0': 'Year'})
         fuel = fuel[(fuel['Fuel Type'] != 'Year') &
                     (fuel['Mode'] != 'Not Used')]
+        fuel = self.rename_modes(fuel, tedb=False)
 
-        transport_fuel = pd.concat([fuel, tedb_fuel], axis=0)
+        transport_fuel = fuel.copy() # pd.concat([fuel, tedb_fuel], axis=0)
         transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
+        transport_fuel['Mode'] = transport_fuel['Mode'].str.strip()
         return transport_fuel
 
     @staticmethod
-    def rename_modes(mode_df):
-        rename_dict = \
-            {'Passenger Car',
-             'Short Wheelbase Vehicles': ,
-             'Motorcycles': ,
-             'Light Trucks' : ,
-             'Long Wheelbase Vehicles': ,
-             'Other Single-Unit Truck, Adjusted (see columns BR-BU)': ,
-             'Combination Truck, Adjusted (See column BV-BY)': ,
-             'Bus - Urban': ,
-             'Paratransit (demand response, "dial-a-ride")': ,
-             'Bus - School': ,
-             'Bus - Intercity': ,
-             'Domestic & Foreign Commerce in U.S. Waters': ,
-             'Commercial Carrier': ,
-             'General Aviation': ,
-             'Intercity (Amtrak)': ,
-             'Commuter Rail': ,
-             'Heavy Rail': ,
-             'Light Rail': ,
-             'Class I Freight': ,
-             'Natural Gas Pipeline': ,
-             'Oil Pipeline': ,
-             'Light vehicles': ,
-             'Cars': ,
-             'Light trucksd': ,
-             'Buses': ,
-             'Transit': ,
-             'Intercity': ,
-             'School': ,
-             'Medium/heavy trucks': ,
-             'Class 3-6 trucks': ,
-             'Class 7-8 trucks': ,
-             'NONHIGHWAY': ,
-             'General aviation': ,
-             'Domestic air carriers': ,
-             'International air carrierse': ,
-             'Freight': ,
-             'Recreational': ,
-             'Freight (Class I)': ,
-             'Passenger': ,
-             'Commuter': ,
-             'Intercityf': ,}
+    def rename_modes(mode_df, tedb=False):
+        if tedb:
+            # rename_dict = \
+            #     {'Light vehicles': 'SWB Vehicles',
+            #     'Cars': 'Passenger Car',
+            #     'Light trucksd': 'Light Trucks',
+            #     'Buses': ,
+            #     'Transit': 'Urban Bus',
+            #     'Intercity': 'Intercity Bus',
+            #     'School': 'School Bus',
+            #     'Medium/heavy trucks': ,
+            #     'Class 3-6 trucks': ,
+            #     'Class 7-8 trucks': ,
+            #     'NONHIGHWAY': ,
+            #     'General aviation': 'General Aviation',
+            #     'Domestic air carriers': ,
+            #     'International air carrierse': ,
+            #     # 'Freight': ,
+            #     'Water': 'Waterborne',
+            #     'Recreational': ,
+            #     'Freight (Class I)': 'Rail',
+            #     'Passenger': ,
+            #     'Commuter': 'Commuter Rail',
+            #     'Intercityf': 'Intercity Rail'}
+            raise DataError('Missing TEDB mapping')
+        else: 
+            rename_dict = \
+                {'Passenger Car': 'Passenger Car',
+                'Short Wheelbase Vehicles': 'SWB Vehicles',
+                'Motorcycles': 'Motorcycles',
+                'Light Trucks': 'Light Trucks',
+                'Long Wheelbase Vehicles': 'LWB Vehicles',
+                'Other Single-Unit Truck, Adjusted (see columns BR-BU)': 'Single-Unit Truck',
+                'Combination Truck, Adjusted (See column BV-BY)': 'Combination Truck',
+                'Bus - Urban': 'Urban Bus',
+                'Paratransit (demand response, "dial-a-ride")': 'Paratransit',
+                'Bus - School': 'School Bus',
+                'Bus - Intercity': 'Intercity Bus',
+                'Domestic & Foreign Commerce in U.S. Waters': 'Waterborne',
+                'Commercial Carrier': 'Commercial Carriers',
+                'General Aviation': 'General Aviation',
+                'Intercity (Amtrak)': 'Intercity Rail',
+                'Commuter Rail': 'Commuter Rail',
+                'Heavy Rail': 'Heavy Rail',
+                'Light Rail': 'Light Rail',
+                'Class I Freight': 'Rail',
+                'Natural Gas Pipeline': 'Natural Gas Pipeline',
+                'Oil Pipeline': 'Oil Pipeline'}
 
-            mode_df['Mode'] = mode_df['Mode'].replace(rename_dict)
-    return mode_df
+        mode_df['Mode'] = mode_df['Mode'].replace(rename_dict)
+        return mode_df
 
     def transport(self, data):
         sector_ = 'All_Transportation'
@@ -206,8 +214,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             for category, category_data in cargo_data.items():  # Highway/Rail/etc.
                 category_dict = dict()
                 if category_data is None:
+                    print('category:', category)
+                    print('all_data[cargo]:\n', all_data[cargo])
                     category_data_ = \
-                        all_data[cargo][category]
+                        all_data[cargo][category]['activity']
                     mode_group_dict = \
                         self.wrap_data(
                             energy_data, category_data_,
@@ -217,8 +227,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
                         mode_group_dict = dict()
                         if mode_group_data is None:
-                            mode_group_data_ = \
-                                all_data[cargo][category][mode_group]
+                            print('mode_group:', mode_group)
+                            print('all_data[cargo][category]:\n', all_data[cargo][category])
+                            try:
+                                mode_group_data_ = \
+                                    all_data[cargo][category][mode_group]['activity']
+                            except KeyError:
+                                mode_group_data_ = \
+                                    all_data[cargo][category]['activity']
                             mode_group_dict = \
                                 self.wrap_data(
                                     energy_data, mode_group_data_,
@@ -228,8 +244,18 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                             for mode, mode_data in mode_group_data.items(): #'Passenger Car – SWB Vehicles', 'Motorcycles'
                                 mode_dict = dict()
                                 if mode_data is None:
-                                    mode_data_ = \
-                                        all_data[cargo][category][mode_group][mode]
+                                    print('mode:', mode)
+                                    print('all_data[cargo][category][mode_group]:\n', all_data[cargo][category][mode_group])
+                                    try:
+                                        mode_data_ = \
+                                            all_data[cargo][category][mode_group]['activity'][[mode]]
+                                    except KeyError:  # Urban Rail (Hvy, Lt, Commuter)
+                                        try:
+                                            mode_data_ = \
+                                                all_data[cargo][category][mode_group]['activity']
+                                        except KeyError:
+                                            mode_data_ = \
+                                                all_data[cargo][category][mode_group][mode]['activity']
                                     mode_dict = \
                                         self.wrap_data(
                                             energy_data, mode_data_,
@@ -238,8 +264,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                 elif isinstance(mode_data, dict):
                                     for sub_mode, sub_mode_d in mode_data.items():
                                         if sub_mode_d is None:
+                                            print('sub_mode:', sub_mode)
+                                            print('all_data[cargo][category][mode_group][mode]:\n', all_data[cargo][category][mode_group][mode])
                                             sub_mode_data = \
-                                                all_data[cargo][category][mode_group][mode][sub_mode]
+                                                all_data[cargo][category][mode_group][mode]['activity'][[sub_mode]]
                                             sub_mode_dict = \
                                                 self.wrap_data(
                                                     energy_data, sub_mode_data,
@@ -256,7 +284,9 @@ class TransportationEmssions(CO2EmissionsDecomposition):
     def wrap_data(self, energy_data, activity_data,
                   mode, category):
         wrapped_data = dict()
-        wrapped_data['A_i_k'] = activity_data['activity']
+        wrapped_data['A_i_k'] = activity_data
+        print('energy_data:\n', energy_data)
+        print('energy_data[["Mode", "Category"]]:\n', energy_data[["Mode", "Category"]])
 
         energy_data = \
             energy_data[
@@ -268,11 +298,27 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                               columns='Fuel Type',
                               values='value')
 
+        energy = \
+            energy.apply(
+                lambda col: pd.to_numeric(col, errors='coerce'), axis=0)
+        energy = energy.fillna(np.nan)
+
+        print('energy:\n', energy)
+        energy = energy.interpolate(method='linear')
+        energy = energy.drop('All Fuel', axis=1, errors='ignore')
+        print('energy interpolate:\n', energy)
+
         emissions, energy = \
             self.calculate_emissions(energy,
                                      emissions_type='CO2 Factor',
                                      datasource='TEDB')
-
+        if mode != 'Air':
+            if energy.empty:
+                raise ValueError(f'Energy empty for mode {mode}')
+            if emissions.empty:
+                raise ValueError(f'emissions empty for mode {mode}')
+            if activity_data.empty:
+                raise ValueError(f'activity_data empty for mode {mode}')
         wrapped_data['E_i_j_k'] = energy
         wrapped_data['C_i_j_k'] = emissions
         return wrapped_data
@@ -281,12 +327,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         energy_data = self.transportation_data()
         print('energy_data:\n', energy_data)
         print('energy_data modes:\n', energy_data['Mode'].unique())
-        exit()
         energy_decomp_data = \
             self.transport_data.collect_data(
                 )
+
         transportation_data = self.transport(energy_decomp_data)
-        exit()
         return transportation_data
 
 

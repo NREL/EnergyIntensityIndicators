@@ -66,6 +66,13 @@ class ResidentialEmissions(SEDSEmissionsData):
             print('region:', r)
             r_activity = res_data[r]['activity']
 
+            HU = r_activity['occupied_housing_units'].drop(
+                'Total', axis=1, errors='ignore')
+            fl_spc = r_activity['floorspace_square_feet'].drop(
+                'Total', axis=1, errors='ignore')
+            avg_size = r_activity['household_size_square_feet_per_hu'].drop(
+                'Total', axis=1, errors='ignore')
+
             r_energy = energy_data[r]
             r_energy = r_energy.drop('Census Region', axis=1)
 
@@ -73,13 +80,14 @@ class ResidentialEmissions(SEDSEmissionsData):
                 res_data[r]['weather_factors']
 
             r_weather_factors = \
-                self.collect_weather_data(res_data[r]['energy'],
-                                          r_activity,
-                                          r_weather_data,
-                                          total_label=r)
-        
-            print('r_weather_factors:\n', r_weather_factors)
+                self.collect_weather_data(
+                    res_data[r]['energy'],
+                    {'floorspace_square_feet': fl_spc},
+                    r_weather_data,
+                    total_label=r,
+                    weather_activity='floorspace_square_feet')
 
+            print('r_weather_factors:\n', r_weather_factors)
             print('r_energy:\n', r_energy)
             print('r_energy:\n', r_energy.info())
             # exit()
@@ -90,13 +98,12 @@ class ResidentialEmissions(SEDSEmissionsData):
             print('r_emissions:\n', r_emissions)
             print('r_activity:\n', r_activity)
             print('r_activity keys:\n', r_activity.keys())
-            # activity_types = ['occupied_housing_units',
-            #                   'floorspace_square_feet',
-            #                   'household_size_square_feet_per_hu']
-            # exit()
-            r_data = {'E_i_j_k': r_energy,
-                      'A_i_k': r_activity['occupied_housing_units'],
-                      'C_i_j_k': r_emissions,
+
+            r_data = {'E_i_j': r_energy,
+                      'A_i_k': HU,
+                      'SF_i_k': fl_spc,
+                      'S_i_k': avg_size,
+                      'C_i_j': r_emissions,
                       'WF_i': r_weather_factors}
             all_data[r] = r_data
             print('all_data:\n', all_data)

@@ -44,7 +44,7 @@ class DFUtilities:
         """Returns two dataframes with the same indices
         purpose: enable dataframe operations such as multiply and
         divide between the two dfs
-        """        
+        """
         if df1.empty or df2.empty:
             raise ValueError('at least one dataframe is empty')
 

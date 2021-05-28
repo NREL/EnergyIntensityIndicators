@@ -28,7 +28,6 @@ def standard_interpolation(dataframe, name_to_interp=None, axis=1):
 
     else:
         raise AttributeError(f'standard_interpolation method missing valid axis, given {axis}')
-
     for index, y_ in enumerate(increment_years):
 
         if index > 0:
@@ -42,4 +41,6 @@ def standard_interpolation(dataframe, name_to_interp=None, axis=1):
                     resid_y_ * (increment * delta)
                 year = year_before + delta
                 dataframe.loc[year, name_to_interp] = value
+
+    dataframe = dataframe.sort_index()
     return dataframe

@@ -14,7 +14,7 @@ from EnergyIntensityIndicators.utilities.standard_interpolation \
 
 class Manufacturing:
 
-    def __init__(self, naics_digits):
+    def __init__(self, naics_digits=3):
         self.eia = GetEIAData('Industry')
         self.end_year = datetime.now().year
         self.naics_digits = naics_digits
@@ -181,8 +181,6 @@ class Manufacturing:
         sic_4_2 = []
 
         for year, table_dict in mecs_data.items():
-            print('year:', year)
-            print('type year:', type(year))
             if year < 1998: 
                 sic = True
             else:
@@ -233,8 +231,6 @@ class Manufacturing:
                                                        table_3_1=True,
                                                        sic=sic)
                         mecs_3_1['Year'] = year
-                        # print('mecs_3_1:\n', mecs_3_1)
-                        # print('mecs_3_1 cols:\n', mecs_3_1.columns)
 
                         if sic:
                             sic_3_1.append(mecs_3_1)
@@ -253,82 +249,116 @@ class Manufacturing:
                         mecs_3_2 = self.clean_industrial_data(df, sic=sic)
 
                         mecs_3_2['Year'] = year
-                        print('mecs_3_2:\n', mecs_3_2)
 
                         if sic:
                             sic_3_2.append(mecs_3_2)
                         else:
                             all_3_2.append(mecs_3_2)
-                    
+
                     elif t == 'table_4_2':
                         mecs_4_2 = self.clean_industrial_data(df, sic=sic)
                         mecs_4_2['Year'] = year
-
-                        # print('table_4_2:\n', mecs_4_2)
 
                         if sic:
                             sic_4_2.append(mecs_4_2)
                         else:
                             all_4_2.append(mecs_4_2)
 
-        all_3_1 = pd.concat(all_3_1, axis=0).reset_index()
-        all_3_1 = all_3_1.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_1 = pd.concat(sic_3_1, axis=0).reset_index()
-        # sic_3_1 = sic_3_1.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_3_2 = pd.concat(all_3_2, axis=0).reset_index()
-        # all_3_2 = all_3_2.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_2 = pd.concat(sic_3_2, axis=0).reset_index()
-        # sic_3_2 = sic_3_2.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_3_5 = pd.concat(all_3_5, axis=0).reset_index()
-        # all_3_5 = all_3_5.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_3_5 = pd.concat(sic_3_5, axis=0).reset_index()
-        # sic_3_5 = sic_3_5.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-
-        all_4_2 = pd.concat(all_4_2, axis=0).reset_index()
-        # all_4_2 = all_4_2.set_index(['Year', 'region', 'NAICS', 'Subsector and Industry'])
-        sic_4_2 = pd.concat(sic_4_2, axis=0).reset_index()
-        # sic_4_2 = sic_4_2.set_index(['Year', 'region', 'SIC', 'Subsector and Industry'])
-        print('sic_3_1:\n', sic_3_1)
-        print('sic_3_2:\n', sic_3_2)
-        print('all_3_1:\n', all_3_1)
-
-        print('all_3_2:\n', all_3_2)
-        all_3_2 = all_3_2[['Year', 'region', 'NAICS',
-                           'Subsector and Industry',
-                           'Other(f)']]
-
-        print('all_3_5:\n', all_3_5)
-        print('all_3_5 cols:\n', all_3_5.columns)
-
-        all_3_5 = all_3_5.merge(all_3_2, on=['Year', 'region', 'NAICS',
-                                             'Subsector and Industry'],
-                                how='inner')
-
-        print("all_3_5['Total']:\n", all_3_5['Total'])
-        all_3_5['steam'] = all_3_5['Total'].subtract(all_3_5['Other(f)'])
-        all_3_5 = all_3_5.drop(['Total', 'Other(f)'], axis=1)
-
-        industrial_btu = all_3_5.merge(all_3_2, on=['Year', 'region', 'NAICS',
-                                                    'Subsector and Industry'],
-                                       how='outer')
-
-        print('industrial_btu:\n', industrial_btu)
         x_walk = self.mecs_sic_crosswalk()
+
+        all_3_1 = pd.concat(all_3_1, axis=0).reset_index().drop(
+            'Subsector and Industry', axis=1, errors='ignore')
+        sic_3_1 = pd.concat(sic_3_1, axis=0).reset_index()
         sic_naics_3_1 = self.naics_to_sic(sic_3_1, x_walk)
+        thousand_to_million = \
+            ['Residual Fuel Oil (1000 bbls)',
+             'Distillate Fuel Oil(c) (1000 bbls)',
+             'LPG (1000 bbls)',
+             'Coal (1000 short tons)',
+             'Coke and Breeze (1000 short tons)']
+        sic_naics_3_1.loc[:, thousand_to_million] = \
+            sic_naics_3_1.loc[:, thousand_to_million].multiply(0.001)
+        rename_unit_change = \
+            {'Residual Fuel Oil (1000 bbls)': 'Residual Fuel Oil (million bbl)',
+             'Distillate Fuel Oil(c) (1000 bbls)': 'Distillate Fuel Oil(c) (million bbl)',
+             'Coal (1000 short tons)': 'Coal (million short tons)',
+             'Coke and Breeze (1000 short tons)': 'Coke and Breeze (million short tons)',
+             'Other(e) (trillion Btu)': 'Other(f) (trillion Btu)',
+             'LPG (1000 bbls)': 'HGL (excluding natural gasoline)(e) (million bbl)'}
+        sic_naics_3_1 = sic_naics_3_1.rename(columns=rename_unit_change)
+        table_3_1 = pd.concat([sic_naics_3_1, all_3_1], axis=0)
+
+        all_3_2 = pd.concat(all_3_2, axis=0).reset_index().drop(
+            'Subsector and Industry', axis=1, errors='ignore')
+        sic_3_2 = pd.concat(sic_3_2, axis=0).reset_index()
         sic_naics_3_2 = self.naics_to_sic(sic_3_2, x_walk)
+        sic_naics_3_2 = \
+            sic_naics_3_2.rename(
+                columns={'LPG': 'HGL (excluding natural gasoline)(e)',
+                         'Other(e)': 'Other(f)'})
+        table_3_2 = pd.concat([sic_naics_3_2, all_3_2], axis=0)
+
+        all_3_5 = pd.concat(all_3_5, axis=0).reset_index().drop(
+            'Subsector and Industry', axis=1, errors='ignore')
+        sic_3_5 = pd.concat(sic_3_5, axis=0).reset_index()
         sic_naics_3_5 = self.naics_to_sic(sic_3_5, x_walk)
+        sic_naics_3_5 = \
+            sic_naics_3_5.rename(
+                columns={'Pulping Liquor':
+                            'Pulping Liquor or Black Liquor',
+                         'Waste Oils/Tars And Waste Materials': 
+                            'Waste Oils/Tars and Waste Materials'})
+        table_3_5 = pd.concat([sic_naics_3_5, all_3_5], axis=0)
+
+        all_4_2 = pd.concat(all_4_2, axis=0).reset_index().drop(
+            'Subsector and Industry', axis=1, errors='ignore')
+        sic_4_2 = pd.concat(sic_4_2, axis=0).reset_index()
         sic_naics_4_2 = self.naics_to_sic(sic_4_2, x_walk)
-        print('industrial nan:\n', industrial_btu[pd.isna(industrial_btu['Waste Gas'])])
-        mecs = {'NAICS': {'3_1': all_3_1, '3_2': all_3_2,
-                          '3_5': all_3_5, '4_2': all_4_2},
-                'SIC': {'3_1': sic_naics_3_1, '3_2': sic_naics_3_2,
-                        '3_5': sic_naics_3_5, '4_2': sic_naics_4_2}}
+        table_4_2 = pd.concat([sic_naics_4_2, all_4_2], axis=0)
+
+        table_3_2_other = table_3_2[['Year', 'region', 'NAICS',
+                                     'Other(f)']]
+
+        table_3_5 = table_3_5.merge(table_3_2_other, on=['Year', 'region', 'NAICS'],
+                                    how='inner')
+
+        table_3_5['steam'] = table_3_5['Other(f)'].subtract(table_3_5['Total'])
+        table_3_5 = table_3_5.drop(['Total', 'Other(f)'], axis=1)
+        industrial_btu = table_3_5.merge(table_3_2, on=['Year', 'region', 'NAICS'],
+                                         how='outer')
+        industrial_btu = industrial_btu.drop('Other(f)', axis=1)
+
+        table_3_1 = self.set_n_naics_digits(table_3_1)
+        table_3_2 = self.set_n_naics_digits(table_3_2)
+        table_3_5 = self.set_n_naics_digits(table_3_5)
+        table_4_2 = self.set_n_naics_digits(table_4_2)
+        industrial_btu = self.set_n_naics_digits(industrial_btu)
+
+        mecs = {'3_1': table_3_1, '3_2': table_3_2,
+                '3_5': table_3_5, '4_2': table_4_2}
         return mecs, industrial_btu
 
-    @staticmethod
-    def clean_industrial_data(raw_data, table_3_1=False, sic=False):
+    def set_n_naics_digits(self, table):
+        table = table[table['NAICS'] != 'Total']
+
+        table['NAICS'] = \
+            table['NAICS'].astype(str).str[:self.naics_digits]
+
+        table = table[(table['NAICS'] != 'nan') & (table['NAICS'] != 'RSE')]
+
+        table['NAICS'] = table['NAICS'].astype(int)
+
+        cols = [i for i in table.columns if i not in ['Year', 'region', 'NAICS']]
+        for col in cols:
+            table[col] = pd.to_numeric(table[col])
+
+        table = \
+            table.groupby(by=['Year', 'region', 'NAICS']).sum()
+
+        table = table.reset_index()
+        return table
+
+    def clean_industrial_data(self, raw_data, table_3_1=False, sic=False):
         """[summary]
 
         Args:
@@ -367,8 +397,26 @@ class Manufacturing:
             raw_data['Subsector and Industry'])
         raw_data = raw_data.set_index(
             ['region', code, 'Subsector and Industry'])
+        raw_data = \
+            raw_data.applymap(
+                lambda x: x.strip() if isinstance(x, str) else x)
         raw_data = raw_data.replace({'*': 0.25, 'Q': np.nan,
                                      'D': np.nan, 'W': np.nan})
+
+        rename_dict = {'Electricity(b)': 'Net Electricity',
+                       'Fuel Oil': 'Residual Fuel Oil',
+                       'Fuel Oil(c)': 'Distillate Fuel Oil',
+                       'Gas(d)': 'Natural Gas',
+                       'natural gasoline)(e)': 'HGL (excluding natural gasoline)',
+                       'and Breeze': 'Coke Coal and Breeze',
+                       'Oven Gases': 'Blast Furnace/Coke Oven Gases',
+                        'Gas': 'Waste Gas',
+                        'Coke': 'Petroleum Coke',
+                        'Black Liquor': 'Pulping Liquor or Black Liquor',
+                        'Bark': 'Wood Chips, Bark',
+                        'Materials': 'Waste Oils/Tars and Waste Materials'}
+        raw_data = raw_data.rename(columns=rename_dict)
+
         return raw_data
 
     @staticmethod
@@ -385,6 +433,9 @@ class Manufacturing:
         cw = pd.read_excel(f'{data_dir}1987_SIC_to_1997_NAICS.xlsx')
         cw = cw.astype(int, errors='ignore')
         cw = cw[['SIC', '1997 NAICS']]
+        cw = cw.drop_duplicates()
+        cw['SIC Count'] = cw.groupby('SIC')['SIC'].transform('count')
+        cw['SIC Allocation Ratio'] = cw['SIC Count'].apply(lambda x: 1/x)
         print('cw:\n', cw)
         return cw
 
@@ -396,22 +447,19 @@ class Manufacturing:
            mecs_fuel [type]: [description]
         """
         mecs = self.mecs_data_by_year()
-        mecs_3_1 = mecs['NAICS']['3_1'][['Year',
-                                         'region',
-                                         'NAICS',
-                                         'Subsector and Industry',
-                                         'Net Electricity(b) (million kWh)']]
-        mecs_3_2 = mecs['NAICS']['3_2'][['Year',
-                                         'region',
-                                         'NAICS',
-                                         'Subsector and Industry',
-                                         'Total',
-                                         'Net Electricity(b)']]
+        mecs_3_1 = mecs['3_1'][['Year',
+                                'region',
+                                'NAICS',
+                                'Net Electricity(b) (million kWh)']]
+        mecs_3_2 = mecs['3_2'][['Year',
+                                'region',
+                                'NAICS',
+                                'Total',
+                                'Net Electricity(b)']]
         historical_mecs_31_32 = mecs_3_1.merge(mecs_3_2,
                                                on=['Year',
                                                    'region',
-                                                   'NAICS',
-                                                   'Subsector and Industry'],
+                                                   'NAICS'],
                                                how='outer')
         mecs_fuel = mecs_3_2.copy()
         mecs_fuel['Fuel'] = \
@@ -419,27 +467,38 @@ class Manufacturing:
         mecs_fuel = mecs_fuel.drop(['Total', 'Net Electricity(b)'], axis=1)
         return historical_mecs_31_32, mecs_fuel
 
-    @staticmethod
-    def naics_to_sic(sic_data, cw):
+    def naics_to_sic(self, sic_data, cw):
         """[summary]
 
         Args:
             sic_data ([type]): [description]
             cw ([type]): [description]
-        """        
+        """
         sic_data = sic_data[~sic_data['SIC'].isnull()]
         sic_data = sic_data[sic_data['SIC'].str.isnumeric()]
         sic_data['SIC'] = sic_data['SIC'].astype(int)
-        # sic_data = sic_data[~isinstance(sic_data['SIC'], str)]
-        # sic_data = dic_data.drop('RSE Column Factors:', axis=0)
-        print("sic_data['SIC']:\n", sic_data['SIC'])
-        print("cw['SIC']:\n", cw['SIC'])
-        sic_data = sic_data.merge(cw, on='SIC', how='left')
-        print('sic_data:\n', sic_data)
-        # sic_data = sic_data.drop('SIC', axis=1)
+        cw = cw[pd.notna(cw['1997 NAICS'])]
+
+        cw['1997 NAICS'] = cw['1997 NAICS'].astype(int)
+
+        sic_data = sic_data.merge(cw, on='SIC', how='inner')
+
         sic_data = sic_data.rename(columns={'1997 NAICS': 'NAICS'})
-        print('sic_data rename:\n', sic_data)
-        pass
+        sic_data = \
+            sic_data.drop(['SIC', 'Subsector and Industry'],
+                          axis=1, errors='ignore')
+        data_cols = [c for c in sic_data.columns if c not in ['Year', 'region',
+                                                              'NAICS', 'SIC Count',
+                                                              'SIC Allocation Ratio']]
+
+        sic_data.loc[:, data_cols] = \
+            sic_data[data_cols].multiply(sic_data['SIC Allocation Ratio'], axis='index')
+        sic_data = sic_data.drop(['SIC Count', 'SIC Allocation Ratio'], axis=1)
+        sic_data['1st NAICS'] = sic_data['NAICS'].astype(str).str[:1]
+        sic_data = sic_data[sic_data['1st NAICS'] == '3']
+        sic_data = sic_data.drop('1st NAICS', axis=1)
+        print('sic_data:\n', sic_data)
+        return sic_data
 
     # def industrial_sector_data(self):
     #     mecs_3_1 = pd.read_excel('https://www.eia.gov/consumption/manufacturing/data/2018/xls/Table3_1.xlsx', skiprows=9, index_col=0).dropna(axis=0, how='all') # By Manufacturing Industry and Region (physical units)
@@ -482,13 +541,13 @@ class Manufacturing:
 
     #     return industrial_btu
 
-    def industrial_sector_energy(self):
-        """TODO: do further processing to bridge Btu energy data with
-        physical units used for emissions factors
-        """
-        industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
-        industrial_renamed = self.mecs_epa_mapping(industrial_data_btu)
-        return industrial_renamed
+    # def industrial_sector_energy(self):
+    #     """TODO: do further processing to bridge Btu energy data with
+    #     physical units used for emissions factors
+    #     """
+    #     industrial_data_btu = self.industrial_sector_data() # This is not in physical units!!
+    #     industrial_renamed = self.mecs_epa_mapping(industrial_data_btu)
+    #     return industrial_renamed
 
     def manufacturing_prices(self):
         """Call ASM API method from Asm class in get_census_data.py
@@ -543,15 +602,18 @@ class Manufacturing:
         """
 
         mecs_data, __ = self.mecs_data_by_year()
-        mecs42_df = mecs_data['NAICS']['4_2']
+        mecs42_df = mecs_data['4_2']
         print('mecs42_df:\n', mecs42_df)
         print('mecs42_df cols', mecs42_df.columns)
         print("mecs42_df['region].unique()", mecs42_df['region'].unique())
         mecs42_df = mecs42_df[(mecs42_df['region'] == region) 
                               & ~(mecs42_df['NAICS'] == 'RSE Column Factors:')]
-        mecs42_df = mecs42_df.set_index(['region', 'NAICS', 'Subsector and Industry', 'Year'])
+        mecs42_df = mecs42_df.drop('region', axis=1)
+        mecs42_df = mecs42_df.set_index(['NAICS', 'Year'])
+        print('mecs42_df:\n', mecs42_df)
+
         quantity_shares = df_utils().calculate_shares(mecs42_df,
-                                                    total_label=['Total'])
+                                                      total_label='Total')
         quantity_shares = quantity_shares.reset_index()
          
         rename_dict = {'Electricity(b)': 'Electricity',
@@ -577,17 +639,23 @@ class Manufacturing:
 
         Returns:
             mecs_data [DataFrame]: [description]
-        """        
+        """
         if 'Year' not in mecs_data.columns:
             mecs_data = mecs_data.reset_index()
-        mecs_data = mecs_data.pivot(index='Year', columns='NAICS', 
+        print('mecs_data:\n', mecs_data)
+        mecs_data = mecs_data.pivot(index='Year',
+                                    columns='NAICS',
                                     values=col_name)
+        print('mecs_data:\n', mecs_data)
+
         if reindex is not None:
             mecs_data = mecs_data.reindex(reindex)
         for c in mecs_data.columns:
-            mecs_data = standard_interpolation(mecs_data, name_to_interp=c,
-                                               axis=1)  # from mixed sources
-        
+            mecs_data = \
+                standard_interpolation(mecs_data,
+                                       name_to_interp=c,
+                                       axis=1)  # from mixed sources
+
         mecs_data = pd.melt(mecs_data.reset_index(), id_vars='Year',
                             var_name='NAICS', value_name=col_name)
         return mecs_data
@@ -604,19 +672,20 @@ class Manufacturing:
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual',
                       'LPG', 'Coke', 'Other', 'HGL', 'Electricity']               
 
-        mecs_data_qty_shares = mecs_data_qty_shares.reset_index()
         fuel_quanity_shares = []
         # interpolate mecs_data_qty_shares data (has 3 dimensions: fuel type, year, naics)
+        print('mecs_data_qty_shares:\n', mecs_data_qty_shares)
         for fuel_type in fuel_types:
             if fuel_type in mecs_data_qty_shares.columns:
                 fuel_type_data = []
                 fuel_df = mecs_data_qty_shares[['Year', 'NAICS', fuel_type]]
                 for n in fuel_df['NAICS'].unique():
                     fuel_naics = fuel_df[fuel_df['NAICS'] == n]
+                    print('fuel_naics:\n', fuel_naics)
                     fuel_naics = \
                         self.interpolate_mecs(
                             fuel_naics,
-                            fuel_type, 
+                            fuel_type,
                             reindex=mecs_years_prices_and_interpolations['Year'].unique())
                     fuel_type_data.append(fuel_naics)
                 

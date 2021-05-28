@@ -95,6 +95,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         if isinstance(data_dict, dict):
             print('data_dict keys:', data_dict.keys())
             activity = data_dict['activity']
+            activity = self.electric_epa_mapping(activity)
             energy = data_dict['energy']['primary']
             print('energy_:\n', energy)
         else:
@@ -113,8 +114,8 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
 
         d_emissions, d_energy = \
             self.calculate_emissions(energy,
-                                        emissions_type='CO2 Factor',
-                                        datasource='eia_elec')
+                                     emissions_type='CO2 Factor',
+                                     datasource='eia_elec')
         print('d_emissions:\n', d_emissions)
         print('d_energy:\n', d_energy)
 
@@ -133,50 +134,63 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         """
 
         elec_gen_total = \
-            self.elec_data['Elec Generation Total']
+            self.elec_data
 
         all_data_dict = dict()
-        for sub, sub_dict in self.sub_categories_list['Elec Generation Total'].items(): # electric power sector, all_chp
-            if isinstance(sub_dict, dict):
-                for gen_type, gen_data in sub_dict.items(): ## elec only, commercial, industrial
-                    gen_dict = dict()
-                    if isinstance(gen_data, dict):
-                        for fuel_category, category_data in gen_data.items(): # Fossil fuels, nuclear etc
-                            category_dict = dict()
-                            if isinstance(category_data, dict):
-                                type_dict = dict()
-                                for fuel_type, type_data in category_data.items(): # wood, waste, etc
-                                    if isinstance(type_data, dict):
-                                        raise TypeError('Type data should be None')
-                                    elif type_data is None:
-                                        data = elec_gen_total[sub][gen_type][fuel_category][fuel_type]
-                                        data = self.process_e_data(data)
-                                    type_dict[fuel_type] = data
-                                category_dict[fuel_category] = type_dict
-                            elif category_data is None:
-                                data = elec_gen_total[sub][gen_type][fuel_category]
-                                data = self.process_e_data(data)
-                                category_dict[fuel_category] = data
-                        gen_dict[gen_type] = category_dict
-                    elif gen_data is None:
-                        data = elec_gen_total[sub][gen_type]
-                        data = self.process_e_data(data)
-                        gen_dict[gen_type] = data
+        print("self.sub_categories_list keys:", self.sub_categories_list.keys())
+        for sub, sub_dict in self.sub_categories_list.items(): # electric power sector, all_chp
+            print('sub:', sub)
+            print('sub_dict:', sub_dict)
+            sub_data = dict()
+            for gen_cat, gen_cat_dict in sub_dict.items():
+                if isinstance(gen_cat_dict, dict):
+                    for gen_type, gen_data in gen_cat_dict.items(): ## elec only, commercial, industrial
+                        gen_dict = dict()
+                        if isinstance(gen_data, dict):
+                            for fuel_category, category_data in gen_data.items(): # Fossil fuels, nuclear etc
+                                category_dict = dict()
+                                if isinstance(category_data, dict):
+                                    type_dict = dict()
+                                    for fuel_type, type_data in category_data.items(): # wood, waste, etc
+                                        if isinstance(type_data, dict):
+                                            raise TypeError('Type data should be None')
+                                        elif type_data is None:
+                                            data = elec_gen_total[sub][gen_cat][gen_type][fuel_category][fuel_type]
+                                            print('type_data:', type_data)
+                                            data = self.process_e_data(data)
+                                        type_dict[fuel_type] = data
+                                    category_dict[fuel_category] = type_dict
+                                elif category_data is None:
+                                    data = elec_gen_total[sub][gen_cat][gen_type][fuel_category]
+                                    print('category_data:', category_data)
 
-                all_data_dict[sub] = gen_dict
+                                    data = self.process_e_data(data)
+                                    category_dict[fuel_category] = data
+                            gen_dict[gen_type] = category_dict
+                        elif gen_data is None:
+                            data = elec_gen_total[sub][gen_cat][gen_type]
+                            print('gen_data:', gen_data)
 
-            elif sub_dict is None:
-                data = elec_gen_total[sub]
-                data = self.process_e_data(data)
-                all_data_dict[sub] = data
+                            data = self.process_e_data(data)
+                            gen_dict[gen_type] = data
 
-        emissions_input = {'Elec Generation Total': all_data_dict}
-        return emissions_input
+                    sub_data[gen_cat] = gen_dict
+
+                elif sub_dict is None:
+                    data = elec_gen_total[sub]
+                    data = self.process_e_data(data)
+                    sub_data[gen_cat] = data
+
+            all_data_dict[sub] = sub_data
+
+        return all_data_dict
 
     def main(self):
         emissions_data = self.electric_power_co2()
         print('emissions_data:\n', emissions_data)
-        exit()
+        print('emissions_data keys:\n', emissions_data.keys())
+        for k in emissions_data.keys():
+            print(f'emissions_data k keys for k {k}:\n', emissions_data[k].keys())
         return emissions_data
 
 
