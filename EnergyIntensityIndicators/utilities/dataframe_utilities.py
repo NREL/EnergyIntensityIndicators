@@ -85,6 +85,8 @@ class DFUtilities:
         with name of level of aggregation
         """
         df2 = df.copy()
+        print('df2:\n', df2)
+        print('type df2', type(df2))
         df_drop_str = df2.select_dtypes(exclude='object')
         if len(df_drop_str.columns.tolist()) > 1:
             df2[total_label] = df2.drop(
@@ -119,14 +121,23 @@ class DFUtilities:
         return shares
 
     @staticmethod
-    def merge_df_list(df_list):
+    def merge_df_list(df_list, keep_cols=False):
         """Complete outer merge on a list of dataframes, merging on left and
         right index of each
         """
-        merged_data = reduce(lambda df1, df2: df1.merge(df2, how='outer',
-                                                        left_index=True,
-                                                        right_index=True),
-                             df_list)
+        if keep_cols:
+            edit_df_list = []
+            for df in df_list:
+                df.index = df.index.astype(int)
+                df = df.reset_index()
+                edit_df_list.append(df)
+            merged_data = \
+                pd.concat(edit_df_list, axis=0).groupby('Year').sum(min_count=1)
+        else:
+            merged_data = reduce(lambda df1, df2: df1.merge(df2, how='outer',
+                                                            left_index=True,
+                                                            right_index=True),
+                                 df_list)
         return merged_data
 
 

@@ -1,8 +1,10 @@
 
+from pandas.io import gbq
 import sympy as sp
 import numpy as np
 import pandas as pd
 import yaml
+import itertools
 import matplotlib.pyplot as plt
 
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
@@ -297,229 +299,453 @@ class GeneralLMDI:
         """
         return len(set(iterator)) <= 1
 
-    def build_nest(self, data, select_categories, results_dict,
-                   previous_level, variable, level1_name, level_name=None):
-        """Process and organize raw data"""
-
-        if isinstance(select_categories, dict):
-            level_results = dict()
-            for key, value in select_categories.items():
-                print('select_categories:\n', select_categories)
-                print('data keys:\n', data.keys())
-
-                if isinstance(value, dict):
-                    yield from self.build_nest(data=data[key],
-                                               select_categories=value,
-                                               results_dict=results_dict,
-                                               previous_level=level_name,
-                                               variable=variable,
-                                               level1_name=level1_name,
-                                               level_name=key)
-                elif value is None:
-
-                    print('final_data:\n', data)
-                    print('final_data keys:\n', data.keys())
-                    try:
-                        final_data = data[variable]
-                    except KeyError:
-                        final_data = data[key][variable]
-
-                    print('final_data:\n', final_data)
-                    if isinstance(final_data, pd.DataFrame):
-                        level_results[key] = final_data
-                    else:
-                        raise ValueError(f'Final data is type {type(final_data)}')
-
-        if len(level_results) == 0:
-            yield results_dict
-        elif len(level_results) == 1:
-            level_data = list(level_results.values())[0]
-        elif len(level_results) > 1:
-            results_higher = \
-                [df_utils().create_total_column(df, k)[[k]]
-                 for k, df in level_results.items()]
-            level_data = \
-                df_utils().merge_df_list(results_higher)
-
-        results_dict[level_name] = level_data
-
-        yield results_dict
-
-    # def nesting(select_categories, results_dict):
-    #     for k, v in select_categories.items():
-    #         level_data = dict()
-    #         if isinstance(v, dict):
-    #             for l_, lower_data in v.items():
-    #                 if l_ in results_dict:
-    #                     level_data[l_] = results_dict[l_]
-    #                 else:
-    #                     self.nesting(v, results_dict)
-    #         if k in results_dict
-    def nesting(self, data, select_categories, results_dict,
-                previous_level, variable, level1_name, level_name=None):
-        """Process and organize raw data"""
-
-        if isinstance(select_categories, dict):
-            results_higher = []
-            for key, value in select_categories.items():
-                print('select_categories:\n', select_categories)
-                print('data keys:\n', data.keys())
-                if isinstance(value, dict):
-                    results_higher = \
-                        [df_utils().create_total_column(results_dict[k], k)[[k]]
-                            for k in value.keys() if k in results_dict]
-                    if len(results_higher) > 1:
-                        results_df_higher = \
-                            df_utils().merge_df_list(results_higher)
-                    elif len(results_dict) == 1:
-                        results_df_higher = results_higher.copy()
-                    else:
-                        results_df_higher = None
-
-                    if results_df_higher is not None:
-                        if previous_level in results_dict:
-                            existing_results = results_dict[previous_level]
-                            results_dict[previous_level] = \
-                                df_utils().merge_df_list([results_df_higher,
-                                                         existing_results])
-                        else:
-                            results_dict[previous_level] = results_df_higher
-                    try:
-                        data = data[key]
-                    except KeyError:
-                        continue
-
-                    yield from self.nesting(data=data,
-                                            select_categories=value,
-                                            results_dict=results_dict,
-                                            previous_level=level_name,
-                                            variable=variable,
-                                            level1_name=level1_name,
-                                            level_name=key)
-                elif value is None:
-                    yield results_dict
-
-    def group_lower(self, i, subscripts, results_dict, categories):
-
-        lower_names = \
-            list(self.subscripts[subscripts[i+1]]['names'].keys())
-        lower_names = \
-            [l_ for l_ in lower_names if l_ in categories.keys()]
-        lower = \
-            [df_utils().create_total_column(results_dict[l], l)[[l]]
-                for l in lower_names]
-        lower_df = df_utils().merge_df_list(lower)
-
-        return lower_df
-
-    def dict_iter(self, dict_, after):
-        for a in after:
-            if isinstance(dict_, dict):
-                if isinstance(dict_[a], dict):
-                    r = dict_[a]
-                    yield from self.dict_iter(dict_[a], a)
-                else:
-                    r = a
-            else:
-                r = a
-            yield r
-
-    def aggregate_data(self, raw_data, subscripts, variable, sub_categories):
-
-        results_dict = dict()
-        for results_dict in self.build_nest(data=raw_data,
-                                            select_categories=sub_categories,
-                                            results_dict=results_dict,
-                                            previous_level=self.sector,
-                                            variable=variable,
-                                            level1_name=self.total_label):
-            continue
-
-        print('results_dict:\n', results_dict)
-        subscripts_ = subscripts[:-1]
-        subscripts_.reverse()
-        lowest = subscripts[-1]
-        second_highest = subscripts[1]
-        highest = subscripts[0]
-        for i, s in enumerate(subscripts_):
-            names = list(self.subscripts[s]['names'].keys())
-            for n in names:
-                print('subcategories:\n', sub_categories)
-                print('name:\n', n)
-                after = subscripts_[i:]
-                after.reverse()
-                for cats in self.dict_iter(sub_categories, after):
-                    continue
-
-                categories = cats
-
-                if s == lowest:
-                    results_dict = results_dict
-                elif i > subscripts_.index(highest) and \
-                        i < subscripts_.index(lowest):
-                    lower_df = self.group_lower(i, subscripts_,
-                                                results_dict, categories)
-                    results_dict[n] = lower_df
-
-                elif s == highest:
-                    highest_level = \
-                        [df_utils().create_total_column(results_dict[n], n)[[n]]
-                            for n in names]
-                    highest_df = df_utils().merge_df_list(highest_level)
-                    results_dict[self.total_label] = highest_df
-
-        # final_input = {results_dict[level] for level in [self.total_label, second_highest]}
-        return results_dict[self.total_label]
-
     @staticmethod
-    def process_term(t, input_data):
+    def dict_iter(data_dict, path, variable):
+        data = data_dict.copy()
+        len_path_ = len(path)
+        second_to_last = len_path_ - 2
+        last = len_path_ - 1
+        print('path:', path)
+        for i, k in enumerate(path):
+            print('start data keys:', data.keys())
+            print('k', k)
+            print('data:\n', data)
+            print('variable:', variable)
+            index_down = False
+            if i == second_to_last:
+                if second_to_last == 0:
+                    data = data[k]
+                    index_down = True
+                if variable in data:
+                    data = data[variable]
+                if isinstance(data, pd.DataFrame):
+                    try:
+                        data = data[[path[i+1]]]
+                    except KeyError:
+                        return data
+                    return data
+                else:
+                    print('data not df:', type(data))
+            elif i == last:
+                if variable in data:
+                    data = data[variable]
+                if isinstance(data, pd.DataFrame):
+                    return data
 
-        try:
-            input_data['A'] = \
-                input_data['A'][['floorspace_bsf']].rename(
-                    columns={'floorspace_bsf': 'A'})
-        except KeyError:
-            pass
+            if variable in data:
+                data = data[variable]
+            if isinstance(data, dict):
+                if all([isinstance(v, pd.DataFrame)
+                        for v in data.values()]) and \
+                            variable not in data:
+                    return None
 
-        try:
-            input_data['WF'] = \
-                input_data['WF'][['fuels_weather_factor']].rename(
-                    columns={'fuels_weather_factor': 'WF'})
-        except KeyError:
-            pass
+            if not index_down:
+                data = data[k]
 
-        if '/' in t:
-            parts = t.split('/')
-            first_df = parts[0]
-            first_df = input_data[first_df]
-            numerator = first_df.copy()
+        return data
 
-            for i in range(1, len(parts)):
-                denominator = parts[i]
-                denominator = input_data[denominator]
-                numerator, denominator = \
-                    df_utils().ensure_same_indices(numerator, denominator)
-                print('numerator:\n', numerator)
-                print('denominator:\n', denominator)
-                numerator = numerator.divide(denominator.values, axis=0)
+    def get_paths(self, d, current=[]):
+        for a, b in d.items():
+            yield current+[a]
+            if isinstance(b, dict):
+                yield from self.get_paths(b, current+[a])
+            elif isinstance(b, list):
+                for i in b:
+                    yield from self.get_paths(i, current+[a])
 
-            f = numerator
+    def aggregate_data(self, raw_data, subscripts,
+                       variable, sub_categories,
+                       lhs_data=None, lhs_sub_names=None):
+
+        paths_dict = dict()
+        paths = list(self.get_paths(sub_categories))
+        print('paths:', paths)
+        paths_sorted = sorted(paths, key=len, reverse=True)
+        print('paths_sorted:', paths_sorted)
+        print('raw_data:\n', raw_data)
+        for p in paths_sorted:
+            # p = p[:-1]
+            print('p:', p)
+            base_data = self.dict_iter(raw_data, p, variable)
+            if base_data is None:
+                continue
+            if isinstance(base_data, pd.DataFrame):
+                p_str = '.'.join(p)
+                paths_dict[p_str] = base_data
+        print('paths_dict:\n', paths_dict)
+        # exit()
+        key_list = list(paths_dict.keys())
+        len_dict = {k: len(k.split('.')) for k in key_list}
+        key_list_split = [k.split('.') for k in key_list]
+        order_keys = sorted(key_list_split, key=len, reverse=True)
+        key_range = list(range(1, len(order_keys[0]) + 1))
+        len_dict = dict()
+        for j in key_range:
+            len_list = []
+            for l_ in order_keys:
+                if len(l_) == j:
+                    len_list.append('.'.join(l_))
+            len_dict[j] = len_list
+        print('len_dict:\n', len_list)
+
+        reverse_len = sorted(key_range, reverse=True)
+        for n in reverse_len:
+            n_lists = []
+            paths = len_dict[n]
+            if len(paths) > 1:
+                for i, p in enumerate(paths):
+                    p_list = p.split('.')
+                    path_list_short = p_list[:-1]
+                    p_short_data = [p]
+                    other_p = paths[:i] + paths[(i+1):]
+                    print('other_p:\n', other_p)
+                    for k, j in enumerate(other_p):
+                        print('j:', j)
+                        other_p_short = j.split('.')[:-1]
+                        if other_p_short == path_list_short:
+                            p_short_data.append(j)
+                    if n > 1:
+                        higher_paths = len_dict[n-1]
+                        if len(higher_paths) > 0:
+                            for h in higher_paths:
+                                h_list = h.split('.')
+                                h_short = h_list[:-1]
+                                if h_short == path_list_short:
+                                    p_short_data.append(h)
+
+                    if sorted(p_short_data) not in n_lists:
+                        n_lists.append(sorted(p_short_data))
+
+            level_data = self.group_data(n_lists, paths_dict,
+                                         variable, lhs_data,
+                                         lhs_sub_names)
+            print('level_data.keys()):\n', level_data.keys())
+            if n > 1:
+                higher_keys = len_dict[n-1]
+                print('higher_keys:\n', higher_keys)
+                for g in list(level_data.keys()):
+                    print('g:', g)
+                    higher_keys.append(g)
+                len_dict[n-1] = higher_keys
+
+            paths_dict.update(level_data)
+
+        return paths_dict
+
+    def group_data(self, path_list, data_dict, variable,
+                   lhs_data, lhs_sub_names):
+        if variable.startswith('C') or variable.startswith('E'):
+            keep_cols = True
         else:
-            f = input_data[t]
+            keep_cols = False
+        n_dict = dict()
+        for grouped_lists in path_list:
+            grouped_lists = list(set(grouped_lists))
+            all_level = []
+            base_path = grouped_lists[0].split('.')
+            print('base_path:', base_path)
+            print('self.total_label:', self.total_label)
+            if len(base_path) > 1:
+                level_path = base_path[:-1]  # [self.total_label] +
+                level_path = '.'.join(level_path)
+            elif len(base_path) == 1:
+                level_path = self.total_label
 
-        return f
+            for path in grouped_lists:
+                key = path.split('.')[-1]
+                data = data_dict[path]
+
+                if keep_cols:
+                    lower_level_data = data
+                else:
+                    if lhs_data is not None:
+                        lhs_df = lhs_data[path]
+                        print('lhs_df:\n', lhs_df)
+                        print('type lhs_df:\n', type(lhs_df))
+
+                        weights = \
+                            self.calculate_weights(lhs_df, key)
+                    else:
+                        raise ValueError('LHS data not provided ' +
+                                         'to group data method')
+                    subscript = 'i'
+                    lower_level_data = \
+                        self.aggregate_level_data(subscript,
+                                                  weights=weights,
+                                                  base_data=data,
+                                                  total_name=key)
+                all_level.append(lower_level_data)
+
+            level_data = \
+                df_utils().merge_df_list(all_level, keep_cols)
+            print('level_path:\n', level_path)
+            n_dict[level_path] = level_data
+        # exit()
+        return n_dict
+
+    def get_subscript_data(self, input_data, subscript_data, term_piece):
+        """From variable subscripts, select desired data
+
+        Args:
+            input_data (dict): dictionary of dataframes
+                               for selected variable. 
+                               keys are 'paths',
+                               values are dataframes
+            subscript_data (dict): dictionary with suscripts
+                                   as keys, lists of names as
+                                   values
+            term_piece (str):  e.g. A_i_k 
+
+        Returns:
+            term_df [pd.DataFrame]: df of e.g. A_i_k data with
+                                    i and k multiindex levels
+        """
+        subs = term_piece.split('_')  # list
+        base_var = subs.pop(0)
+        variable_data = input_data[base_var]
+
+        for key_path in variable_data.keys():
+            print('key_path:\n', key_path)
+            if not(key_path.startswith('total')):
+                print('not done')
+                new_label = f'total.{self.total_label}.{key_path}'
+                if key_path.startswith(self.total_label):
+                    print('not national')
+                    new_label = f'total.{key_path}'
+                    print('new_label:', new_label)
+                if key_path == 'South.Multi-Family':
+                    new_label = 'total.National.South.Multi-Family'
+                elif key_path == 'South.Single-Family':
+                    new_label = 'total.National.South.Single-Family'
+                elif key_path == 'Midwest.Manufactured-Homes':
+                    new_label = 'total.National.Midwest.Manufactured-Homes'
+                elif key_path == 'Midwest.Multi-Family':
+                    new_label = 'total.National.Midwest.Multi-Family'
+                variable_data[new_label] = variable_data.pop(key_path)
+
+        print('variable_data.keys()', variable_data.keys())
+
+        print('variable data:\n', variable_data)
+        print('variable data keys:\n', variable_data.keys())
+        print('base_var:', base_var)
+        print('subs:', subs)
+        subscripts = subscript_data[base_var]  # dictionary
+        base_path = 'total'
+        term_piece_dfs = []
+        subs_short = subs[:-1]
+
+        if len(subs) == 0:
+            if 'total' in variable_data.keys():
+                path = base_path
+                path_df = variable_data[path]
+                print('path_df subs 0:\n', path_df)
+                term_piece_dfs.append(path_df)
+
+        base_path = base_path + '.' + self.total_label
+        if len(subs) == 1:
+            path = base_path
+            path_df = variable_data[path]
+            print('path_df subs 1:\n', path_df)
+            levels = [[base_path], list(path_df.columns)]
+            labels = [[0]*path_df.shape[1]] + [list(range(len(path_df.columns)))]
+            midx = pd.MultiIndex(levels=levels, labels=labels)
+            path_df.columns = midx
+            print('path_df subs 1 multi:\n', path_df)
+
+            term_piece_dfs.append(path_df)
+
+        elif len(subs) > 1: # len(subs_short)
+            p_names = [subscripts[p] for p in subs_short]  # list of lists of names
+            print('p_names:', p_names)
+            combinations = list(itertools.product(*p_names))
+            print('combinations:', combinations)
+
+            for combo in combinations:
+                combo_list = base_path.split('.') + list(combo)
+                print('combo_list:', combo_list)
+                # path_n_1 = '.'.join(combo_list[:-1])
+                path = '.'.join(combo_list)
+                print('path:', path)
+                if path in variable_data: # path_n_1
+                    print('path in variable data')
+                    path_df = variable_data[path] # path_n_1
+                    print('path_df subs > 1:\n', path_df)
+
+                    # labels = []
+                    # for c in path_df.columns:
+                    #     idx = combo_list + [c]
+                    #     idx = tuple(idx)
+                    #     labels.append(idx)
+
+                    # midx = pd.MultiIndex.from_tuples(labels)
+                    # path_df.columns = midx
+                    cols = list(path_df.columns)
+                    levels = [[c]*len(cols) for c in combo_list] + cols   # combo should be combo_list
+                    print('levels', levels)
+                    # labels = [[0]*path_df.shape[1] for c in list(combo)]
+                    # labels = labels + [list(range(len(path_df.columns)))]
+                    # midx = pd.MultiIndex(levels=levels, codes=labels)
+                    midx = pd.MultiIndex.from_arrays(levels)
+                    path_df.columns = midx
+                    print('path_df subs > 1 multi:\n', path_df)
+
+                    term_piece_dfs.append(path_df)
+
+        term_df = pd.concat(term_piece_dfs, axis=0)
+        return term_df
+
+    def aggregate_level_data(self, subscript, weights, base_data, total_name):
+        """Aggregate data for variable and level (e.g. region)
+
+        Args:
+            subscript (str): e.g. i
+            weights (pd.DataFrame): LMDI weights
+            base_data (pd.DataFrame): data to aggregate
+            total_name (str): Name of aggregated data (column)
+
+        Returns:
+            total_col [pd.DataFrame]: n x 1 df of aggregated data
+                                     (sum or weighted average if
+                                     column data units vary)
+        """
+        units = self.subscripts[subscript]['names'].values()
+
+        if self.all_equal(units):
+            total_df = \
+                df_utils().create_total_column(
+                    base_data,
+                    total_label=total_name)
+            total_col = total_df[[total_name]]
+
+        else:
+            total_col = base_data.multiply(weights.values,
+                                           axis=1).sum(axis=1)
+
+        return total_col
+
+    def calculate_weights(self, lhs, name):
+        """Calculate LMDI weights
+
+        Args:
+            lhs (pd.DataFrame): Dataframe containing data for the left hand side
+                                variable of the decomposition equation
+            name (str): level name for use in aggregation (not important, dropped)
+
+        Returns:
+            [type]: [description]
+        """
+        lhs_total = df_utils().create_total_column(lhs,
+                                                   total_label=name)
+        lhs_share = df_utils().calculate_shares(lhs_total,
+                                                total_label=name)
+
+        if self.model == 'additive':
+            weights = self.additive_weights(lhs, lhs_share)
+        elif self.model == 'multiplicative':
+            weights = self.multiplicative_weights(lhs, lhs_share)
+
+        return weights
+
+    def process_terms(self, t, input_data, subscript_data, weights, name):
+        # try:
+        #     input_data['A'] = \
+        #         input_data['A'][['floorspace_bsf']].rename(
+        #             columns={'floorspace_bsf': 'A'})
+        # except KeyError:
+        #     pass
+
+        # try:
+        #     input_data['WF'] = \
+        #         input_data['WF'][['fuels_weather_factor']].rename(
+        #             columns={'fuels_weather_factor': 'WF'})
+        # except KeyError:
+        #     pass
+        terms = self.decomposition.split('*')
+        parts = [t.split('/') for t in terms]
+        parts = list(itertools.chain.from_iterable(parts))
+        parts = list(set(parts))
+
+        part_data_dict = {p: self.get_subscript_data(input_data,
+                                                     subscript_data,
+                                                     term_piece=p)
+                          for p in parts}
+        results = []
+        for t in terms:
+            if '/' in t:
+                parts = t.split('/')
+                first_part = parts[0]
+                first_df = part_data_dict[first_part]
+                numerator = first_df.copy()
+
+                for i in range(1, len(parts)):
+                    denominator_part = parts[i]
+                    denominator = part_data_dict[denominator_part]
+
+                    numerator, denominator = \
+                        df_utils().ensure_same_indices(numerator, denominator)
+
+                    numerator = numerator.divide(denominator.values, axis=0, )
+
+                f = numerator
+            else:
+                f = input_data[t]
+
+            if t in self.terms:
+
+                if f.shape[1] > 1:
+                    if f.shape[1] == weights.shape[1]:
+                        if name in f.columns:
+                            f = f.drop(name, axis=1, errors='ignore')
+                        component = \
+                            f.multiply(weights.values, axis=1).sum(axis=1)
+                    elif f.shape[1] > 1:
+                        if name in f.columns:
+                            f = f[[name]]
+                        else:
+                            f = df_utils().create_total_column(f, name)[[name]]
+                        component = f
+                else:
+                    component = f
+
+                if isinstance(component, pd.Series):
+                    component = component.to_frame(name=t)
+            else:
+                component = f
+
+            if component.shape[1] == 2 and name in component.columns:
+                component = component.drop(name, axis=1, errors='ignore')
+
+            results.append(component)
+
+        results = df_utils().merge_df_list(results)
+        results = results.drop('Commercial_Total', axis=1, errors='ignore')
+        results = results.rename(columns=self.term_labels)
+
+        return results
+
+    def nest_var_data(self, raw_data,
+                      v, sub_categories,
+                      lhs_data=None,
+                      lhs_sub_names=None):
+        subscripts = v.split('_')[1:]
+        v_data = \
+            self.aggregate_data(raw_data, subscripts,
+                                v, sub_categories,
+                                lhs_data, lhs_sub_names)
+
+        sub_names = {s: self.subscripts[s]['names'].keys()
+                     for s in subscripts}
+        return v_data, sub_names
 
     def general_expr(self, raw_data, sub_categories):
         """Decompose changes in LHS variable
-
         Args:
             raw_data (dict): Dictionary containing
                                dataframes for each variable
                                and a the total label
-
         Raises:
             ValueError: [description]
-
         Returns:
             results (dataframe): LMDI decomposition results
         """
@@ -532,59 +758,45 @@ class GeneralLMDI:
         self.test_expression(self.decomposition, self.LHS_var)
 
         print('raw_data.keys()', raw_data.keys())
-
         input_data = dict()
         all_subscripts = dict()
-        for v in self.variables:
-            subscripts = v.split('_')[1:]
-            if len(subscripts) > 1:
-                v_data = \
-                    self.aggregate_data(raw_data, subscripts,
-                                        v, sub_categories)
 
-                var_name = v.split('_')[0]
-                input_data[var_name] = v_data
+        vars_ = self.variables
+        lhs_idx = vars_.index(self.LHS_var)
+        lhs_ = vars_.pop(lhs_idx)
+        lhs_data, lhs_sub_names = \
+            self.nest_var_data(raw_data,
+                               lhs_, sub_categories)
 
-                sub_names = {s: self.subscripts[s]['names'].keys()
-                             for s in subscripts}
-                all_subscripts[var_name] = sub_names
-            else:
-                input_data.update({v: raw_data[v]})
-        print('input_data:\n', input_data.keys())
-        for k in input_data.keys():
-            print('input_data key keys:\n', input_data[k].keys())
+        for v in vars_:
+            var_name = v.split('_')[0]
+
+            v_data, sub_names = \
+                self.nest_var_data(raw_data,
+                                   v, sub_categories,
+                                   lhs_data, lhs_sub_names)
+
+            input_data[var_name] = v_data
+            all_subscripts[var_name] = sub_names
 
         name = self.total_label
+        lhs_base_var = self.LHS_var.split('_')[0]
+        input_data.update({lhs_base_var: lhs_data})
+        all_subscripts.update({lhs_base_var: lhs_sub_names})
 
-        try:
-            lhs = input_data[self.LHS_var.split('_')[0]][name]
+        print('lhs_data.keys():', lhs_data.keys())
+        print('name:', name)
+        lhs = lhs_data[name]
 
-        except KeyError:
-            # 'Commercial_Total', 'National', 'Industry''Northeast'
-            # print('input_data["National"].keys():', input_data["National"].keys())
-            # print('input_data["Northeast"].keys():', input_data["Northeast"].keys())
-            input_data = input_data[name]
-            lhs = input_data[self.LHS_var]
-            print("input_data[temp_label]:", input_data)
-
-        print('lhs:\n', lhs)
-        lhs_total = df_utils().create_total_column(lhs,
-                                                   total_label=name)
-        print('lhs_total:\n', lhs_total)
-        lhs_share = df_utils().calculate_shares(lhs_total,
-                                                total_label=name)
-        print('lhs_share:\n', lhs_share)
-
-        if self.model == 'additive':
-            weights = self.additive_weights(lhs, lhs_share)
-        elif self.model == 'multiplicative':
-            weights = self.multiplicative_weights(lhs, lhs_share)
+        weights = self.calculate_weights(lhs=lhs,
+                                         name=name)
 
         totals = list(self.totals.keys())
         sorted_totals = sorted(totals, key=len, reverse=True)
+
         for total in sorted_totals:
             cols = self.totals[total]
-            cols_subscript = cols.split('_')
+            cols_subscript = cols.split('_')[1:]
             total_subscript = total.split('_')
             subscripts = [s for s in cols_subscript
                           if s not in total_subscript]
@@ -595,87 +807,27 @@ class GeneralLMDI:
                 raise ValueError('Method not currently able to accomodate'
                                  'summing over multiple subscripts')
 
-            units = self.subscripts[subscript]['names'].values()
-            print('units:', units)
-            sub_dfs = []
-            sub_names = self.subscripts[subscript]['names'].keys()
-            for s in sub_names:
-                if self.all_equal(units):
-                    print('total:\n', total)
-                    total_base_var = total.split('_')[0]
-                    print('total_base_var:\n', total_base_var)
+            sub_names = list(self.subscripts[subscript]['names'].keys())
+            total_base_var = total.split('_')[0]
+            base_data = input_data[total_base_var][name][sub_names]
+            total_col = self.aggregate_level_data(subscript, weights,
+                                                  base_data=base_data,
+                                                  total_name=name)
 
-                    total_df = \
-                        df_utils().create_total_column(
-                            input_data[total_base_var][s],
-                            total_label=s)
-                    print('total_df:\n', total_df)
-                    total_col = total_df[[s]]
-                    print('total_col:\n', total_col)
+            var_data = input_data[total_base_var]
+            var_data.update({'total': total_col})
+            input_data[total_base_var] = var_data
 
-                else:
-                    total_col = input_data[s].multiply(weights.values,
-                                                        axis=1).sum(axis=1)
-                sub_dfs.append(total_col)
-            
-            total_data = df_utils().merge_df_list(sub_dfs)
-            input_data[total] = total_data
+        results = self.process_terms(t, input_data,
+                                     all_subscripts,
+                                     weights, name)
 
-        results = pd.DataFrame(index=lhs.index)
-        print('self.decomposition:', self.decomposition)
-
-        results = []
-        for t in self.decomposition.split('*'):
-
-            f = self.process_term(t, input_data)
-
-            if t in self.terms:
-                print('t in terms!')
-                print(f'f {t}:\n', f)
-                print('f cols:', f.columns)
-                print('weights cols:', weights.columns)
-                if f.shape[1] > 1:
-                    if f.shape[1] == weights.shape[1]:
-                        if name in f.columns:
-                            f = f.drop(name, axis=1, errors='ignore')
-                        component = f.multiply(weights.values, axis=1).sum(axis=1)
-                    elif f.shape[1] > 1:
-                        if name in f.columns:
-                            f = f[[name]]
-                        else:
-                            f = df_utils().create_total_column(f, name)[[name]]
-                        component = f
-                else:
-                    component = f
-
-                if isinstance(component, pd.Series):
-                    component = component.to_frame(name=t)
-                print(f'component {t}:\n', component)
-            else:
-                component = f
-                print(f'{t} not in terms')
-
-            print(f'component {t}:\n', component)
-            print('component type', type(component))
-            print('type t:', type(t))
-
-            if component.shape[1] == 2 and name in component.columns:
-                component = component.drop(name, axis=1, errors='ignore')
-                print(f'component {t}:\n', component)
-
-            results.append(component)
-
-        results = df_utils().merge_df_list(results)
-        results = results.drop('Commercial_Total', axis=1, errors='ignore')
-        results = results.rename(columns=self.term_labels)
-        print('results:\n', results)
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
         elif self.model == 'multiplicative':
             results = df_utils().calculate_log_changes(results)
             expression = self.decomposition_multiplicative(results)
 
-        print('expression:\n', expression)
         return expression
 
     def prepare_for_viz(self, results_df):
