@@ -547,9 +547,10 @@ class GeneralLMDI:
             path = base_path
             path_df = variable_data[path]
             print('path_df subs 1:\n', path_df)
-            levels = [[base_path], list(path_df.columns)]
-            labels = [[0]*path_df.shape[1]] + [list(range(len(path_df.columns)))]
-            midx = pd.MultiIndex(levels=levels, labels=labels)
+            combo_list = base_path.split('.')
+            cols = list(path_df.columns)
+            levels = [[c]*len(cols) for c in combo_list] + [cols]
+            midx = pd.MultiIndex.from_arrays(levels)
             path_df.columns = midx
             print('path_df subs 1 multi:\n', path_df)
 
@@ -567,9 +568,9 @@ class GeneralLMDI:
                 # path_n_1 = '.'.join(combo_list[:-1])
                 path = '.'.join(combo_list)
                 print('path:', path)
-                if path in variable_data: # path_n_1
+                if path in variable_data:  # path_n_1
                     print('path in variable data')
-                    path_df = variable_data[path] # path_n_1
+                    path_df = variable_data[path]  # path_n_1
                     print('path_df subs > 1:\n', path_df)
 
                     # labels = []
@@ -581,7 +582,7 @@ class GeneralLMDI:
                     # midx = pd.MultiIndex.from_tuples(labels)
                     # path_df.columns = midx
                     cols = list(path_df.columns)
-                    levels = [[c]*len(cols) for c in combo_list] + cols   # combo should be combo_list
+                    levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
                     print('levels', levels)
                     # labels = [[0]*path_df.shape[1] for c in list(combo)]
                     # labels = labels + [list(range(len(path_df.columns)))]
@@ -592,7 +593,9 @@ class GeneralLMDI:
 
                     term_piece_dfs.append(path_df)
 
-        term_df = pd.concat(term_piece_dfs, axis=0)
+        # term_df = pd.concat(term_piece_dfs, axis=0)
+        term_df = df_utils().merge_df_list(term_piece_dfs)
+        print('term_df:\n', term_df)
         return term_df
 
     def aggregate_level_data(self, subscript, weights, base_data, total_name):
@@ -672,51 +675,68 @@ class GeneralLMDI:
                           for p in parts}
         results = []
         for t in terms:
-            if '/' in t:
-                parts = t.split('/')
-                first_part = parts[0]
-                first_df = part_data_dict[first_part]
-                numerator = first_df.copy()
+            # if '/' in t:
+            parts = t.split('/')
+            first_part = parts[0]
+            first_df = part_data_dict[first_part]
+            numerator = first_df.copy()
+            print('numerator:\n', numerator)
 
-                for i in range(1, len(parts)):
-                    denominator_part = parts[i]
-                    denominator = part_data_dict[denominator_part]
+            for i in range(1, len(parts)):
+                denominator_part = parts[i]
+                denominator = part_data_dict[denominator_part]
+                print('denominator:\n', denominator)
 
-                    numerator, denominator = \
-                        df_utils().ensure_same_indices(numerator, denominator)
+                numerator, denominator = \
+                    df_utils().ensure_same_indices(numerator, denominator)
+                numerator_levels = numerator.columns.nlevels
+                print('numerator_levels', numerator_levels)
+                denominator_levels = denominator.columns.nlevels
+                print('denominator_levels', denominator_levels)
 
-                    numerator = numerator.divide(denominator.values, axis=0, )
-
-                f = numerator
-            else:
-                f = input_data[t]
-
-            if t in self.terms:
-
-                if f.shape[1] > 1:
-                    if f.shape[1] == weights.shape[1]:
-                        if name in f.columns:
-                            f = f.drop(name, axis=1, errors='ignore')
-                        component = \
-                            f.multiply(weights.values, axis=1).sum(axis=1)
-                    elif f.shape[1] > 1:
-                        if name in f.columns:
-                            f = f[[name]]
-                        else:
-                            f = df_utils().create_total_column(f, name)[[name]]
-                        component = f
+                if numerator_levels >= denominator_levels:
+                    level_count = denominator_levels
                 else:
-                    component = f
+                    level_count = numerator_levels
+                
+                print('level_count', level_count)
+                numerator = numerator.divide(denominator.values, axis=0, level=level_count)
+                print('divided:\n', numerator)
 
-                if isinstance(component, pd.Series):
-                    component = component.to_frame(name=t)
+            f = numerator.copy()
+            # else:
+                # f = input_data[t]
+            print('f:\n', f)
+            f_levels = f.columns.nlevels
+            print('f_levels', f_levels)
+
+            if f.shape[1] > 1:
+                if f.shape[1] == weights.shape[1]:
+                    # if name in f.columns:
+                    #     f = f.drop(name, axis=1, errors='ignore')
+                    component = \
+                        f.multiply(weights.values, axis=1).sum(axis=1)
+                elif f.shape[1] > 1:
+
+                    component = f.groupby(level=1, axis=0).sum(axis=1)
+                    # if name in f.columns:
+                    #     f = f[[name]]
+                    # else:
+                    #     f = df_utils().create_total_column(f, name)[[name]]
+                    # component = f
             else:
                 component = f
 
-            if component.shape[1] == 2 and name in component.columns:
-                component = component.drop(name, axis=1, errors='ignore')
+            if isinstance(component, pd.Series):
+                component = component.to_frame(name=t)
+        else:
+            component = f
 
-            results.append(component)
+        print('component:\n', component)
+        if component.shape[1] == 2 and name in component.columns:
+            component = component.drop(name, axis=1, errors='ignore')
+
+        results.append(component)
 
         results = df_utils().merge_df_list(results)
         results = results.drop('Commercial_Total', axis=1, errors='ignore')
