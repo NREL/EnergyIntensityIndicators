@@ -1,5 +1,4 @@
 
-from pandas.io import gbq
 import sympy as sp
 import numpy as np
 import pandas as pd
@@ -300,52 +299,41 @@ class GeneralLMDI:
         return len(set(iterator)) <= 1
 
     @staticmethod
-    def dict_iter(data_dict, path, variable):
+    def dict_iter(data_dict, path):
+        """[summary]
+
+        Args:
+            data_dict (dict): raw data (all sector) containing
+                              with nesting matching that of the
+                              sub_categories dict up to (and sometimes
+                              including) the innermost dictionary
+                              (which then contains variable specific
+                              keys and data)
+
+            path (list): "path" (of keys) to dataframes in the data_dict
+            variable (str): Desired data variable e.g. A_i_k
+
+        Returns:
+            data [pd.DataFrame]: Data at the end of the path for variable
+        """
         data = data_dict.copy()
-        len_path_ = len(path)
-        second_to_last = len_path_ - 2
-        last = len_path_ - 1
-        print('path:', path)
-        for i, k in enumerate(path):
-            print('start data keys:', data.keys())
-            print('k', k)
-            print('data:\n', data)
-            print('variable:', variable)
-            index_down = False
-            if i == second_to_last:
-                if second_to_last == 0:
-                    data = data[k]
-                    index_down = True
-                if variable in data:
-                    data = data[variable]
-                if isinstance(data, pd.DataFrame):
-                    try:
-                        data = data[[path[i+1]]]
-                    except KeyError:
-                        return data
-                    return data
-                else:
-                    print('data not df:', type(data))
-            elif i == last:
-                if variable in data:
-                    data = data[variable]
-                if isinstance(data, pd.DataFrame):
-                    return data
-
-            if variable in data:
-                data = data[variable]
-            if isinstance(data, dict):
-                if all([isinstance(v, pd.DataFrame)
-                        for v in data.values()]) and \
-                            variable not in data:
-                    return None
-
-            if not index_down:
-                data = data[k]
-
+        for k in path:
+            data = data[k]
         return data
 
     def get_paths(self, d, current=[]):
+        """Get list of 'paths' to all endpoints in dictionary
+
+        Args:
+            d (dict): Nested dictionary describing relationships
+                      between all levels of aggregation
+            current (list, optional): List containing path lists.
+                                      Defaults to [].
+
+        Yields:
+            current [list]: List of lists (each inner list containing
+                            a path)
+        """
         for a, b in d.items():
             yield current+[a]
             if isinstance(b, dict):
@@ -357,24 +345,89 @@ class GeneralLMDI:
     def aggregate_data(self, raw_data, subscripts,
                        variable, sub_categories,
                        lhs_data=None, lhs_sub_names=None):
+        """[summary]
 
+        Args:
+            raw_data (dict): Nested dictionary containing variable
+                             keys and dataframes values in innermost
+                             dictionary values. Outer nesting should match
+                             sub_categories nesting.
+            subscripts (list): Subscripts assigned to variable e.g. [i, k]
+            variable (str): variable (datatype) e.g. A_i_k
+            sub_categories (dict): Nested dictionary describing relationships
+                                   between levels of aggregation in data
+            lhs_data (dict, optional): Dictionary of dataframes of left hand side
+                                       variable keys are 'paths'. Defaults to None.
+            lhs_sub_names (dict, optional): keys are subscripts associated with the
+                                            LHS variable, values are lists of (str)
+                                            names associated with the subscript.
+                                            Defaults to None.
+
+        Returns:
+            paths_dict (dict): Dictionary of variable data with paths as keys
+                               and variable+path DataFrame as values
+        """
         paths_dict = dict()
         paths = list(self.get_paths(sub_categories))
         print('paths:', paths)
         paths_sorted = sorted(paths, key=len, reverse=True)
         print('paths_sorted:', paths_sorted)
+
+        raw_data_paths = list(self.get_paths(raw_data))
+        print('raw_data_paths paths:', raw_data_paths)
+        raw_data_paths_sorted = sorted(raw_data_paths, key=len, reverse=True)
+        print('raw_data_paths_sorted paths:', raw_data_paths_sorted)
+        # print('raw_data:\n', raw_data)
+        print('variable:', variable)
+
+        raw_data_paths_sorted_short = [p[:-1] for p in raw_data_paths_sorted]
+        print('raw_data_paths_sorted_short:', raw_data_paths_sorted_short)
+        print('\n \n \n')
+        missing_paths_raw = [p for p in paths_sorted if p not in raw_data_paths_sorted_short]
+        print('missing_paths_raw:\n', missing_paths_raw)
+        # if len(missing_paths_raw) > 0:
+        #     raise ValueError(f'keys {missing_paths_raw} not in raw_data')
+        missing_paths_paths = [p for p in raw_data_paths_sorted_short if p not in paths_sorted]
+        print('missing_paths_paths:\n', missing_paths_paths)
+
         print('raw_data:\n', raw_data)
-        for p in paths_sorted:
-            # p = p[:-1]
+        raw_data_paths_sorted = \
+            [p for p in raw_data_paths_sorted if p[-1] == variable]
+        print('raw_data_paths_sorted paths:', raw_data_paths_sorted)
+
+        for p in raw_data_paths_sorted:
             print('p:', p)
-            base_data = self.dict_iter(raw_data, p, variable)
+            base_data = self.dict_iter(raw_data, p)
+            print('base_data:\n', base_data)
+            if len(p) == 1:
+                p = [self.total_label]
+            elif len(p) > 1:
+                p = p[:-1]
             if base_data is None:
                 continue
             if isinstance(base_data, pd.DataFrame):
-                p_str = '.'.join(p)
-                paths_dict[p_str] = base_data
+                sub_dict = dict()
+                if base_data.shape[1] > 1:
+                    for c in base_data.columns:
+                        sub_data = base_data[[c]]
+                        path = p + [c]
+                        if path in paths_sorted:
+                            p_str = '.'.join(path)
+                            sub_dict[p_str] = sub_data
+                        else:
+                            p_str = '.'.join(p)
+                            paths_dict[p_str] = base_data
+
+                    paths_dict.update(sub_dict)
+                else:
+                    p_str = '.'.join(p)
+                    paths_dict[p_str] = base_data
+            else:
+                raise ValueError('base data is type', type(base_data))
         print('paths_dict:\n', paths_dict)
-        # exit()
+        print('paths_dict keys:\n', paths_dict.keys())
+        if len(paths_dict) == 0:
+            raise ValueError('paths dict is empty')
         key_list = list(paths_dict.keys())
         len_dict = {k: len(k.split('.')) for k in key_list}
         key_list_split = [k.split('.') for k in key_list]
@@ -391,6 +444,7 @@ class GeneralLMDI:
 
         reverse_len = sorted(key_range, reverse=True)
         for n in reverse_len:
+            print('n:', n)
             n_lists = []
             paths = len_dict[n]
             if len(paths) > 1:
@@ -435,6 +489,25 @@ class GeneralLMDI:
 
     def group_data(self, path_list, data_dict, variable,
                    lhs_data, lhs_sub_names):
+        """[summary]
+
+        Args:
+            path_list ([type]): [description]
+            data_dict ([type]): [description]
+            variable (str): variable (e.g. A_i_k)
+            lhs_data (dict, optional): Dictionary of dataframes of left hand side
+                               variable keys are 'paths'. Defaults to None.
+            lhs_sub_names (dict, optional): keys are subscripts associated with the
+                                            LHS variable, values are lists of (str)
+                                            names associated with the subscript.
+                                            Defaults to None.
+
+        Raises:
+            ValueError: Weighting data required LHS variable
+
+        Returns:
+            n_dict (dict): [description]
+        """
         if variable.startswith('C') or variable.startswith('E'):
             keep_cols = True
         else:
@@ -453,6 +526,7 @@ class GeneralLMDI:
                 level_path = self.total_label
 
             for path in grouped_lists:
+                print('path:', path)
                 key = path.split('.')[-1]
                 data = data_dict[path]
 
@@ -460,12 +534,15 @@ class GeneralLMDI:
                     lower_level_data = data
                 else:
                     if lhs_data is not None:
-                        lhs_df = lhs_data[path]
-                        print('lhs_df:\n', lhs_df)
-                        print('type lhs_df:\n', type(lhs_df))
+                        try:
+                            lhs_df = lhs_data[path]
+                            weights = \
+                                self.calculate_weights(lhs_df, key)
+                            print('lhs_df:\n', lhs_df)
+                            print('type lhs_df:\n', type(lhs_df))
+                        except KeyError:
+                            weights = None
 
-                        weights = \
-                            self.calculate_weights(lhs_df, key)
                     else:
                         raise ValueError('LHS data not provided ' +
                                          'to group data method')
@@ -476,9 +553,12 @@ class GeneralLMDI:
                                                   base_data=data,
                                                   total_name=key)
                 all_level.append(lower_level_data)
-
-            level_data = \
-                df_utils().merge_df_list(all_level, keep_cols)
+            try:
+                level_data = \
+                    df_utils().merge_df_list(all_level, keep_cols)
+            except Exception as e:
+                print('all_level:\n', all_level)
+                raise e
             print('level_path:\n', level_path)
             n_dict[level_path] = level_data
         # exit()
@@ -541,6 +621,10 @@ class GeneralLMDI:
                 path_df = variable_data[path]
                 print('path_df subs 0:\n', path_df)
                 term_piece_dfs.append(path_df)
+            elif len(variable_data) == 1:
+                path = list(variable_data.keys())[0]
+                path_df = variable_data[path]
+                return path_df
 
         base_path = base_path + '.' + self.total_label
         if len(subs) == 1:
@@ -556,7 +640,7 @@ class GeneralLMDI:
 
             term_piece_dfs.append(path_df)
 
-        elif len(subs) > 1: # len(subs_short)
+        elif len(subs) > 1:  # len(subs_short)
             p_names = [subscripts[p] for p in subs_short]  # list of lists of names
             print('p_names:', p_names)
             combinations = list(itertools.product(*p_names))
@@ -622,9 +706,21 @@ class GeneralLMDI:
             total_col = total_df[[total_name]]
 
         else:
-            total_col = base_data.multiply(weights.values,
-                                           axis=1).sum(axis=1)
-
+            if weights is None:
+                raise ValueError('Weights not available at ' +
+                                 'level of aggregation')
+            try:
+                base_data, weights = \
+                    df_utils().ensure_same_indices(base_data, weights)
+                print('base_data:\n', base_data)
+                total_col = base_data.multiply(weights.values,
+                                            axis=1).sum(axis=1)
+            except ValueError:
+                total_df = \
+                    df_utils().create_total_column(
+                        base_data,
+                        total_label=total_name)
+                total_col = total_df[[total_name]]
         return total_col
 
     def calculate_weights(self, lhs, name):
@@ -636,7 +732,7 @@ class GeneralLMDI:
             name (str): level name for use in aggregation (not important, dropped)
 
         Returns:
-            [type]: [description]
+            weights (pd.DataFrame): Log-Mean Divisia Weights (normalized)
         """
         lhs_total = df_utils().create_total_column(lhs,
                                                    total_label=name)
@@ -650,20 +746,18 @@ class GeneralLMDI:
 
         return weights
 
-    def process_terms(self, t, input_data, subscript_data, weights, name):
-        # try:
-        #     input_data['A'] = \
-        #         input_data['A'][['floorspace_bsf']].rename(
-        #             columns={'floorspace_bsf': 'A'})
-        # except KeyError:
-        #     pass
+    def process_terms(self, input_data, subscript_data, weights, name):
+        """From level data, calculate terms and weight them.
 
-        # try:
-        #     input_data['WF'] = \
-        #         input_data['WF'][['fuels_weather_factor']].rename(
-        #             columns={'fuels_weather_factor': 'WF'})
-        # except KeyError:
-        #     pass
+        Args:
+            input_data (dict): [description]
+            subscript_data (dict): [description]
+            weights (pd.DataFrame): [description]
+            name (level_name): [description]
+
+        Returns:
+            results (pd.DataFrame): [description]
+        """
         terms = self.decomposition.split('*')
         parts = [t.split('/') for t in terms]
         parts = list(itertools.chain.from_iterable(parts))
@@ -691,18 +785,43 @@ class GeneralLMDI:
                     df_utils().ensure_same_indices(numerator, denominator)
                 numerator_levels = numerator.columns.nlevels
                 print('numerator_levels', numerator_levels)
-                denominator_levels = denominator.columns.nlevels
+                try:
+                    denominator_levels = denominator.columns.nlevels
+                except ValueError:
+                    denominator_levels = 0
                 print('denominator_levels', denominator_levels)
 
-                if numerator_levels >= denominator_levels:
+                if numerator_levels > denominator_levels:
                     level_count = denominator_levels
-                else:
+                    group_ = True
+                elif numerator_levels < denominator_levels:
                     level_count = numerator_levels
-                
-                print('level_count', level_count)
-                numerator = numerator.divide(denominator.values, axis=0, level=level_count)
-                print('divided:\n', numerator)
+                    group_ = True
+                elif numerator_levels == denominator_levels:
+                    level_count = numerator_levels
+                    group_ = False
 
+                shared_levels = list(range(level_count))
+
+                print('level_count', level_count)
+
+                print("grouped numerator:\n", numerator.groupby(level=shared_levels,
+                                              axis=1).sum())
+                numerator.to_csv('C:/Users/irabidea/Desktop/yamls/numerator.csv')
+                denominator.to_csv('C:/Users/irabidea/Desktop/yamls/denominator.csv')
+                if group_:
+                    numerator = numerator.groupby(level=shared_levels,
+                                                  axis=1).sum()
+                    print('numerator grouped:\n', numerator)
+                try:
+                    numerator = numerator.divide(denominator, axis=1)
+                except ValueError:
+                    den = denominator.groupby(level=shared_levels,
+                                              axis=1).sum()
+                    numerator = numerator.divide(den, axis=1)
+                print('divided:\n', numerator)
+                if t == 'E_i_j/E_i':
+                    exit()
             f = numerator.copy()
             # else:
                 # f = input_data[t]
@@ -716,27 +835,36 @@ class GeneralLMDI:
                     #     f = f.drop(name, axis=1, errors='ignore')
                     component = \
                         f.multiply(weights.values, axis=1).sum(axis=1)
-                elif f.shape[1] > 1:
-
-                    component = f.groupby(level=1, axis=0).sum(axis=1)
-                    # if name in f.columns:
-                    #     f = f[[name]]
-                    # else:
-                    #     f = df_utils().create_total_column(f, name)[[name]]
-                    # component = f
+                else:
+                    if f.shape[1] > 1:
+                        if isinstance(f.columns, pd.MultiIndex):
+                            try:
+                                if f_levels >= 2:
+                                    component = \
+                                        f.groupby(level=1, axis=1).sum(axis=1)
+                                elif f_levels == 1:
+                                    component = \
+                                        f.groupby(level=0, axis=1).sum(axis=1)
+                            except ValueError:
+                                raise ValueError('f failed to groupby:\n', f)
+                        else:
+                            if name in f.columns:
+                                f = f[[name]]
+                            else:
+                                f = df_utils().create_total_column(f, name)[[name]]
+                            component = f
             else:
                 component = f
 
             if isinstance(component, pd.Series):
                 component = component.to_frame(name=t)
-        else:
-            component = f
-
-        print('component:\n', component)
-        if component.shape[1] == 2 and name in component.columns:
-            component = component.drop(name, axis=1, errors='ignore')
-
-        results.append(component)
+ 
+            print('component:\n', component)
+            if component.shape[1] == 2 and name in component.columns:
+                component = component.drop(name, axis=1, errors='ignore')
+            component = component.rename(
+                columns={list(component.columns)[0]: t})
+            results.append(component)
 
         results = df_utils().merge_df_list(results)
         results = results.drop('Commercial_Total', axis=1, errors='ignore')
@@ -748,6 +876,32 @@ class GeneralLMDI:
                       v, sub_categories,
                       lhs_data=None,
                       lhs_sub_names=None):
+        """Collect data for each level of aggregation
+        given variable
+
+        Args:
+            raw_data (dict): Nested dictionary containing
+                             data for each variable in the
+                             inner-most dictionaries
+            v (str): variable (e.g. A_i_k)
+            sub_categories (dict): Nested dictionary describing
+                                   relationships between levels
+                                   of aggregation in data
+            lhs_data (dict, optional): Dictionary of dataframes of left hand side
+                                       variable keys are 'paths'. Defaults to None.
+            lhs_sub_names (dict, optional):  keys are subscripts associated with the
+                                            LHS variable, values are lists of (str)
+                                            names associated with the subscript.
+                                            Defaults to None.
+
+        Returns:
+            v_data (dict): Dictionary containing paths as keys and
+                           path+variable DataFrames as values
+            sub_names (dict): Keys are subscripts (e.g. 'i'), values
+                              are lists of name associated with the
+                              subscript (e.g. ['Northeast', 'West',
+                              'South', 'Midwest'])
+        """
         subscripts = v.split('_')[1:]
         v_data = \
             self.aggregate_data(raw_data, subscripts,
@@ -829,7 +983,7 @@ class GeneralLMDI:
 
             sub_names = list(self.subscripts[subscript]['names'].keys())
             total_base_var = total.split('_')[0]
-            base_data = input_data[total_base_var][name][sub_names]
+            base_data = input_data[total_base_var][name]  #[sub_names]
             total_col = self.aggregate_level_data(subscript, weights,
                                                   base_data=base_data,
                                                   total_name=name)
@@ -838,9 +992,11 @@ class GeneralLMDI:
             var_data.update({'total': total_col})
             input_data[total_base_var] = var_data
 
-        results = self.process_terms(t, input_data,
+        results = self.process_terms(input_data,
                                      all_subscripts,
                                      weights, name)
+        print('results:\n', results)
+        exit()
 
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
@@ -920,6 +1076,8 @@ class GeneralLMDI:
                                for each variable defined in the YAML
         """
         results = self.general_expr(input_data, sub_categories)
+        print('results:\n', results)
+        exit()
         if self.model == 'multiplicative':
             self.spaghetti_plot(data=results)
 

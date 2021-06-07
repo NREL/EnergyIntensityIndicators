@@ -15,68 +15,94 @@ class ElectricityIndicators(CalculateLMDI):
                  base_year=1985):
         self.sub_categories_list = \
             {'Elec Generation Total':
+                    {'Elec Power Sector':
+                        {'Electricity Only':
+                            {'Fossil Fuels':
+                                {'Coal': None,
+                                'Petroleum': None,
+                                'Natural Gas': None,
+                                'Other Gasses': None},
+                            'Nuclear': None,
+                            'Hydroelectric': None,
+                            'Renewable':
+                                {'Wood': None,
+                                'Waste': None,
+                                'Geothermal': None,
+                                'Solar': None,
+                                'Wind': None}},
+                        'Combined Heat & Power':
+                            {'Fossil Fuels':
+                                {'Coal': None,
+                                 'Petroleum': None,
+                                 'Natural Gas': None,
+                                 'Other Gasses': None},
+                            'Renewable':
+                                {'Wood': None,
+                                'Waste': None},
+                            'Other': None}},
+                    'Commercial Sector':
+                        {'Combined Heat & Power':
+                            {'Fossil Fuels':
+                                {'Coal': None,
+                                 'Petroleum': None,
+                                 'Natural Gas': None,
+                                 'Other Gasses': None},
+                             'Hydroelectric': None,
+                             'Renewable':
+                                {'Wood': None,
+                                 'Waste': None},
+                             'Other': None}},
+                    'Industrial Sector':
+                        {'Combined Heat & Power':
+                            {'Fossil Fuels':
+                                {'Coal': None,
+                                 'Petroleum': None,
+                                 'Natural Gas': None,
+                                 'Other Gasses': None},
+                             'Hydroelectric': None,
+                             'Renewable':
+                                    {'Wood': None,
+                                     'Waste': None},
+                             'Other': None}}}}
+
+        self.chp_cats = \
+            {'All CHP':
                 {'Elec Power Sector':
-                    {'Electricity Only':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Nuclear': None,
-                         'Hydroelectric': None,
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None,
-                             'Geothermal': None,
-                             'Solar': None,
-                             'Wind': None}},
-                     'Combined Heat & Power':
-                        {'Fossil Fuels':
-                            {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Renewable':
-                            {'Wood': None,
-                             'Waste': None}}},
-                 'Commercial Sector': None,
-                 'Industrial Sector': None},
-             'All CHP':
-                {'Elec Power Sector':
                     {'Combined Heat & Power':
                         {'Fossil Fuels':
                             {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Renewable':
+                                'Petroleum': None,
+                                'Natural Gas': None,
+                                'Other Gasses': None},
+                            'Renewable':
                             {'Wood': None,
-                             'Waste': None},
-                         'Other': None}},
-                 'Commercial Sector':
+                                'Waste': None},
+                            'Other': None}},
+                'Commercial Sector':
                     {'Combined Heat & Power':
                         {'Fossil Fuels':
                             {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Hydroelectric': None,
-                         'Renewable':
+                                'Petroleum': None,
+                                'Natural Gas': None,
+                                'Other Gasses': None},
+                            'Hydroelectric': None,
+                            'Renewable':
                             {'Wood': None,
-                             'Waste': None},
-                         'Other': None}},
-                 'Industrial Sector':
+                                'Waste': None},
+                            'Other': None}},
+                'Industrial Sector':
                     {'Combined Heat & Power':
                         {'Fossil Fuels':
                             {'Coal': None,
-                             'Petroleum': None,
-                             'Natural Gas': None,
-                             'Other Gasses': None},
-                         'Hydroelectric': None,
-                         'Renewable':
+                                'Petroleum': None,
+                                'Natural Gas': None,
+                                'Other Gasses': None},
+                            'Hydroelectric': None,
+                            'Renewable':
                             {'Wood': None,
-                             'Waste': None},
-                         'Other': None}}}}
+                                'Waste': None},
+                            'Other': None}}}}
+    
         self.elec_power_eia = GetEIAData(sector='electricity')
         self.energy_types = ['primary']
         # Consumption of combustible fuels for electricity generation:
@@ -103,6 +129,70 @@ class ElectricityIndicators(CalculateLMDI):
                          output_directory=output_directory,
                          base_year=base_year,
                          end_year=end_year)
+
+    # @staticmethod
+    # def data():
+    #     data_dict = \
+    #         {'Elec Generation Total':
+    #                 {'Elec Power Sector':
+    #                     {'Electricity Only':
+    #                         {'Fossil Fuels':
+    #                             {'Coal': {'activity': '8.2b10 B * 0.001', 'energy': },
+    #                             'Petroleum': {'activity': '8.2b10 D * 0.001', 'energy': },
+    #                             'Natural Gas': {'activity': '8.2b10 F * 0.001', 'energy': },
+    #                             'Other Gasses': {'activity': '8.2c11 H * 0.001', 'energy': }},
+    #                         'Nuclear': {'energy': 'Table8.4b11 L * 0.001', 'activity': 'Table8.2b11 L * 0.001'},
+    #                         'Hydroelectric': {'energy': 'Table8.4b11 N * 0.001', 'activity': 'Table8.2b11 O * 0.001'},
+    #                         'Renewable':
+    #                             {'Wood': {'energy': 'Table 8.5c11 R * 0.001', 'activity': 'Table 8.2c11 R * 0.001'},
+    #                             'Waste': {'energy': 'Table 8.5c11 T * 0.001', 'activity': 'Table 8.2c11 T * 0.001'},
+    #                             'Geothermal': {'energy': 'Table 8.4b11 T * 0.001', 'activity': 'Table 8.2c11 V * 0.001'},
+    #                             'Solar': {'energy': 'Table 8.4b11 V * 0.001', 'activity': 'Table 8.2c11 X * 0.001'},
+    #                             'Wind': {'energy': 'Table 8.4b11 X * 0.001', 'activity': 'Table 8.2c11 Z * 0.001'}}},
+    #                     'Combined Heat & Power':
+    #                         {'Fossil Fuels':
+    #                             {'Coal': None,
+    #                              'Petroleum': None,
+    #                              'Natural Gas': None,
+    #                              'Other Gasses': None},
+    #                         'Renewable':
+    #                             {'Wood': None,
+    #                             'Waste': None},
+    #                         'Other': None}},
+    #                 'Commercial Sector':
+    #                     {'Combined Heat & Power':
+    #                         {'Fossil Fuels':
+    #                             {'Coal': None,
+    #                              'Petroleum': None,
+    #                              'Natural Gas': None,
+    #                              'Other Gasses': None},
+    #                          'Hydroelectric': None,
+    #                          'Renewable':
+    #                             {'Wood': None,
+    #                              'Waste': None},
+    #                          'Other': None},
+    #                 'Industrial Sector':
+    #                     {'Combined Heat & Power':
+    #                         {'Fossil Fuels':
+    #                             {'Coal': None,
+    #                              'Petroleum': None,
+    #                              'Natural Gas': None,
+    #                              'Other Gasses': None},
+    #                          'Hydroelectric': None,
+    #                          'Renewable':
+    #                                 {'Wood': None,
+    #                                  'Waste': None},
+    #                          'Other': None}}}}
+
+    #     sectors  = ['Elec Power Sector', 'Commercial Sector',
+    #                 'Industrial Sector']
+    #     chp_data_dict = dict()
+    #     for s in sector:
+    #         chp_sector_data = data_dict['Elec Generation Total'][s]['Combined Heat & Power']
+    #         chp_sector_data = {'Combined Heat & Power': chp_sector_data}
+    #         chp_data_dict[s] = chp_sector_data
+
+
     @staticmethod
     def get_eia_aer():
         """Prior to 2012, the data for the indicators were taken
@@ -401,6 +491,9 @@ class ElectricityIndicators(CalculateLMDI):
 
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column R
+        if wood_activity.empty:
+            print('industrial_sector_chp_renew')
+            exit()
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
 
         data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity}}
@@ -436,20 +529,25 @@ class ElectricityIndicators(CalculateLMDI):
     def industrial_sector_total(self):
         """Collect Industrial_Sector>Total data
         Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
-        """    
+        """
+        other_energy = self.Table84c[self.Table84c['Description'] == 'Other Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C11 column AB
+        other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
+        new_index = other_energy.index
+
         hydroelectric_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,N,AG', 
                                              skipfooter=16, skiprows=9, header=None, names=['Year', 'hydroelectric', 'sector'])
         hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001) # Table 8.4C11 column N               
         hydroelectric_energy.index = hydroelectric_energy.index.astype(int)
-
-        other_energy = self.Table84c[self.Table84c['Description'] == 'Other Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C11 column AB
-        other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
+        hydroelectric_energy = hydroelectric_energy.reindex(new_index)
+        hydroelectric_energy = hydroelectric_energy.interpolate(method='linear', axis=0)
 
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d11 Column P
-        other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,N,AG', skipfooter=16, 
+        other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,N,AH', skipfooter=16, 
                                        skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.2d11 Column AD
         other_activity = other_activity[other_activity['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001)                          
         other_activity.index = other_activity.index.astype(int)
+        other_activity = other_activity.reindex(new_index)
+        other_activity = other_activity.interpolate(method='linear', axis=0)
 
         data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity},
                      'Other': {'energy': {'primary': other_energy}, 'activity': other_activity}}
@@ -458,19 +556,32 @@ class ElectricityIndicators(CalculateLMDI):
     def comm_sector_chp_renew(self):
         """Collect Comm_Sector_CHP>Renewable data
         As is, these are the same sources as ind sector, but should be different part of columns? 
-        """    
-        wood_energy =  self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column P # TBtu
-        wood_energy = self.format_eii_table(wood_energy, factor=0.001, name='Wood')
-
-        waste_energy = self.Table84c[self.Table84c['Description'] == 'Other Gases Consumption for Electricity Generation, Industrial Sector'] # Table 8.4C column R # TBtu
-        waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
-
+        """  
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
-        wood_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,R,AG', skipfooter=16, 
+        new_index = waste_activity.index
+    
+        wood_energy =  pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,P,AG', 
+                                      skipfooter=16, skiprows=9, header=None, names=['Year', 'Wood', 'sector']) # Table 8.4C column P # TBtu
+        wood_energy = wood_energy[wood_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        wood_energy.index = wood_energy.index.astype(int)
+        wood_energy = wood_energy.reindex(new_index)
+        wood_energy = wood_energy.interpolate(method='linear', axis=0)
+
+        waste_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,R,AG', 
+                                      skipfooter=16, skiprows=9, header=None, names=['Year', 'Waste', 'sector']) # Table 8.4C column R # TBtu
+        waste_energy = waste_energy[waste_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        waste_energy.index = waste_energy.index.astype(int)
+        waste_energy = waste_energy.reindex(new_index)
+        waste_energy = waste_energy.interpolate(method='linear', axis=0)
+    
+        wood_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,R,AH', skipfooter=16, 
                                        skiprows=9, header=None, names=['Year', 'Wood', 'sector'])
+        print('wood_activity:\n', wood_activity)
         wood_activity = wood_activity[wood_activity['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
         wood_activity.index = wood_activity.index.astype(int)
-
+        wood_activity = wood_activity.reindex(new_index)
+        wood_activity = wood_activity.interpolate(method='linear', axis=0)
+    
         data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
                      'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity}}
         return data_dict
@@ -481,6 +592,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         coal_energy = self.Table84c[self.Table84c['Description'] == 'Coal Consumption for Electricity Generation, Commercial Sector'] # Table 8.4c column B # TBtu
         coal_energy = self.format_eii_table(coal_energy, factor=0.001, name='Coal')
+        new_index = coal_energy.index
 
         petroleum_energy = self.Table84c[self.Table84c['Description'] == 'Petroleum Consumption for Electricity Generation, Commercial Sector'] # Table 8.4c column D # TBtu
         petroleum_energy = self.format_eii_table(petroleum_energy, factor=0.001, name='Petroleum')
@@ -491,7 +603,9 @@ class ElectricityIndicators(CalculateLMDI):
         othgas_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,H,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other Gas', 'sector'])# Table 8.4c column H # TBtu
         othgas_energy = othgas_energy[othgas_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001) 
         othgas_energy.index = othgas_energy.index.astype(int)
-
+        othgas_energy = othgas_energy.reindex(new_index)
+        othgas_energy = othgas_energy.interpolate(method='linear', axis=0)
+    
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column F
@@ -499,6 +613,8 @@ class ElectricityIndicators(CalculateLMDI):
         othgas_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,H,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other Gas', 'sector']) # Table 8.2d column H
         othgas_activity = othgas_activity[othgas_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)             
         othgas_activity.index = othgas_activity.index.astype(int)
+        othgas_activity = othgas_activity.reindex(new_index)
+        othgas_activity = othgas_activity.interpolate(method='linear', axis=0)
 
         # Industrial and Commercial have same spreadsheet sources but different parts of the columns
         data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity}, 
@@ -507,7 +623,7 @@ class ElectricityIndicators(CalculateLMDI):
                      'Other Gasses': {'energy': {'primary': othgas_energy}, 'activity': othgas_activity}}
         return data_dict
 
-    def comm_sector_total(self):
+    def comm_sector_total(self, new_index):
         """Collect Comm_Sector>Total data
         Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
@@ -515,18 +631,26 @@ class ElectricityIndicators(CalculateLMDI):
         hydroelectric_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,N,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Hydroelectric', 'sector']) # Table 8.4C11 column N
         hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
         hydroelectric_energy.index = hydroelectric_energy.index.astype(int)
+        hydroelectric_energy = hydroelectric_energy.reindex(new_index)
+        hydroelectric_energy = hydroelectric_energy.interpolate(method='linear', axis=0)
 
         other_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,AB,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.4C11 column AB
         other_energy = other_energy[other_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
         other_energy.index = other_energy.index.astype(int)
+        other_energy = other_energy.reindex(new_index)
+        other_energy = other_energy.interpolate(method='linear', axis=0)
 
         hydroelectric_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,P,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Hydroelectric', 'sector']) # Table 8.2d11 Column P
         hydroelectric_activity = hydroelectric_activity[hydroelectric_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
         hydroelectric_activity.index = hydroelectric_activity.index.astype(int)
-
+        hydroelectric_activity = hydroelectric_activity.reindex(new_index)
+        hydroelectric_activity = hydroelectric_activity.interpolate(method='linear', axis=0)
+    
         other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,AD,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.2d11 Column AD
         other_activity = other_activity[other_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
         other_activity.index = other_activity.index.astype(int)
+        other_activity = other_activity.reindex(new_index)
+        other_activity = other_activity.interpolate(method='linear', axis=0)
 
         data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
                      'Other': {'energy': {'primary': other_energy}, 'activity': other_activity}}
@@ -543,6 +667,9 @@ class ElectricityIndicators(CalculateLMDI):
         waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column R
+        if wood_activity.empty:
+            print('elec_power_sector_chp_renew')
+            exit()
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column T
 
         data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
@@ -588,6 +715,9 @@ class ElectricityIndicators(CalculateLMDI):
         """
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDL1BUS.A', id_type='series').multiply(0.001)  # Table 8.3d I, 8.5C R
+        if wood_activity.empty:
+            print('electricity_only_renew')
+            exit()
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSL1BUS.A', id_type='series').multiply(0.001) # Table 8.3d J, 8.5C T
         geothermal_activity = self.elec_power_eia.eia_api(id_='TOTAL.GEEGBUS.A', id_type='series').multiply(0.001) # Table 8.4 T
         solar_activity = self.elec_power_eia.eia_api(id_='TOTAL.SOEGBUS.A', id_type='series').multiply(0.001)  # Table 8.4 V
@@ -653,36 +783,33 @@ class ElectricityIndicators(CalculateLMDI):
 
         comm_sector_chp_renew = self.comm_sector_chp_renew()
         comm_sector_chp_fossil = self.comm_sector_chp_fossil()
-        comm_sector_total = self.comm_sector_total()
+        new_index = comm_sector_chp_fossil['Coal']['activity'].index
+        comm_sector_total = self.comm_sector_total(new_index=new_index)
         comm_sector_total['Fossil Fuels'] = comm_sector_chp_fossil
         comm_sector_total['Renewable'] = comm_sector_chp_renew
 
         elec_power_sector_chp_renew = self.elec_power_sector_chp_renew()
         elec_power_sector_chp_fossil = self.elec_power_sector_chp_fossil()
         elec_power_sector_chp_total = self.elec_power_sector_chp_total()
-        elec_power_sector_chp_total['Fossil Fuels'] = elec_power_sector_chp_fossil
-        elec_power_sector_chp_total['Renewable'] = elec_power_sector_chp_renew
+        elec_power_sector_chp_total['Fossil Fuels'] = elec_power_sector_chp_fossil  # Coal, Petroleum, Natural Gas, Other Gasses
+        elec_power_sector_chp_total['Renewable'] = elec_power_sector_chp_renew  # Wood, Waste
 
         electricity_only_renew = self.electricity_only_renew()
         electricity_only_fossil = self.electricity_only_fossil()
-        electricity_only_total = self.electricity_only_total()
-        electricity_only_total['Fossil Fuels'] = electricity_only_fossil
-        electricity_only_total['Renewable'] = electricity_only_renew
-        print('electricity_only_total keys', electricity_only_total.keys())
+        electricity_only_total = self.electricity_only_total() # Nuclear, Hydro
+        electricity_only_total['Fossil Fuels'] = electricity_only_fossil # Coal, Petroleum, Natural Gas, Other Gasses
+        electricity_only_total['Renewable'] = electricity_only_renew # Wood, Waste, Geothermal, Solar, Wind
 
         data_dict = {'Elec Generation Total': 
                         {'Elec Power Sector': 
-                            {'Electricity Only': electricity_only_total,
-                            'Combined Heat & Power': elec_power_sector_chp_total}, 
-                        'Commercial Sector': comm_sector_total, 
-                        'Industrial Sector': industrial_sector_total},
-                    'All CHP':
-                        {'Elec Power Sector': 
-                            {'Combined Heat & Power': elec_power_sector_chp_total},
+                            {'Electricity Only': electricity_only_total, # Fossil Fuels, Nuclear, Hydro, Renewable
+                             'Combined Heat & Power': elec_power_sector_chp_total},  # Fossil Fuels, Renewable
                         'Commercial Sector':
-                            {'Combined Heat & Power': comm_sector_total}, 
+                            {'Combined Heat & Power':
+                                comm_sector_total}, 
                         'Industrial Sector':
-                            {'Combined Heat & Power': industrial_sector_total}}}
+                            {'Combined Heat & Power':
+                                industrial_sector_total}}}
         return data_dict   
 
     def main(self, breakout, calculate_lmdi): 

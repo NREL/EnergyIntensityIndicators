@@ -345,6 +345,12 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         if len(unit_coversion) > 0:
             tedb_data = tedb_data.assign(**unit_coversion).mul(tedb_data)
 
+        if 'Domestic Operations ' and 'International Operations ' in tedb_data.columns:
+            tedb_data['Air'] = \
+                tedb_data[['Domestic Operations ',
+                           'International Operations ']].sum(axis=1)
+            tedb_data = tedb_data[['Air']]
+
         mapping = {'Gasoline': 'Motor Gasoline',  # ef is in gallon
                    'Gasoline (million gallons)': 'Motor Gasoline',  # ef is in gallon
                     'Gasohol': 'Gasohol',  # ef is in gallon
@@ -365,8 +371,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Liquefied petroleum gas':
                         'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
                     'LPG': 'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
-                    'Domestic Operations ': 'Aviation Gasoline',  # ef is per gallon
-                    'International Operations ': 'Aviation Gasoline',  # ef is per gallon
+                    'Air': 'Aviation Gasoline',  # ef is per gallon
                     'Jet fuel': 'Aviation Gasoline',  # ef is per gallon
                     'Residual fuel oil': 'Residual Fuel Oil',  # ef is per gallon
                     'Natural gas': 'Natural Gas',  # ef is per scf
@@ -375,16 +380,17 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         # irrelevant_fuels = [f for f in tedb_data.columns
         #                     if f not in mapping.keys()]
         # tedb_data = tedb_data[~tedb_data['Fuel Type'].isin(irrelevant_fuels)]
-        tedb_data = tedb_data.rename(columns=mapping)
-        tedb_data = tedb_data.drop('School (million bbl)',
+        tedb_data_ = tedb_data.rename(columns=mapping)
+        tedb_data_ = tedb_data_.drop('School (million bbl)',
                                    axis=1, errors='ignore')
-        tedb_data = \
-            tedb_data.drop(['Total Energy (Tbtu)',
+        tedb_data_ = \
+            tedb_data_.drop(['Total Energy (Tbtu)',
                             'Total Energy (Tbtu) ',
                             'Total Energy (Tbtu) - old series'],
                            axis=1, errors='ignore')
-
-        return tedb_data
+        # if 'Aviation Gasoline' in tedb_data_.columns:
+        print('tedb_data_:\n', tedb_data_)
+        return tedb_data_
 
     @staticmethod
     def get_factor(factors_df, emissions_type):

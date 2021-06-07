@@ -483,6 +483,18 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
         return noncombustion_activity, noncombustion_emissions
 
+    def test_nest(self, d):
+        paths = list(self.gen.get_paths(d))
+        variable = 'A_i_k'
+        end_paths = [p for p in paths if p[-1] is 'A_i_k'] # or p[-1] is 'deliv']
+        end_paths = sorted(end_paths, key=len, reverse=True)
+        for p in end_paths:
+            # data = self.gen.dict_iter(d, p, variable)
+            print('p:', p[:-1])
+            # if data.empty:
+            #     print('data:\n', data)
+        exit()
+
     def main(self):
         noncombustion_data = NonCombustion().main()
 
@@ -519,6 +531,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                       nonmanufacturing_data,
                    'Manufacturing':
                       manufacturing_data}}
+        # self.test_nest(data)
         return data
 
 

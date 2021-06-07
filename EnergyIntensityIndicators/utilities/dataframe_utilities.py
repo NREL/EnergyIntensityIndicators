@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from functools import reduce
 
+from pandas.core.algorithms import isin
+
 
 class DFUtilities:
     """Typically shouldn't be a class, Pytest seems to require
@@ -45,7 +47,10 @@ class DFUtilities:
         purpose: enable dataframe operations such as multiply and
         divide between the two dfs
         """
+
         if df1.empty or df2.empty:
+            print('df1:\n', df1)
+            print('df2:\n', df2)
             raise ValueError('at least one dataframe is empty')
 
         df1.index = df1.index.astype(int)
@@ -87,13 +92,32 @@ class DFUtilities:
         df2 = df.copy()
         print('df2:\n', df2)
         print('type df2', type(df2))
-        df_drop_str = df2.select_dtypes(exclude='object')
-        if len(df_drop_str.columns.tolist()) > 1:
+        print('total_label:', total_label)
+        print('df2 info:', df2.info())
+        df2 = df2.fillna(np.nan)
+        # df_drop_str = \
+        #     df2.apply(
+        #         lambda col: 
+        #             pd.to_numeric(col, errors='ignore'), axis=1)
+           # .dropna(how='all', axis=1)
+        # df_drop_str = df2.select_dtypes(exclude='object')
+        if isinstance(df2, pd.Series):
+            df2 = df2.to_frame()
+        cols = df2.columns.tolist()
+        print('cols:', cols)
+        if len(cols) > 1:
             df2[total_label] = df2.drop(
                 total_label, axis=1, errors='ignore').sum(axis=1,
                                                           numeric_only=True)
-        elif len(df_drop_str.columns.tolist()) == 1:
-            df2[total_label] = df2[df_drop_str.columns]
+        else:
+            col = cols[0]
+            print('col:', col)
+            df2 = df2.rename(
+                columns={col: total_label})
+        
+        df2[total_label] = df2[total_label].astype(float)
+
+        print('df2 final:\n', df2)
         return df2
 
     @staticmethod

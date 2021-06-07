@@ -57,6 +57,7 @@ class CommercialEmissions(SEDSEmissionsData):
         print('emissions:\n', emissions_data)
 
         activity = comm_data['activity']
+        activity.index = activity.index.astype(int)
         activity_dict = {activity.columns[0]: activity}
 
         print('activity:\n', activity)

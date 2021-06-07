@@ -218,27 +218,26 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     print('all_data[cargo]:\n', all_data[cargo])
                     category_data_ = \
                         all_data[cargo][category]['activity']
-                    mode_group_dict = \
+                    data = \
                         self.wrap_data(
                             energy_data, category_data_,
                             category, category)
+                    cargo_dict[category] = data
 
                 elif isinstance(category_data, dict):
                     for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
-                        mode_group_dict = dict()
+                        mode_group_all_dict = dict()
                         if mode_group_data is None:
                             print('mode_group:', mode_group)
                             print('all_data[cargo][category]:\n', all_data[cargo][category])
-                            try:
-                                mode_group_data_ = \
-                                    all_data[cargo][category][mode_group]['activity']
-                            except KeyError:
-                                mode_group_data_ = \
-                                    all_data[cargo][category]['activity']
-                            mode_group_dict = \
+                            mode_group_data_ = \
+                                all_data[cargo][category][mode_group]['activity']
+
+                            data = \
                                 self.wrap_data(
                                     energy_data, mode_group_data_,
                                     mode_group, category)
+                            category_dict[mode_group] = data
 
                         elif isinstance(mode_group_data, dict):
                             for mode, mode_data in mode_group_data.items(): #'Passenger Car – SWB Vehicles', 'Motorcycles'
@@ -246,40 +245,47 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                 if mode_data is None:
                                     print('mode:', mode)
                                     print('all_data[cargo][category][mode_group]:\n', all_data[cargo][category][mode_group])
-                                    try:
-                                        mode_data_ = \
-                                            all_data[cargo][category][mode_group]['activity'][[mode]]
-                                    except KeyError:  # Urban Rail (Hvy, Lt, Commuter)
-                                        try:
-                                            mode_data_ = \
-                                                all_data[cargo][category][mode_group]['activity']
-                                        except KeyError:
-                                            mode_data_ = \
-                                                all_data[cargo][category][mode_group][mode]['activity']
-                                    mode_dict = \
+                                    mode_data_ = \
+                                        all_data[cargo][category][mode_group][mode]['activity']
+
+                                    data = \
                                         self.wrap_data(
                                             energy_data, mode_data_,
                                             mode, category)
 
+                                    mode_group_all_dict[mode] = data
+
                                 elif isinstance(mode_data, dict):
-                                    for sub_mode, sub_mode_d in mode_data.items():
+                                    for sub_mode, sub_mode_d in mode_data.items():  # Passenger Car, SWB Vehicle, etc.
                                         if sub_mode_d is None:
                                             print('sub_mode:', sub_mode)
                                             print('all_data[cargo][category][mode_group][mode]:\n', all_data[cargo][category][mode_group][mode])
                                             sub_mode_data = \
-                                                all_data[cargo][category][mode_group][mode]['activity'][[sub_mode]]
-                                            sub_mode_dict = \
+                                                all_data[cargo][category][mode_group][mode][sub_mode]['activity']
+                                            data = \
                                                 self.wrap_data(
                                                     energy_data, sub_mode_data,
                                                     sub_mode, category)
-                                            mode_dict[sub_mode] = sub_mode_dict
 
-                        mode_group_dict[mode] = mode_dict
-                    category_dict[mode_group] = mode_group_dict
-                cargo_dict[category] = category_dict
+                                            mode_dict[sub_mode] = data
+                                    mode_group_all_dict[mode] = mode_dict
+                            category_dict[mode_group] = mode_group_all_dict
+                    cargo_dict[category] = category_dict
             all_data_dict[cargo] = cargo_dict
         transportation_data = {sector_: all_data_dict}
         return transportation_data
+
+    def test_nest(self, d):
+        paths = list(self.gen.get_paths(d))
+        variable = 'A_i_k'
+        end_paths = [p for p in paths if p[-1] is 'A_i_k'] # or p[-1] is 'deliv']
+        end_paths = sorted(end_paths, key=len, reverse=True)
+        for p in end_paths:
+            # data = self.gen.dict_iter(d, p, variable)
+            print('p:', p[:-1])
+            # if data.empty:
+            #     print('data:\n', data)
+        exit()
 
     def wrap_data(self, energy_data, activity_data,
                   mode, category):
@@ -323,15 +329,35 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         wrapped_data['C_i_j_k'] = emissions
         return wrapped_data
 
+    def check_path(self, dict_):
+        paths = list(self.gen.get_paths(self.sub_categories_list))
+        print('paths:', paths)
+        paths_sorted = sorted(paths, key=len, reverse=True)
+        print('paths_sorted:', paths_sorted)
+
+        raw_data_paths = list(self.gen.get_paths(dict_))
+        print('raw_data_paths paths:', raw_data_paths)
+        raw_data_paths_sorted = sorted(raw_data_paths, key=len, reverse=True)
+        raw_data_paths_sorted = [p[:-1] for p in raw_data_paths_sorted]
+        print('\n \n \n')
+        print('raw_data_paths_sorted:', raw_data_paths_sorted)
+        print('\n \n \n')
+        for p in raw_data_paths_sorted:
+            print('p:', p)
+            print('\n')
+        print('\n \n \n')
+        missing_paths_raw = [p for p in paths_sorted if p not in raw_data_paths_sorted]
+        print('missing_paths_raw:\n', missing_paths_raw)
+        missing_paths_paths = [p for p in raw_data_paths_sorted if p not in paths_sorted]
+        print('missing_paths_paths:\n', missing_paths_paths)
+        exit()
+
     def main(self):
-        energy_data = self.transportation_data()
-        print('energy_data:\n', energy_data)
-        print('energy_data modes:\n', energy_data['Mode'].unique())
         energy_decomp_data = \
             self.transport_data.collect_data(
                 )
-
         transportation_data = self.transport(energy_decomp_data)
+
         return transportation_data
 
 

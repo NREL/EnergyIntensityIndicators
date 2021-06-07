@@ -117,11 +117,14 @@ class TransportationIndicators(CalculateLMDI):
 
         # Historical data from PNNL
 
-        passenger_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/passenger_based_activity.csv').set_index('Year').rename(columns={'Motor-cycles': 'Motorcycles', 
-                                                                                                                                                            'Light Truck': 'Light Trucks',
-                                                                                                                                                            'Transit Bus': 'Urban Bus', 
-                                                                                                                                                            'Para-Transit': 'Paratransit'})
-
+        passenger_based_activity = \
+            pd.read_csv(
+                './EnergyIntensityIndicators/Transportation/passenger_based_activity.csv').set_index(
+                    'Year').rename(columns={'Motor-cycles': 'Motorcycles', 
+                                            'Light Truck': 'Light Trucks',
+                                            'Transit Bus': 'Urban Bus', 
+                                            'Para-Transit': 'Paratransit',
+                                            'All Carriers (pass miles), millions': 'Commercial Carriers'})
          # Passenger cars and light trucks
         fha_table_vm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4, index_col=0) 
         # Bus / Transit
@@ -305,27 +308,81 @@ class TransportationIndicators(CalculateLMDI):
         data_dict = {'All_Passenger':
                         {'Highway': 
                             {'Passenger Cars and Trucks': 
-                                {'Passenger Car – SWB Vehicles': {'energy': {'deliv': passenger_based_energy_use[['Passenger Car', 'SWB Vehicles']]}, 'activity': passenger_based_activity[['Passenger Car', 'SWB Vehicles']]},
-                                'Light Trucks – LWB Vehicles': {'energy': {'deliv': passenger_based_energy_use[['Light Trucks', 'LWB Vehicles']]}, 'activity': passenger_based_activity[['Light Trucks', 'LWB Vehicles']]},
-                                'Motorcycles': {'energy': {'deliv': passenger_based_energy_use[['Motorcycles']]}, 'activity': passenger_based_activity[['Motorcycles']]}}, 
-                            'Buses': {'energy': {'deliv': passenger_based_energy_use[['Urban Bus', 'Intercity Bus', 'School Bus']]}, 'activity': passenger_based_activity[['Urban Bus', 'Intercity Bus', 'School Bus']]}, 
+                                {'Passenger Car – SWB Vehicles':
+                                    {'Passenger Car': 
+                                        {'energy': {'deliv': passenger_based_energy_use[['Passenger Car']]},
+                                        'activity': passenger_based_activity[['Passenger Car']]},
+                                     'SWB Vehicles':
+                                        {'energy': {'deliv': passenger_based_energy_use[['SWB Vehicles']]},
+                                        'activity': passenger_based_activity[['SWB Vehicles']]}},
+                                'Light Trucks – LWB Vehicles':
+                                    {'Light Trucks':
+                                        {'energy': {'deliv': passenger_based_energy_use[['Light Trucks']]},
+                                         'activity': passenger_based_activity[['Light Trucks']]},
+                                     'LWB Vehicles':
+                                        {'energy': {'deliv': passenger_based_energy_use[['LWB Vehicles']]},
+                                         'activity': passenger_based_activity[['LWB Vehicles']]}},
+                                'Motorcycles': 
+                                    {'energy': {'deliv': passenger_based_energy_use[['Motorcycles']]},
+                                     'activity': passenger_based_activity[['Motorcycles']]}}, 
+                            'Buses': 
+                                {'Urban Bus':
+                                    {'energy': {'deliv': passenger_based_energy_use[['Urban Bus']]},
+                                    'activity': passenger_based_activity[['Urban Bus']]},
+                                 'Intercity Bus':
+                                        {'energy': {'deliv': passenger_based_energy_use[['Intercity Bus']]},
+                                         'activity': passenger_based_activity[['Intercity Bus']]},
+                                 'School Bus':
+                                        {'energy': {'deliv': passenger_based_energy_use[['School Bus']]},
+                                         'activity': passenger_based_activity[['School Bus']]}}, 
                             'Paratransit':
-                                {'energy': {'deliv': passenger_based_energy_use[['Paratransit']]}, 'activity': passenger_based_activity[['Paratransit']]}}, 
+                                {'energy': {'deliv': passenger_based_energy_use[['Paratransit']]},
+                                 'activity': passenger_based_activity[['Paratransit']]}}, 
                         'Rail': 
-                            # {'Urban Rail': {'energy': {'deliv': passenger_based_energy_use[['Commuter Rail', 'Heavy Rail', 'Light Rail']]}, 'activity': passenger_based_activity[['Commuter Rail', 'Heavy Rail', 'Light Rail']]}, 
-                            {'Urban Rail': {'energy': {'deliv': passenger_based_energy_use[['Urban Rail (Hvy, Lt, Commuter)']]}, 'activity': passenger_based_activity[['Urban Rail (Hvy, Lt, Commuter)']]}, 
-
-                            'Intercity Rail': {'energy': {'deliv': passenger_based_energy_use[['Intercity Rail']]}, 'activity': passenger_based_activity[['Intercity Rail']]}}, 
-                        # 'Air': {'energy': {'deliv': passenger_based_energy_use[['Commercial Carriers', 'General Aviation']]}, 'activity': passenger_based_activity[['Commercial Carriers', 'General Aviation']]}}, 
-                        'Air': {'energy': {'deliv': passenger_based_energy_use[['Carrier']]}, 'activity': passenger_based_activity[['Domestic Carriers (passenger-miles, millions)']]}}, 
-
+                            {'Urban Rail':
+                                {'Commuter Rail': 
+                                    {'energy': {'deliv': passenger_based_energy_use[['Commuter Rail']]},
+                                    'activity': passenger_based_activity[['Commuter Rail']]}, 
+                                'Heavy Rail':
+                                    {'energy': {'deliv': passenger_based_energy_use[['Heavy Rail']]},
+                                    'activity': passenger_based_activity[['Heavy Rail']]}, 
+                                'Light Rail':
+                                    {'energy': {'deliv': passenger_based_energy_use[['Light Rail']]},
+                                    'activity': passenger_based_activity[['Light Rail']]}}, 
+                            'Intercity Rail':
+                                {'energy': {'deliv': passenger_based_energy_use[['Intercity Rail']]},
+                                 'activity': passenger_based_activity[['Intercity Rail']]}}, 
+                        'Air':
+                            {'Commercial Carriers':
+                                {'energy': {'deliv': passenger_based_energy_use[['Carrier']]},
+                                'activity': passenger_based_activity[['Commercial Carriers']]}, 
+                             'General Aviation':
+                                {'energy': {'deliv': passenger_based_energy_use[['General Aviation']]},
+                                'activity': passenger_based_activity[['General Aviation']]}}}, 
                     'All_Freight': 
                         {'Highway': 
-                                {'energy': {'deliv': freight_based_energy_use[['Single-Unit Truck', 'Combination Truck']]}, 'activity': freight_based_activity[['Single-Unit Truck', 'Combination Truck']]}, 
-                        'Rail': {'energy': {'deliv': freight_based_energy_use[['Rail']]}, 'activity': freight_based_activity[['Rail']]}, 
-                        'Air': {'energy': {'deliv': freight_based_energy_use[['Air']]}, 'activity': freight_based_activity[['Air']]}, 
-                        'Waterborne': {'energy': {'deliv': freight_based_energy_use[['Waterborne']]}, 'activity': freight_based_activity[['Waterborne']]},
-                        'Pipeline': {'energy': {'deliv': freight_based_energy_use[['Oil Pipeline', 'Natural Gas Pipeline']]}, 'activity': freight_based_activity[['Oil Pipeline', 'Natural Gas Pipeline']]}}}
+                                {'Single-Unit Truck':
+                                    {'energy': {'deliv': freight_based_energy_use[['Single-Unit Truck']]},
+                                     'activity': freight_based_activity[['Single-Unit Truck']]},
+                                 'Combination Truck':
+                                    {'energy': {'deliv': freight_based_energy_use[['Combination Truck']]},
+                                     'activity': freight_based_activity[['Combination Truck']]}},
+                        'Rail':
+                            {'energy': {'deliv': freight_based_energy_use[['Rail']]},
+                             'activity': freight_based_activity[['Rail']]}, 
+                        'Air':
+                            {'energy': {'deliv': freight_based_energy_use[['Air']]},
+                             'activity': freight_based_activity[['Air']]}, 
+                        'Waterborne':
+                            {'energy': {'deliv': freight_based_energy_use[['Waterborne']]},
+                             'activity': freight_based_activity[['Waterborne']]},
+                        'Pipeline':
+                            {'Oil Pipeline':
+                                {'energy': {'deliv': freight_based_energy_use[['Oil Pipeline']]},
+                                 'activity': freight_based_activity[['Oil Pipeline']]},
+                             'Natural Gas Pipeline':
+                                {'energy': {'deliv': freight_based_energy_use[['Natural Gas Pipeline']]},
+                                 'activity': freight_based_activity[['Natural Gas Pipeline']]}}}}
         data_dict = {'All_Transportation': data_dict}
         return data_dict
        
