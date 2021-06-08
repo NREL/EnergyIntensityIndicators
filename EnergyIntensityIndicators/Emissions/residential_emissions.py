@@ -57,7 +57,12 @@ class ResidentialEmissions(SEDSEmissionsData):
                                   base_year=self.base_year)
 
     def main(self):
+        """Collect data from energy decomposition,
+        calculate emissions and return ammended dictionary
 
+        Returns:
+            data_dict (dict): data for emissions decomposition
+        """
         res_data = self.res.collect_data()['National']
         all_data = dict()
 

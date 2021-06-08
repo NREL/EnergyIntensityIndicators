@@ -702,7 +702,7 @@ class ElectricityIndicators(CalculateLMDI):
 
         other_energy = self.Table85c[self.Table85c['Description'] == 'Other Consumption for Electricity Generation, Electric Power Sector'] # Table 8.5c column V
         other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
-
+         
         other_activity = pd.read_csv('./EnergyIntensityIndicators/Electricity/Data/other_activity82c.csv') # Table 8.2c columnAD
         other_activity = other_activity[other_activity['sector'] == 'chp'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
         other_activity.index = other_activity.index.astype(int)

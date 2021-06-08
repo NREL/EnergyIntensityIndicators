@@ -36,12 +36,14 @@ class GeneralLMDI:
     the decomposition (terms are the variables that are weighted by
     the log mean divisia weights in the final decomposition)
     """
+
     def __init__(self, config_path):
         """
         Args:
             directory (str): Path to folder containing YAML
                              files with LMDI input parameters
         """
+
         self.config_path = config_path
         self.read_yaml()
 
@@ -49,6 +51,7 @@ class GeneralLMDI:
         """Create YAML containing input data
         from dictionary
         """
+
         input_ = {'variables': ['E_i', 'A_i'],
                   'LHS_var': 'E_i',
                   'decomposition': 'A*A_i/A*E_i/A_i',
@@ -75,6 +78,7 @@ class GeneralLMDI:
         Parameters:
             fname (str): YAML file containing input data
         """
+
         with open(self.config_path, 'r') as file:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
@@ -96,6 +100,7 @@ class GeneralLMDI:
             (bool): Whether or not the symbolic expression simplifies
                     to the LHS variable
         """
+
         if lhs == str(sp.simplify(expression)):
             print('Decomposition expression simplifies properly')
         else:
@@ -115,6 +120,7 @@ class GeneralLMDI:
             to be evaluated. It will be checked for questionable code like
             imports and dunder statements.
         """
+
         bad_strings = ('import', 'os.', 'sys.', '.__', '__.')
         for bad_s in bad_strings:
             if bad_s in s:
@@ -126,10 +132,11 @@ class GeneralLMDI:
 
         Multiplicative model uses the LMDI-II model because
         'the weights...sum[] to unity, a desirable property in
-         index construction.' (Ang, B.W., 2015. LMDI decomposition
+        index construction.' (Ang, B.W., 2015. LMDI decomposition
                                approach: A guide for implementation.
                                Energy Policy 86, 233-238.).
         """
+
         if LHS_share.shape[1] == 1:
             return LHS_share
         else:
@@ -157,6 +164,12 @@ class GeneralLMDI:
         replicating methodology in PNNL spreadsheets for the multiplicative
         model
         """
+
+        print('component:\n', component)
+        component.index = component.index.astype(int)
+        if isinstance(component, pd.DataFrame):
+            component_col = component.columns[0]
+            component = component[component_col]
         index = pd.DataFrame(index=component.index, columns=['index'])
         component = component.replace([np.inf, -np.inf], np.nan)
         component = component.fillna(1)
@@ -179,6 +192,7 @@ class GeneralLMDI:
         """Format component data, collect overall effect, return indexed
         dataframe of the results for the multiplicative LMDI model.
         """
+
         results = terms_df.apply(lambda col: np.exp(col), axis=1)
 
         for col in results.columns:
@@ -205,6 +219,7 @@ class GeneralLMDI:
         (Ang, B.W., 2015. LMDI decomposition approach: A guide for
         implementation. Energy Policy 86, 233-238.).
         """
+
         print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
         if not self.lmdi_type:
             self.lmdi_type = 'LMDI-I'
@@ -296,6 +311,7 @@ class GeneralLMDI:
         """Create bool describing whether all
         items in an iterator are the same
         """
+
         return len(set(iterator)) <= 1
 
     @staticmethod
@@ -316,6 +332,7 @@ class GeneralLMDI:
         Returns:
             data [pd.DataFrame]: Data at the end of the path for variable
         """
+
         data = data_dict.copy()
         for k in path:
             data = data[k]
@@ -334,6 +351,7 @@ class GeneralLMDI:
             current [list]: List of lists (each inner list containing
                             a path)
         """
+
         for a, b in d.items():
             yield current+[a]
             if isinstance(b, dict):
@@ -367,6 +385,7 @@ class GeneralLMDI:
             paths_dict (dict): Dictionary of variable data with paths as keys
                                and variable+path DataFrame as values
         """
+        print('raw_data keys:', raw_data.keys())
         paths_dict = dict()
         paths = list(self.get_paths(sub_categories))
         print('paths:', paths)
@@ -508,6 +527,7 @@ class GeneralLMDI:
         Returns:
             n_dict (dict): [description]
         """
+
         if variable.startswith('C') or variable.startswith('E'):
             keep_cols = True
         else:
@@ -529,7 +549,8 @@ class GeneralLMDI:
                 print('path:', path)
                 key = path.split('.')[-1]
                 data = data_dict[path]
-
+                if data.empty:
+                    continue
                 if keep_cols:
                     lower_level_data = data
                 else:
@@ -540,18 +561,24 @@ class GeneralLMDI:
                                 self.calculate_weights(lhs_df, key)
                             print('lhs_df:\n', lhs_df)
                             print('type lhs_df:\n', type(lhs_df))
-                        except KeyError:
+                        except Exception:
                             weights = None
 
                     else:
                         raise ValueError('LHS data not provided ' +
                                          'to group data method')
                     subscript = 'i'
+                
                     lower_level_data = \
                         self.aggregate_level_data(subscript,
                                                   weights=weights,
                                                   base_data=data,
                                                   total_name=key)
+                    if lower_level_data is None:
+                        continue
+                    if isinstance(lower_level_data, pd.Series):
+                        lower_level_data = \
+                            lower_level_data.to_frame(name=key)    
                 all_level.append(lower_level_data)
             try:
                 level_data = \
@@ -581,6 +608,7 @@ class GeneralLMDI:
             term_df [pd.DataFrame]: df of e.g. A_i_k data with
                                     i and k multiindex levels
         """
+
         subs = term_piece.split('_')  # list
         base_var = subs.pop(0)
         variable_data = input_data[base_var]
@@ -589,22 +617,28 @@ class GeneralLMDI:
             print('key_path:\n', key_path)
             if not(key_path.startswith('total')):
                 print('not done')
-                new_label = f'total.{self.total_label}.{key_path}'
-                if key_path.startswith(self.total_label):
-                    print('not national')
-                    new_label = f'total.{key_path}'
-                    print('new_label:', new_label)
-                if key_path == 'South.Multi-Family':
-                    new_label = 'total.National.South.Multi-Family'
-                elif key_path == 'South.Single-Family':
-                    new_label = 'total.National.South.Single-Family'
-                elif key_path == 'Midwest.Manufactured-Homes':
-                    new_label = 'total.National.Midwest.Manufactured-Homes'
-                elif key_path == 'Midwest.Multi-Family':
-                    new_label = 'total.National.Midwest.Multi-Family'
-                variable_data[new_label] = variable_data.pop(key_path)
-
+                new_label = f'total.{key_path}'
+                print('new_label:', new_label)
+            else:
+                new_label = key_path
+                # if key_path.startswith(self.total_label):
+                #     print('not national')
+                #     new_label = f'total.{key_path}'
+                #     print('new_label:', new_label)
+                # if key_path == 'South.Multi-Family':
+                #     new_label = 'total.National.South.Multi-Family'
+                # elif key_path == 'South.Single-Family':
+                #     new_label = 'total.National.South.Single-Family'
+                # elif key_path == 'Midwest.Manufactured-Homes':
+                #     new_label = 'total.National.Midwest.Manufactured-Homes'
+                # elif key_path == 'Midwest.Multi-Family':
+                #     new_label = 'total.National.Midwest.Multi-Family'
+            value = variable_data.pop(key_path)
+            print('old label in dict:', key_path in variable_data)
+            variable_data[new_label] = value
+            print('variable_data[new_label]:', variable_data[new_label])
         print('variable_data.keys()', variable_data.keys())
+        exit()
 
         print('variable data:\n', variable_data)
         print('variable data keys:\n', variable_data.keys())
@@ -624,6 +658,13 @@ class GeneralLMDI:
             elif len(variable_data) == 1:
                 path = list(variable_data.keys())[0]
                 path_df = variable_data[path]
+                cols = list(path_df.columns)
+                if len(cols) == 1:
+                    levels = [[base_path]]
+                else:
+                    levels = [[base_path]*len(cols)] + [cols]
+                midx = pd.MultiIndex.from_arrays(levels)
+                path_df.columns = midx
                 return path_df
 
         base_path = base_path + '.' + self.total_label
@@ -636,8 +677,6 @@ class GeneralLMDI:
             levels = [[c]*len(cols) for c in combo_list] + [cols]
             midx = pd.MultiIndex.from_arrays(levels)
             path_df.columns = midx
-            print('path_df subs 1 multi:\n', path_df)
-
             term_piece_dfs.append(path_df)
 
         elif len(subs) > 1:  # len(subs_short)
@@ -649,14 +688,15 @@ class GeneralLMDI:
             for combo in combinations:
                 combo_list = base_path.split('.') + list(combo)
                 print('combo_list:', combo_list)
-                # path_n_1 = '.'.join(combo_list[:-1])
+                path_n_1 = '.'.join(combo_list[:-1])
                 path = '.'.join(combo_list)
                 print('path:', path)
                 if path in variable_data:  # path_n_1
                     print('path in variable data')
                     path_df = variable_data[path]  # path_n_1
                     print('path_df subs > 1:\n', path_df)
-
+                elif path_n_1 in variable_data:
+                    path_df = variable_data[path_n_1]
                     # labels = []
                     # for c in path_df.columns:
                     #     idx = combo_list + [c]
@@ -665,17 +705,17 @@ class GeneralLMDI:
 
                     # midx = pd.MultiIndex.from_tuples(labels)
                     # path_df.columns = midx
-                    cols = list(path_df.columns)
-                    levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
-                    print('levels', levels)
-                    # labels = [[0]*path_df.shape[1] for c in list(combo)]
-                    # labels = labels + [list(range(len(path_df.columns)))]
-                    # midx = pd.MultiIndex(levels=levels, codes=labels)
-                    midx = pd.MultiIndex.from_arrays(levels)
-                    path_df.columns = midx
-                    print('path_df subs > 1 multi:\n', path_df)
+                cols = list(path_df.columns)
+                levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
+                print('levels', levels)
+                # labels = [[0]*path_df.shape[1] for c in list(combo)]
+                # labels = labels + [list(range(len(path_df.columns)))]
+                # midx = pd.MultiIndex(levels=levels, codes=labels)
+                midx = pd.MultiIndex.from_arrays(levels)
+                path_df.columns = midx
+                print('path_df subs > 1 multi:\n', path_df)
 
-                    term_piece_dfs.append(path_df)
+                term_piece_dfs.append(path_df)
 
         # term_df = pd.concat(term_piece_dfs, axis=0)
         term_df = df_utils().merge_df_list(term_piece_dfs)
@@ -696,6 +736,7 @@ class GeneralLMDI:
                                      (sum or weighted average if
                                      column data units vary)
         """
+
         units = self.subscripts[subscript]['names'].values()
 
         if self.all_equal(units):
@@ -707,8 +748,9 @@ class GeneralLMDI:
 
         else:
             if weights is None:
-                raise ValueError('Weights not available at ' +
-                                 'level of aggregation')
+                # raise ValueError('Weights not available at ' +
+                #                  'level of aggregation')
+                return None
             try:
                 base_data, weights = \
                     df_utils().ensure_same_indices(base_data, weights)
@@ -734,6 +776,7 @@ class GeneralLMDI:
         Returns:
             weights (pd.DataFrame): Log-Mean Divisia Weights (normalized)
         """
+
         lhs_total = df_utils().create_total_column(lhs,
                                                    total_label=name)
         lhs_share = df_utils().calculate_shares(lhs_total,
@@ -746,7 +789,68 @@ class GeneralLMDI:
 
         return weights
 
-    def process_terms(self, input_data, subscript_data, weights, name):
+    def divide_multilevel(self, numerator, denominator,
+                          shared_levels, lhs_data):
+        print('numerator:\n', numerator)
+        print('denominator:\n', denominator)
+
+        highest_shared = sorted(shared_levels, reverse=True)[0]
+        print('highest_shared:', highest_shared)
+        if highest_shared == 0:
+            column_tuples = [numerator.columns.get_level_values(0)[0]]
+        else:
+            column_tuples = [numerator.columns.get_level_values(i)
+                             for i in range(highest_shared)]
+            column_tuples = list(zip(column_tuples))
+
+        print('column_tuples:', column_tuples)
+        grouped_n = numerator.groupby(level=shared_levels,
+                                      axis=1)
+        grouped_d = denominator.groupby(level=shared_levels,
+                                        axis=1)
+        results = []
+        for u in column_tuples:
+            print('u', u)
+            n = grouped_n.get_group(u)
+            print('n:\n', n)
+            n.columns = n.columns.droplevel(highest_shared)
+            level_name = \
+                pd.unique(n.columns.get_level_values(
+                    highest_shared-1))[0]
+
+            d = grouped_d.get_group(u)
+            print('d:\n', d)
+
+            ratio = n.divide(d, axis=1)
+            if isinstance(u, str):
+                path = u
+                if path not in lhs_data:
+                    if self.total_label in lhs_data:
+                        path = self.total_label
+                    elif f'total.{self.total_label}' in lhs_data:
+                        path = f'total.{self.total_label}'
+            elif isinstance(u, tuple):
+                path = '.'.join(list(u))
+            lhs = lhs_data[path]
+            w = self.calculate_weights(lhs, level_name)
+            if w.shape[1] == ratio.shape[1]:
+                result = ratio.multiply(w, axis=1).sum(axis=1)
+                result = self.decomposition_results(result)
+                result = result[[level_name]]
+            else:
+                if ratio.shape[1] == 1:
+                    result = result.divide(result.loc[self.base_year])
+                else:
+                    print('ratio:\n', ratio)
+                    raise ValueError('need to account for this case')
+
+            results.append(result)
+
+        results = pd.concat(results, axis=1)
+        return results
+
+    def process_terms(self, input_data, subscript_data,
+                      weights, name, lhs_data):
         """From level data, calculate terms and weight them.
 
         Args:
@@ -758,6 +862,7 @@ class GeneralLMDI:
         Returns:
             results (pd.DataFrame): [description]
         """
+
         terms = self.decomposition.split('*')
         parts = [t.split('/') for t in terms]
         parts = list(itertools.chain.from_iterable(parts))
@@ -789,6 +894,17 @@ class GeneralLMDI:
                     denominator_levels = denominator.columns.nlevels
                 except ValueError:
                     denominator_levels = 0
+                if denominator_levels == 1:
+                    if list(denominator.columns)[0] == self.total_label:
+                        levels = [['total'], [self.total_label]]
+                        midx = pd.MultiIndex.from_arrays(levels)
+                        denominator.columns = midx
+                if numerator_levels == 1:
+                    if list(numerator.columns)[0] == self.total_label:
+                        levels = [['total'], [self.total_label]]
+                        midx = pd.MultiIndex.from_arrays(levels)
+                        numerator.columns = midx
+        
                 print('denominator_levels', denominator_levels)
 
                 if numerator_levels > denominator_levels:
@@ -805,21 +921,18 @@ class GeneralLMDI:
 
                 print('level_count', level_count)
 
-                print("grouped numerator:\n", numerator.groupby(level=shared_levels,
-                                              axis=1).sum())
+
                 numerator.to_csv('C:/Users/irabidea/Desktop/yamls/numerator.csv')
                 denominator.to_csv('C:/Users/irabidea/Desktop/yamls/denominator.csv')
                 if group_:
-                    numerator = numerator.groupby(level=shared_levels,
-                                                  axis=1).sum()
-                    print('numerator grouped:\n', numerator)
-                try:
-                    numerator = numerator.divide(denominator, axis=1)
-                except ValueError:
-                    den = denominator.groupby(level=shared_levels,
-                                              axis=1).sum()
-                    numerator = numerator.divide(den, axis=1)
-                print('divided:\n', numerator)
+                    print("grouped numerator:\n", numerator.groupby(level=shared_levels,
+                           axis=1).sum())
+                    numerator = self.divide_multilevel(numerator, denominator,
+                                                       shared_levels, lhs_data)
+                else:
+                    numerator = numerator.divide(denominator.values, axis=1)
+                
+                print('numerator:\n', numerator)
                 if t == 'E_i_j/E_i':
                     exit()
             f = numerator.copy()
@@ -902,6 +1015,7 @@ class GeneralLMDI:
                               subscript (e.g. ['Northeast', 'West',
                               'South', 'Midwest'])
         """
+
         subscripts = v.split('_')[1:]
         v_data = \
             self.aggregate_data(raw_data, subscripts,
@@ -914,15 +1028,17 @@ class GeneralLMDI:
 
     def general_expr(self, raw_data, sub_categories):
         """Decompose changes in LHS variable
+
         Args:
             raw_data (dict): Dictionary containing
-                               dataframes for each variable
-                               and a the total label
+                             dataframes for each variable
+                             and a the total label
         Raises:
             ValueError: [description]
         Returns:
             results (dataframe): LMDI decomposition results
         """
+
         print('gen expr attributes:', dir(self))
         self.check_eval_str(self.decomposition)
 
@@ -931,7 +1047,6 @@ class GeneralLMDI:
 
         self.test_expression(self.decomposition, self.LHS_var)
 
-        print('raw_data.keys()', raw_data.keys())
         input_data = dict()
         all_subscripts = dict()
 
@@ -994,16 +1109,21 @@ class GeneralLMDI:
 
         results = self.process_terms(input_data,
                                      all_subscripts,
-                                     weights, name)
+                                     weights, name,
+                                     lhs_data)
         print('results:\n', results)
         exit()
 
+        expression = self.decomposition_results(results)
+
+        return expression
+    
+    def decomposition_results(self, results):
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
         elif self.model == 'multiplicative':
             results = df_utils().calculate_log_changes(results)
             expression = self.decomposition_multiplicative(results)
-
         return expression
 
     def prepare_for_viz(self, results_df):
@@ -1017,6 +1137,7 @@ class GeneralLMDI:
             results_df (DataFrame): Results with VizGen appropriate
                                     headers
         """
+
         results_df["Base Year"] = self.base_year
 
         cols = list(results_df.columns)
@@ -1039,6 +1160,7 @@ class GeneralLMDI:
         """Visualize multiplicative LMDI results in a
         line plot
         """
+
         data = data[data.index >= self.base_year]
 
         plt.style.use('seaborn-darkgrid')
@@ -1075,6 +1197,7 @@ class GeneralLMDI:
             input_data (dict): Dictionary containing dataframes
                                for each variable defined in the YAML
         """
+
         results = self.general_expr(input_data, sub_categories)
         print('results:\n', results)
         exit()
@@ -1090,6 +1213,7 @@ class GeneralLMDI:
         """Collect dictionary containing dataframes
         for each variable in the LMDI model
         """
+
         activity = \
             pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv').set_index('Year')
         energy = \

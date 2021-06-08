@@ -1,0 +1,39 @@
+digraph "packages" {
+charset="utf-8"
+rankdir=BT
+"0" [label="Commercial", shape="box"];
+"1" [label="Electricity", shape="box"];
+"2" [label="Industry", shape="box"];
+"3" [label="Industry.asm_price_fit", shape="box"];
+"4" [label="Industry.manufacturing", shape="box"];
+"5" [label="Industry.nonmanufacuturing", shape="box"];
+"6" [label="LMDI", shape="box"];
+"7" [label="Residential", shape="box"];
+"8" [label="Residential.residential_floorspace", shape="box"];
+"9" [label="__init__", shape="box"];
+"10" [label="additive_lmdi", shape="box"];
+"11" [label="commercial", shape="box"];
+"12" [label="economy_wide", shape="box"];
+"13" [label="electricity", shape="box"];
+"14" [label="get_census_data", shape="box"];
+"15" [label="industry", shape="box"];
+"16" [label="lmdi-prices", shape="box"];
+"17" [label="multiplicative_lmdi", shape="box"];
+"18" [label="projections", shape="box"];
+"19" [label="pull_bea_api", shape="box"];
+"20" [label="pull_eia_api", shape="box"];
+"21" [label="residential", shape="box"];
+"22" [label="symbolic_lmdi", shape="box"];
+"23" [label="trade_flows", shape="box"];
+"24" [label="transportation", shape="box"];
+"25" [label="utilities", shape="box"];
+"26" [label="utilities.dataframe_utilities", shape="box"];
+"27" [label="utilities.lmdi_utilities", shape="box"];
+"28" [label="utilities.standard_interpolation", shape="box"];
+"29" [label="utilities.testing_utilties", shape="box"];
+"30" [label="weather_factors", shape="box"];
+"2" -> "3" [arrowhead="open", arrowtail="none"];
+"2" -> "4" [arrowhead="open", arrowtail="none"];
+"2" -> "5" [arrowhead="open", arrowtail="none"];
+"7" -> "8" [arrowhead="open", arrowtail="none"];
+}

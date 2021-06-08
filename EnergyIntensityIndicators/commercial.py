@@ -17,16 +17,22 @@ from EnergyIntensityIndicators.LMDI import CalculateLMDI
 """Overview and Assumptions: 
 A. A national time series of floorspace for the commercial buildings in the US
 B. Weather adjustment for the four census regions
-C. Adjustment for the major reclassifications of customers by individual utilities. The reclassifications generally involve customers 
-   whose electricity purchases were classified under an industrial rate structure being moved to commercial rate struture, and to a
-   lesser degree, customers moving from a commercial rate to an industrial rate classification. These reclassfications can distort the 
-   short term aggregate changes in commercial and industrial electricity consumption, as reported by EIA's Estimation of National Commercial 
+C. Adjustment for the major reclassifications of customers by individual
+utilities. The reclassifications generally involve customers
+   whose electricity purchases were classified under an industrial rate
+   structure being moved to commercial rate struture, and to a
+   lesser degree, customers moving from a commercial rate to an industrial
+   rate classification. These reclassfications can distort the
+   short term aggregate changes in commercial and industrial electricity
+   consumption, as reported by EIA's Estimation of National Commercial
    Floorspace
 
-Data Sources: New construction is based on data from Dodge Data and Analytics, available from the published versions of the Statistical
+Data Sources: New construction is based on data from Dodge Data and Analytics,
+              available from the published versions of the Statistical
               Abstract of the United States (SAUS)
 
-Methodology: Perpetual inventory model, where estimates of new additions and removals are added to the previous year's estimate of stock
+Methodology: Perpetual inventory model, where estimates of new additions
+             and removals are added to the previous year's estimate of stock
              to update the current year"""
 
 
@@ -36,8 +42,8 @@ class CommercialIndicators(CalculateLMDI):
     - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
     from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
     SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
-    2014 to 2018". 
-    """    
+    2014 to 2018".
+    """
 
     def __init__(self, directory, output_directory, level_of_aggregation,
                  lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
@@ -103,7 +109,6 @@ class CommercialIndicators(CalculateLMDI):
         to the negative 164.0 Tbtu in 2009 and subsequent years.
 
         State Energy Data System (Jan. 2017) via National Calibration worksheet
-
         """
 
         # 1949-1969
@@ -155,7 +160,8 @@ class CommercialIndicators(CalculateLMDI):
     @staticmethod
     def get_saus():
         """Get Data from the Statistical Abstract of the United States (SAUS)
-        """        
+        """
+
         print('os.getcwd():', os.getcwd())
         try:
             saus_2002 = \
@@ -188,8 +194,8 @@ class CommercialIndicators(CalculateLMDI):
         """
         DODCompareOld Note from PNNL (David B. Belzer):
         "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
+        """
 
-        """        
         dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
 
         cols_list = ['Retail', 'Auto R', 'Office', 'Warehouse']
@@ -200,8 +206,8 @@ class CommercialIndicators(CalculateLMDI):
 
     def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years, late):
         """(1985, 1990) or (1960, 1970)
+        """
 
-        """        
         year_indices = self.years_to_str(start_year, stop_year)
         revision_factor_commercial = dodge_dataframe.loc[year_indices, ['Commercial']].sum(axis=0).values
         categories = ['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']
@@ -222,8 +228,8 @@ class CommercialIndicators(CalculateLMDI):
         Note from PNNL: "Staff: Based upon CBECS, the percentage of construction in west census region was slightly greater
          in the 1900-1919 period than in 1920-1945.  Thus, factor is set to 1.12, approximately same as 1925 value published
          by Jackson and Johnson"
-"
-        """        
+        """
+
         # hist_stat = self.hist_stat()['Commercial  (million SF)'] # hist_stat column E
         # # west inflation column Q
         ornl_78 = {1925: 1.127, 1930: 1.144, 1935: 1.12, 1940: 1.182, 1945: 1.393, 1950: 1.216, 1951: 1.237, 
@@ -251,6 +257,7 @@ class CommercialIndicators(CalculateLMDI):
     def years_to_str(start_year, end_year):
         """Create list of year strings from start_year and end_year range
         """
+
         list_ = list(range(start_year, end_year + 1))
         return [str(l) for l in list_]
     
@@ -259,6 +266,7 @@ class CommercialIndicators(CalculateLMDI):
 
         Data Source: Series N 90-100 Historical Statistics of the U.S., Colonial Times to 1970
         """
+
         historical_dodge = pd.read_csv('./EnergyIntensityIndicators/Data/historical_dodge_data.csv').set_index('Year')        
         pub_inst_values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].values
         total_1925_6 = pd.DataFrame.sum(historical_dodge.loc[list(range(1925, 1927)),], axis=0).drop(index='Commercial  (million SF)')
@@ -275,8 +283,10 @@ class CommercialIndicators(CalculateLMDI):
         return historical_dodge
 
     def hist_stat_adj(self):
-        """Adjust historical Dodge data to account for omission of data for the West Census Region prior to 1956
-        """        
+        """Adjust historical Dodge data to account for
+        omission of data for the West Census Region prior to 1956
+        """
+
         hist_data = self.hist_stat()
         west_inflation = self.west_inflation()
         hist_data = hist_data.merge(west_inflation, how='outer', left_index=True, right_index=True)
@@ -285,8 +295,10 @@ class CommercialIndicators(CalculateLMDI):
         return adjusted_for_west.loc[list(range(1919, 1960)), :]
 
     def dodge_revised(self):
-        """Dodge Additions, adjusted for omission of West Census Region prior to 1956
-        """       
+        """Dodge Additions, adjusted for omission of
+        West Census Region prior to 1956
+        """
+
         saus_2002, saus_merged = self.get_saus()
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
@@ -341,7 +353,8 @@ class CommercialIndicators(CalculateLMDI):
 
         Returns:
             dodge_to_cbecs (dataframe): redefined data
-        """    
+        """
+
         # Key Assumptions: 
         education_floor_space_office = .10
         auto_repair_retail = .80
@@ -376,7 +389,8 @@ class CommercialIndicators(CalculateLMDI):
             - Column S in spreadsheet has CO-StatePop2.xls are incorrectly aligned with years
             - Column AL does not actually scale by 1.28 as suggested in the column header
 
-        """    
+        """
+
         current_year = dt.datetime.now().year
 
         link_factors = pd.read_excel(f'{self.directory}/CO-EST_statepop2.xls', sheet_name='Stock', usecols='D:E', header=1, skiprows=158).rename(columns={1789: 'Year'})
@@ -478,7 +492,8 @@ class CommercialIndicators(CalculateLMDI):
         
     def solve_logistic(self, dataframe):
         """Solve NES logistic parameters
-        """    
+        """
+
         pnnl_coefficients = [3.92276415015621, 73.2238120168849]  # [gamma, lifetime]
         # popt, pcov = curve_fit(self.nems_logistic, xdata=dataframe[], ydata=dataframe[] , p0=pnnl_coefficients)
         # return popt 
@@ -486,7 +501,15 @@ class CommercialIndicators(CalculateLMDI):
 
     def activity(self):
         """Use logistic parameters to find predicted historical floorspace
-        """ 
+
+        Returns:
+            historical_floorspace_billion_sq_feet (pd.DataFrame): historical floorspace
+                                                                  in the Commercial Sector.
+                                                                  Years: 
+                                                                  Units: Billion Square Feet
+                                                                  Data Source:
+        """
+
         dodge_to_cbecs = self.dodge_to_cbecs() # columns c-m starting with year 1920 (row 17)
         coeffs = self.solve_logistic(dodge_to_cbecs)
         historical_floorspace_late = self.nems_logistic(dodge_to_cbecs, coeffs)  # properly formatted?
@@ -502,13 +525,23 @@ class CommercialIndicators(CalculateLMDI):
         return historical_floorspace_billion_sq_feet
 
     def fuel_electricity_consumption(self):
-        """Trillion Btu
         """
+        Trillion Btu
+
+        Returns:
+            energy_data (dict): Dictionary of dataframes
+                                with keys 'elec' and 'fuels'
+        """
+
         year_range = list(range(1949, 1970))
         year_range = [str(y) for y in year_range]
         national_calibration = self.collect_input_data('national_calibration')
-        total_primary_energy_consumption = self.eia_comm.eia_api(id_='TOTAL.TXCCBUS.A', id_type='series') # pre 1969: AER table 2.1c update column U 
-        total_primary_energy_consumption = total_primary_energy_consumption.rename(columns={'Total Primary Energy Consumed by the Commercial Sector, Annual, Trillion Btu': 'total_primary'})
+        total_primary_energy_consumption = \
+            self.eia_comm.eia_api(id_='TOTAL.TXCCBUS.A',
+                                  id_type='series') # pre 1969: AER table 2.1c update column U
+        total_primary_energy_consumption = \
+            total_primary_energy_consumption.rename(
+                columns={'Total Primary Energy Consumed by the Commercial Sector, Annual, Trillion Btu': 'total_primary'})
         # total_primary_energy_consumption = total_primary_energy_consumption[total_primary_energy_consumption.index.isin(year_range)]
         # total_primary_energy_consumption = total_primary_energy_consumption.multiply(0.001)
 
@@ -524,16 +557,30 @@ class CommercialIndicators(CalculateLMDI):
 
     def get_seds(self):
         """Collect SEDS data
+
+        Returns:
+            data (dict): Dictionary of dataframes
+                         with keys 'elec' and 'fuels'
         """
+
         seds = self.collect_input_data('SEDS_CensusRgn')
-        census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
+        census_regions = {4: 'West', 3: 'South',
+                          2: 'Midwest', 1: 'Northeast'}
         total_fuels = seds[0].rename(columns=census_regions)
         elec = seds[1].rename(columns=census_regions)
-        return {'elec': elec, 'fuels': total_fuels}
+        data = {'elec': elec, 'fuels': total_fuels}
+        return data
 
     def collect_weather(self, comm_activity):
         """Gather weather data for the Commercial sector
+
+        Args:
+            comm_activity ([type]): [description]
+
+        Returns:
+            weather_data (dict): [description]
         """
+
         seds = self.get_seds()
         res = ResidentialIndicators(directory=self.directory, output_directory=self.output_directory, base_year=self.base_year)
         residential_activity_data = res.get_floorspace()
@@ -553,7 +600,11 @@ class CommercialIndicators(CalculateLMDI):
 
     def collect_data(self):
         """Gather decomposition input data for the Commercial sector
+
+        Returns:
+            data_dict (dict): Commercial Sector data input to the LMDI model
         """
+
         # Activity: Floorspace_Estimates column U, B
         # Energy: Elec --> Adjusted Supplier Data Column D
         #         Fuels --> AER11 Table 2.1C_Update column U, National Calibration Column O
@@ -572,7 +623,16 @@ class CommercialIndicators(CalculateLMDI):
         return data_dict
 
     def main(self, breakout, calculate_lmdi):
-        """Decompose energy use for the Commercial sector"""
+        """Decompose energy use for the Commercial sector
+
+        Args:
+            breakout ([type]): [description]
+            calculate_lmdi ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+
         data_dict = self.collect_data()
         results_dict, formatted_results = \
             self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 

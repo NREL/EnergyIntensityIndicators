@@ -118,10 +118,14 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
             activity = data_dict['activity']
             if 'Year' in activity.columns:
                 activity = activity.set_index('Year')
+                if isinstance(activity.index[0], float):
+                    activity.index = activity.index * 1000
                 activity.index = activity.index.astype(int)
             activity = self.electric_epa_mapping(activity)
             energy = data_dict['energy']['primary']
             if 'Year' in energy.columns:
+                if isinstance(energy.index[0], float):
+                    energy.index = energy.index * 1000
                 energy = energy.set_index('Year')
                 energy.index = energy.index.astype(int)
             print('energy_:\n', energy)
@@ -254,7 +258,6 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
 
                 sector_data[gen_cat] = get_cat_d
             all_data_dict[sector] = sector_data
-
         # for k in all_data_dict.keys():
         #     print('sector', k)
         #     for j in all_data_dict[k].keys():

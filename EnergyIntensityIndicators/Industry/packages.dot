@@ -1,0 +1,11 @@
+digraph "packages" {
+charset="utf-8"
+rankdir=BT
+"0" [label="__init__", shape="box"];
+"1" [label="asm_price_fit", shape="box"];
+"2" [label="manufacturing", shape="box"];
+"3" [label="nonmanufacuturing", shape="box"];
+"0" -> "1" [arrowhead="open", arrowtail="none"];
+"0" -> "2" [arrowhead="open", arrowtail="none"];
+"0" -> "3" [arrowhead="open", arrowtail="none"];
+}

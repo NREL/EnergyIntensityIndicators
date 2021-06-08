@@ -40,6 +40,12 @@ class CommercialEmissions(SEDSEmissionsData):
                 base_year=self.base_year)
 
     def main(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
+
         comm_data = self.comm.collect_data()['Commercial_Total']
         weather_data = comm_data['weather_factors']
 
