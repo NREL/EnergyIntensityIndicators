@@ -23,7 +23,8 @@ class Manufacturing:
         """[summary]
 
         Returns:
-            [type]: [description]
+            mecs [type]: [description]
+            industrial_btu [type]: [description]
         """        
         # Energy Consumption as a Fuel
         # Table 3.1 : By Mfg. Industry & Region (physical units)
@@ -339,6 +340,14 @@ class Manufacturing:
         return mecs, industrial_btu
 
     def set_n_naics_digits(self, table):
+        """[summary]
+
+        Args:
+            table ([type]): [description]
+
+        Returns:
+            table (pd.DataFrame): [description]
+        """
         table = table[table['NAICS'] != 'Total']
 
         table['NAICS'] = \
@@ -425,7 +434,7 @@ class Manufacturing:
         """[summary]
 
         Returns:
-           cw [DataFrame]: [description]
+           cw [pd.DataFrame]: [description]
         """
         #  Use crosswalk 1987 SIC to 1997 NAICS from
         #  https://www.census.gov/eos/www/naics/concordances/concordances.html
@@ -552,6 +561,9 @@ class Manufacturing:
     def manufacturing_prices(self):
         """Call ASM API method from Asm class in get_census_data.py
         Specify three-digit NAICS Codes
+
+        Returns:
+            asm_price_data [type]: [description]
         """
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual',
                       'LPG', 'Coke', 'Other']
@@ -665,7 +677,7 @@ class Manufacturing:
 
         Returns:
            composite_price [DataFrame]: [description]
-        """        
+        """
         mecs_years_prices_and_interpolations = self.manufacturing_prices()
 
         mecs_data_qty_shares = self.calc_quantity_shares()
@@ -778,7 +790,7 @@ class Manufacturing:
 
         Returns:
            dataset [DataFrame]: [description]
-        """        
+        """
         quantity_shares_1998_forward = self.quantity_shares_1998_forward() # MECSPrices122419[Quantity shares 1998 forward]
         asm_data = NAICS3D.reset_index()[['Year', 'NAICS', 'EXPFUEL']]
         NAICS3D = NAICS3D.rename(columns={'column_av': 'ratio_fuel_to_offsite'})
@@ -798,14 +810,18 @@ class Manufacturing:
     
     @staticmethod
     def quantity_shares_1985_1998():
-        """
-        Take the sum of the product of quantity shares and the interpolated
+        """Take the sum of the product of quantity shares and the interpolated
         prices (calcualted using asm_price_fit.py), by 3-digit NAICS for a
         given MECS year.
+
+        Returns:
+            composite_price (pd.DataFrame): [description]
         """
         composite_price = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/historical_composite_prices.csv').rename(columns={'Composite Price ': 'composite_price'})
+                './EnergyIntensityIndicators/Industry/Data/' +
+                'historical_composite_prices.csv').rename(
+                    columns={'Composite Price ': 'composite_price'})
 
         return composite_price
 
@@ -879,7 +895,7 @@ class Manufacturing:
             values ([type]): [description]
 
         Returns:
-            [type]: [description]
+            df (pd.DataFrame): [description]
         """        
         df = df.pivot(index='NAICS', columns='Year', values=values)
         df.index = df.index.astype(int)
@@ -893,12 +909,14 @@ class Manufacturing:
         return df
 
     def final_quantities_asm_85(self):
-        """
-        Between-MECS-year interpolations are made in MECS_Annual_Fuel1
+        """Between-MECS-year interpolations are made in MECS_Annual_Fuel1
         and MECS_Annual_Fuel2 tabs in Ind_hap3 spreadsheet.
         Interpolations are also based on estimates developed in
         ASMdata_010220.xlsx[3DNAICS], which ultimately tie back to MECS fuel data
         from Table 4.2 and Table 3.2
+
+        Returns:
+            final_quantities_asm_85_agg (pd.DataFrame): [description]
         """
         NAICS3D = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/3DNAICS.csv').set_index('Year')
 
@@ -937,11 +955,16 @@ class Manufacturing:
     
     @staticmethod
     def import_mecs_electricity(asm):
-        """
-        ### NOT SURE IF ASM or MECS ELECTRICITY DATA ARE USED ###
+        """ ### NOT SURE IF ASM or MECS ELECTRICITY DATA ARE USED ###
         Imports MECS data on electricityuse by 3-digit NAICS code.
         In the future,these values will need to be manually downloaded from
         Table 3.2 and added to csv.
+
+        Args:
+            asm ([type]): [description]
+
+        Returns:
+            electricity_consumption (pd.DataFrame): [description]
         """
         # import a CSV file of historical MECS electricity use from Table 3.2
         
@@ -974,18 +997,20 @@ class Manufacturing:
                                                               left_index=True,
                                                               right_index=True)
         electricity_consumption = electricity_consumption.transpose()
-        electricity_consumption.index = electricity_consumption.index.astype(
-                                                                         int)
+        electricity_consumption.index = \
+            electricity_consumption.index.astype(int)
         return electricity_consumption
     
     # Corresponds to data in MECS_Fuel tab in Indhap3 spreadsheet, which
     # is connected to the MECS_Annual_Fuel1 and MECS_Annual_Fuel2
     # tabs in the same spreadsheet.
     def import_mecs_fuel(self):
-        """
-        Imports MECS data on fuel use by 3-digit NAICS code. In the future,
+        """Imports MECS data on fuel use by 3-digit NAICS code. In the future,
         these values will need to be manually downloaded from Table 3.2
         and added to csv.
+
+        Returns:
+            fallhap3b (pd.DataFrame): [description]
         """
         fallhap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/fallhap3b.csv')
         fallhap3b = fallhap3b.set_index('NAICS')
@@ -993,6 +1018,9 @@ class Manufacturing:
     
     def get_historical_mecs(self):
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
+
+        Returns:
+            historical_mecs (pd.DataFrame): [description]
         """
         # NAICS ARE ALREADY AGGREGATED
         historical_mecs = \
@@ -1007,7 +1035,7 @@ class Manufacturing:
             historical_mecs ([type]): [description]
 
         Returns:
-            [type]: [description]
+            mecs_fuel (pd.DataFrame): [description]
         """        
         historical_mecs_31_32 = \
             pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
@@ -1029,7 +1057,7 @@ class Manufacturing:
             electricity_data ([type]): [description]
 
         Returns:
-            [type]: [description]
+            fuels_consumption (pd.DataFrame): [description]
         """        
         # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
         electricity_data = electricity_data.transpose()
@@ -1085,8 +1113,11 @@ class Manufacturing:
 
     # Data used in industrial_indicators[Manufacturing]
     def call_activity_data(self):
-        """
-        Call BEA API for gross ouput and value add by 3-digit NAICS.
+        """Call BEA API for gross ouput and value add by 3-digit NAICS.
+
+        Returns:
+            va_quant_index [type]: [description]
+            go_quant_index [type]: [description]
         """
         va_quant_index, go_quant_index = \
             BEA_api(years=list(range(1949, 2018))).chain_qty_indexes()
@@ -1100,6 +1131,9 @@ class Manufacturing:
         conducted every five years)
         https://www.eia.gov/consumption/manufacturing/data/2014/
         https://www.eia.gov/consumption/manufacturing/data/2014/#r4
+
+        Returns:
+            data_dict (dict): [description]
         """
         va_quant_index, go_quant_index = self.call_activity_data()
 

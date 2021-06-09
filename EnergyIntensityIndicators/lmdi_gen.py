@@ -612,36 +612,13 @@ class GeneralLMDI:
         subs = term_piece.split('_')  # list
         base_var = subs.pop(0)
         variable_data = input_data[base_var]
-
-        for key_path in variable_data.keys():
-            print('key_path:\n', key_path)
-            if not(key_path.startswith('total')):
-                print('not done')
-                new_label = f'total.{key_path}'
-                print('new_label:', new_label)
-            else:
-                new_label = key_path
-                # if key_path.startswith(self.total_label):
-                #     print('not national')
-                #     new_label = f'total.{key_path}'
-                #     print('new_label:', new_label)
-                # if key_path == 'South.Multi-Family':
-                #     new_label = 'total.National.South.Multi-Family'
-                # elif key_path == 'South.Single-Family':
-                #     new_label = 'total.National.South.Single-Family'
-                # elif key_path == 'Midwest.Manufactured-Homes':
-                #     new_label = 'total.National.Midwest.Manufactured-Homes'
-                # elif key_path == 'Midwest.Multi-Family':
-                #     new_label = 'total.National.Midwest.Multi-Family'
-            value = variable_data.pop(key_path)
-            print('old label in dict:', key_path in variable_data)
-            variable_data[new_label] = value
-            print('variable_data[new_label]:', variable_data[new_label])
-        print('variable_data.keys()', variable_data.keys())
-        exit()
-
-        print('variable data:\n', variable_data)
+        new_paths = {k: f'total.{k}' for k in
+                     variable_data.keys() if not k.startswith('total')}
+        print('new_paths:\n', new_paths)
+        for old, new in new_paths.items():
+            variable_data[new] = variable_data.pop(old)
         print('variable data keys:\n', variable_data.keys())
+
         print('base_var:', base_var)
         print('subs:', subs)
         subscripts = subscript_data[base_var]  # dictionary
@@ -776,11 +753,16 @@ class GeneralLMDI:
         Returns:
             weights (pd.DataFrame): Log-Mean Divisia Weights (normalized)
         """
-
-        lhs_total = df_utils().create_total_column(lhs,
-                                                   total_label=name)
-        lhs_share = df_utils().calculate_shares(lhs_total,
-                                                total_label=name)
+        if isinstance(lhs, pd.MultiIndex):
+            lhs_share = df_utils().calculate_shares(lhs)
+        else:
+            lhs_total = df_utils().create_total_column(lhs,
+                                                       total_label=name)
+            print('lhs_total:\n', lhs_total)
+            lhs_share = df_utils().calculate_shares(lhs_total,
+                                                    total_label=name)
+        
+        print('lhs_share:\n', lhs_share)
 
         if self.model == 'additive':
             weights = self.additive_weights(lhs, lhs_share)
@@ -792,6 +774,8 @@ class GeneralLMDI:
     def divide_multilevel(self, numerator, denominator,
                           shared_levels, lhs_data):
         print('numerator:\n', numerator)
+        numerator_levels = numerator.columns.nlevels
+
         print('denominator:\n', denominator)
 
         highest_shared = sorted(shared_levels, reverse=True)[0]
@@ -808,20 +792,37 @@ class GeneralLMDI:
                                       axis=1)
         grouped_d = denominator.groupby(level=shared_levels,
                                         axis=1)
+
         results = []
         for u in column_tuples:
             print('u', u)
+        
             n = grouped_n.get_group(u)
             print('n:\n', n)
-            n.columns = n.columns.droplevel(highest_shared)
+            to_drop = list(range(highest_shared + 1, numerator_levels))
+            print('to_drop:', to_drop)
+            n.columns = n.columns.droplevel(to_drop)
+            if not isinstance(n.columns, pd.MultiIndex):
+                midx = [list(n.columns)]
+                n.columns = pd.MultiIndex.from_arrays(midx)
+
+            print('n post group:\n', n)
+            print('isinstance(n.columns, pd.MultiIndex):', isinstance(n.columns, pd.MultiIndex))
+
             level_name = \
                 pd.unique(n.columns.get_level_values(
                     highest_shared-1))[0]
 
             d = grouped_d.get_group(u)
             print('d:\n', d)
+            print('isinstance(d.columns, pd.MultiIndex):', isinstance(d.columns, pd.MultiIndex))
+            try:
+                ratio = n.divide(d, axis=1)
+            except ValueError:
+                ratio = n.divide(d.values, axis=1)
 
-            ratio = n.divide(d, axis=1)
+            print('ratio:\n', ratio)
+
             if isinstance(u, str):
                 path = u
                 if path not in lhs_data:
@@ -832,6 +833,7 @@ class GeneralLMDI:
             elif isinstance(u, tuple):
                 path = '.'.join(list(u))
             lhs = lhs_data[path]
+            print('lhs:\n', lhs)
             w = self.calculate_weights(lhs, level_name)
             if w.shape[1] == ratio.shape[1]:
                 result = ratio.multiply(w, axis=1).sum(axis=1)
@@ -839,7 +841,7 @@ class GeneralLMDI:
                 result = result[[level_name]]
             else:
                 if ratio.shape[1] == 1:
-                    result = result.divide(result.loc[self.base_year])
+                    result = ratio.divide(ratio.loc[self.base_year].values)
                 else:
                     print('ratio:\n', ratio)
                     raise ValueError('need to account for this case')

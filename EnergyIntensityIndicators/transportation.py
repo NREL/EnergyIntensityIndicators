@@ -235,15 +235,23 @@ class TransportationIndicators(CalculateLMDI):
         Need FuelConsump, Fuel Heat Content
         """        
         # Historical data from PNNL
-        freight_based_energy_use = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_energy_use.csv').set_index('Year')
+        freight_based_energy_use = \
+            pd.read_csv('./EnergyIntensityIndicators/Transportation/' +
+                        'freight_based_energy_use.csv').set_index('Year')
         freight_based_energy_use['Oil Pipeline'] = freight_based_activity['Oil Pipeline'].multiply(0.000001)
 
-        natural_gas_delivered_to_end_users = self.aer_2010_table_65 # Column AH, million cu. ft.
-        natural_gas_delivered_lease_plant_pipeline_fuel = self.mer_table_43_nov2019 # Column M - column D - column I
+        natural_gas_delivered_to_end_users = \
+            self.aer_2010_table_65 # Column AH, million cu. ft.
+        natural_gas_delivered_lease_plant_pipeline_fuel = \
+            self.mer_table_43_nov2019 # Column M - column D - column I
         natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
-        natural_gas_consumption_million_tons = natural_gas_delivered_to_end_users.multiply(natural_gas_delivered_lease_plant_pipeline_fuel, axis=1)
+        natural_gas_consumption_million_tons = \
+            natural_gas_delivered_to_end_users.multiply(
+                natural_gas_delivered_lease_plant_pipeline_fuel, axis=1)
         avg_length_natural_gas_shipment_miles = 620
-        freight_based_energy_use['Natural Gas Pipeline'] = natural_gas_consumption_million_tons.multiply(avg_length_natural_gas_shipment_miles)
+        freight_based_energy_use['Natural Gas Pipeline'] = \
+            natural_gas_consumption_million_tons.multiply(
+                avg_length_natural_gas_shipment_miles)
 
         return freight_based_energy_use
 
@@ -251,11 +259,17 @@ class TransportationIndicators(CalculateLMDI):
         """Time series for the activity measures for passenger transportation
         """        
         # Historical data, from PNNL
-        freight_based_activity = pd.read_csv('./EnergyIntensityIndicators/Transportation/freight_based_activity.csv').set_index('Year')
-        freight_based_activity['Single-Unit Truck'] = freight_based_activity['Single-Unit Truck'].multiply(3)
-        freight_based_activity['Oil Pipeline'] = freight_based_activity['Oil Pipeline'].multiply(0.000001)
-
-        class_1_rail = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_04_25_112219.xlsx', skiprows=1, skipfooter=9, index_col=0) # USDOT, Bureau of Transportation Statistics			https://www.bts.gov/content/energy-intensity-class-i-railroad-freight-service					Table 4-25
+        freight_based_activity = \
+            pd.read_csv('./EnergyIntensityIndicators/Transportation/' + 
+                        'freight_based_activity.csv').set_index('Year')
+        freight_based_activity['Single-Unit Truck'] = \
+            freight_based_activity['Single-Unit Truck'].multiply(3)
+        freight_based_activity['Oil Pipeline'] = \
+            freight_based_activity['Oil Pipeline'].multiply(0.000001)
+        # USDOT, Bureau of Transportation Statistics
+        # https://www.bts.gov/content/energy-intensity-class-i-railroad-freight-service	Table 4-25
+        class_1_rail = pd.read_excel('https://www.bts.gov/sites/bts.dot.gov/files/table_04_25_112219.xlsx',
+                                     skiprows=1, skipfooter=9, index_col=0)
         class_1_rail = class_1_rail.transpose()
         class_1_rail = class_1_rail[['Revenue freight ton-miles (millions)']]
         air_carrier = \
@@ -272,6 +286,15 @@ class TransportationIndicators(CalculateLMDI):
         return freight_based_activity
 
     def water_freight_regression(self, intensity, actual_dd):
+        """[summary]
+
+        Args:
+            intensity ([type]): [description]
+            actual_dd ([type]): [description]
+
+        Returns:
+            predicted_value ([type]): [description]
+        """
         X = np.log(intensity['intensity'])
         Y = intensity['Year']
         reg = linear_model.LinearRegression()
@@ -281,11 +304,17 @@ class TransportationIndicators(CalculateLMDI):
         return predicted_value
 
     def detailed_data_school_buses(self, parameter_list):
-        """"Adjusted miles - use number of buses times interpolated values for annual miles per bus.  
+        """Adjusted miles - use number of buses times interpolated values for annual miles per bus.  
         For years ending 0 and 5, use published data							
         Thus, adjusted values match in years ending 0 and 5 with Column 4, and for 1994.  
         After 1994, values taken directly from 							
-        School Bus Fleet Magazine estimates, adjusted for missing values							
+        School Bus Fleet Magazine estimates, adjusted for missing values
+
+        Args:
+            parameter_list ([type]): [description]
+
+        Returns:
+            revised_pass_miles (pd.DataFrame): [description]
         """
         avg_load_factor = 23
         adjusted_vehicle_miles = pd.read_csv('./EnergyIntensityIndicators/Transportation/Data/adjusted_data_school_bus.csv')
@@ -298,7 +327,7 @@ class TransportationIndicators(CalculateLMDI):
         
         Gather Energy Data to use in LMDI Calculation TBtu and Activity Data to use in LMDI Calculation passenger-miles [P-M], ton-miles [T-M]
         Returns:
-            [type]: [description]
+            data_dict (dict): [description]
         """        
         passenger_based_energy_use = self.passenger_based_energy_use()
         passenger_based_activity = self.passenger_based_activity()
@@ -402,8 +431,11 @@ class TransportationIndicators(CalculateLMDI):
         
         return results_dict
 
-    def compare_aggregates(self, parameter_list):
+    def compare_aggregates(self):
         """Compare aggregates from MER and model
+
+        Returns:
+            pct_difference [type]: [description]
         """
         total_fuel_tbtu_published_mer = self.mer_table25_dec_2019['Total Energy Consumed by the Transportation Sector']  # j
         sum_of_modes = self.total_transportation['Energy_Consumption_Total']  # F

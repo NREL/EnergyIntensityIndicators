@@ -5,5 +5,3 @@ Commercial Sector Data Collection
    :members:
    :undoc-members:
    :show-inheritance:
-.. toctree::
-   EnergyIntensityIndicators.commercial

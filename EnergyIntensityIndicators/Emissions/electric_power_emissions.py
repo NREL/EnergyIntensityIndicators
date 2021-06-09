@@ -112,7 +112,17 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
                                   end_year=2018).collect_data()
 
     def process_e_data(self, data_dict):
-        
+        """[summary]
+
+        Args:
+            data_dict ([type]): [description]
+
+        Raises:
+            TypeError: [description]
+
+        Returns:
+            [type]: [description]
+        """
         if isinstance(data_dict, dict):
             print('data_dict keys:', data_dict.keys())
             activity = data_dict['activity']
@@ -170,6 +180,11 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         return emissions_data
     
     def check_path(self, dict_):
+        """[summary]
+
+        Args:
+            dict_ ([type]): [description]
+        """
         paths = list(self.gen.get_paths(self.sub_categories_list))
         print('paths:', paths)
         paths_sorted = sorted(paths, key=len, reverse=True)
@@ -193,6 +208,11 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         exit()
 
     def test_nest(self, d):
+        """[summary]
+
+        Args:
+            d ([type]): [description]
+        """
         paths = list(self.gen.get_paths(d))
         variable = 'activity'
         end_paths = [p for p in paths if p[-1] is 'activity'] # or p[-1] is 'deliv']
@@ -274,6 +294,11 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         return all_emissions_data
 
     def main(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
         emissions_data = self.electric_power_co2()
         return emissions_data
 

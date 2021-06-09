@@ -78,7 +78,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         """[summary]
 
         Returns:
-            [type]: [description]
+            transport_fuel (dict): [description]
         """
         tedb_18 = \
             pd.read_excel(
@@ -201,6 +201,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         return mode_df
 
     def transport(self, data):
+        """[summary]
+
+        Args:
+            data ([type]): [description]
+
+        Returns:
+            transportation_data (dict): [description]
+        """        
         sector_ = 'All_Transportation'
         all_data = data[sector_]
         energy_data = self.transportation_data()
@@ -276,6 +284,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         return transportation_data
 
     def test_nest(self, d):
+        """[summary]
+
+        Args:
+            d ([type]): [description]
+        """        
         paths = list(self.gen.get_paths(d))
         variable = 'A_i_k'
         end_paths = [p for p in paths if p[-1] is 'A_i_k'] # or p[-1] is 'deliv']
@@ -289,6 +302,22 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
     def wrap_data(self, energy_data, activity_data,
                   mode, category):
+        """[summary]
+
+        Args:
+            energy_data ([type]): [description]
+            activity_data ([type]): [description]
+            mode ([type]): [description]
+            category ([type]): [description]
+
+        Raises:
+            ValueError: [description]
+            ValueError: [description]
+            ValueError: [description]
+
+        Returns:
+            wrapped_data (dict): [description]
+        """        
         wrapped_data = dict()
         wrapped_data['A_i_k'] = activity_data
         print('energy_data:\n', energy_data)
@@ -330,6 +359,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         return wrapped_data
 
     def check_path(self, dict_):
+        """[summary]
+
+        Args:
+            dict_ ([type]): [description]
+        """        
         paths = list(self.gen.get_paths(self.sub_categories_list))
         print('paths:', paths)
         paths_sorted = sorted(paths, key=len, reverse=True)
@@ -353,6 +387,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         exit()
 
     def main(self):
+        """[summary]
+
+        Returns:
+            [type]: [description]
+        """
         energy_decomp_data = \
             self.transport_data.collect_data(
                 )

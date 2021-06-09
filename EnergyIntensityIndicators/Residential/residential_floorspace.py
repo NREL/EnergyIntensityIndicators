@@ -15,9 +15,9 @@ import io
 class ResidentialFloorspace:
     """Calculate regional and national estimates of residential
     floorspace based upon model to interpolate/smooth AHS estimates
-    """    
+    """
     def __init__(self, end_year=2018):
-        self.end_year = end_year 
+        self.end_year = end_year
         pass
     
     @staticmethod
@@ -96,7 +96,8 @@ class ResidentialFloorspace:
         return pivot_census_division        
 
     def get_ahs_tables(self):
-        """Collect AHS historical tables"""
+        """Collect AHS historical tables
+        """
         historical_ahs = pd.read_csv('../AHS_Historical_Tables.csv')
         #  historical_ahs['Years'] = historical_ahs['Years'].astype(int)
         for year in list(historical_ahs['Years']):
@@ -118,10 +119,11 @@ class ResidentialFloorspace:
         """Use average to interpolate dataframe
 
         Parameters:
-            dataframe (df): dataframe with year index 
+            dataframe (df): dataframe with year index
             columns (list): names of columns to interpolate with average
             even (bool): whether the years to fill are even (or odd if False)
-
+        Returns:
+            dataframe (pd.DataFrame): [Description]
         """ 
         if even:
             years_to_fill = [year for year in dataframe.index if year % 2 == 0]
@@ -145,9 +147,11 @@ class ResidentialFloorspace:
             placement_df = pd.read_excel(url, index_col=0, skiprows=4, use_cols='B, F:H') # Placement units are thousands of units
         
     @staticmethod
-    def housing_stock_model(year_array, new_comps_ann, pub_total_0, elasticity_of_retirements, coeffs, full_data=False, retirement=False):
+    def housing_stock_model(year_array, new_comps_ann,
+                            pub_total_0, elasticity_of_retirements,
+                            coeffs, full_data=False, retirement=False):
         """Calculate housing stock using provided coefficients
-        """          
+        """
         for index_, year_ in enumerate(year_array):
             if index_ == 0: 
                 existing_stock = pub_total_0 + coeffs[0]

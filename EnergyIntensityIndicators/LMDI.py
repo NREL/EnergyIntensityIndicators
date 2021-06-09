@@ -171,7 +171,7 @@ class LMDI():
             results['@filter|EnergyType'] = energy_type
             data_to_plot, rename_dict = \
                 self.data_visualization(results,
-                                        fmt_loa, energy_type, total_label)
+                    fmt_loa, energy_type, total_label)
 
             if '@timeseries|Year' not in data_to_plot.columns:
                 data_to_plot = data_to_plot.rename(columns={'index': '@timeseries|Year'})
@@ -455,7 +455,7 @@ class CalculateLMDI(LMDI):
                         'All_Freight':
                             {'energy':
                                 {'deliv': freight_based_energy_use},
-                             'activity': freight_based_activity}}
+                             'activity': freight_based_activity}
         """
 
         provided_energy_data = list(energy_data.keys())

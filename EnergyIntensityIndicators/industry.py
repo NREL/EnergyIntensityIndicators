@@ -100,6 +100,9 @@ class IndustrialIndicators(CalculateLMDI):
 
     def manufacturing(self):
         """Gather manufacturing data
+
+        Returns:
+            [type]: [description]
         """
         manufacturing_data = \
             Manufacturing(self.naics_digits).manufacturing()
@@ -114,6 +117,9 @@ class IndustrialIndicators(CalculateLMDI):
             Census of Mining) Prior to 1985, primary
             data source is the National Energy Accounts (NEA)
         http://www.nass.usda.gov/Statistics_by_Subject/index.php
+
+        Returns:
+            [type]: [description]
         """
         non_manufacturing_data = \
             NonManufacturing(self.naics_digits).nonmanufacturing_data()
@@ -121,8 +127,11 @@ class IndustrialIndicators(CalculateLMDI):
         return non_manufacturing_data
 
     def collect_data(self):
-        """Gather all input data for decomposition of the energy use in the
-        Industrial sector
+        """Gather all input data for decomposition
+        of the energy use in the Industrial sector
+
+        Returns:
+            data_dict (dict): [description]
         """
         non_man = self.non_manufacturing()
         man = self.manufacturing()
@@ -138,7 +147,7 @@ class IndustrialIndicators(CalculateLMDI):
         """[summary]
 
         Returns:
-            [type]: [description]
+            util_adj_categories (list): [description]
         """
         # This case is quite different from the others
         util_adj_categories = ['Fuels', 'Delivered Electricity',
@@ -147,6 +156,13 @@ class IndustrialIndicators(CalculateLMDI):
 
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition for the Industrial sector
+
+        Args:
+            breakout ([type]): [description]
+            calculate_lmdi ([type]): [description]
+
+        Returns:
+            [type]: [description]
         """
         # unit_conversion_factor = 1
 

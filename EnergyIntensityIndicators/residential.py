@@ -8,8 +8,8 @@ intensity indicators.
 D. Regression models at the regional level are used to adjust for year-to-year changes in weather.
 E. Two separate data construction elements are required to generate the regional and national
 estimates of energy intensity indicators for this sector.
-    1. Regional time series of floor space for residential housing units in the U.S (census level).
-    2. Weather adjustment for the four census regions.
+    - Regional time series of floor space for residential housing units in the U.S (census level).
+    - Weather adjustment for the four census regions.
 """
 import pandas as pd
 from sklearn import linear_model
@@ -20,26 +20,43 @@ from EnergyIntensityIndicators.Residential.residential_floorspace import Residen
 from EnergyIntensityIndicators.weather_factors import WeatherFactors
 
 
-class ResidentialIndicators(CalculateLMDI): 
- 
-    def __init__(self, directory, output_directory, level_of_aggregation=None, lmdi_model='multiplicative', base_year=1985, end_year=2018):
+class ResidentialIndicators(CalculateLMDI):
+
+    def __init__(self, directory, output_directory,
+                 level_of_aggregation=None,
+                 lmdi_model='multiplicative',
+                 base_year=1985, end_year=2018):
+
         self.eia_res = GetEIAData('residential')
-        self.sub_categories_list = {'National': {'Northeast': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}, 
-                                                 'Midwest': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
-                                                 'South': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None},
-                                                 'West': {'Single-Family': None, 'Multi-Family': None, 'Manufactured-Homes': None}}}
-        self.national_calibration = self.eia_res.national_calibration()
-        self.seds_census_region = self.eia_res.get_seds() # energy_consumtpion_data_regional
+        housing_types = \
+            {'Single-Family': None,
+             'Multi-Family': None,
+             'Manufactured-Homes': None}
+        self.sub_categories_list = \
+            {'National':
+                {'Northeast': housing_types,
+                 'Midwest': housing_types,
+                 'South': housing_types,
+                 'West': housing_types}}
+
+        self.national_calibration = \
+            self.eia_res.national_calibration()
+        self.seds_census_region = \
+            self.eia_res.get_seds()  # energy_consumtpion_data_regional
         self.ahs_Data = ResidentialFloorspace.update_ahs_data()
-        self.regions = ['Northeast', 'South', 'West', 'Midwest', 'National']
+        self.regions = ['Northeast', 'South',
+                        'West', 'Midwest',
+                        'National']
         self.base_year = base_year
         self.directory = directory
         self.end_year = end_year
-        self.energy_types = ['elec', 'fuels', 'deliv', 'source']
+        self.energy_types = ['elec', 'fuels',
+                             'deliv', 'source']
+
         super().__init__(sector='residential',
                          level_of_aggregation=level_of_aggregation,
                          lmdi_models=lmdi_model,
-                         categories_dict=self.sub_categories_list, 
+                         categories_dict=self.sub_categories_list,
                          energy_types=self.energy_types,
                          directory=directory,
                          output_directory=output_directory,
@@ -50,53 +67,92 @@ class ResidentialIndicators(CalculateLMDI):
 
         print("self.dir()):", dir(self))
 
-
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
     
     def get_seds(self):
-        """Collect SEDS data"""
+        """Collect SEDS data
+
+        Returns:
+            total_fuels [type]: [description]
+            elec [type]: [description]
+        """
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
         total_fuels = self.seds_census_region[0].rename(columns=census_regions)
         elec = self.seds_census_region[1].rename(columns=census_regions)
         return total_fuels, elec
 
     def fuel_electricity_consumption(self, total_fuels, elec, region):
-        """Combine Energy datasets into one Energy Consumption dataframe in Trillion Btu
-        Data Source: EIA's State Energy Data System (SEDS)"""
+        """Combine Energy datasets into one Energy Consumption
+        dataframe in Trillion Btu
+
+        Data Source: EIA's State Energy Data System (SEDS)
+
+        Args:
+            total_fuels ([type]): [description]
+            elec ([type]): [description]
+            region ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
 
         fuels_dataframe = total_fuels[[region]]
         elec_dataframe = elec[[region]]
 
-        energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
+        energy_data = {'elec': elec_dataframe,
+                       'fuels': fuels_dataframe}
         return energy_data
-    
+
     def get_floorspace(self):
-        """Collect floorspace data for the Residential sector"""
+        """Collect floorspace data for the Residential sector
+
+        Returns:
+            final_floorspace_results (dict): [description]
+        """
         residential_data = ResidentialFloorspace(end_year=self.end_year)
         floorspace_square_feet, \
             occupied_housing_units, \
                 household_size_square_feet_per_hu = \
                     residential_data.final_floorspace_estimates()
 
-        final_floorspace_results = {'occupied_housing_units': occupied_housing_units, 'floorspace_square_feet': floorspace_square_feet, 
-                                    'household_size_square_feet_per_hu': household_size_square_feet_per_hu}
+        final_floorspace_results = \
+            {'occupied_housing_units':
+                occupied_housing_units,
+             'floorspace_square_feet':
+                floorspace_square_feet,
+             'household_size_square_feet_per_hu':
+                household_size_square_feet_per_hu}
+
         return final_floorspace_results
 
 
     def activity(self, floorspace):
-        """Combine Energy datasets into one Energy Consumption Occupied Housing Units
-        """ 
+        """Combine Energy datasets into one Energy
+        Consumption Occupied Housing Units
+
+        Args:
+            floorspace ([type]): [description]
+
+        Returns:
+            all_activity (dict): [description]
+        """
         all_activity = dict()
         for region in self.sub_categories_list['National'].keys():
             region_activity = dict()
             for variable, data in floorspace.items():
                 df = data[region]
                 if variable == 'household_size_square_feet_per_hu':
-                    df = df.rename(columns={'avg_size_sqft_mf': 'Multi-Family', 'avg_size_sqft_mh': 'Manufactured-Homes', 'avg_size_sqft_sf': 'Single-Family'})
+                    df = df.rename(
+                        columns={'avg_size_sqft_mf': 'Multi-Family',
+                                 'avg_size_sqft_mh': 'Manufactured-Homes',
+                                 'avg_size_sqft_sf': 'Single-Family'})
                 else:
-                    df = df.rename(columns={'occupied_units_mf': 'Multi-Family', 'occupied_units_mh': 'Manufactured-Homes', 'occupied_units_sf': 'Single-Family'})
+                    df = df.rename(
+                        columns={'occupied_units_mf': 'Multi-Family',
+                                 'occupied_units_mh': 'Manufactured-Homes',
+                                 'occupied_units_sf': 'Single-Family'})
                 
                 region_activity[variable] = df
             all_activity[region] = region_activity
@@ -104,14 +160,31 @@ class ResidentialIndicators(CalculateLMDI):
         return all_activity
     
     def collect_weather(self, energy_dict, nominal_energy_intensity):
-        """Collect weather data for the Residential Sector"""
-        weather = WeatherFactors(sector='residential', directory=self.directory, nominal_energy_intensity=nominal_energy_intensity)
-        weather_factors = weather.get_weather(energy_dict, weather_adjust=False) # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        """Collect weather data for the Residential Sector
+
+        Args:
+            energy_dict ([type]): [description]
+            nominal_energy_intensity ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        weather = \
+            WeatherFactors(sector='residential',
+                           directory=self.directory,
+                           nominal_energy_intensity=nominal_energy_intensity)
+
+        # What should this return?? (e.g. weather factors or weather adjusted data, both?)
+        weather_factors = weather.get_weather(energy_dict,
+                                              weather_adjust=False)
         return weather_factors
 
     def collect_data(self):
         """Gather all input data for you in decomposition of
         energy use for the Residential sector
+
+        Returns:
+            [type]: [description]
         """
         total_fuels, elec = self.get_seds()
 
@@ -171,20 +244,32 @@ class ResidentialIndicators(CalculateLMDI):
 
     def main(self, breakout, calculate_lmdi):
         """Calculate decomposition for the Residential sector
+
+        Args:
+            breakout ([type]): [description]
+            calculate_lmdi ([type]): [description]
+
+        Returns:
+            [type]: [description]
         """
         unit_conversion_factor = 1
         data_dict = self.collect_data()
 
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
-                                                               raw_data=data_dict, lmdi_type='LMDI-I')
+        results_dict, formatted_results = \
+            self.get_nested_lmdi(
+                level_of_aggregation=self.level_of_aggregation,
+                breakout=breakout, calculate_lmdi=calculate_lmdi,
+                raw_data=data_dict, lmdi_type='LMDI-I')
 
         return results_dict
 
 
 if __name__ == '__main__':
-    indicators = ResidentialIndicators(directory='./EnergyIntensityIndicators/Data', 
-                                       output_directory='../Results', level_of_aggregation='National', 
-                                       lmdi_model=['multiplicative', 'additive'], end_year=2017)
-    indicators.main(breakout=True, calculate_lmdi=True)  
+    indicators = ResidentialIndicators(
+        directory='./EnergyIntensityIndicators/Data',
+        output_directory='../Results',
+        level_of_aggregation='National',
+        lmdi_model=['multiplicative', 'additive'],
+        end_year=2017)
+    indicators.main(breakout=True, calculate_lmdi=True)
 

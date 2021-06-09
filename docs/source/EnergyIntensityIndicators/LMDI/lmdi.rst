@@ -7,6 +7,5 @@ Core LMDI Model
    :show-inheritance:
    
 .. toctree::
-   EnergyIntensityIndicators.lmdi
    EnergyIntensityIndicators.multiplicative_lmdi
    EnergyIntensityIndicators.additive_lmdi

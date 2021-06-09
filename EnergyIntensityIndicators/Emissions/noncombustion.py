@@ -305,6 +305,14 @@ class NonCombustion:
             index=False)
 
     def noncombustion_activity_epa(self, table_name):
+        """[summary]
+
+        Args:
+            table_name ([type]): [description]
+
+        Returns:
+            table (pd.DataFrame): [description]
+        """
         directory = 'C:/Users/irabidea/Desktop/emissions_data/'
         print('table_name:', table_name)
         # try:
@@ -435,6 +443,14 @@ class NonCombustion:
 
     @staticmethod
     def replace_value(value):
+        """[summary]
+
+        Args:
+            value ([type]): [description]
+
+        Returns:
+            new_val [type]: [description]
+        """
         replace_dict = {'+': 0.025, '+ ': 0.025,
                         'C': np.nan, ' NA ': np.nan,
                         'NE': np.nan, 'NO': np.nan,
@@ -451,6 +467,11 @@ class NonCombustion:
         return new_val
 
     def noncombustion_activity_level1(self):
+        """[summary]
+
+        Returns:
+            data_dict (dict): [description]
+        """
         categories = self.categories_level1
 
         data_dict = dict()
@@ -490,7 +511,7 @@ class NonCombustion:
             - Total from 3-21 as activity
 
         Returns:
-            [type]: [description]
+            data_dict (dict): [description]
         """
         categories = self.categories_level2
         data_dict = dict()
@@ -595,6 +616,9 @@ class NonCombustion:
           Organic vs Mineral
         - Check overall emissions sum match values published
           under that emissions source category
+
+        Returns:
+            data (dict): [description]
         """
         print('start agricultural_soil_management')
         # Total Cropland and Grassland Area Estimated with Tier 1/2
@@ -700,8 +724,8 @@ class NonCombustion:
                                              rice_cultivation])
         activity['Agricultural Soil Management'] = activity.sum(axis=1)
         activity = activity[['Agricultural Soil Management']]
-
-        return {'activity': activity, 'emissions': emissions}
+        data = {'activity': activity, 'emissions': emissions}
+        return data
 
     def enteric_fermentation(self):
         """
@@ -709,6 +733,9 @@ class NonCombustion:
         - Table A-158: Calculated Annual National Emission
           Factors for Cattle by Animal Type
         - Table A-163: Emissions by animal type (cattle only)
+
+        Returns:
+            data (dict): [description]
         """
         print('start enteric_fermentation')
         # Livestock Population (1,000 Head)
@@ -724,10 +751,10 @@ class NonCombustion:
         # CH4 Emissions from Enteric Fermentation (MMT CO2 Eq.)
         emissions = self.noncombustion_activity_epa('Table A-180')
         print('emissions:\n', emissions)
-
-        return {'activity': activity,
+        data = {'activity': activity,
                 'activity2': activity2,
                 'emissions': emissions}
+        return data
 
     def landfills(self):
         """
@@ -735,6 +762,9 @@ class NonCombustion:
           Waste Landfilled
           - Table A-228 CH4 Emissions from Landfills (kt)
         - (if time-- decompose)
+
+        Returns:
+            data (dict): [description]
         """
         print('start landfills')
         # Solid Waste in MSW and Industrial Waste Landfills Contributing
@@ -746,14 +776,17 @@ class NonCombustion:
         # CH4 Emissions from Landfills (MMT CO2 Eq.)
         emissions = self.noncombustion_activity_epa('Table 7-3')
         print('emissions:\n', emissions)
-
-        return {'activity': activity, 'emissions': emissions}
+        data = {'activity': activity, 'emissions': emissions}
+        return data
 
     def manure_management(self):
         """
         - Table A-167: Animals by Type (all)
         - Table A-178, A-179: Emissions by animal type (all)
           for Methane and Nitrous Oxide
+
+        Returns:
+            data (dict): [description]
         """
         print('start manure_management')
         # Livestock Population (1,000 Head)
@@ -775,11 +808,14 @@ class NonCombustion:
         # Table 5-7 CH4 and N2O Emissions from Manure Management
         # (MMT CO2 Eq.) ?
         print('nitrous_oxide:\n', nitrous_oxide)
-
-        return {'activity': activity, 'emissions': emissions}
+        data = {'activity': activity, 'emissions': emissions}
+        return data
 
     def petroleum_systems(self):
         """Activity is number of wells (Oil and HF Oil)
+
+        Returns:
+            data (dict): [description]
         """
         link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_petroleum_systems_annex35_tables.xlsx'
         sheet = '3.5-5'
@@ -797,11 +833,14 @@ class NonCombustion:
         emissions = self.noncombustion_activity_epa('Table ES-4')
         emissions = emissions[['Petroleum Systems']]
         emissions.columns.name = None
-
-        return {'activity': petroleum_activity, 'emissions': emissions}
+        data = {'activity': petroleum_activity, 'emissions': emissions}
+        return data
 
     def natural_gas_systems(self):
         """Activity is Total Active Gas Wells
+
+        Returns:
+            data (dict): [description]
         """
         link = 'https://www.epa.gov/sites/production/files/2020-02/2020_ghgi_natural_gas_systems_annex36_tables.xlsx'
         sheet = '3.6-7'
@@ -818,22 +857,31 @@ class NonCombustion:
         emissions = self.noncombustion_activity_epa('Table ES-4')
         emissions = emissions[['Natural Gas Systems']]
         emissions.columns.name = None
-
-        return {'activity': natgas, 'emissions': emissions}
+        data = {'activity': natgas, 'emissions': emissions}
+        return data
 
     def noncombustion_level_3(self):
         """[summary]
+
+        Returns:
+            data (dict): [description]
         """
         agricultural_soil_management = self.agricultural_soil_management()
         enteric_fermentation = self.enteric_fermentation()
         landfills = self.landfills()
         manure_management = self.manure_management()
-        return {'Manure Management': manure_management,
+        data = {'Manure Management': manure_management,
                 'Enteric Fermentation': enteric_fermentation,
                 'Landfills': landfills,
                 'Agricultural Soil Management': agricultural_soil_management}
+        return data
 
     def main(self):
+        """[summary]
+
+        Returns:
+            noncombustion_data (dict): [description]
+        """
         activity_level1 = self.noncombustion_activity_level1()
         level3 = self.noncombustion_level_3()
 

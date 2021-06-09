@@ -95,12 +95,13 @@ class DFUtilities:
         print('total_label:', total_label)
         print('df2 info:', df2.info())
         df2 = df2.fillna(np.nan)
-        # df_drop_str = \
-        #     df2.apply(
-        #         lambda col: 
-        #             pd.to_numeric(col, errors='ignore'), axis=1)
-           # .dropna(how='all', axis=1)
-        # df_drop_str = df2.select_dtypes(exclude='object')
+        df_drop_str = \
+            df2.apply(
+                lambda col:
+                    pd.to_numeric(
+                        col, errors='ignore'), axis=1).dropna(how='all', axis=1)
+        df_drop_str = df2.select_dtypes(exclude='object')
+
         if isinstance(df2, pd.Series):
             df2 = df2.to_frame()
         cols = df2.columns.tolist()
@@ -108,13 +109,13 @@ class DFUtilities:
         if len(cols) > 1:
             df2[total_label] = df2.drop(
                 total_label, axis=1, errors='ignore').sum(axis=1,
-                                                          numeric_only=True)
+                                                            numeric_only=True)
         else:
             col = cols[0]
             print('col:', col)
             df2 = df2.rename(
                 columns={col: total_label})
-        
+
         df2[total_label] = df2[total_label].astype(float)
 
         print('df2 final:\n', df2)
@@ -125,7 +126,7 @@ class DFUtilities:
         """Select value from dataframe as in Excel's @index function"""
         return dataframe.iloc[base_row, base_column].values()
 
-    def calculate_shares(self, df, total_label):
+    def calculate_shares(self, df, total_label=None):
         """"sum row, calculate each type of energy as percentage of total
         Parameters
         ----------
@@ -138,10 +139,19 @@ class DFUtilities:
             contains shares of each energy category relative to total energy
         """
         dataset = df.copy()
-        dataset[total_label] = dataset[total_label].replace(0, np.nan)
 
-        shares = dataset.drop(total_label, axis=1).divide(
-            dataset[total_label].values.reshape(len(dataset[total_label]), 1))
+        if isinstance(dataset.columns, pd.MultiIndex):
+            level = dataset.columns.nlevels - 1
+            levels = list(range(level))
+            sums = dataset.sum(level=levels, axis=1)
+            sums.columns = sums.columns.droplevel(levels[:-1])
+            shares = dataset.div(sums, level=level-1,
+                                 fill_value=np.nan)
+        else:
+            dataset[total_label] = dataset[total_label].replace(0, np.nan)
+            print('dataset:\n', dataset)
+            shares = dataset.drop(total_label, axis=1).divide(
+                dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares
 
     @staticmethod
