@@ -547,15 +547,19 @@ class GeneralLMDI:
         """[summary]
 
         Args:
-            path_list ([type]): [description]
-            data_dict ([type]): [description]
+            path_list (list): List of lists (of n length paths)
+            data_dict (dict): Dictionary of variable data with paths as keys
+                              and variable+path DataFrame as values
             variable (str): variable (e.g. A_i_k)
             lhs_data (dict, optional): Dictionary of dataframes of left hand
                                        side variable keys are 'paths'.
                                        Defaults to None.
-            lhs_sub_names (dict, optional): keys are subscripts associated
-                                            with the LHS variable, values are lists of (str)
-                                            names associated with the subscript.
+            lhs_sub_names (dict, optional): keys are subscripts
+                                            associated with the
+                                            LHS variable, values
+                                            are lists of (str)
+                                            names associated
+                                            with the subscript.
                                             Defaults to None.
 
         Raises:
@@ -640,7 +644,7 @@ class GeneralLMDI:
             term_piece (str):  e.g. A_i_k 
 
         Returns:
-            term_df [pd.DataFrame]: df of e.g. A_i_k data with
+            term_df (pd.DataFrame): df of e.g. A_i_k data with
                                     i and k multiindex levels
         """
 
@@ -764,7 +768,7 @@ class GeneralLMDI:
                     df_utils().ensure_same_indices(base_data, weights)
                 print('base_data:\n', base_data)
                 total_col = base_data.multiply(weights.values,
-                                            axis=1).sum(axis=1)
+                                               axis=1).sum(axis=1)
             except ValueError:
                 total_df = \
                     df_utils().create_total_column(
@@ -777,9 +781,11 @@ class GeneralLMDI:
         """Calculate LMDI weights
 
         Args:
-            lhs (pd.DataFrame): Dataframe containing data for the left hand side
-                                variable of the decomposition equation
-            name (str): level name for use in aggregation (not important, dropped)
+            lhs (pd.DataFrame): Dataframe containing data for the left
+                                hand side variable of the decomposition
+                                equation
+            name (str): level name for use in aggregation
+                        (not important, dropped)
 
         Returns:
             weights (pd.DataFrame): Log-Mean Divisia Weights (normalized)
@@ -895,13 +901,24 @@ class GeneralLMDI:
         """From level data, calculate terms and weight them.
 
         Args:
-            input_data (dict): [description]
+            input_data (dict): Keys are base variables
+                               (e.g. 'A' refers to all 'A',
+                               'A_i', 'A_i_k', etc. variables),
+                               values are dictionaries where keys
+                               are paths (e.g. 'total.National.Northeast')
+                               and values are dataframes with multilevel
+                               index columns matching the path components
             subscript_data (dict): [description]
-            weights (pd.DataFrame): [description]
-            name (level_name): [description]
+            weights (pd.DataFrame): LMDI weights for the level of aggregation
+                                    name
+            name (level_name): The total label/level of aggregation of interest
 
         Returns:
-            results (pd.DataFrame): [description]
+            results (pd.DataFrame): Activity, Structure, Intensity, etc.
+                                    (results df should have a column
+                                    containing results for each of these
+                                    or, more generally, the components in
+                                    self.term_labels)
         """
 
         terms = self.decomposition.split('*')
@@ -1012,7 +1029,7 @@ class GeneralLMDI:
 
             if isinstance(component, pd.Series):
                 component = component.to_frame(name=t)
- 
+
             print('component:\n', component)
             if component.shape[1] == 2 and name in component.columns:
                 component = component.drop(name, axis=1, errors='ignore')
@@ -1041,11 +1058,13 @@ class GeneralLMDI:
             sub_categories (dict): Nested dictionary describing
                                    relationships between levels
                                    of aggregation in data
-            lhs_data (dict, optional): Dictionary of dataframes of left hand side
-                                       variable keys are 'paths'. Defaults to None.
-            lhs_sub_names (dict, optional):  keys are subscripts associated with the
-                                            LHS variable, values are lists of (str)
-                                            names associated with the subscript.
+            lhs_data (dict, optional): Dictionary of dataframes of left
+                                       hand side variable keys are 'paths'.
+                                       Defaults to None.
+            lhs_sub_names (dict, optional):  keys are subscripts associated
+                                             with the LHS variable, values
+                                             are lists of (str) names
+                                             associated with the subscript.
                                             Defaults to None.
 
         Returns:
@@ -1074,8 +1093,19 @@ class GeneralLMDI:
             raw_data (dict): Dictionary containing
                              dataframes for each variable
                              and a the total label
+            sub_categories (dict): Nested dictionary describing
+                                   relationships between levels
+                                   of aggregation in data
+                                   e.g. {'National':
+                                            {'Northeast': None,
+                                             'West': None,
+                                             'South': None,
+                                             'Midwest': None}}
         Raises:
-            ValueError: [description]
+            ValueError: self.totals keys and values can only
+                        contain one non-common subscript.
+                        e.g. {'A': 'A_i'} works, {'A': 'A_i_k'}
+                        will raise a ValueError
         Returns:
             results (dataframe): LMDI decomposition results
         """
@@ -1158,7 +1188,7 @@ class GeneralLMDI:
         expression = self.decomposition_results(results)
 
         return expression
-    
+
     def decomposition_results(self, results):
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
@@ -1209,8 +1239,8 @@ class GeneralLMDI:
 
         for i, l in enumerate(data.columns):
             plt.plot(data.index, data[l], marker='',
-                        color=palette(i), linewidth=1,
-                        alpha=0.9, label=data[l].name)
+                     color=palette(i), linewidth=1,
+                     alpha=0.9, label=data[l].name)
 
         else:
             if self.LHS_var.startswith('E'):
@@ -1224,11 +1254,12 @@ class GeneralLMDI:
         plt.xlabel('Year')
         plt.ylabel('Emissions MMT CO2 eq.')
         plt.legend(loc=2, ncol=2)
-        # if output_directory:
-        #     try:
-        #         plt.savefig(f"{output_directory}/{fig_name}.png")
-        #     except FileNotFoundError:
-        #         plt.savefig(f".{output_directory}/{fig_name}.png")
+
+        if output_directory:
+            try:
+                plt.savefig(f"{output_directory}/{fig_name}.png")
+            except FileNotFoundError:
+                plt.savefig(f".{output_directory}/{fig_name}.png")
         plt.show()
 
     def main(self, input_data, sub_categories):
@@ -1272,13 +1303,11 @@ class GeneralLMDI:
 
 if __name__ == '__main__':
     directory = 'C:/Users/irabidea/Desktop/yamls/'
-    symb = GeneralLMDI(directory)
+    gen_ = GeneralLMDI(directory)
     """fname (str): Name of YAML file containing
                          LMDI input parameters
     """
     fname = 'combustion_noncombustion_test'  # 'test1'
-    symb.read_yaml(fname)
-    input_data = symb.example_input_data()
-    expression = symb.main(input_data=input_data)
-    # subs_ = symb.eval_expression()
-    # c = IndexedVersion(directory=directory).main(fname='test1')
+    gen_.read_yaml(fname)
+    input_data = gen_.example_input_data()
+    expression = gen_.main(input_data=input_data)
