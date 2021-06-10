@@ -18,6 +18,9 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 
 
 class ResidentialEmissions(SEDSEmissionsData):
+    """Class to decompose changes in Emissions from the Residential
+    Sector of the US Economy
+    """
     def __init__(self, directory, output_directory,
                  level_of_aggregation='National'):
         if level_of_aggregation == 'National':
@@ -92,17 +95,10 @@ class ResidentialEmissions(SEDSEmissionsData):
                     total_label=r,
                     weather_activity='floorspace_square_feet')
 
-            print('r_weather_factors:\n', r_weather_factors)
-            print('r_energy:\n', r_energy)
-            print('r_energy:\n', r_energy.info())
-            # exit()
             r_emissions, r_energy = \
                 self.calculate_emissions(r_energy,
                                          emissions_type='CO2 Factor',
                                          datasource='SEDS')
-            print('r_emissions:\n', r_emissions)
-            print('r_activity:\n', r_activity)
-            print('r_activity keys:\n', r_activity.keys())
 
             r_data = {'E_i_j': r_energy,
                       'A_i_k': HU,
@@ -111,7 +107,7 @@ class ResidentialEmissions(SEDSEmissionsData):
                       'C_i_j': r_emissions,
                       'WF_i': r_weather_factors}
             all_data[r] = r_data
-            print('all_data:\n', all_data)
+
         data_dict = {'National': all_data}
         return data_dict
 
@@ -130,5 +126,3 @@ if __name__ == '__main__':
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,
                           data_dict=s_data)
-    print('s_data:\n', s_data)
-    print('results:\n', results)

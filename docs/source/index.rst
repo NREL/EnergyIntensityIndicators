@@ -58,6 +58,7 @@ Relevant Background Literature
    EnergyIntensityIndicators/Transportation/transportation
    EnergyIntensityIndicators/Emissions/emissions
    EnergyIntensityIndicators/supporting_files
+   EnergyIntensityIndicators/utilities/utilities
    EnergyIntensityIndicators/results
   
 

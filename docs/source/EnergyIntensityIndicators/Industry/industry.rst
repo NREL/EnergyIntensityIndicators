@@ -1,6 +1,9 @@
 
 Industrial Sector Data Collection
 ==================================
+.. figure:: ./industrial_structure.png
+    :scale: 75 %
+    :alt: Test
 
 .. automodule:: EnergyIntensityIndicators.industry
    :members:

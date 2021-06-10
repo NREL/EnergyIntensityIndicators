@@ -11,7 +11,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 
 
-class WeatherFactors: 
+class WeatherFactors:
     def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, \
                  end_year=2018, projections=False):
         self.end_year = end_year
@@ -108,7 +108,6 @@ class WeatherFactors:
         energy_df = pd.DataFrame.from_dict(energy_tbtu, orient='index', columns=['energy'])
 
         shares_df = energy_df.merge(electricity_df, left_index=True, right_index=True, how='outer')
-
 
         shares_df['elec_share'] = shares_df.electricity_consumption_tbtu.divide(shares_df.loc['Total', \
                                                                                 'electricity_consumption_tbtu'])

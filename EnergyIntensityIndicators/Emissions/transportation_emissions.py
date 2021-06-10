@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import os
 
-from pandas.core.base import DataError
-
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
@@ -75,7 +73,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                      end_year=self.end_year)
 
     def transportation_data(self):
-        """[summary]
+        """Collect transportation energy consumption =
+        by fuel type
 
         Returns:
             transport_fuel (dict): [description]
@@ -149,6 +148,23 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
     @staticmethod
     def rename_modes(mode_df, tedb=False):
+        """Rename modes in energy by mode + fuel type
+        data so that they match the sub_categories_list dict
+
+        Args:
+            mode_df (pd.DataFrame): energy by mode + fuel type for the
+                                    transportation sector
+            tedb (bool, optional): Whether the mode_df is from TEDB or not.
+                                   Defaults to False.
+
+        Raises:
+            ValueError: Cannot currently handle TEDB data
+
+        Returns:
+            mode_df (pd.DataFrame): energy by mode + fuel type
+                                    data matching the
+                                    sub_categories_list dict mode names
+        """
         if tedb:
             # rename_dict = \
             #     {'Light vehicles': 'SWB Vehicles',
@@ -172,7 +188,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             #     'Passenger': ,
             #     'Commuter': 'Commuter Rail',
             #     'Intercityf': 'Intercity Rail'}
-            raise DataError('Missing TEDB mapping')
+            raise ValueError('Missing TEDB mapping')
         else: 
             rename_dict = \
                 {'Passenger Car': 'Passenger Car',
@@ -201,18 +217,24 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         return mode_df
 
     def transport(self, data):
-        """[summary]
+        """Collect energy data by type
+        and parse transportation data from
+        energy decomposition, replacing energy data with
+        energy consumption by fuel type and including
+        emissions data by fuel type in each level.
 
         Args:
-            data ([type]): [description]
+            data (dict): Input data from the energy decompostion
+                         model
 
         Returns:
-            transportation_data (dict): [description]
-        """        
+            transportation_data (dict): Input data for the emissions
+                                        decompostion model
+        """
+
         sector_ = 'All_Transportation'
         all_data = data[sector_]
         energy_data = self.transportation_data()
-        print('energy_data:\n', energy_data)
 
         all_data_dict = dict()
 
@@ -222,8 +244,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             for category, category_data in cargo_data.items():  # Highway/Rail/etc.
                 category_dict = dict()
                 if category_data is None:
-                    print('category:', category)
-                    print('all_data[cargo]:\n', all_data[cargo])
+
                     category_data_ = \
                         all_data[cargo][category]['activity']
                     data = \
@@ -236,8 +257,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
                         mode_group_all_dict = dict()
                         if mode_group_data is None:
-                            print('mode_group:', mode_group)
-                            print('all_data[cargo][category]:\n', all_data[cargo][category])
+
                             mode_group_data_ = \
                                 all_data[cargo][category][mode_group]['activity']
 
@@ -251,8 +271,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                             for mode, mode_data in mode_group_data.items(): #'Passenger Car – SWB Vehicles', 'Motorcycles'
                                 mode_dict = dict()
                                 if mode_data is None:
-                                    print('mode:', mode)
-                                    print('all_data[cargo][category][mode_group]:\n', all_data[cargo][category][mode_group])
+
                                     mode_data_ = \
                                         all_data[cargo][category][mode_group][mode]['activity']
 
@@ -266,8 +285,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                 elif isinstance(mode_data, dict):
                                     for sub_mode, sub_mode_d in mode_data.items():  # Passenger Car, SWB Vehicle, etc.
                                         if sub_mode_d is None:
-                                            print('sub_mode:', sub_mode)
-                                            print('all_data[cargo][category][mode_group][mode]:\n', all_data[cargo][category][mode_group][mode])
+
                                             sub_mode_data = \
                                                 all_data[cargo][category][mode_group][mode][sub_mode]['activity']
                                             data = \
@@ -283,32 +301,15 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         transportation_data = {sector_: all_data_dict}
         return transportation_data
 
-    def test_nest(self, d):
-        """[summary]
-
-        Args:
-            d ([type]): [description]
-        """        
-        paths = list(self.gen.get_paths(d))
-        variable = 'A_i_k'
-        end_paths = [p for p in paths if p[-1] is 'A_i_k'] # or p[-1] is 'deliv']
-        end_paths = sorted(end_paths, key=len, reverse=True)
-        for p in end_paths:
-            # data = self.gen.dict_iter(d, p, variable)
-            print('p:', p[:-1])
-            # if data.empty:
-            #     print('data:\n', data)
-        exit()
-
     def wrap_data(self, energy_data, activity_data,
                   mode, category):
         """[summary]
 
         Args:
-            energy_data ([type]): [description]
-            activity_data ([type]): [description]
-            mode ([type]): [description]
-            category ([type]): [description]
+            energy_data (pd.DataFrame): [description]
+            activity_data (pd.DataFrame): [description]
+            mode (str): [description]
+            category (str): [description]
 
         Raises:
             ValueError: [description]
@@ -317,11 +318,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         Returns:
             wrapped_data (dict): [description]
-        """        
+        """
+
         wrapped_data = dict()
         wrapped_data['A_i_k'] = activity_data
-        print('energy_data:\n', energy_data)
-        print('energy_data[["Mode", "Category"]]:\n', energy_data[["Mode", "Category"]])
 
         energy_data = \
             energy_data[
@@ -338,59 +338,30 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 lambda col: pd.to_numeric(col, errors='coerce'), axis=0)
         energy = energy.fillna(np.nan)
 
-        print('energy:\n', energy)
         energy = energy.interpolate(method='linear')
         energy = energy.drop('All Fuel', axis=1, errors='ignore')
-        print('energy interpolate:\n', energy)
 
         emissions, energy = \
             self.calculate_emissions(energy,
                                      emissions_type='CO2 Factor',
                                      datasource='TEDB')
-        if mode != 'Air':
-            if energy.empty:
-                raise ValueError(f'Energy empty for mode {mode}')
-            if emissions.empty:
-                raise ValueError(f'emissions empty for mode {mode}')
-            if activity_data.empty:
-                raise ValueError(f'activity_data empty for mode {mode}')
+        if energy.empty:
+            raise ValueError(f'Energy empty for mode {mode}')
+        if emissions.empty:
+            raise ValueError(f'emissions empty for mode {mode}')
+        if activity_data.empty:
+            raise ValueError(f'activity_data empty for mode {mode}')
+
         wrapped_data['E_i_j_k'] = energy
         wrapped_data['C_i_j_k'] = emissions
         return wrapped_data
 
-    def check_path(self, dict_):
-        """[summary]
-
-        Args:
-            dict_ ([type]): [description]
-        """        
-        paths = list(self.gen.get_paths(self.sub_categories_list))
-        print('paths:', paths)
-        paths_sorted = sorted(paths, key=len, reverse=True)
-        print('paths_sorted:', paths_sorted)
-
-        raw_data_paths = list(self.gen.get_paths(dict_))
-        print('raw_data_paths paths:', raw_data_paths)
-        raw_data_paths_sorted = sorted(raw_data_paths, key=len, reverse=True)
-        raw_data_paths_sorted = [p[:-1] for p in raw_data_paths_sorted]
-        print('\n \n \n')
-        print('raw_data_paths_sorted:', raw_data_paths_sorted)
-        print('\n \n \n')
-        for p in raw_data_paths_sorted:
-            print('p:', p)
-            print('\n')
-        print('\n \n \n')
-        missing_paths_raw = [p for p in paths_sorted if p not in raw_data_paths_sorted]
-        print('missing_paths_raw:\n', missing_paths_raw)
-        missing_paths_paths = [p for p in raw_data_paths_sorted if p not in paths_sorted]
-        print('missing_paths_paths:\n', missing_paths_paths)
-        exit()
-
     def main(self):
-        """[summary]
+        """Collect data from energy decomposition,
+        calculate emissions and return ammended dictionary
 
         Returns:
-            [type]: [description]
+            transportation_data (dict): data for emissions decomposition
         """
         energy_decomp_data = \
             self.transport_data.collect_data(

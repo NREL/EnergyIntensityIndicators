@@ -93,22 +93,35 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         fuel_mix = \
             df_utils().calculate_shares(region_data, total_label='total')
         return fuel_mix
-    
+
     @staticmethod
     def weighted(x, cols, w="weights"):
+        """Calculae weighted average
+
+        Args:
+            x ([type]): [description]
+            cols ([type]): [description]
+            w (str, optional): [description]. Defaults to "weights".
+
+        Returns:
+            (pd.Series): Weighted average
+        """
         return pd.Series(np.average(x[cols], weights=x[w], axis=0), cols)
 
     def get_mean_factor(self, emissions_factors,
                         input_cols, new_name, portions=None):
-        """[summary]
+        """Calculate average of given emissions factors
 
         Args:
-            emissions_factors (DataFrame): emissions factors
+            emissions_factors (pd.DataFrame): emissions factors
             input_cols (list): List of emissions
                                factors to average
             new_name (str): Name of resulting factor
             portions (dict): Optional. Weights for weighted average
                              (keys are cols)
+
+        Returns:
+            ef (pd.DataFrame): emissions factors with new type
         """
         subset = \
             emissions_factors[emissions_factors['Fuel Type'].isin(input_cols)]
@@ -152,9 +165,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         """Read and process EPA emissions factors data
 
         Returns:
-            emissions_factors (DataFrame): [description]
+            emissions_factors (DataFrame): EPA emissions factors data
         """
-        print('os.getcwd(),', os.getcwd())
         try:
             ef = pd.read_csv(
                     './EnergyIntensityIndicators/Data/EPA_emissions_factors.csv')
@@ -242,7 +254,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         EPA emissions factors labels
 
         Args:
-            mecs_data (DataFrame): [description]
+            mecs_data (DataFrame): Industrial sector energy use
+                                   by fuel type
 
         Returns:
             mecs_data (DataFrame): MECS data with column names
@@ -288,36 +301,34 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
     @staticmethod
     def electric_epa_mapping(elec_data):
-        """[summary]
+        """Rename elec power sector data (from EIA) columns so
+        that labels match EPA emissions factors labels
+
+        Args:
+            elec_data (pd.DataFrame): Energy consumption for the    
+                                      elec power sector by fuel type
 
         Returns:
-            [type]: [description]
+            elec_data (pd.DataFrame): Elec data with column names
+                                      that match EPA emissions data
+                                      labels
         """
-        print('elec_data before:\n', elec_data)
-        print('elec_data original cols:\n', elec_data.columns)
-
         rename_dict = {col: col[:col.find('Consumption')].strip()
                        for col in elec_data.columns if 'Consumption' in col}
-        print('rename_dict:\n', rename_dict)
         rename_dict2 = {col: col[:col.find('Consumed')].strip()
                         for col in elec_data.columns if 'Consumed' in col}
-        print('rename_dict2:\n', rename_dict2)
+
         intersect = []
         for key, value in rename_dict2.items():
-            print('key:', key)
-            print('value:', value)
             if value in rename_dict.values():
-                print('value in rename_dict')
                 intersect.append(key)
 
-        print('intersect:', intersect)
         elec_data = elec_data.drop(intersect, axis=1)
         rename_dict.update(rename_dict2)
         others = {'Electricity Net Generation From Wood, Electric Power Sector, Annual, Million Kilowatthours': 'Wood',
                   'Electricity Net Generation From Waste, Electric Power Sector, Annual, Million Kilowatthours': 'Waste'}
         rename_dict.update(others)
         elec_data = elec_data.rename(columns=rename_dict)
-        print('elec_data:\n', elec_data)
         mapping_ = {'Coal': 'Mixed (Electric Power Sector)',
                     'Natural Gas': 'Natural Gas',
                     'Other Gases': 'Fuel Gas',
@@ -333,11 +344,19 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
     @staticmethod
     def tedb_epa_mapping(tedb_data):
-        """[summary]
+        """Rename transportation sector data (from TEDB) columns so
+        that labels match EPA emissions factors labels
 
         Args:
-            tedb_data ([type]): [description]
+            tedb_data (pd.DataFrame): Energy consumption for the
+                                      transportation sector by fuel type
+
+        Returns:
+            tedb_data_ (pd.DataFrame): transportation data with
+                                       column names that match
+                                       EPA emissions data labels
         """
+
         unit_coversion = {'Diesel Fuel & Distillate (1,000 bbl)': 1000/42,
                           'Residual Fuel Oil (1,000 bbl)': 1000/42}
         unit_coversion = {k: unit_coversion[k] for k in
@@ -377,19 +396,16 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Natural gas': 'Natural Gas',  # ef is per scf
                     'Electricity': 'US Average',  # ef is /MWh
                     'Intercity': 'Diesel Fuel'}  # ef is in gallon
-        # irrelevant_fuels = [f for f in tedb_data.columns
-        #                     if f not in mapping.keys()]
-        # tedb_data = tedb_data[~tedb_data['Fuel Type'].isin(irrelevant_fuels)]
+
         tedb_data_ = tedb_data.rename(columns=mapping)
         tedb_data_ = tedb_data_.drop('School (million bbl)',
-                                   axis=1, errors='ignore')
+                                     axis=1, errors='ignore')
         tedb_data_ = \
             tedb_data_.drop(['Total Energy (Tbtu)',
-                            'Total Energy (Tbtu) ',
-                            'Total Energy (Tbtu) - old series'],
-                           axis=1, errors='ignore')
-        # if 'Aviation Gasoline' in tedb_data_.columns:
-        print('tedb_data_:\n', tedb_data_)
+                             'Total Energy (Tbtu) ',
+                             'Total Energy (Tbtu) - old series'],
+                            axis=1, errors='ignore')
+
         return tedb_data_
 
     @staticmethod
@@ -439,13 +455,19 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         emissions_factor
 
         Parameters:
-            energy_data (df):
-            emission_factor (df, series or float):
-
+            energy_data (pd.DataFrame): energy consumption by fuel data
+            emissions_type (str): Type of emissions factor.
+                                  Defaults to 'CO2 Factor'.
+            datasource (str): 'SEDS', 'MECS', 'eia_elec', or 'TEDB'.
+                              Data source for energy consumption by
+                              fuel data. Defaults to 'SEDS'.
         Returns:
-            emissions_data (df):
+            emissions_data (pd.DataFrame): Emissions by fuel type
+            energy_data (pd.DataFrame): Energy consumption by fuel data
+                                        with columns matching emissions data
+
+        TODO: Handle Other category (should not be dropped)
         """
-        print('energy_data:\n', energy_data)
         energy_data = energy_data.drop('region', axis=1, errors='ignore')
         emissions_factors = self.epa_emissions_data()
 
@@ -453,7 +475,6 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             energy_data = self.epa_eia_crosswalk(energy_data)
         elif datasource == 'MECS':
             energy_data = self.mecs_epa_mapping(energy_data)
-            # energy_data = energy_data.reset_index()
         elif datasource == 'eia_elec':
             energy_data = self.electric_epa_mapping(energy_data)
         elif datasource == 'TEDB':
@@ -482,14 +503,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             raise KeyError('Emissions data does not contain' +
                            'all energy sources')
 
-        print('emissions_factors:\n', emissions_factors)
-        print('energy_data:\n', energy_data)
-        print('emissions_factors cols:\n', emissions_factors.columns)
-        print('energy_data cols:\n', energy_data.columns)
         emissions_data = \
             energy_data.multiply(emissions_factors.to_numpy())
-
-        print('emissions_data:\n', emissions_data)
 
         try:
             energy_data.loc[:, 'Census Region'] = \
@@ -503,7 +518,6 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             # start as floats-- need to match)
             emissions_data.loc[:, 'Census Region'] = \
                 emissions_data['Census Region'].astype(int).astype(str)
-            print('emissions_data:\n', emissions_data)
         except KeyError:
             if census_region:
                 energy_data = energy_data[energy_data['Census Region'] == '0']
@@ -515,10 +529,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
     def calc_lmdi(self, breakout, calculate_lmdi, data_dict):
         """Calculate decomposition of CO2 emissions for the U.S. economy
 
-        TODO: allow for different sectors to have different types of energy
-              and commercial and residential to have weather adjustment
-              (TODO carried over from EconomyWide)
-
+        TODO: Could simply call lmdi_gen main with a few slight adjustments
         """
         results_dict, formatted_results = \
             self.get_nested_lmdi(
@@ -529,9 +540,10 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
 
 class SEDSEmissionsData(CO2EmissionsDecomposition):
-    """Class to [Summary]
-
+    """Class to collect energy consumption by fuel type
+    from SEDS (for the Residential and Commercial Sectors)
     """
+
     def __init__(self, directory,
                  output_directory, sector,
                  fname, categories_dict,
@@ -549,7 +561,8 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         """Match states with Census Regions
 
         Returns:
-            [type]: [description]
+            cw (pd.DataFrame): Crosswalk between states and census
+                               regions
         """
         print('os.getcwd():', os.getcwd())
         try:
@@ -568,17 +581,20 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
     @staticmethod
     def epa_eia_crosswalk(eia_data):
-        """[summary]
+        """Rename EIA data (from SEDS) columns so
+        that labels match EPA emissions factors labels
 
         Args:
-            eia_data ([type]): [description]
+            eia_data (pd.DataFrame): Energy consumption for the
+                                     Commercial or Residential
+                                     sector by fuel type
 
         Returns:
-            [type]: [description]
-
-        TODO:
-            - Handle fuel types with multiple factors
+            eia_data (pd.DataFrame): EIA data with
+                                     column names that match
+                                     EPA emissions data labels
         """
+
         ethanol_cols = ['Fuel Ethanol excluding Denaturant',
                         'Fuel Ethanol including Denaturant']
         if ethanol_cols in eia_data.columns.to_list():
@@ -620,15 +636,17 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
     @staticmethod
     def seds_endpoints(sector, state, fuel):
-        """[summary]
+        """Gather SEDS API endpoint for sector, state, fuel
+        combination
 
         Args:
-            sector ([type]): [description]
-            state ([type]): [description]
-            fuel ([type]): [description]
+            sector (str): abbreviation for the commercial
+                          or residential sector
+            state (str): abbreviation for state
+            fuel (str): Key in endpoints dict to select
 
         Returns:
-            [type]: [description]
+            (str): SEDS API endpoint
         """
         endpoints = {'All Petroleum Products':
                         f'SEDS.PA{sector}P.{state}.A',
@@ -684,7 +702,15 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         B in endpoint)
 
         Args:
-            sector ([type]): [description]
+            sector (str): abbreviation for the commercial
+                          or residential sector ('CC' or 'RC'
+                          respectively)
+            states (list): States in region-- used to collect
+                           SEDS API data
+
+        Returns:
+            fuels_data (pd.DataFrame): Energy consumption by fuel
+                                       for region (by state) and sector
         """
 
         fuels = {'CC': ['All Petroleum Products',
@@ -752,7 +778,24 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                              activity_input_data,
                              weather_data, total_label,
                              weather_activity, sector='Residential'):
+        """Collect weather factors for 'deliv' energy type (from 'elec' and
+        'fuels' weather factors) for sector
 
+        Args:
+            energy_data (dict): Dictionary of dataframes of energy data
+                                from the energy decomposition (keys are
+                                'elec' and 'fuels')
+            activity_input_data (dict): activity data for the sector
+            weather_data (dict): weather factors for 'elec' and 'fuels'
+            total_label (str): level total name
+            weather_activity (str): Activity data to use in weather data
+                                    inference (?)
+            sector (str, optional): 'Residential' or 'Commercial'.
+                                    Defaults to 'Residential'.
+
+        Returns:
+            weather_data (pd.DataFrame): Weather factors for 'deliv'.
+        """
         energy_type = 'deliv'
         energy_input_data = \
             self.calculate_energy_data(energy_type, energy_data)
@@ -785,7 +828,6 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
             input_data = dict()
             for e in self.energy_types:
                 type_df = energy_data[e]
-                print(f'type df for {e}:\n', type_df)
                 activity_df = activity_input_data[weather_activity]
                 nominal_intensity = \
                     self.nominal_energy_intensity(type_df, activity_df)
@@ -801,13 +843,15 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         return weather_data
 
     def seds_energy_data(self, sector):
-        """[summary]
+        """Collect SEDS energy consumption data
+        by fuel type and region for sector
 
         Args:
-            sector ([type]): [description]
+            sector (str): 'Commercial' or 'Residential'
 
         Returns:
-            [type]: [description]
+            all_data (pd.DataFrame): Energy Use by fuel type
+                                     and region.
         """
         states = self.state_census_crosswalk()
         sector_data = {'commercial': {'abbrev': 'CC', 'regions': [0]},
@@ -834,30 +878,4 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
 if __name__ == '__main__':
     pass
-    # directory = './EnergyIntensityIndicators/Data'
-    # output_directory = './Results'
 
-    # module_dict = {
-    #     # 'elec': ElectricPowerEmissions}
-    #             #    'transport': TransportationEmssions}  #,
-    #             #    'industry': IndustrialEmissions} #,
-    #             #    'residential': ResidentialEmissions}  #,
-    #                'commercial': CommercialEmissions}
-    # levels = {'elec': 'Elec Generation Total',
-    #           'transport': 'All_Transportation',
-    #           'industry': 'Industry',
-    #           'residential': 'National',
-    #           'commercial': 'Commercial_Total'}
-    # results = dict()
-    # for sector, module_ in module_dict.items():
-    #     print('sector:', sector)
-    #     s = module_(directory, output_directory,
-    #                 level_of_aggregation=levels[sector])
-    #     s_data = s.main()
-    #     results = s.calc_lmdi(breakout=True,
-    #                           calculate_lmdi=True,
-    #                           data_dict=s_data)
-    #     print('s_data:\n', s_data)
-    #     print('results:\n', results)
-
-    #     results[sector] = s_data

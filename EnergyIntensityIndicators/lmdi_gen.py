@@ -130,11 +130,23 @@ class GeneralLMDI:
     def multiplicative_weights(self, LHS, LHS_share):
         """Calculate log mean weights where T = t, 0 = t-1
 
+        Args:
+            LHS (pd.DataFrame): Data for the left hand side variable
+                             of the decomposition equation
+            LHS_share (pd.DataFrame): Shares of total LHS var for
+                                       each category in level of
+                                       aggregation total_label (str):
+                                       Name of aggregation of categories
+                                       in level of aggregation
+
         Multiplicative model uses the LMDI-II model because
         'the weights...sum[] to unity, a desirable property in
         index construction.' (Ang, B.W., 2015. LMDI decomposition
                                approach: A guide for implementation.
                                Energy Policy 86, 233-238.).
+
+        Returns:
+            log_mean_weights_normalized (pd.DataFrame): LMDI weights
         """
 
         if LHS_share.shape[1] == 1:
@@ -169,7 +181,7 @@ class GeneralLMDI:
             base_year_ (int): [description]
 
         Returns:
-            index (pd.DataFrame): Component data indexed to base_year
+            index (pd.DataFrame): Component data indexed to base_year_
         """
 
         component.index = component.index.astype(int)
@@ -220,17 +232,22 @@ class GeneralLMDI:
         model where T=t, 0 = t - 1
 
         Args:
-            energy_data (dataframe): energy consumption data
-            energy_shares (dataframe): Shares of total energy for
-            each category in level of aggregation total_label (str):
-            Name of aggregation of categories in level of aggregation
-            lmdi_type (str, optional): 'LMDI-I' or 'LMDI-II'.
+            LHS (pd.DataFrame): Data for the left hand side variable
+                             of the decomposition equation
+            LHS_share (pd.DataFrame): Shares of total LHS var for
+                                       each category in level of
+                                       aggregation total_label (str):
+                                       Name of aggregation of categories
+                                       in level of aggregation
 
-        Defaults to 'LMDI-I' because it is
-        'consistent in aggregation and perfect
-        in decomposition at the subcategory level'
-        (Ang, B.W., 2015. LMDI decomposition approach: A guide for
-        implementation. Energy Policy 86, 233-238.).
+        self.lmdi_type should be one of 'LMDI-I' or 'LMDI-II'.
+        Standard choice is 'LMDI-I' because it is 'consistent in
+        aggregation and perfect in decomposition at the subcategory
+        level' (Ang, B.W., 2015. LMDI decomposition approach: A guide
+        for implementation. Energy Policy 86, 233-238.).
+
+        Returns:
+            LMDI weights (pd.DataFrame)
         """
 
         if not self.lmdi_type:
@@ -337,7 +354,7 @@ class GeneralLMDI:
             path (list): "path" (of keys) to dataframes in the data_dict
 
         Returns:
-            data [pd.DataFrame]: Data at the end of the path for variable
+            data (pd.DataFrame): Data at the end of the path for variable
         """
 
         data = data_dict.copy()
@@ -355,7 +372,7 @@ class GeneralLMDI:
                                       Defaults to [].
 
         Yields:
-            current [list]: List of lists (each inner list containing
+            current (list): List of lists (each inner list containing
                             a path)
         """
 
@@ -744,9 +761,9 @@ class GeneralLMDI:
             total_name (str): Name of aggregated data (column)
 
         Returns:
-            total_col [pd.DataFrame]: n x 1 df of aggregated data
-                                     (sum or weighted average if
-                                     column data units vary)
+            total_col (pd.DataFrame): n x 1 df of aggregated data
+                                      (sum or weighted average if
+                                      column data units vary)
         """
 
         units = self.subscripts[subscript]['names'].values()
@@ -810,6 +827,17 @@ class GeneralLMDI:
 
     def divide_multilevel(self, numerator, denominator,
                           shared_levels, lhs_data):
+        """[summary]
+
+        Args:
+            numerator ([type]): [description]
+            denominator ([type]): [description]
+            shared_levels ([type]): [description]
+            lhs_data ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         print('numerator:\n', numerator)
         numerator_levels = numerator.columns.nlevels
 
@@ -1190,6 +1218,20 @@ class GeneralLMDI:
         return expression
 
     def decomposition_results(self, results):
+        """Calculate final decomposition results
+        from decomposed components
+
+        Args:
+            results (pd.DataFrame): Activity, Structure, Intensity, etc.
+                                    (results df should have a column
+                                    containing results for each of these
+                                    or, more generally, the components in
+                                    self.term_labels)
+
+        Returns:
+            results (pd.DataFrame): results df processed appropriately for
+                                    LMDI model type and with effect calculated
+        """
         if self.model == 'additive':
             expression = self.decomposition_additive(results)
         elif self.model == 'multiplicative':

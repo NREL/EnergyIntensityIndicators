@@ -22,6 +22,10 @@ from EnergyIntensityIndicators.Industry.manufacturing \
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
+    """Class to decompose changes in Emissions
+    from combustion and noncombustion sources
+    in the Industrial Sector of the US Economy
+    """
     def __init__(self, directory, output_directory, level_of_aggregation):
         if level_of_aggregation == 'Manufacturing':
             fname = 'C:/Users/irabidea/Desktop/yamls/combustion_noncombustion_test.yaml'
@@ -137,10 +141,12 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          categories_dict=self.sub_categories_list)
 
     def energy_data(self):
-        """[summary]
+        """Collect energy consumtion by fuel type data for
+        the Industrial Sector (organized by subcategory)
 
         Returns:
-            data (dict): [description]
+            data (dict): Nested dictionary containing energy
+                         consumption by fuel type dataframes
         """
         all_manufacturing = self.manufacturing_energy_data()
 
@@ -160,7 +166,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         mining = \
             pd.read_csv(
                 f'{data_dir}mining_energy.csv')
-        print('mining:\n', mining)
         mining = mining.fillna(np.nan)
         mining = mining.dropna(how='all', axis=1)
         mining = mining[mining['NAICS'].notnull()]
@@ -175,7 +180,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             mining_naics = \
                 mining_naics.apply(
                     lambda col: pd.to_numeric(col, errors='coerce'), axis=1)
-            print('mining:\n', mining)
 
             for c in mining_naics.columns:
                 mining_naics = \
@@ -187,12 +191,9 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
         all_mining = pd.concat(all_mining, axis=0)
         all_mining = all_mining.reset_index()
-        print('all_mining:\n', all_mining)
         all_mining = all_mining.groupby(['Year', 'NAICS 4 Digit']).sum()
 
         all_mining = all_mining.reset_index()
-        print("all_mining['NAICS 4 Digit']:\n", all_mining['NAICS 4 Digit'].unique())
-        print('all_mining:\n', all_mining)
 
         industry_names = \
             {2111: 'Petroleum and Natural Gas',
@@ -217,7 +218,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         other_mining_data = pd.concat(other_mining_data, axis=0)
         other_mining_data = other_mining_data.groupby('Year').sum()
         all_mining_data['Other Mining'] = other_mining_data
-        
+
         data = {'Manufacturing': all_manufacturing,
                 'NonManufacturing':
                     {'Mining': all_mining_data,
@@ -227,8 +228,19 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
     @staticmethod
     def agricultural_extrapolate(energy_df, gross_output):
-        print('gross_output:\n', gross_output)
-        print('gross_output cols:\n', gross_output.columns)
+        """Extend Miranowski data by fuel type (which ends in 2002)
+        using the PNNL method based on energy intensity
+
+        Args:
+            energy_df (pd.DataFrame): Energy data for the agricultural
+                                      sector
+            gross_output (pd.DataFrame): Gross output data for the agricultural
+                                         sector
+        Returns:
+            results (pd.DataFrame): Energy data for the agricultural
+                                    sector extrapolated to end of gross
+                                    output index
+        """
         go_col = 'Agriculture, Forestry & Fishing'
         dfs = []
         for c in energy_df.columns:
@@ -244,16 +256,18 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             fuel_df[c] = fuel_df['fuel_intensity'].multiply(
                 gross_output[go_col] * 0.001, axis='index').ffill()
             dfs.append(fuel_df[c])
-        
+
         results = pd.concat(dfs, axis=1)
-        print('results:\n', results)
         return results
 
     def manufacturing_energy_data(self):
-        """[summary]
+        """Collect Manufacturing energy consumption
+        by fuel type
 
         Returns:
-            all_manufacturing [type]: [description]
+            all_manufacturing (pd.DataFrame): Energy Consumption
+                                              by fuel type and NAICS
+                                              code
         """
         __, industrial_btu = \
             Manufacturing(naics_digits=3).mecs_data_by_year()
@@ -290,28 +304,31 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             manufacturing_naics['NAICS'] = n
             all_manufacturing.append(manufacturing_naics)
         all_manufacturing = pd.concat(all_manufacturing, axis=0)
-        print('all_manufacturing:\n', all_manufacturing)
-        for n in all_manufacturing['NAICS'].unique():
-            manufacturing_n = all_manufacturing[all_manufacturing['NAICS'] == n]
-            print('manufacturing_n:\n', manufacturing_n)
+
         return all_manufacturing
 
     def collect_manufacturing_data(self, energy_data, noncombustion_data,
                                    manufacturing):
-        """[summary]
+        """CCollect noncombustion data and
+        data from energy decomposition,
+        calculate emissions and return ammended
+        dictionary for the Manufacturing Sector
 
         Args:
-            energy_data ([type]): [description]
-            noncombustion_data ([type]): [description]
-            manufacturing ([type]): [description]
+            energy_data (pd.DataFrame): Energy data for the manufacturing sector
+                                        by fuel type and NAICS
+            noncombustion_data (dict): Nested dictionary containing noncombustion
+                                       activity and emissions data
+            manufacturing (dict): Manufacturing data from energy decomposition
 
         Raises:
-            ValueError: [description]
+            ValueError: NAICS code missing from energy_data
 
         Returns:
-            manufacturing_dict (dict): [description]
+            manufacturing_dict (dict): Nested dictionary containing all manufacturing
+                                       combustion (with energy by fuel type) and
+                                       noncombustion data
         """
-        print('manufacturing_energy_data:\n', energy_data)
         man = self.sub_categories_list['Industry']['Manufacturing']
         manufacturing_dict = dict()
         labels_naics = \
@@ -330,7 +347,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             else:
                 combustion_energy_data = \
                     energy_data[energy_data['NAICS'] == int(naics)]
-                print('combustion_energy_data:\n', combustion_energy_data)
 
                 if combustion_energy_data.empty:
                     print('energy_data:\n', energy_data)
@@ -362,24 +378,31 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     {'A_i_k': noncombustion_activity,
                         'C_i_j_k': noncombustion_emissions}
 
-            print('label:', label)
-            print('label:\n', naics_dict)
-
             manufacturing_dict[label] = naics_dict
 
         return manufacturing_dict
 
     def collect_nonmanufacturing_data(self, energy_data, nonman_data,
                                       noncombustion_data):
-        """[summary]
+        """Collect noncombustion data and
+        data from energy decomposition,
+        calculate emissions and return ammended
+        dictionary for the Non-Manufacturing Sector
 
         Args:
-            energy_data ([type]): [description]
-            nonman_data ([type]): [description]
-            noncombustion_data ([type]): [description]
+            energy_data (dict): Nested dictionary of NonManufacturing
+                                energy consumption by fuel type data
+            nonman_data (dict): Nested dictionary of NonManufacturing
+                                energy decomposition input data
+            noncombustion_data (dict): Nested dictionary containing
+                                       noncombustion activity and
+                                       emissions data
 
         Returns:
-            nonmanufacturing_dict (dict): [description]
+            nonmanufacturing_dict (dict): Nested dictionary containing all
+                                          nonmanufacturing combustion
+                                          (with energy by fuel type) and
+                                          noncombustion data
         """
         cats = self.sub_categories_list['Industry']['Nonmanufacturing']
 
@@ -421,7 +444,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     subcategory_dict['noncombustion'] = \
                         {'A_i_k': noncombustion_activity,
                          'C_i_j_k': noncombustion_emissions}
-                
+
                 nonmanufacturing_dict[subcategory] = subcategory_dict
 
             elif subcategory == 'Mining':
@@ -504,26 +527,35 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
     @staticmethod
     def handle_noncombustion(s_data, noncombustion_data,
                              sub_category):
-        """[summary]
+        """Merge noncombustion data into the sub_category level
 
         Args:
-            s_data ([type]): [description]
-            noncombustion_data ([type]): [description]
-            sub_category ([type]): [description]
+            s_data (dict): categories below subcategory
+            noncombustion_data (dict): Nested dictionary.
+                                       Keys are subcategories,
+                                       inner dictionary keys are
+                                       'activity' and 'emissions'
+                                       with respective dataframes
+                                       as values.
+            sub_category (str): Subcategory to collect
 
         Raises:
-            KeyError: [description]
+            KeyError: noncombustion data missing emissions or
+                      activity data
 
         Returns:
-            noncombustion_activity [type]: [description]
-            noncombustion_emissions [type]: [description]
+            noncombustion_activity (pd.DataFrame): sub-subcategory data
+                                                   merged into one
+                                                   subcategory activity df
+            noncombustion_emissions (pd.DataFrame): sub-subcategory data
+                                                   merged into one
+                                                   subcategory emissions df
         """
         if s_data:
             noncombustion_activity = []
             noncombustion_emissions = []
 
             for s in s_data['noncombustion'].keys():
-                print('s:', s)
                 noncombustion_cat_data = noncombustion_data[s]
 
                 e_ = noncombustion_cat_data['emissions']
@@ -537,7 +569,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                 a_ = noncombustion_cat_data['activity']
                 if isinstance(a_, list):
                     a_ = df_utils().merge_df_list(a_)
-                print('a_:\n', a_)
                 a_ = a_.drop('Total', axis=1, errors='ignore')
                 a_ = df_utils().create_total_column(a_, s)
                 a_ = a_[[s]]
@@ -559,25 +590,14 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
         return noncombustion_activity, noncombustion_emissions
 
-    def test_nest(self, d):
-        """[summary]
-        """
-        paths = list(self.gen.get_paths(d))
-        variable = 'A_i_k'
-        end_paths = [p for p in paths if p[-1] is 'A_i_k'] # or p[-1] is 'deliv']
-        end_paths = sorted(end_paths, key=len, reverse=True)
-        for p in end_paths:
-            # data = self.gen.dict_iter(d, p, variable)
-            print('p:', p[:-1])
-            # if data.empty:
-            #     print('data:\n', data)
-        exit()
-
     def main(self):
-        """[summary]
+        """Collect noncombustion data and
+        data from energy decomposition,
+        calculate emissions and return ammended
+        dictionary
 
         Returns:
-            data (dict): [description]
+            data (dict): data for emissions decomposition
         """
         noncombustion_data = NonCombustion().main()
 
@@ -614,7 +634,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                       nonmanufacturing_data,
                    'Manufacturing':
                       manufacturing_data}}
-        # self.test_nest(data)
         return data
 
 
@@ -631,5 +650,3 @@ if __name__ == '__main__':
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,
                           data_dict=s_data)
-    print('s_data:\n', s_data)
-    print('results:\n', results)

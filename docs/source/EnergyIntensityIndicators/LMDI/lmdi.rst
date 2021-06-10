@@ -1,6 +1,10 @@
 Core LMDI Model
 ================
 
+.. figure:: ./LMDI_flow.png
+    :scale: 75 %
+    :alt: Test
+
 .. automodule:: EnergyIntensityIndicators.LMDI
    :members:
    :undoc-members:

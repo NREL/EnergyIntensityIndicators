@@ -21,7 +21,9 @@ from EnergyIntensityIndicators.weather_factors import WeatherFactors
 
 
 class ResidentialIndicators(CalculateLMDI):
-
+    """Class to decompose changes in Energy Consumption
+    from the Residential Sector of the US Economy
+    """
     def __init__(self, directory, output_directory,
                  level_of_aggregation=None,
                  lmdi_model='multiplicative',
