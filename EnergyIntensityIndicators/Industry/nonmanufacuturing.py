@@ -325,6 +325,7 @@ class NonManufacturing:
                                 'fuels': fuels_final},
                      'activity': {'gross_output': gross_output,
                                   'value_added': value_added}}
+
         return data_dict
 
     def aggregate_mining_data(self, mining_df, allfos=False):

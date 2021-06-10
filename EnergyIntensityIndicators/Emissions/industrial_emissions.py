@@ -151,10 +151,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         agriculture = \
             pd.read_excel(
                 f'{data_dir}miranowski_data.xlsx',
-                sheet_name='Ag Cons by Use', skiprows=4, skipfooter=9,
+                sheet_name='Ag Cons by Use', skiprows=4, skipfooter=50,
                 usecols='A:F', index_col=0,
                 names=['Year', 'Gasoline', 'Diesel', 'LP Gas',
                        'Natural Gas', 'Electricity'])
+
         # Mining
         mining = \
             pd.read_csv(
@@ -223,6 +224,30 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                      'Construction': construction_elec_fuels,
                      'Agriculture, Forestry & Fishing': agriculture}}
         return data
+
+    @staticmethod
+    def agricultural_extrapolate(energy_df, gross_output):
+        print('gross_output:\n', gross_output)
+        print('gross_output cols:\n', gross_output.columns)
+        go_col = 'Agriculture, Forestry & Fishing'
+        dfs = []
+        for c in energy_df.columns:
+            fuel_df = energy_df[[c]]
+            fuel_df = fuel_df.merge(gross_output,
+                                    left_index=True,
+                                    right_index=True,
+                                    how='outer')
+
+            fuel_df['fuel_intensity'] = fuel_df[c].divide(
+                gross_output[go_col] * 0.001, axis='index')
+
+            fuel_df[c] = fuel_df['fuel_intensity'].multiply(
+                gross_output[go_col] * 0.001, axis='index').ffill()
+            dfs.append(fuel_df[c])
+        
+        results = pd.concat(dfs, axis=1)
+        print('results:\n', results)
+        return results
 
     def manufacturing_energy_data(self):
         """[summary]
@@ -371,7 +396,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     nonman_data[subcategory]['activity']
                 value_added = sub_activity_data_combustion['value_added']
                 gross_output = sub_activity_data_combustion['gross_output']
-
+                if subcategory == 'Agriculture, Forestry & Fishing':
+                    sub_energy_data_combustion = \
+                        self.agricultural_extrapolate(
+                            sub_energy_data_combustion,
+                            gross_output)
                 sub_emissions_data_combustion, sub_energy_data_combustion = \
                     self.calculate_emissions(sub_energy_data_combustion,
                                              emissions_type='CO2 Factor',

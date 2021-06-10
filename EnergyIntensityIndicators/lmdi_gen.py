@@ -163,9 +163,15 @@ class GeneralLMDI:
         """Compute index of components (indexing to chosen base_year_),
         replicating methodology in PNNL spreadsheets for the multiplicative
         model
+
+        Args:
+            component (pd.Series or pd.DataFrame): If Dataframe, needs to be n x 1
+            base_year_ (int): [description]
+
+        Returns:
+            index (pd.DataFrame): Component data indexed to base_year
         """
 
-        print('component:\n', component)
         component.index = component.index.astype(int)
         if isinstance(component, pd.DataFrame):
             component_col = component.columns[0]
@@ -191,6 +197,13 @@ class GeneralLMDI:
     def decomposition_multiplicative(self, terms_df):
         """Format component data, collect overall effect, return indexed
         dataframe of the results for the multiplicative LMDI model.
+
+        Args:
+            terms_df (pd.DataFrame): DataFrame with decomposed changes in
+                                     LHS var
+
+        Returns:
+            results (pd.DataFrame): terms_df (exponential) with Effect column
         """
 
         results = terms_df.apply(lambda col: np.exp(col), axis=1)
@@ -220,17 +233,13 @@ class GeneralLMDI:
         implementation. Energy Policy 86, 233-238.).
         """
 
-        print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
         if not self.lmdi_type:
             self.lmdi_type = 'LMDI-I'
-
-        print(f'ADDITIVE LMDI TYPE: {self.lmdi_type}')
 
         log_mean_shares_labels = [f"log_mean_shares_{col}" for
                                   col in LHS_share.columns]
         log_mean_weights = pd.DataFrame(index=LHS.index)
         log_mean_values_df = pd.DataFrame(index=LHS.index)
-        print('LHS:\n', LHS)
         LHS_data = LHS.copy()
         for col in LHS.columns:
             LHS_data[f"{col}_shift"] = LHS_data[col].shift(
@@ -269,10 +278,8 @@ class GeneralLMDI:
         LHS_share = LHS_share.drop(cols_to_drop, axis=1)
 
         cols_to_drop_ = [col for col in LHS.columns if col.endswith('_shift')]
-        print('LHS:\n', LHS_data)
 
         LHS_data = LHS_data.drop(cols_to_drop_, axis=1)
-        print('LHS:\n', LHS_data)
 
         if self.lmdi_type == 'LMDI-I':
             return log_mean_values_df
@@ -316,7 +323,8 @@ class GeneralLMDI:
 
     @staticmethod
     def dict_iter(data_dict, path):
-        """[summary]
+        """Iterate through dictionary using path, return resulting
+        dataframe
 
         Args:
             data_dict (dict): raw data (all sector) containing
@@ -327,7 +335,6 @@ class GeneralLMDI:
                               keys and data)
 
             path (list): "path" (of keys) to dataframes in the data_dict
-            variable (str): Desired data variable e.g. A_i_k
 
         Returns:
             data [pd.DataFrame]: Data at the end of the path for variable
@@ -360,64 +367,42 @@ class GeneralLMDI:
                 for i in b:
                     yield from self.get_paths(i, current+[a])
 
-    def aggregate_data(self, raw_data, subscripts,
-                       variable, sub_categories,
-                       lhs_data=None, lhs_sub_names=None):
-        """[summary]
+    def collect_base_data(self, sub_categories, raw_data, variable):
+        """Iterate through nested dictionary collecting dataframes
+        for given variable
 
         Args:
+            subscripts (list): Subscripts assigned to variable e.g. [i, k]
             raw_data (dict): Nested dictionary containing variable
                              keys and dataframes values in innermost
                              dictionary values. Outer nesting should match
                              sub_categories nesting.
-            subscripts (list): Subscripts assigned to variable e.g. [i, k]
             variable (str): variable (datatype) e.g. A_i_k
-            sub_categories (dict): Nested dictionary describing relationships
-                                   between levels of aggregation in data
-            lhs_data (dict, optional): Dictionary of dataframes of left hand side
-                                       variable keys are 'paths'. Defaults to None.
-            lhs_sub_names (dict, optional): keys are subscripts associated with the
-                                            LHS variable, values are lists of (str)
-                                            names associated with the subscript.
-                                            Defaults to None.
+
+        Raises:
+            ValueError: Throws error if base_data is not pd.DataFrame
+            ValueError: Throws error if paths_dict is empty after build
 
         Returns:
-            paths_dict (dict): Dictionary of variable data with paths as keys
-                               and variable+path DataFrame as values
+            paths_dict (dict): Keys are paths to data
+                               (e.g. 'National.Northeast.Single-Family')
+                               and values are dataframes containing specified
+                               data
         """
-        print('raw_data keys:', raw_data.keys())
         paths_dict = dict()
         paths = list(self.get_paths(sub_categories))
-        print('paths:', paths)
         paths_sorted = sorted(paths, key=len, reverse=True)
-        print('paths_sorted:', paths_sorted)
 
         raw_data_paths = list(self.get_paths(raw_data))
-        print('raw_data_paths paths:', raw_data_paths)
         raw_data_paths_sorted = sorted(raw_data_paths, key=len, reverse=True)
-        print('raw_data_paths_sorted paths:', raw_data_paths_sorted)
-        # print('raw_data:\n', raw_data)
-        print('variable:', variable)
 
-        raw_data_paths_sorted_short = [p[:-1] for p in raw_data_paths_sorted]
-        print('raw_data_paths_sorted_short:', raw_data_paths_sorted_short)
-        print('\n \n \n')
-        missing_paths_raw = [p for p in paths_sorted if p not in raw_data_paths_sorted_short]
-        print('missing_paths_raw:\n', missing_paths_raw)
-        # if len(missing_paths_raw) > 0:
-        #     raise ValueError(f'keys {missing_paths_raw} not in raw_data')
-        missing_paths_paths = [p for p in raw_data_paths_sorted_short if p not in paths_sorted]
-        print('missing_paths_paths:\n', missing_paths_paths)
-
-        print('raw_data:\n', raw_data)
         raw_data_paths_sorted = \
             [p for p in raw_data_paths_sorted if p[-1] == variable]
-        print('raw_data_paths_sorted paths:', raw_data_paths_sorted)
 
         for p in raw_data_paths_sorted:
-            print('p:', p)
+
             base_data = self.dict_iter(raw_data, p)
-            print('base_data:\n', base_data)
+
             if len(p) == 1:
                 p = [self.total_label]
             elif len(p) > 1:
@@ -425,6 +410,8 @@ class GeneralLMDI:
             if base_data is None:
                 continue
             if isinstance(base_data, pd.DataFrame):
+                base_data = base_data.loc[base_data.index.notnull()]
+                base_data.index = base_data.index.astype(int)
                 sub_dict = dict()
                 if base_data.shape[1] > 1:
                     for c in base_data.columns:
@@ -443,10 +430,31 @@ class GeneralLMDI:
                     paths_dict[p_str] = base_data
             else:
                 raise ValueError('base data is type', type(base_data))
-        print('paths_dict:\n', paths_dict)
-        print('paths_dict keys:\n', paths_dict.keys())
+
         if len(paths_dict) == 0:
             raise ValueError('paths dict is empty')
+
+        return paths_dict
+
+    @staticmethod
+    def create_len_dict(paths_dict):
+        """Create dictionary with keys in paths_dict
+        sorted by length where keys are the int length
+
+        Args:
+            paths_dict (dict): Keys are paths to data
+                               (e.g. 'National.Northeast.Single-Family')
+                               and values are dataframes containing specified
+                               data
+
+        Returns:
+            len_dict (dict): Keys are len of paths, values are lists
+                             of paths with that length e.g.
+                             {3: ['National.Northeast.Single-Family'],
+                              2: ['National.Northeast'],
+                              1: ['National']}
+            key_range (list): Lengths from len_dict
+        """
         key_list = list(paths_dict.keys())
         len_dict = {k: len(k.split('.')) for k in key_list}
         key_list_split = [k.split('.') for k in key_list]
@@ -459,11 +467,42 @@ class GeneralLMDI:
                 if len(l_) == j:
                     len_list.append('.'.join(l_))
             len_dict[j] = len_list
-        print('len_dict:\n', len_list)
+
+        return len_dict, key_range
+
+    def aggregate_data(self, raw_data, subscripts,
+                       variable, sub_categories,
+                       lhs_data=None, lhs_sub_names=None):
+        """Aggregate variable data from raw data for every level
+        of aggregation in the sub_categories
+
+        Args:
+            raw_data (dict): Nested dictionary containing variable
+                             keys and dataframes values in innermost
+                             dictionary values. Outer nesting should match
+                             sub_categories nesting.
+            subscripts (list): Subscripts assigned to variable e.g. [i, k]
+            variable (str): variable (datatype) e.g. A_i_k
+            sub_categories (dict): Nested dictionary describing relationships
+                                   between levels of aggregation in data
+            lhs_data (dict, optional): Dictionary of dataframes of left hand
+                                       side variable keys are 'paths'.
+                                       Defaults to None.
+            lhs_sub_names (dict, optional): keys are subscripts associated
+                                            with the LHS variable, values
+                                            are lists of (str) names
+                                            associated with the subscript.
+                                            Defaults to None.
+
+        Returns:
+            paths_dict (dict): Dictionary of variable data with paths as keys
+                               and variable+path DataFrame as values
+        """
+        paths_dict = self.collect_base_data(sub_categories, raw_data, variable)
+        len_dict, key_range = self.create_len_dict(paths_dict)
 
         reverse_len = sorted(key_range, reverse=True)
         for n in reverse_len:
-            print('n:', n)
             n_lists = []
             paths = len_dict[n]
             if len(paths) > 1:
@@ -493,12 +532,9 @@ class GeneralLMDI:
             level_data = self.group_data(n_lists, paths_dict,
                                          variable, lhs_data,
                                          lhs_sub_names)
-            print('level_data.keys()):\n', level_data.keys())
             if n > 1:
                 higher_keys = len_dict[n-1]
-                print('higher_keys:\n', higher_keys)
                 for g in list(level_data.keys()):
-                    print('g:', g)
                     higher_keys.append(g)
                 len_dict[n-1] = higher_keys
 
@@ -514,10 +550,11 @@ class GeneralLMDI:
             path_list ([type]): [description]
             data_dict ([type]): [description]
             variable (str): variable (e.g. A_i_k)
-            lhs_data (dict, optional): Dictionary of dataframes of left hand side
-                               variable keys are 'paths'. Defaults to None.
-            lhs_sub_names (dict, optional): keys are subscripts associated with the
-                                            LHS variable, values are lists of (str)
+            lhs_data (dict, optional): Dictionary of dataframes of left hand
+                                       side variable keys are 'paths'.
+                                       Defaults to None.
+            lhs_sub_names (dict, optional): keys are subscripts associated
+                                            with the LHS variable, values are lists of (str)
                                             names associated with the subscript.
                                             Defaults to None.
 
@@ -537,8 +574,6 @@ class GeneralLMDI:
             grouped_lists = list(set(grouped_lists))
             all_level = []
             base_path = grouped_lists[0].split('.')
-            print('base_path:', base_path)
-            print('self.total_label:', self.total_label)
             if len(base_path) > 1:
                 level_path = base_path[:-1]  # [self.total_label] +
                 level_path = '.'.join(level_path)
@@ -578,7 +613,8 @@ class GeneralLMDI:
                         continue
                     if isinstance(lower_level_data, pd.Series):
                         lower_level_data = \
-                            lower_level_data.to_frame(name=key)    
+                            lower_level_data.to_frame(name=key)
+                print('lower_level_data:\n', lower_level_data)
                 all_level.append(lower_level_data)
             try:
                 level_data = \
@@ -586,9 +622,8 @@ class GeneralLMDI:
             except Exception as e:
                 print('all_level:\n', all_level)
                 raise e
-            print('level_path:\n', level_path)
+
             n_dict[level_path] = level_data
-        # exit()
         return n_dict
 
     def get_subscript_data(self, input_data, subscript_data, term_piece):
@@ -674,29 +709,25 @@ class GeneralLMDI:
                     print('path_df subs > 1:\n', path_df)
                 elif path_n_1 in variable_data:
                     path_df = variable_data[path_n_1]
-                    # labels = []
-                    # for c in path_df.columns:
-                    #     idx = combo_list + [c]
-                    #     idx = tuple(idx)
-                    #     labels.append(idx)
 
-                    # midx = pd.MultiIndex.from_tuples(labels)
-                    # path_df.columns = midx
-                cols = list(path_df.columns)
-                levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
-                print('levels', levels)
-                # labels = [[0]*path_df.shape[1] for c in list(combo)]
-                # labels = labels + [list(range(len(path_df.columns)))]
-                # midx = pd.MultiIndex(levels=levels, codes=labels)
-                midx = pd.MultiIndex.from_arrays(levels)
-                path_df.columns = midx
+                if isinstance(path_df.columns, pd.MultiIndex):
+                    pass
+                else:
+                    cols = list(path_df.columns)
+                    levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
+                    print('levels', levels)
+                    midx = pd.MultiIndex.from_arrays(levels)
+                    path_df.columns = midx
+
+                
                 print('path_df subs > 1 multi:\n', path_df)
-
+                print('path_df.columns:', path_df.columns)
                 term_piece_dfs.append(path_df)
 
         # term_df = pd.concat(term_piece_dfs, axis=0)
         term_df = df_utils().merge_df_list(term_piece_dfs)
         print('term_df:\n', term_df)
+
         return term_df
 
     def aggregate_level_data(self, subscript, weights, base_data, total_name):
@@ -784,8 +815,8 @@ class GeneralLMDI:
             column_tuples = [numerator.columns.get_level_values(0)[0]]
         else:
             column_tuples = [numerator.columns.get_level_values(i)
-                             for i in range(highest_shared)]
-            column_tuples = list(zip(column_tuples))
+                             for i in range(highest_shared + 1)]
+            column_tuples = list(set(list(zip(*column_tuples))))
 
         print('column_tuples:', column_tuples)
         grouped_n = numerator.groupby(level=shared_levels,
@@ -796,12 +827,13 @@ class GeneralLMDI:
         results = []
         for u in column_tuples:
             print('u', u)
-        
+
             n = grouped_n.get_group(u)
             print('n:\n', n)
-            to_drop = list(range(highest_shared + 1, numerator_levels))
-            print('to_drop:', to_drop)
-            n.columns = n.columns.droplevel(to_drop)
+            if highest_shared > 0:
+                to_drop = list(range(highest_shared + 1, numerator_levels))
+                print('to_drop:', to_drop)
+                n.columns = n.columns.droplevel(to_drop)
             if not isinstance(n.columns, pd.MultiIndex):
                 midx = [list(n.columns)]
                 n.columns = pd.MultiIndex.from_arrays(midx)
@@ -834,7 +866,9 @@ class GeneralLMDI:
                 path = '.'.join(list(u))
             lhs = lhs_data[path]
             print('lhs:\n', lhs)
+
             w = self.calculate_weights(lhs, level_name)
+            print('w:\n', w)
             if w.shape[1] == ratio.shape[1]:
                 result = ratio.multiply(w, axis=1).sum(axis=1)
                 result = self.decomposition_results(result)
@@ -844,7 +878,12 @@ class GeneralLMDI:
                     result = ratio.divide(ratio.loc[self.base_year].values)
                 else:
                     print('ratio:\n', ratio)
-                    raise ValueError('need to account for this case')
+                    ratio_levels = ratio.columns.nlevels - 1
+                    # result = ratio.sum(axis=1, level=ratio_levels)
+                    result = ratio.divide(ratio.loc[self.base_year].values)
+                    print('result:\n', result)
+
+                    # raise ValueError('need to account for this case')
 
             results.append(result)
 
@@ -906,7 +945,7 @@ class GeneralLMDI:
                         levels = [['total'], [self.total_label]]
                         midx = pd.MultiIndex.from_arrays(levels)
                         numerator.columns = midx
-        
+
                 print('denominator_levels', denominator_levels)
 
                 if numerator_levels > denominator_levels:

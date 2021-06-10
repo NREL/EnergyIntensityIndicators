@@ -83,17 +83,30 @@ class ResidentialFloorspace:
         #  Only Categorical size data were included in the AHS surveys for 2015 and 2017. An effort to 
         # utilize the category data to estimate the average size change between 2015 and 2017 did not provide useful results. Processing of future AHS public use
         # files may exlcude any consideration of this variable. In the current tables, only the values for total units across all sizes were considered.
-        pivot_census_division = pd.pivot_table(extract_ahs, values='WEIGHT' , index=['BLD', 'UNITSIZE'] , columns='DIVISION' , aggfunc='sum')  
-        pivot_census_division['census_region_1'] = pivot_census_division["'1'"] + pivot_census_division["'2'"]   # alternative method: df['C'] = df.apply(lambda row: row['A'] + row['B'], axis=1)
-        pivot_census_division['census_region_2'] = pivot_census_division["'3'"] + pivot_census_division["'4'"]
-        pivot_census_division['census_region_3'] = pivot_census_division["'5'"] + pivot_census_division["'6'"] + pivot_census_division["'7'"]
-        pivot_census_division['census_region_4'] = pivot_census_division["'8'"] + pivot_census_division["'9'"]
-        pivot_census_division['total'] = pivot_census_division[['census_region_1', 'census_region_2', 'census_region_3', 'census_region_4']].sum(axis=1)
+        pivot_census_division = pd.pivot_table(extract_ahs, values='WEIGHT',
+                                               index=['BLD', 'UNITSIZE'],
+                                               columns='DIVISION' ,
+                                               aggfunc='sum')  
+        pivot_census_division['census_region_1'] = \
+            pivot_census_division["'1'"] + pivot_census_division["'2'"]   # alternative method: df['C'] = df.apply(lambda row: row['A'] + row['B'], axis=1)
+        pivot_census_division['census_region_2'] = \
+            pivot_census_division["'3'"] + pivot_census_division["'4'"]
+        pivot_census_division['census_region_3'] = \
+            pivot_census_division["'5'"] + \
+            pivot_census_division["'6'"] + \
+            pivot_census_division["'7'"]
+        pivot_census_division['census_region_4'] = \
+            pivot_census_division["'8'"] + pivot_census_division["'9'"]
+        pivot_census_division['total'] = \
+            pivot_census_division[['census_region_1',
+                                   'census_region_2',
+                                   'census_region_3',
+                                   'census_region_4']].sum(axis=1)
         # pivot_census_division = pivot_census_division.reset_index('BLD')
         # pivot_census_division = pivot_census_division.reindex(pivot_census_division.index + ['Grand Total'])
         # pivot_census_division.loc['Grand Total'] = pivot_census_division.sum(axis=0)
 
-        return pivot_census_division        
+        return pivot_census_division
 
     def get_ahs_tables(self):
         """Collect AHS historical tables
