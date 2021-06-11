@@ -117,6 +117,8 @@ class NonManufacturing:
         Returns:
             construction_elec [type]: [description]
             construction_fuels [type]: [description]
+        
+        TODO: automatically update data
         """
         stb0303 = \
             pd.read_excel(

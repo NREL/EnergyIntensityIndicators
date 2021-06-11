@@ -363,6 +363,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                 self.calculate_emissions(combustion_energy_data,
                                          emissions_type='CO2 Factor',
                                          datasource='MECS')
+
             naics_dict['combustion'] = {'E_i_j_k': combustion_energy_data,
                                         'A_i_k': gross_output,
                                         'V_i_k': value_added,
@@ -428,6 +429,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     self.calculate_emissions(sub_energy_data_combustion,
                                              emissions_type='CO2 Factor',
                                              datasource='MECS')
+
                 subcategory_dict['combustion'] = \
                     {'A_i_k': gross_output,
                      'V_i_k': value_added,
@@ -478,6 +480,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                                 combustion_energy,
                                 emissions_type='CO2 Factor',
                                 datasource='MECS')
+
                         other_mining_dict['combustion'] = \
                             {'A_i_k': gross_output,
                              'V_i_k': value_added,

@@ -642,23 +642,26 @@ class Manufacturing:
 
     @staticmethod
     def interpolate_mecs(mecs_data, col_name, reindex=None):
-        """[summary]
+        """Interpolate MECS data where NAICS column gives
+        dataframe a third dimension (thus table must be pivoted)
 
         Args:
-            mecs_data ([type]): [description]
-            col_name ([type]): [description]
-            reindex ([type], optional): [description]. Defaults to None.
+            mecs_data (pd.DataFrame): MECS data by NAICS Code and other
+                                      dimension
+            col_name (str): Column in mecs_data containing values to
+                            interpolate
+            reindex (list-like, optional): New index to give mecs_data.
+                                           Defaults to None.
 
         Returns:
-            mecs_data [DataFrame]: [description]
+            mecs_data (DataFrame): Interpolated MECS data
         """
         if 'Year' not in mecs_data.columns:
             mecs_data = mecs_data.reset_index()
-        print('mecs_data:\n', mecs_data)
+
         mecs_data = mecs_data.pivot(index='Year',
                                     columns='NAICS',
                                     values=col_name)
-        print('mecs_data:\n', mecs_data)
 
         if reindex is not None:
             mecs_data = mecs_data.reindex(reindex)
@@ -771,7 +774,7 @@ class Manufacturing:
                 dataset_['interpolated_ratio'])
         dataset_ = dataset_.drop('interpolated_ratio', axis=1)
 
-        dataset =  dataset_.merge(dataset,
+        dataset = dataset_.merge(dataset,
                                   how='outer',
                                   on=['Year', 'NAICS']).set_index('Year')       
 
@@ -915,6 +918,9 @@ class Manufacturing:
         ASMdata_010220.xlsx[3DNAICS], which ultimately tie back to MECS fuel data
         from Table 4.2 and Table 3.2
 
+        Note: NAICS codes are replaced in quantities_1998 forward because PNNL
+              does this. Not sure why.
+
         Returns:
             final_quantities_asm_85_agg (pd.DataFrame): [description]
         """
@@ -1010,7 +1016,7 @@ class Manufacturing:
         and added to csv.
 
         Returns:
-            fallhap3b (pd.DataFrame): [description]
+            fallhap3b (pd.DataFrame): MECS data on fuel use by 3-digit NAICS code
         """
         fallhap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/fallhap3b.csv')
         fallhap3b = fallhap3b.set_index('NAICS')
@@ -1020,7 +1026,7 @@ class Manufacturing:
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
 
         Returns:
-            historical_mecs (pd.DataFrame): [description]
+            historical_mecs (pd.DataFrame): Historical MECS data (3 Digit NAICS)
         """
         # NAICS ARE ALREADY AGGREGATED
         historical_mecs = \

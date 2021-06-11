@@ -800,6 +800,8 @@ class NonCombustion:
         Returns:
             data (dict): keys are variables and values
                          are respective dataframes
+
+        TODO: Does emissions need conversion to MMT CO2 eq.?
         """
         # Livestock Population (1,000 Head)
         activity = self.noncombustion_epa_data('Table A-184')

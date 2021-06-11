@@ -878,4 +878,3 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
 if __name__ == '__main__':
     pass
-

@@ -196,7 +196,6 @@ class BEA_api:
                        qty_index_historical, qty_index_from_api):
         """Format data"""
 
-
         nominal = self.merge_historical(nominal_from_api, nominal_historical)
         qty_index = self.merge_historical(qty_index_from_api, qty_index_historical)
 

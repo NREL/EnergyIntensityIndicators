@@ -130,69 +130,6 @@ class ElectricityIndicators(CalculateLMDI):
                          base_year=base_year,
                          end_year=end_year)
 
-    # @staticmethod
-    # def data():
-    #     data_dict = \
-    #         {'Elec Generation Total':
-    #                 {'Elec Power Sector':
-    #                     {'Electricity Only':
-    #                         {'Fossil Fuels':
-    #                             {'Coal': {'activity': '8.2b10 B * 0.001', 'energy': },
-    #                             'Petroleum': {'activity': '8.2b10 D * 0.001', 'energy': },
-    #                             'Natural Gas': {'activity': '8.2b10 F * 0.001', 'energy': },
-    #                             'Other Gasses': {'activity': '8.2c11 H * 0.001', 'energy': }},
-    #                         'Nuclear': {'energy': 'Table8.4b11 L * 0.001', 'activity': 'Table8.2b11 L * 0.001'},
-    #                         'Hydroelectric': {'energy': 'Table8.4b11 N * 0.001', 'activity': 'Table8.2b11 O * 0.001'},
-    #                         'Renewable':
-    #                             {'Wood': {'energy': 'Table 8.5c11 R * 0.001', 'activity': 'Table 8.2c11 R * 0.001'},
-    #                             'Waste': {'energy': 'Table 8.5c11 T * 0.001', 'activity': 'Table 8.2c11 T * 0.001'},
-    #                             'Geothermal': {'energy': 'Table 8.4b11 T * 0.001', 'activity': 'Table 8.2c11 V * 0.001'},
-    #                             'Solar': {'energy': 'Table 8.4b11 V * 0.001', 'activity': 'Table 8.2c11 X * 0.001'},
-    #                             'Wind': {'energy': 'Table 8.4b11 X * 0.001', 'activity': 'Table 8.2c11 Z * 0.001'}}},
-    #                     'Combined Heat & Power':
-    #                         {'Fossil Fuels':
-    #                             {'Coal': None,
-    #                              'Petroleum': None,
-    #                              'Natural Gas': None,
-    #                              'Other Gasses': None},
-    #                         'Renewable':
-    #                             {'Wood': None,
-    #                             'Waste': None},
-    #                         'Other': None}},
-    #                 'Commercial Sector':
-    #                     {'Combined Heat & Power':
-    #                         {'Fossil Fuels':
-    #                             {'Coal': None,
-    #                              'Petroleum': None,
-    #                              'Natural Gas': None,
-    #                              'Other Gasses': None},
-    #                          'Hydroelectric': None,
-    #                          'Renewable':
-    #                             {'Wood': None,
-    #                              'Waste': None},
-    #                          'Other': None},
-    #                 'Industrial Sector':
-    #                     {'Combined Heat & Power':
-    #                         {'Fossil Fuels':
-    #                             {'Coal': None,
-    #                              'Petroleum': None,
-    #                              'Natural Gas': None,
-    #                              'Other Gasses': None},
-    #                          'Hydroelectric': None,
-    #                          'Renewable':
-    #                                 {'Wood': None,
-    #                                  'Waste': None},
-    #                          'Other': None}}}}
-
-    #     sectors  = ['Elec Power Sector', 'Commercial Sector',
-    #                 'Industrial Sector']
-    #     chp_data_dict = dict()
-    #     for s in sector:
-    #         chp_sector_data = data_dict['Elec Generation Total'][s]['Combined Heat & Power']
-    #         chp_sector_data = {'Combined Heat & Power': chp_sector_data}
-    #         chp_data_dict[s] = chp_sector_data
-
-
     @staticmethod
     def get_eia_aer():
         """Prior to 2012, the data for the indicators were taken
@@ -225,6 +162,9 @@ class ElectricityIndicators(CalculateLMDI):
         """The indicators for electricity are derived entirely from data
         collected by EIA. Since 2012, the indicators
         are based entirely upon te EIA-923 survey
+        
+        https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip
+
         """
         eia_923_schedules = pd.read_excel('./')
         # page A-71, 'Net Generation' lower right-hand quadrant?
@@ -447,7 +387,11 @@ class ElectricityIndicators(CalculateLMDI):
         consumption_for_electricity_generation_fossil_fuels = self.elec_power_eia.eia_api(id_='TOTAL.FFEIBUS.A', id_type='series')# Table84b11 column H
         consumption_combustible_fuels_electricity_generation_oth_gas = self.elec_power_eia.eia_api(id_='TOTAL.OJL1BUS.A', id_type='series')# Table85c11 column P
         consumption_combustible_fuels_useful_thermal_output_othgas = self.elec_power_eia.eia_api(id_='TOTAL.OJEIBUS.A', id_type='series')# Table86b11 column O
-        consumption_for_electricity_generation_oth_gas = consumption_for_electricity_generation_fossil_fuels #- consumption_for_electricity_generation_petroleum - consumption_for_electricity_generation_natgas - consumption_for_electricity_generation_coal
+        # consumption_for_electricity_generation_oth_gas = \
+        #     consumption_for_electricity_generation_fossil_fuels - \
+        #         consumption_for_electricity_generation_petroleum - \
+        #             consumption_for_electricity_generation_natgas - \
+        #                 consumption_for_electricity_generation_coal
 
         elec_gen = consumption_for_electricity_generation_oth_gas
         elec_only_plants = consumption_combustible_fuels_electricity_generation_oth_gas 
@@ -667,9 +611,6 @@ class ElectricityIndicators(CalculateLMDI):
         waste_energy = self.format_eii_table(waste_energy, factor=0.001, name='Waste')
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column R
-        if wood_activity.empty:
-            print('elec_power_sector_chp_renew')
-            exit()
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column T
 
         data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
@@ -715,9 +656,6 @@ class ElectricityIndicators(CalculateLMDI):
         """
 
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDL1BUS.A', id_type='series').multiply(0.001)  # Table 8.3d I, 8.5C R
-        if wood_activity.empty:
-            print('electricity_only_renew')
-            exit()
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSL1BUS.A', id_type='series').multiply(0.001) # Table 8.3d J, 8.5C T
         geothermal_activity = self.elec_power_eia.eia_api(id_='TOTAL.GEEGBUS.A', id_type='series').multiply(0.001) # Table 8.4 T
         solar_activity = self.elec_power_eia.eia_api(id_='TOTAL.SOEGBUS.A', id_type='series').multiply(0.001)  # Table 8.4 V

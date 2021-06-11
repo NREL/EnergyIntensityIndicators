@@ -498,6 +498,7 @@ class WeatherFactors:
         
         weather_factors_all = pd.concat(regional_weather_factors, axis=1)
         weather_factors_all = weather_factors_all.reindex(columns=list(weather_factors_all.columns) + [f'{energy_type_}_weather_factor'])
+
         for y in weather_factors_all.index:
             if energy_type == 'electricity': 
                 energy_type = 'elec'

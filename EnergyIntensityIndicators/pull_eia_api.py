@@ -114,11 +114,11 @@ class GetEIAData:
             TNRCB_by_region = pd.pivot_table(TNRCB_by_region, index='year', columns='Census Region', values='value')  
 
             elec_to_indicators = ESRCB_by_region[[1, 2, 3, 4]].multiply(0.001)
-            elec_to_indicators['National'] = elec_to_indicators.sum(1)
+            elec_to_indicators['National'] = elec_to_indicators.sum(axis=1)
 
             total_primary = TNRCB_by_region[[1, 2, 3, 4]].subtract(ESRCB_by_region[[1, 2, 3, 4]])
             total_fuels_to_indicators = total_primary.multiply(0.001)
-            total_fuels_to_indicators['National'] = total_fuels_to_indicators.sum(1)
+            total_fuels_to_indicators['National'] = total_fuels_to_indicators.sum(axis=1)
 
         elif self.sector == 'commercial':
             consumption_census_region = consumption_census_region[consumption_census_region['MSN'].isin(['ESCCB', 'TNCCB'])]

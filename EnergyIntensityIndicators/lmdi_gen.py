@@ -557,6 +557,8 @@ class GeneralLMDI:
 
             paths_dict.update(level_data)
 
+        print('paths_dict keys:', paths_dict.keys())
+        exit()
         return paths_dict
 
     def group_data(self, path_list, data_dict, variable,
@@ -623,13 +625,23 @@ class GeneralLMDI:
                     else:
                         raise ValueError('LHS data not provided ' +
                                          'to group data method')
-                    subscript = 'i'
-                
+                    # subscript = 'i'
+
+                    # lower_level_data = \
+                    #     self.aggregate_level_data(subscript,
+                    #                               weights=weights,
+                    #                               base_data=data,
+                    #                               total_name=key)
+                    if path in self.to_weight:
+                        if variable in self.to_weight[path]:
+                            weight_data = True
+
                     lower_level_data = \
-                        self.aggregate_level_data(subscript,
+                        self.aggregate_level_data(weight_data,
                                                   weights=weights,
                                                   base_data=data,
                                                   total_name=key)
+
                     if lower_level_data is None:
                         continue
                     if isinstance(lower_level_data, pd.Series):
@@ -751,11 +763,15 @@ class GeneralLMDI:
 
         return term_df
 
-    def aggregate_level_data(self, subscript, weights, base_data, total_name):
+    # def aggregate_level_data(self, subscript, weights, base_data, total_name):
+    def aggregate_level_data(self, weight_data, weights, base_data, total_name):
+
         """Aggregate data for variable and level (e.g. region)
 
         Args:
-            subscript (str): e.g. i
+            weight_data (bool): Whether or not to weight data
+                                when summing (i.e. do the units
+                                differ across columns to sum)
             weights (pd.DataFrame): LMDI weights
             base_data (pd.DataFrame): data to aggregate
             total_name (str): Name of aggregated data (column)
@@ -766,9 +782,10 @@ class GeneralLMDI:
                                       column data units vary)
         """
 
-        units = self.subscripts[subscript]['names'].values()
+        # units = self.subscripts[subscript]['names'].values()
 
-        if self.all_equal(units):
+        # if self.all_equal(units):
+        if weight_data:
             total_df = \
                 df_utils().create_total_column(
                     base_data,
@@ -827,11 +844,12 @@ class GeneralLMDI:
 
     def divide_multilevel(self, numerator, denominator,
                           shared_levels, lhs_data):
-        """[summary]
+        """Divide term dataframes where they have multilevel index
+        columns
 
         Args:
-            numerator ([type]): [description]
-            denominator ([type]): [description]
+            numerator (pd.DataFrame): [description]
+            denominator (pd.DataFrame): [description]
             shared_levels ([type]): [description]
             lhs_data ([type]): [description]
 

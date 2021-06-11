@@ -77,8 +77,8 @@ class ResidentialIndicators(CalculateLMDI):
         """Collect SEDS data
 
         Returns:
-            total_fuels [type]: [description]
-            elec [type]: [description]
+            total_fuels (pd.DataFrame): Fuels data
+            elec (pd.DataFrame): Elec Data
         """
         census_regions = {4: 'West', 3: 'South', 2: 'Midwest', 1: 'Northeast'}
         total_fuels = self.seds_census_region[0].rename(columns=census_regions)
@@ -97,7 +97,7 @@ class ResidentialIndicators(CalculateLMDI):
             region ([type]): [description]
 
         Returns:
-            [type]: [description]
+           energy_data (dict): [description]
         """
 
         fuels_dataframe = total_fuels[[region]]
@@ -169,7 +169,7 @@ class ResidentialIndicators(CalculateLMDI):
             nominal_energy_intensity ([type]): [description]
 
         Returns:
-            [type]: [description]
+            weather_factors (dict): [description]
         """
         weather = \
             WeatherFactors(sector='residential',
@@ -186,7 +186,9 @@ class ResidentialIndicators(CalculateLMDI):
         energy use for the Residential sector
 
         Returns:
-            [type]: [description]
+            all_data (dict): All input data for the
+                             Residential Sector Energy
+                             Decomposition
         """
         total_fuels, elec = self.get_seds()
 
@@ -238,8 +240,6 @@ class ResidentialIndicators(CalculateLMDI):
 
             r_dict_['weather_factors'] = weather_factors_by_e_type
             all_data[region] = r_dict_
-
-        # all_data['National'] = national_weather_dict
 
         all_data = {'National': all_data}
         return all_data
