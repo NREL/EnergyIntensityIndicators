@@ -13,6 +13,9 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 class NonCombustion:
     """Class to handle and explore
     zipped Emissions data from the EPA
+    
+    TODO automate to use latest data available. Is file naming consistent?
+
     """
     def __init__(self, base_dir):
         self.base_dir = base_dir
@@ -241,6 +244,7 @@ class NonCombustion:
         r = requests.get(zip_file)
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(self.base_dir)
+
         print('zipfile collected')
 
     @staticmethod
@@ -291,7 +295,7 @@ class NonCombustion:
             directory (str): Directory containing subfolders
             of Emissions data
         """
-        walk = [x[0] for x in os.walk(self.base_dir)]
+        walk = [os.path.join(x[0], "") for x in os.walk(self.base_dir)]
         # walk = [x[0] for x in os.walk(directory)]
         # print('walk:\n', walk)
         names = []
@@ -300,7 +304,7 @@ class NonCombustion:
 
             try:
                 table_names = pd.read_csv(f'{w}/table_names.csv')
-            
+
             except FileNotFoundError:
                 continue
 
@@ -320,8 +324,8 @@ class NonCombustion:
         the EPA
 
         Args:
-            table_name (str): Table to collect
-noncom
+            table_name (str): Table to collect noncom
+
         Returns:
             table (pd.DataFrame): Data for table_name
         """
@@ -816,18 +820,25 @@ noncom
             data (dict): keys are variables and values
                          are respective dataframes
 
-        TODO: Does emissions need conversion to MMT CO2 eq.?
         """
         # Livestock Population (1,000 Head)
         activity = self.noncombustion_epa_data('Table A-184')
         # Total Methane Emissions from Livestock Manure Management (kt)a
         methane = self.noncombustion_epa_data('Table A-195')
+        methane = methane.multiply(25/1000)  # Convert to MMTCO2eq
         # Total (Direct and Indirect) Nitrous Oxide Emissions from
         #  Livestock Manure Management (kt)
         nitrous_oxide = self.noncombustion_epa_data('Table A-196')
+        nitrous_oxide = nitrous_oxide.multiply(298/1000)  # Convert to MMTCO2eq
         utils = df_utils()
         methane, nitrous_oxide = \
             utils.ensure_same_indices(methane, nitrous_oxide)
+        # Some columns are subtotals. Remove total columns to 
+        # avoid double-counting.
+        total_cols = ['Dairy Cattle', 'Swine', 'Beef Cattle', 'Poultry']
+        for df in [methane, nitrous_oxide]:
+            df.drop(total_cols, axis=1, inplace=True)
+
         emissions = utils.merge_df_list([methane, nitrous_oxide])
         name = 'Manure Management'
         emissions = utils.create_total_column(emissions, name)
