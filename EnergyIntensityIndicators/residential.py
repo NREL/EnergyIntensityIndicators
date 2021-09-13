@@ -45,7 +45,8 @@ class ResidentialIndicators(CalculateLMDI):
             self.eia_res.national_calibration()
         self.seds_census_region = \
             self.eia_res.get_seds()  # energy_consumtpion_data_regional
-        self.ahs_Data = ResidentialFloorspace.update_ahs_data()
+        RF = ResidentialFloorspace()
+        self.ahs_Data = RF.update_ahs_data()
         self.regions = ['Northeast', 'South',
                         'West', 'Midwest',
                         'National']

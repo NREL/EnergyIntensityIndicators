@@ -12,7 +12,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 
 
 class WeatherFactors:
-    def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None, \
+    def __init__(self, sector, directory, activity_data=None, residential_floorspace=None, nominal_energy_intensity=None,
                  end_year=2018, projections=False):
         self.end_year = end_year
         self.directory = directory
@@ -22,9 +22,11 @@ class WeatherFactors:
         self.residential_floorspace = residential_floorspace
         self.eia_data = GetEIAData(self.sector)
         self.projections = projections
-        print("os.getcwd()", os.getcwd())
-        self.lmdi_prices = pd.read_excel(f'../Indicators_Spreadsheets_2020/EnergyPrices_by_Sector_010820_DBB.xlsx', 
-                                         sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
+        print("WEATHER FACTORS os.getcwd()", os.getcwd())
+        self.lmdi_prices = pd.read_excel(os.path.join(
+            os.getcwd(), 'Indicators_Spreadsheets_2020',
+            'EnergyPrices_by_Sector_010820_DBB.xlsx'
+            ), sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.regions_subregions = ['northeast', 'new_england', 'middle_atlantic', 'midwest', 
                                    'east_north_central', 'west_north_central', 'south', 
                                    'south_atlantic', 'east_south_central', 'west_south_central',
@@ -33,7 +35,7 @@ class WeatherFactors:
                                  'midwest': ['East North Central', 'West North Central'], 
                                  'south': ['South Atlantic', 'East South Central', 'West South Central'],
                                  'west': ['Mountain', 'Pacific']}
-      
+
     @staticmethod
     def adjust_data(subregions, hdd_by_division, hdd_activity_weights, cooling=True, cdd_by_division=None, \
                     cdd_activity_weights=None, use_weights_1961_90=True):
