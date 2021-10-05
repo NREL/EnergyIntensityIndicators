@@ -287,24 +287,25 @@ class TransportationIndicators(CalculateLMDI):
             'freight_based_energy_use.csv'
             ).set_index('Year')
 
+        # This was used by PNNL to negate oil pipeline data (no reliable data source)
         freight_based_energy_use['Oil Pipeline'] = \
             freight_based_activity['Oil Pipeline'].multiply(0.000001)
 
-        natural_gas_delivered_to_end_users = \
-            self.aer_2010_table_65 # Column AH, million cu. ft.
-        natural_gas_delivered_lease_plant_pipeline_fuel = \
-            self.mer_table_43_nov2019 # Column M - column D - column I
-        natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
-        natural_gas_consumption_million_tons = \
-            natural_gas_delivered_to_end_users.multiply(
-                natural_gas_delivered_lease_plant_pipeline_fuel, axis=1)
+        # natural_gas_delivered_to_end_users = \
+        #     self.aer_2010_table_65 # Column AH, million cu. ft.
+        # natural_gas_delivered_lease_plant_pipeline_fuel = \
+        #     self.mer_table_43_nov2019 # Column M - column D - column I
+        # natural_gas_delivered_lease_plant_pipeline_fuel.at[0] = 0.000022395
+        # natural_gas_consumption_million_tons = \
+        #     natural_gas_delivered_to_end_users.multiply(
+        #         natural_gas_delivered_lease_plant_pipeline_fuel, axis=1)
 
-        avg_length_natural_gas_shipment_miles = 620
-    
-        freight_based_energy_use['Natural Gas Pipeline'] = \
-            natural_gas_consumption_million_tons.multiply(
-                avg_length_natural_gas_shipment_miles
-                )
+        # avg_length_natural_gas_shipment_miles = 620
+
+        # freight_based_energy_use['Natural Gas Pipeline'] = \
+        #     natural_gas_consumption_million_tons.multiply(
+        #         avg_length_natural_gas_shipment_miles
+        #         )
 
         return freight_based_energy_use
 
@@ -455,12 +456,12 @@ class TransportationIndicators(CalculateLMDI):
                             'energy': {'deliv': passenger_based_energy_use[['Light Rail']]},
                             'activity': passenger_based_activity[['Light Rail']]
                             }
-                        }, 
+                        },
                     'Intercity Rail': {
                         'energy': {'deliv': passenger_based_energy_use[['Intercity Rail']]},
                         'activity': passenger_based_activity[['Intercity Rail']]
                         }
-                    }, 
+                    },
                 'Air': {
                     'Commercial Carriers': {
                         'energy': {'deliv': passenger_based_energy_use[['Carrier']]},
@@ -514,7 +515,7 @@ class TransportationIndicators(CalculateLMDI):
        
     def main(self, breakout, calculate_lmdi): # base_year=None, 
         """Decompose Energy use for the Transportation sector
-        """        
+        """
 
         data_dict = self.collect_data()
 
@@ -550,7 +551,7 @@ if __name__ == '__main__':
     indicators = TransportationIndicators(directory='./EnergyIntensityIndicators/Data', 
                                           output_directory='./Results', 
                                           level_of_aggregation='All_Transportation', lmdi_model=['multiplicative', 'additive'],
-                                          base_year=1985, end_year=2015) #  
-    indicators.main(breakout=True, calculate_lmdi=True)
+                                          base_year=1985, end_year=2017) #  
+    indicators.main(breakout=False, calculate_lmdi=True)
 
 
