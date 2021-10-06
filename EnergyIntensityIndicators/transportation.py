@@ -317,7 +317,7 @@ class TransportationIndicators(CalculateLMDI):
             pd.read_csv('./EnergyIntensityIndicators/Transportation/' + 
                         'freight_based_activity.csv').set_index('Year')
         freight_based_activity['Single-Unit Truck'] = \
-            freight_based_activity['Single-Unit Truck'].multiply(3)
+            freight_based_activity['Single-Unit Truck'].multiply(3)  # Assumes 3-ton avg. load
         freight_based_activity['Oil Pipeline'] = \
             freight_based_activity['Oil Pipeline'].multiply(0.000001)
         # USDOT, Bureau of Transportation Statistics

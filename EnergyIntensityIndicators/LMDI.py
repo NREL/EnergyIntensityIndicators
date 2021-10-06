@@ -977,21 +977,19 @@ class CalculateLMDI(LMDI):
 
             if len(categories_list) == 1:
                 level_total = categories_list[0]
-                # loa = [self.sector.capitalize()] + level_of_aggregation
-                loa = self.sector.capitalize()+'.'+level_of_aggregation]
+                loa = [self.sector.capitalize()] + level_of_aggregation
+                # loa = [self.sector.capitalize()+'.'+level_of_aggregation[0]]
                 categories = self.categories_dict
 
             elif level_of_aggregation[-1] == level_total:
-                # loa = [self.sector.capitalize()] + level_of_aggregation
-                s_sector = self.sector
-                loa = [s_sector.capitalize()+'.'+level_of_aggregation]
+                loa = [self.sector.capitalize()] + level_of_aggregation
                 categories = \
                     self.deep_get(self.categories_dict, '.'.join(level_of_aggregation))
             else:
-                # loa = \
-                #     [self.sector.capitalize()] + level_of_aggregation + [level_total]
                 loa = \
-                    [self.sector.capitalize()+'.'+level_of_aggregation+level_total]                
+                    [self.sector.capitalize()] + level_of_aggregation + [level_total]
+                # loa = \
+                #     [s_sector.capitalize()+'.'+level_of_aggregation+level_total]                
                 categories = \
                     self.deep_get(self.categories_dict, '.'.join(level_of_aggregation) + f'.{key}')
 
@@ -1430,7 +1428,7 @@ class CalculateLMDI(LMDI):
                   energy_type=None, raw_data=None):
         """Prepare LMDI inputs and pass them to call_decomposition method.
 
-        Returns: 
+        Returns:
             results (dataframe): formatted LMDI results
         """
 
