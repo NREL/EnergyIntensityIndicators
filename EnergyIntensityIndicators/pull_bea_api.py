@@ -10,7 +10,7 @@ class BEA_api:
 
     def __init__(self, years):
         self.base_url = 'https://apps.bea.gov/api/data/'
-        apik  = os.getenv("BEA_API_Key")
+        apik = os.getenv("BEA_API_Key")
         apik = apik.replace("'", "")
         self.base_params = {'UserID': apik, 'method': 'GetData',  # apik is API key
                             'Industry': 'ALL', 'Frequency': 'A',

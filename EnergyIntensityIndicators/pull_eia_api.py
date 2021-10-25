@@ -20,7 +20,7 @@ class GetEIAData:
             eia_data = self.get_series(api_key, id_, units_col=units_col)
             if isinstance(eia_data, pd.Series):
                 eia_data = eia_data.to_frame()
-                print('eia_data:\n', eia_data)
+                # print('eia_data:\n', eia_data)
         else:
             eia_data = None
             print('Error: neither series nor category given')

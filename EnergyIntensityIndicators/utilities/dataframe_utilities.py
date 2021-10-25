@@ -35,7 +35,7 @@ class DFUtilities:
         """Select portion of dataframe where index is in intersection_
         """
 
-        if isinstance(data, pd.Series): 
+        if isinstance(data, pd.Series):
             data_new = data.loc[intersection_]
         else:
             data_new = data.loc[intersection_, :]
@@ -49,8 +49,8 @@ class DFUtilities:
         """
 
         if df1.empty or df2.empty:
-            print('df1:\n', df1)
-            print('df2:\n', df2)
+            # print('df1:\n', df1)
+            # print('df2:\n', df2)
             raise ValueError('at least one dataframe is empty')
 
         df1.index = df1.index.astype(int)
@@ -90,10 +90,10 @@ class DFUtilities:
         with name of level of aggregation
         """
         df2 = df.copy()
-        print('df2:\n', df2)
-        print('type df2', type(df2))
-        print('total_label:', total_label)
-        print('df2 info:', df2.info())
+        # print('df2:\n', df2)
+        # print('type df2', type(df2))
+        # print('total_label:', total_label)
+        # print('df2 info:', df2.info())
         df2 = df2.fillna(np.nan)
         df_drop_str = \
             df2.apply(
@@ -118,7 +118,7 @@ class DFUtilities:
 
         df2[total_label] = df2[total_label].astype(float)
 
-        print('df2 final:\n', df2)
+        # print('df2 final:\n', df2)
         return df2
 
     @staticmethod
@@ -149,7 +149,7 @@ class DFUtilities:
                                  fill_value=np.nan)
         else:
             dataset[total_label] = dataset[total_label].replace(0, np.nan)
-            print('dataset:\n', dataset)
+            # print('dataset:\n', dataset)
             shares = dataset.drop(total_label, axis=1).divide(
                 dataset[total_label].values.reshape(len(dataset[total_label]), 1))
         return shares

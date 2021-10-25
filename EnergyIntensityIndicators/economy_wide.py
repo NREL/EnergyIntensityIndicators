@@ -51,7 +51,7 @@ class EconomyWide(CalculateLMDI):
         """Calculate decomposition of energy use for the U.S. economy"""
         """TODO: allow for different sectors to have different types of energy and commercial and residential to have weather adjustment
 
-        """        
+        """
         data_dict = self.collect_data()
         results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
                                                                breakout=breakout, calculate_lmdi=calculate_lmdi, 

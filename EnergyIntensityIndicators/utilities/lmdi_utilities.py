@@ -22,4 +22,3 @@ def logarithmic_average(x, y):
         L = np.nan
 
     return L
-

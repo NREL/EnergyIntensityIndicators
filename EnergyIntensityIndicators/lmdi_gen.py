@@ -752,7 +752,6 @@ class GeneralLMDI:
                     midx = pd.MultiIndex.from_arrays(levels)
                     path_df.columns = midx
 
-                
                 print('path_df subs > 1 multi:\n', path_df)
                 print('path_df.columns:', path_df.columns)
                 term_piece_dfs.append(path_df)
@@ -1026,8 +1025,8 @@ class GeneralLMDI:
                 print('level_count', level_count)
 
 
-                numerator.to_csv('C:/Users/irabidea/Desktop/yamls/numerator.csv')
-                denominator.to_csv('C:/Users/irabidea/Desktop/yamls/denominator.csv')
+                numerator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/numerator.csv')
+                denominator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/denominator.csv')
                 if group_:
                     print("grouped numerator:\n", numerator.groupby(level=shared_levels,
                            axis=1).sum())
@@ -1347,11 +1346,11 @@ class GeneralLMDI:
         """
 
         activity = \
-            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv').set_index('Year')
+            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_activity.csv').set_index('Year')
         energy = \
-            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv').set_index('Year')
+            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
         emissions = \
-            pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv').set_index('Year')
+            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
         print('energy cols:', energy.columns)
 
         data = {'E_i_j': energy,
@@ -1362,7 +1361,9 @@ class GeneralLMDI:
 
 
 if __name__ == '__main__':
-    directory = 'C:/Users/irabidea/Desktop/yamls/'
+    # Will need to update to a new directory in remote repo once code is finished.
+    # C:\Users\cmcmilla\OneDrive - NREL\Documents - Energy Intensity Indicators\General\EnergyIntensityIndicators
+    directory = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/'  
     gen_ = GeneralLMDI(directory)
     """fname (str): Name of YAML file containing
                          LMDI input parameters

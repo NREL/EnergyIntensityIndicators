@@ -23,6 +23,10 @@ class WeatherFactors:
         self.eia_data = GetEIAData(self.sector)
         self.projections = projections
         print("WEATHER FACTORS os.getcwd()", os.getcwd())
+        # self.lmdi_prices = pd.read_excel(os.path.join(
+        #     "..", 'Indicators_Spreadsheets_2020',
+        #     'EnergyPrices_by_Sector_010820_DBB.xlsx'
+        #     ), sheet_name='LMDI-Prices', header=14, usecols='A:B, EY')
         self.lmdi_prices = pd.read_excel(os.path.join(
             os.getcwd(), 'Indicators_Spreadsheets_2020',
             'EnergyPrices_by_Sector_010820_DBB.xlsx'
