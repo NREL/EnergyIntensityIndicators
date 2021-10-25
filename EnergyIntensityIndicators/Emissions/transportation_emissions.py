@@ -19,7 +19,7 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         fname = 'transportation_emissions'
-        config_path = f'C:/Users/irabidea/Desktop/yamls/{fname}.yaml'
+        config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
 
         self.sub_categories_list = \
             {'All_Transportation':
@@ -87,7 +87,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                           'Totalc': 'Total'})
         tedb_18.index = tedb_18.index.str.strip()
         tedb_18 = tedb_18.reset_index()
-        print(tedb_18)
+        # print(tedb_18)
         categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc',
                       'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY',
         conditions = [(tedb_18['index'] == r) for r in categories]
@@ -100,9 +100,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                           'Mode',
                                           ' Residual fuel oil':
                                           'Residual fuel oil'})
-        print(tedb_18.columns)
-        tedb_fuel_types = ['Gasoline', 'Diesel fuel', 'Liquefied petroleum gas',
-                           'Jet fuel',  'Residual fuel oil', 'Natural gas',
+        # print(tedb_18.columns)
+        tedb_fuel_types = ['Gasoline', 'Diesel fuel',
+                           'Liquefied petroleum gas',
+                           'Jet fuel',  'Residual fuel oil',
+                           'Natural gas',
                            'Electricity', 'Total']
 
         tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'],
@@ -110,11 +112,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         tedb_fuel.loc[:, 'Year'] = 2018
         tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway',
                                        'Water': 'Waterborne'})
-        print(tedb_fuel)
-        historical_fuel_consump = \
-            pd.read_excel(
-                './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
-                skipfooter=196, skiprows=2, usecols='A:BQ')
+        # print(tedb_fuel)
+        historical_fuel_consump = pd.read_excel(
+            './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
+            skipfooter=196, skiprows=2, usecols='A:BQ'
+            )
         historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
         historical_fuel_consump.loc[0:2, :] = \
             historical_fuel_consump.loc[0:2, :].ffill(axis=1)
@@ -132,18 +134,21 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         year_cols = \
             [c for c in historical_fuel_consump.columns if isinstance(c, int)]
-        fuel = pd.melt(historical_fuel_consump, id_vars=['Category', 'Mode',
-                                                         'Fuel Type'],
-                       value_vars=year_cols)
+        fuel = pd.melt(
+            historical_fuel_consump,
+            id_vars=['Category', 'Mode', 'Fuel Type'],
+            var_name='Year',
+            value_vars=year_cols
+            )
 
-        fuel = fuel.rename(columns={'Unnamed: 0': 'Year'})
         fuel = fuel[(fuel['Fuel Type'] != 'Year') &
                     (fuel['Mode'] != 'Not Used')]
         fuel = self.rename_modes(fuel, tedb=False)
 
-        transport_fuel = fuel.copy() # pd.concat([fuel, tedb_fuel], axis=0)
-        transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
+        transport_fuel = fuel.copy()  # pd.concat([fuel, tedb_fuel], axis=0)
+        # transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
         transport_fuel['Mode'] = transport_fuel['Mode'].str.strip()
+
         return transport_fuel
 
     @staticmethod
@@ -190,8 +195,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             #     'Intercityf': 'Intercity Rail'}
             raise ValueError('Missing TEDB mapping')
         else: 
-            rename_dict = \
-                {'Passenger Car': 'Passenger Car',
+            rename_dict = {
+                'Passenger Car': 'Passenger Car',
                 'Short Wheelbase Vehicles': 'SWB Vehicles',
                 'Motorcycles': 'Motorcycles',
                 'Light Trucks': 'Light Trucks',
@@ -211,7 +216,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 'Light Rail': 'Light Rail',
                 'Class I Freight': 'Rail',
                 'Natural Gas Pipeline': 'Natural Gas Pipeline',
-                'Oil Pipeline': 'Oil Pipeline'}
+                'Oil Pipeline': 'Oil Pipeline'
+                }
 
         mode_df['Mode'] = mode_df['Mode'].replace(rename_dict)
         return mode_df
@@ -247,10 +253,21 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
                     category_data_ = \
                         all_data[cargo][category]['activity']
-                    data = \
-                        self.wrap_data(
+
+                    if category == 'Air':
+
+                        data = self.wrap_data(
                             energy_data, category_data_,
-                            category, category)
+                            'Commercial Carriers', category
+                            )
+
+                    else:
+
+                        data = self.wrap_data(
+                            energy_data, category_data_,
+                            category, category
+                            )
+
                     cargo_dict[category] = data
 
                 elif isinstance(category_data, dict):
