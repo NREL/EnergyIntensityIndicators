@@ -74,52 +74,56 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
     def transportation_data(self):
         """Collect transportation energy consumption =
-        by fuel type
+        by fuel type. Note that historical data spreadsheet contains
+        manual calculations for 2007-2008 to smooth shift from data sources
+        (approach consistent with original PNNL method). Latest TEDB data 
+        (post-2017) is not included.
 
         Returns:
             transport_fuel (dict): [description]
         """
-        tedb_18 = \
-            pd.read_excel(
-                "https://tedb.ornl.gov/wp-content/uploads/2021/02/Table2_07_01312021.xlsx",
-                skiprows=9, skipfooter=10, index_col=0, usecols='B:J')
-        tedb_18 = tedb_18.rename(columns={'Electricityb': 'Electricity',
-                                          'Totalc': 'Total'})
-        tedb_18.index = tedb_18.index.str.strip()
-        tedb_18 = tedb_18.reset_index()
-        # print(tedb_18)
-        categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc',
-                      'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY',
-        conditions = [(tedb_18['index'] == r) for r in categories]
-        tedb_18.loc[:, 'Category'] = np.select(conditions, categories)
-        tedb_18.loc[:, 'Category'] = \
-            tedb_18['Category'].replace(to_replace='0',
-                                        value=np.nan).fillna(method='ffill')
-        tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
-        tedb_18 = tedb_18.rename(columns={'index':
-                                          'Mode',
-                                          ' Residual fuel oil':
-                                          'Residual fuel oil'})
-        # print(tedb_18.columns)
-        tedb_fuel_types = ['Gasoline', 'Diesel fuel',
-                           'Liquefied petroleum gas',
-                           'Jet fuel',  'Residual fuel oil',
-                           'Natural gas',
-                           'Electricity', 'Total']
+        # tedb_18 = \
+        #     pd.read_excel(
+        #         "https://tedb.ornl.gov/wp-content/uploads/2021/02/Table2_07_01312021.xlsx",
+        #         skiprows=9, skipfooter=10, index_col=0, usecols='B:J')
+        # tedb_18 = tedb_18.rename(columns={'Electricityb': 'Electricity',
+        #                                   'Totalc': 'Total'})
+        # tedb_18.index = tedb_18.index.str.strip()
+        # tedb_18 = tedb_18.reset_index()
+        # # print(tedb_18)
+        # categories = ['HIGHWAY', 'TOTAL HWY & NONHWYc',
+        #               'Air', 'Rail', 'Pipeline', 'Water']  # 'NONHIGHWAY',
+        # conditions = [(tedb_18['index'] == r) for r in categories]
+        # tedb_18.loc[:, 'Category'] = np.select(conditions, categories)
+        # tedb_18.loc[:, 'Category'] = \
+        #     tedb_18['Category'].replace(to_replace='0',
+        #                                 value=np.nan).fillna(method='ffill')
+        # tedb_18 = tedb_18[~tedb_18['index'].isin(categories)]
+        # tedb_18 = tedb_18.rename(columns={'index':
+        #                                   'Mode',
+        #                                   ' Residual fuel oil':
+        #                                   'Residual fuel oil'})
+        # # print(tedb_18.columns)
+        # tedb_fuel_types = ['Gasoline', 'Diesel fuel',
+        #                    'Liquefied petroleum gas',
+        #                    'Jet fuel',  'Residual fuel oil',
+        #                    'Natural gas',
+        #                    'Electricity', 'Total']
 
-        tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'],
-                            value_vars=tedb_fuel_types, var_name='Fuel Type')
-        tedb_fuel.loc[:, 'Year'] = 2018
-        tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway',
-                                       'Water': 'Waterborne'})
-        # print(tedb_fuel)
+        # tedb_fuel = pd.melt(tedb_18, id_vars=['Category', 'Mode'],
+        #                     value_vars=tedb_fuel_types, var_name='Fuel Type')
+        # tedb_fuel.loc[:, 'Year'] = 2018
+        # tedb_fuel = tedb_fuel.replace({'HIGHWAY': 'Highway',
+        #                                'Water': 'Waterborne'})
+
+        # Note that this file contains manaul calculations
         historical_fuel_consump = pd.read_excel(
             './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
             skipfooter=196, skiprows=2, usecols='A:BQ'
             )
         historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
-        historical_fuel_consump.loc[0:2, :] = \
-            historical_fuel_consump.loc[0:2, :].ffill(axis=1)
+        # historical_fuel_consump.loc[0:2, :] = \
+        #     historical_fuel_consump.loc[0:2, :].ffill(axis=1)
         historical_fuel_consump.loc[0, 'Unnamed: 0'] = 'Category'
         historical_fuel_consump.loc[1, 'Unnamed: 0'] = 'Mode'
 
@@ -162,17 +166,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             tedb (bool, optional): Whether the mode_df is from TEDB or not.
                                    Defaults to False.
 
-        Raises:
-            ValueError: Cannot currently handle TEDB data
-
         Returns:
             mode_df (pd.DataFrame): energy by mode + fuel type
                                     data matching the
                                     sub_categories_list dict mode names
         """
         if tedb:
-            # rename_dict = \
-            #     {'Light vehicles': 'SWB Vehicles',
+            # rename_dict = {
+            #     'Light vehicles': 'SWB Vehicles',
             #     'Cars': 'Passenger Car',
             #     'Light trucksd': 'Light Trucks',
             #     'Buses': ,
@@ -192,7 +193,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             #     'Freight (Class I)': 'Rail',
             #     'Passenger': ,
             #     'Commuter': 'Commuter Rail',
-            #     'Intercityf': 'Intercity Rail'}
+                # 'Intercityf': 'Intercity Rail'}
             raise ValueError('Missing TEDB mapping')
         else: 
             rename_dict = {
