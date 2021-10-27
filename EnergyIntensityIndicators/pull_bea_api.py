@@ -118,16 +118,28 @@ class BEA_api:
         2. Consists of utilities; wholesale trade; retail trade; transportation and warehousing; information; finance, insurance, real estate, rental, and leasing; professional and business services; educational services, health care, and social assistance; arts, entertainment, recreation, accommodation, and food services; and other services, except government.
         3. Consists of computer and electronic product manufacturing (excluding navigational, measuring, electromedical, and control instruments manufacturing); software publishers; broadcasting and telecommunications; data processing, hosting and related services; internet publishing and broadcasting and web search portals; and computer systems design and related services.
         """
-        historical_va_quant_index = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Chain_Type_Qty_Indexes_Value_Added_by_Industry.csv').set_index('Industry') # 2012 = 100 
-        historical_va = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Historical_VA.csv').set_index('Industry') 
-        
-        historical_go = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/Historical_GO.csv').set_index('Industry')  
-        historical_go_quant_index = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_go_qty_index.csv').set_index('Industry') # 2012 = 100 
-        
-        historical_data = {'historical_va': historical_va, 'historical_va_quant_index': historical_va_quant_index,
-                           'historical_go': historical_go, 'historical_go_quant_index': historical_go_quant_index}    
+        historical_va_quant_index = pd.read_csv(
+            './EnergyIntensityIndicators/Industry/Data/Chain_Type_Qty_Indexes_Value_Added_by_Industry.csv'
+            ).set_index('Industry') # 2012 = 100 
+        historical_va = pd.read_csv(
+            './EnergyIntensityIndicators/Industry/Data/Historical_VA.csv'
+            ).set_index('Industry') 
+
+        historical_go = pd.read_csv(
+            './EnergyIntensityIndicators/Industry/Data/Historical_GO.csv'
+            ).set_index('Industry')  
+        historical_go_quant_index = pd.read_csv(
+            './EnergyIntensityIndicators/Industry/Data/historical_go_qty_index.csv'
+            ).set_index('Industry')  # 2012 = 100 
+
+        historical_data = {
+            'historical_va': historical_va,
+            'historical_va_quant_index': historical_va_quant_index,
+            'historical_go': historical_go,
+            'historical_go_quant_index': historical_go_quant_index
+            }    
         return historical_data
-    
+
     @staticmethod
     def laspeyres_quantity(nominal_data, quantity_index):
         """Calculate Laspeyres quantity"""

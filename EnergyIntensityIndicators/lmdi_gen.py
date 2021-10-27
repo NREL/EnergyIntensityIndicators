@@ -557,8 +557,8 @@ class GeneralLMDI:
 
             paths_dict.update(level_data)
 
-        print('paths_dict keys:', paths_dict.keys())
-        exit()
+        # print('paths_dict keys:', paths_dict.keys())
+        # exit()
         return paths_dict
 
     def group_data(self, path_list, data_dict, variable,
@@ -592,7 +592,9 @@ class GeneralLMDI:
             keep_cols = True
         else:
             keep_cols = False
+
         n_dict = dict()
+
         for grouped_lists in path_list:
             grouped_lists = list(set(grouped_lists))
             all_level = []
@@ -604,7 +606,7 @@ class GeneralLMDI:
                 level_path = self.total_label
 
             for path in grouped_lists:
-                print('path:', path)
+                print('This is a path:', path)
                 key = path.split('.')[-1]
                 data = data_dict[path]
                 if data.empty:
@@ -636,6 +638,12 @@ class GeneralLMDI:
                         if variable in self.to_weight[path]:
                             weight_data = True
 
+                        else:
+                            weight_data = False
+
+                    else:
+                        weight_data = False
+
                     lower_level_data = \
                         self.aggregate_level_data(weight_data,
                                                   weights=weights,
@@ -647,6 +655,7 @@ class GeneralLMDI:
                     if isinstance(lower_level_data, pd.Series):
                         lower_level_data = \
                             lower_level_data.to_frame(name=key)
+
                 print('lower_level_data:\n', lower_level_data)
                 all_level.append(lower_level_data)
             try:
@@ -763,7 +772,11 @@ class GeneralLMDI:
         return term_df
 
     # def aggregate_level_data(self, subscript, weights, base_data, total_name):
-    def aggregate_level_data(self, weight_data, weights, base_data, total_name):
+    def aggregate_level_data(self,
+                             weight_data,
+                             weights,
+                             base_data,
+                             total_name):
 
         """Aggregate data for variable and level (e.g. region)
 
@@ -799,7 +812,7 @@ class GeneralLMDI:
             try:
                 base_data, weights = \
                     df_utils().ensure_same_indices(base_data, weights)
-                print('base_data:\n', base_data)
+ 
                 total_col = base_data.multiply(weights.values,
                                                axis=1).sum(axis=1)
             except ValueError:
@@ -831,7 +844,7 @@ class GeneralLMDI:
             print('lhs_total:\n', lhs_total)
             lhs_share = df_utils().calculate_shares(lhs_total,
                                                     total_label=name)
-        
+
         print('lhs_share:\n', lhs_share)
 
         if self.model == 'additive':
@@ -928,11 +941,11 @@ class GeneralLMDI:
                 if ratio.shape[1] == 1:
                     result = ratio.divide(ratio.loc[self.base_year].values)
                 else:
-                    print('ratio:\n', ratio)
+                    # print('ratio:\n', ratio)
                     ratio_levels = ratio.columns.nlevels - 1
                     # result = ratio.sum(axis=1, level=ratio_levels)
                     result = ratio.divide(ratio.loc[self.base_year].values)
-                    print('result:\n', result)
+                    # print('result:\n', result)
 
                     # raise ValueError('need to account for this case')
 
@@ -1022,8 +1035,7 @@ class GeneralLMDI:
 
                 shared_levels = list(range(level_count))
 
-                print('level_count', level_count)
-
+                # print('level_count', level_count)
 
                 numerator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/numerator.csv')
                 denominator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/denominator.csv')
@@ -1034,7 +1046,7 @@ class GeneralLMDI:
                                                        shared_levels, lhs_data)
                 else:
                     numerator = numerator.divide(denominator.values, axis=1)
-                
+
                 print('numerator:\n', numerator)
                 if t == 'E_i_j/E_i':
                     exit()
@@ -1228,7 +1240,7 @@ class GeneralLMDI:
                                      weights, name,
                                      lhs_data)
         print('results:\n', results)
-        exit()
+        # exit()
 
         expression = self.decomposition_results(results)
 
@@ -1331,12 +1343,13 @@ class GeneralLMDI:
 
         results = self.general_expr(input_data, sub_categories)
         print('results:\n', results)
-        exit()
+        # exit()
         if self.model == 'multiplicative':
             self.spaghetti_plot(data=results)
 
         formatted_results = self.prepare_for_viz(results)
         print('formatted_results:\n', formatted_results)
+
         return formatted_results
 
     @staticmethod
@@ -1357,6 +1370,7 @@ class GeneralLMDI:
                 'A_i': activity,
                 'C_i_j': emissions,
                 'total_label': 'NonManufacturing'}
+
         return data
 
 

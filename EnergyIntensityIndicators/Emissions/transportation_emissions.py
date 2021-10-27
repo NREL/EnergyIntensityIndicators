@@ -82,6 +82,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         Returns:
             transport_fuel (dict): [description]
         """
+        # This could be made into a new method:
         # tedb_18 = \
         #     pd.read_excel(
         #         "https://tedb.ornl.gov/wp-content/uploads/2021/02/Table2_07_01312021.xlsx",
@@ -122,8 +123,8 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             skipfooter=196, skiprows=2, usecols='A:BQ'
             )
         historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
-        # historical_fuel_consump.loc[0:2, :] = \
-        #     historical_fuel_consump.loc[0:2, :].ffill(axis=1)
+        historical_fuel_consump.loc[0:2, :] = \
+            historical_fuel_consump.loc[0:2, :].ffill(axis=1)
         historical_fuel_consump.loc[0, 'Unnamed: 0'] = 'Category'
         historical_fuel_consump.loc[1, 'Unnamed: 0'] = 'Mode'
 
@@ -272,8 +273,11 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     cargo_dict[category] = data
 
                 elif isinstance(category_data, dict):
+
                     for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
+
                         mode_group_all_dict = dict()
+
                         if mode_group_data is None:
 
                             mode_group_data_ = \
@@ -283,6 +287,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                 self.wrap_data(
                                     energy_data, mode_group_data_,
                                     mode_group, category)
+
                             category_dict[mode_group] = data
 
                         elif isinstance(mode_group_data, dict):
