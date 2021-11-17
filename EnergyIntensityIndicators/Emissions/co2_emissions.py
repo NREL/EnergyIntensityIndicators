@@ -96,7 +96,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
     @staticmethod
     def weighted(x, cols, w="weights"):
-        """Calculae weighted average
+        """Calculate weighted average
 
         Args:
             x ([type]): [description]
@@ -305,7 +305,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         that labels match EPA emissions factors labels
 
         Args:
-            elec_data (pd.DataFrame): Energy consumption for the    
+            elec_data (pd.DataFrame): Energy consumption for the
                                       elec power sector by fuel type
 
         Returns:
@@ -370,32 +370,34 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                            'International Operations ']].sum(axis=1)
             tedb_data = tedb_data[['Air']]
 
-        mapping = {'Gasoline': 'Motor Gasoline',  # ef is in gallon
-                   'Gasoline (million gallons)': 'Motor Gasoline',  # ef is in gallon
-                    'Gasohol': 'Gasohol',  # ef is in gallon
-                    'Diesel (million gallons)': 'Diesel Fuel', # ef is in gallon
-                    'Diesel': 'Diesel Fuel', # ef is in gallon
-                    'CNG': 'Compressed Natural Gas (CNG)', # ef is in scf
-                    'LNG': 'Liquefied Natural Gas (LNG)', # ef is in gallons
-                    'Bio Diesel ': 'Biodiesel (100%)', # ef is in gallons
-                    'Diesel Fuel & Distillate (1,000 bbl)': # ef is in gallon (42 gallons in a barrel)
-                        'Diesel Fuel & Distillate',
-                    'Residual Fuel Oil (1,000 bbl)': 'Residual Fuel Oil',  # ef is in gallon (42 gallons in a barrel)
-                    'Jet fuel (million gallons)': 'Aviation Gasoline',  # ef is per gallon
-                    'Electricity (GWhrs)': 'US Average', # ef is /MWh
-                    'Distillate Fuel Oil': 'Distillate Fuel Oil',  # ef is per gallon
-                    'Natural Gas (million cu. ft.)': 'Natural Gas',  # ef is per scf
-                    'Electricity (million kWh)': 'US Average', # ef is /MWh
-                    'Diesel fuel': 'Diesel Fuel',  # ef is per gallon
-                    'Liquefied petroleum gas':
-                        'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
-                    'LPG': 'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
-                    'Air': 'Aviation Gasoline',  # ef is per gallon
-                    'Jet fuel': 'Aviation Gasoline',  # ef is per gallon
-                    'Residual fuel oil': 'Residual Fuel Oil',  # ef is per gallon
-                    'Natural gas': 'Natural Gas',  # ef is per scf
-                    'Electricity': 'US Average',  # ef is /MWh
-                    'Intercity': 'Diesel Fuel'}  # ef is in gallon
+        mapping = {
+            'Gasoline': 'Motor Gasoline',  # ef is in gallon
+            'Gasoline (million gallons)': 'Motor Gasoline',  # ef is in gallon
+            'Gasohol': 'Gasohol',  # ef is in gallon
+            'Diesel (million gallons)': 'Diesel Fuel', # ef is in gallon
+            'Diesel': 'Diesel Fuel', # ef is in gallon
+            'CNG': 'Compressed Natural Gas (CNG)', # ef is in scf
+            'LNG': 'Liquefied Natural Gas (LNG)', # ef is in gallons
+            'Bio Diesel ': 'Biodiesel (100%)', # ef is in gallons
+            'Diesel Fuel & Distillate (1,000 bbl)': # ef is in gallon (42 gallons in a barrel)
+                'Diesel Fuel',
+            'Residual Fuel Oil (1,000 bbl)': 'Residual Fuel Oil',  # ef is in gallon (42 gallons in a barrel)
+            'Jet fuel (million gallons)': 'Aviation Gasoline',  # ef is per gallon
+            'Electricity (GWhrs)': 'US Average', # ef is kg/MWh
+            'Distillate Fuel Oil': 'Diesel Fuel',  # ef is per gallon
+            'Natural Gas (million cu. ft.)': 'Natural Gas',  # ef is per scf
+            'Electricity (million kWh)': 'US Average', # ef is kg/MWh
+            'Diesel fuel': 'Diesel Fuel',  # ef is per gallon
+            'Liquefied petroleum gas':
+                'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
+            'LPG': 'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
+            'Air': 'Aviation Gasoline',  # ef is per gallon
+            'Jet fuel': 'Aviation Gasoline',  # ef is per gallon
+            'Residual fuel oil': 'Residual Fuel Oil',  # ef is per gallon
+            'Natural gas': 'Natural Gas',  # ef is per scf
+            'Electricity': 'US Average',  # ef is kg/MWh
+            'Intercity': 'Diesel Fuel'  # ef is in gallon
+            }  
 
         tedb_data_ = tedb_data.rename(columns=mapping)
         tedb_data_ = tedb_data_.drop('School (million bbl)',
@@ -447,6 +449,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         no_emissions_df.index.name = 'Fuel Type'
         fuel_factor_df = pd.concat([fuel_factor_df, no_emissions_df], axis=0)
         fuel_factor_df = fuel_factor_df.transpose()
+
         return fuel_factor_df
 
     def calculate_emissions(self, energy_data, emissions_type='CO2 Factor',
@@ -464,10 +467,29 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         Returns:
             emissions_data (pd.DataFrame): Emissions by fuel type
             energy_data (pd.DataFrame): Energy consumption by fuel data
+                                        converted to MMBtu, if necessary,
                                         with columns matching emissions data
+                                        
 
         TODO: Handle Other category (should not be dropped)
         """
+
+        # Also need to convert TEDB fuel (in gal or ft3) to MMBtu
+        mapping_heat = {
+            'Motor Gasoline': 125000,  # ef is in gallon
+            'Gasohol': 120900,  # ef is in gallon
+            'Diesel Fuel': 138700,  # ef is in gallon
+            'Compressed Natural Gas (CNG)': 129400,  # ef is in scf
+            'Liquefied Natural Gas (LNG)': 84800,  # ef is in gallons
+            'Liquefied Petroleum Gases (LPG)': 91300,
+            'Biodiesel (100%)': 128520,  # ef is in gallons
+            'Residual Fuel Oil': 149700,  # ef is in gallon (42 gallons in a barrel)
+            'Aviation Gasoline': 120900,  # ef is per gallon
+            'US Average': 10339,  # ef is kg/MWh; Btu/kWh
+            'Natural Gas': 1031,  # ef is per scf
+            'Diesel Fuel': 138700,  # ef is per gallon
+            }  
+
         energy_data = energy_data.drop('region', axis=1, errors='ignore')
         emissions_factors = self.epa_emissions_data()
 
@@ -500,7 +522,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                 if t not in emissions_factors.columns.tolist():
                     print('t not in list:', t)
             print('emissions_factors columns:', emissions_factors.index)
-            raise KeyError('Emissions data does not contain' +
+            raise KeyError('Emissions data does not contain ' +
                            'all energy sources')
 
         emissions_data = \
@@ -523,6 +545,22 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                 energy_data = energy_data[energy_data['Census Region'] == '0']
             else:
                 pass
+
+        # Convert TEDB fuels to MMBtu
+        if datasource == 'TEDB':
+            try:
+                energy_data = \
+                    energy_data.apply(lambda x: mapping_heat[x.name]*x, axis=0)
+            except KeyError:
+                print('energy_data.columns.tolist() not in dataframe:',
+                      energy_data.columns.tolist())
+                for t in energy_data.columns.tolist():
+                    if t not in mapping_heat.keys():
+                        print('t not in list:', t)
+                raise KeyError(
+                    'Heat content conversion data does not contain ' +
+                    'all energy sources'
+                    )
 
         return emissions_data, energy_data
 
@@ -648,52 +686,33 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         Returns:
             (str): SEDS API endpoint
         """
-        endpoints = {'All Petroleum Products':
-                        f'SEDS.PA{sector}P.{state}.A',
-                     'Coal':
-                        f'SEDS.CL{sector}P.{state}.A',
-                     'Distillate Fuel Oil':
-                        f'SEDS.DF{sector}P.{state}.A',
-                     'Electrical System Energy Losses':
-                        f'SEDS.LO{sector}B.{state}.A',
-                     'Electricity Sales':
-                        f'SEDS.ES{sector}P.{state}.A',
-                     'Fuel Ethanol including Denaturant':
-                        f'SEDS.EN{sector}P.{state}.A',
-                     'Fuel Ethanol excluding Denaturant':
-                        f'SEDS.EM{sector}B.{state}.A',
-                     'Geothermal':
-                        f'SEDS.GE{sector}B.{state}.A',
-                     'Hydrocarbon gas liquids':
-                        f'SEDS.HL{sector}P.{state}.A',
-                     'Hydroelectricity':
-                        f'SEDS.HY{sector}P.{state}.A',
-                     'Kerosene':
-                        f'SEDS.KS{sector}P.{state}.A',
-                     'Motor Gasoline':
-                        f'SEDS.MG{sector}P.{state}.A',
-                     'Natural Gas including Supplemental Gaseous Fuels':
-                        f'SEDS.NG{sector}P.{state}.A',
-                     'Petroleum Coke':
-                        f'SEDS.PC{sector}P.{state}.A',
-                     'Propane':
-                        f'SEDS.PQ{sector}P.{state}.A',
-                     'Residual Fuel Oil':
-                        f'SEDS.RF{sector}P.{state}.A',
-                     'Solar Energy':
-                        f'SEDS.SOR7P.{state}.A',
-                     'Total (per Capita)':
-                        f'SEDS.TE{sector[0]}PB.{state}.A',
-                     'Total Energy excluding Electrical System Energy Losses':
-                        f'SEDS.TN{sector}B.{state}.A',
-                     'Waste':
-                        f'SEDS.WS{sector}B.{state}.A',
-                     'Wind Energy':
-                        f'SEDS.WY{sector}P.{state}.A',
-                     'Wood':
-                        f'SEDS.WD{sector}B.{state}.A',
-                     'Wood and Waste':
-                        f'SEDS.WW{sector}B.{state}.A'}
+        endpoints = {
+            'All Petroleum Products': f'SEDS.PA{sector}P.{state}.A',
+            'Coal': f'SEDS.CL{sector}P.{state}.A',
+            'Distillate Fuel Oil': f'SEDS.DF{sector}P.{state}.A',
+            'Electrical System Energy Losses': f'SEDS.LO{sector}B.{state}.A',
+            'Electricity Sales': f'SEDS.ES{sector}P.{state}.A',
+            'Fuel Ethanol including Denaturant': f'SEDS.EN{sector}P.{state}.A',
+            'Fuel Ethanol excluding Denaturant': f'SEDS.EM{sector}B.{state}.A',
+            'Geothermal': f'SEDS.GE{sector}B.{state}.A',
+            'Hydrocarbon gas liquids': f'SEDS.HL{sector}P.{state}.A',
+            'Hydroelectricity': f'SEDS.HY{sector}P.{state}.A',
+            'Kerosene': f'SEDS.KS{sector}P.{state}.A',
+            'Motor Gasoline': f'SEDS.MG{sector}P.{state}.A',
+            'Natural Gas including Supplemental Gaseous Fuels':
+                f'SEDS.NG{sector}P.{state}.A',
+            'Petroleum Coke': f'SEDS.PC{sector}P.{state}.A',
+            'Propane': f'SEDS.PQ{sector}P.{state}.A',
+            'Residual Fuel Oil': f'SEDS.RF{sector}P.{state}.A',
+            'Solar Energy': f'SEDS.SOR7P.{state}.A',
+            'Total (per Capita)': f'SEDS.TE{sector[0]}PB.{state}.A',
+            'Total Energy excluding Electrical System Energy Losses':
+                f'SEDS.TN{sector}B.{state}.A',
+            'Waste': f'SEDS.WS{sector}B.{state}.A',
+            'Wind Energy': f'SEDS.WY{sector}P.{state}.A',
+            'Wood': f'SEDS.WD{sector}B.{state}.A',
+            'Wood and Waste': f'SEDS.WW{sector}B.{state}.A'
+            }
         return endpoints[fuel]
 
     def collect_seds(self, sector, states):
