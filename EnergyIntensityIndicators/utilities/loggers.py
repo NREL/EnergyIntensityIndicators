@@ -6,9 +6,11 @@ from warnings import warn
 import time
 import numpy as np
 import pandas as pd
+import sys
+import copy
 
 
-FORMT = '%(levelname)s - %(asctime)s [%(filename)s:%(lineo)d] : %(message)s'
+FORMAT = '%(levelname)s - %(asctime)s [%(filename)s:%(lineo)d] : %(message)s'
 LOG_LEVEL = {
     'INFO': logging.INFO,
     'DEBUG': logging.DEBUG,
@@ -108,14 +110,14 @@ def add_handlers(logger, handlers):
             current_handlers.update({name: handler})
         else:
             h = current_handlers[name]
-            if handerl.level < h.level:
+            if handler.level < h.level:
                 h.setlevel(handler.level)
 
     return logger
 
 
 def setup_logger(logger_name, stream=True, log_level='INFO',
-                 log_file=NOne, log_format=FORMAT):
+                 log_file=None, log_format=FORMAT):
     """
     Set up logging instance with given name and attributes.
 
@@ -128,7 +130,7 @@ def setup_logger(logger_name, stream=True, log_level='INFO',
     log_level : str, optional
         Level of logging to capture, must be key in LOG_LEVEL.
         If multiple handlers/log_files are requested in a single call
-        of this function, the specified loogging level will be applied to 
+        of this function, the specified loogging level will be applied to
         all requested handlers. "INFO" by default.
     log_file : str | list, optional
         Path to file to use for logging. If None, use a StreamHandler
@@ -139,7 +141,7 @@ def setup_logger(logger_name, stream=True, log_level='INFO',
     Returns
     -------
     logger : logging.logger
-        Instance of logger for given name, with given level and added 
+        Instance of logger for given name, with given level and added
         handler.
     """
     logger = logging.getLogger(logger_name)
@@ -150,7 +152,7 @@ def setup_logger(logger_name, stream=True, log_level='INFO',
         logger.setLevel(LOG_LEVEL[log_level])
 
     handlers = []
-    if is instance(log_file, list):
+    if isinstance(log_file, list):
         for h in log_file:
             handlers.append(get_handler(log_level=log_level, log_file=h,
                                         log_format=log_format))
@@ -263,7 +265,7 @@ class LoggingAttributes:
                     # Check if each handler has been previously set
                     handlers.append(h)
                 else:
-                    warn('{} does not exist, FileHandler will be ' 
+                    warn('{} does not exist, FileHandler will be '
                          'converted to a StreamHandler'
                          .format(log_dir), LoggerWarning)
 
@@ -316,7 +318,7 @@ class LoggingAttributes:
         Cleanup loggers and attributes by combining dependent and parent
         loggers
         """
-        loggers = deepcopy(self.loggers)
+        loggers = copy.deepcopy(self.loggers)
         parent = None
         parent_attrs = {}
         for name in self.logger_names:
