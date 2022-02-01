@@ -3,8 +3,9 @@ import pandas as pd
 import numpy as np
 import logging
 import os
+import sys
 
-# from EnergyIntensityIndicators.utilities.loggers import init_logger
+from EnergyIntensityIndicators import DATADIR, EIIDIR, RESULTSDIR
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
@@ -16,14 +17,17 @@ from EnergyIntensityIndicators.utilities.standard_interpolation \
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
+from EnergyIntensityIndicators.utilities import loggers
 
-logger = logging.getLogger(__name__)
 
+logger = loggers.init_logger(__name__)
 
-class TransportationEmissions(CO2EmissionsDecomposition):
+data_dir = 'C:\\Users\\bbenton\\source\\eii_data'
+
+class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         fname = 'transportation_emissions'
-        config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
+        config_path = os.path.join(data_dir, f'{fname}.yaml')
 
         self.sub_categories_list = \
             {'All_Transportation':
@@ -80,7 +84,7 @@ class TransportationEmissions(CO2EmissionsDecomposition):
         """Collect transportation energy consumption =
         by fuel type. Note that historical data spreadsheet contains
         manual calculations for 2007-2008 to smooth shift from data sources
-        (approach consistent with original PNNL method). Latest TEDB data 
+        (approach consistent with original PNNL method). Latest TEDB data
         (post-2017) is not included.
 
         Returns:
@@ -123,8 +127,8 @@ class TransportationEmissions(CO2EmissionsDecomposition):
 
         # Note that this file contains manaul calculations
         historical_fuel_consump = pd.read_excel(
-            './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
-            skipfooter=196, skiprows=2, usecols='A:BO'
+            os.path.join(EIIDIR, 'Transportation/Data/FuelConsump.xlsx'),
+            skipfooter=196, skiprows=2, usecols='A:BQ'
             )
         historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
         historical_fuel_consump.loc[0:2, :] = \
@@ -200,7 +204,7 @@ class TransportationEmissions(CO2EmissionsDecomposition):
             #     'Commuter': 'Commuter Rail',
                 # 'Intercityf': 'Intercity Rail'}
             raise ValueError('Missing TEDB mapping')
-        else: 
+        else:
             rename_dict = {
                 'Passenger Car': 'Passenger Car',
                 'Short Wheelbase Vehicles': 'SWB Vehicles',
@@ -399,8 +403,8 @@ class TransportationEmissions(CO2EmissionsDecomposition):
 
 
 if __name__ == '__main__':
-    directory = './EnergyIntensityIndicators/Data'
-    output_directory = './Results'
+    directory = DATADIR
+    output_directory = RESULTSDIR
 
     module_ = TransportationEmissions
     level = 'All_Transportation'

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 
+from EnergyIntensityIndicators import EIIDIR
 from EnergyIntensityIndicators.electricity import ElectricityIndicators
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
@@ -22,7 +23,10 @@ from EnergyIntensityIndicators.Emissions.noncombustion \
 from EnergyIntensityIndicators.industry \
     import IndustrialIndicators
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
+from EnergyIntensityIndicators.utilities import loggers
 
+
+logger = loggers.init_logger(__name__)
 
 class CO2EmissionsDecomposition(CalculateLMDI):
     """Class to decompose CO2 emissions by
@@ -125,12 +129,12 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         """
         subset = \
             emissions_factors[emissions_factors['Fuel Type'].isin(input_cols)]
-        subset['weights'] = np.nan
+        subset.loc[:, 'weights'] = np.nan
         if portions:
             subset_ = []
             for k, v in portions.items():
                 fuel_ = subset[subset['Fuel Type'] == k]
-                fuel_['weights'] = v
+                fuel_.loc[:, 'weights'] = v
                 subset_.append(fuel_)
 
             subset = pd.concat(subset_, axis=0)
@@ -168,13 +172,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             emissions_factors (DataFrame): EPA emissions factors data
         """
         try:
-            ef = pd.read_csv(
-                    './EnergyIntensityIndicators/Data/EPA_emissions_factors.csv')
+            ef = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/EPA_emissions_factors.csv'))
         except FileNotFoundError:
             os.chdir('..')
-            print('changed dir:', os.getcwd())
-            ef = pd.read_csv(
-                    './EnergyIntensityIndicators/Data/EPA_emissions_factors.csv')
+            logger.info(f'changed dir: {os.getcwd()}')
+            ef = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/EPA_emissions_factors.csv'))
         df_cols = ef.columns
         dfs = []
         grouped = ef.groupby(ef['Unit Type'])
@@ -397,7 +401,9 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             'Natural gas': 'Natural Gas',  # ef is per scf
             'Electricity': 'US Average',  # ef is kg/MWh
             'Intercity': 'Diesel Fuel'  # ef is in gallon
-            }  
+            }
+
+        logger.info(f'tedb_data: {tedb_data.info()}')
 
         tedb_data_ = tedb_data.rename(columns=mapping)
         tedb_data_ = tedb_data_.drop('School (million bbl)',
@@ -469,7 +475,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             energy_data (pd.DataFrame): Energy consumption by fuel data
                                         converted to MMBtu, if necessary,
                                         with columns matching emissions data
-                                        
+
 
         TODO: Handle Other category (should not be dropped)
         """
@@ -488,7 +494,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             'US Average': 10339,  # ef is kg/MWh; Btu/kWh
             'Natural Gas': 1031,  # ef is per scf
             'Diesel Fuel': 138700,  # ef is per gallon
-            }  
+            #'School':120900 #bnb added this
+            }
 
         energy_data = energy_data.drop('region', axis=1, errors='ignore')
         emissions_factors = self.epa_emissions_data()
@@ -516,12 +523,12 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             emissions_factors = \
                 emissions_factors[energy_data.columns.tolist()]
         except KeyError:
-            print('energy_data.columns.tolist() not in dataframe:',
-                  energy_data.columns.tolist())
+            logger.error(
+                f'{energy_data.columns.tolist()} not in dataframe')
             for t in energy_data.columns.tolist():
                 if t not in emissions_factors.columns.tolist():
-                    print('t not in list:', t)
-            print('emissions_factors columns:', emissions_factors.index)
+                    logger.error(f'{t} not in list')
+            logger.error(f'emissions_factors columns: {emissions_factors.index}')
             raise KeyError('Emissions data does not contain ' +
                            'all energy sources')
 
@@ -552,11 +559,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                 energy_data = \
                     energy_data.apply(lambda x: mapping_heat[x.name]*x, axis=0)
             except KeyError:
-                print('energy_data.columns.tolist() not in dataframe:',
-                      energy_data.columns.tolist())
+                logger.error(
+                    f'{energy_data.columns.tolist()} not in dataframe')
+                logger.info(f'Energy data columns: {energy_data.columns}')
+                logger.info(f'Mapping Heat keys: {mapping_heat.keys()}')
                 for t in energy_data.columns.tolist():
                     if t not in mapping_heat.keys():
-                        print('t not in list:', t)
+                        logger.error(f'{t} not in list')
                 raise KeyError(
                     'Heat content conversion data does not contain ' +
                     'all energy sources'
@@ -602,17 +611,17 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
             cw (pd.DataFrame): Crosswalk between states and census
                                regions
         """
-        print('os.getcwd():', os.getcwd())
+        logger.info(f'os.getcwd(): {os.getcwd()}')
         try:
-            cw = pd.read_csv(
-                    './Data/state_to_census_region.csv')
-            state_abbrevs = pd.read_csv(
-                    './Data/name-abbr.csv')
+            cw = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/name-abbr.csv'))
         except FileNotFoundError:
-            cw = pd.read_csv(
-                    './EnergyIntensityIndicators/Data/state_to_census_region.csv')
-            state_abbrevs = pd.read_csv(
-                    './EnergyIntensityIndicators/Data/name-abbr.csv')
+            cw = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(os.path.join(EIIDIR,
+                    'Data/name-abbr.csv'))
         cw = cw.merge(state_abbrevs, left_on='USPC',
                       right_on='Abbrev', how='left')
         return cw
@@ -780,8 +789,8 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                                           units_col=True)
                     state_data.append(df)
                 except KeyError:
-                    print(f'Endpoint failed for state {s}, sector \
-                            {sector} and fuel type {f}')
+                    logger.error(f'Endpoint failed for state {s}, sector \
+                                 {sector} and fuel type {f}')
                     continue
 
             region_data = pd.concat(state_data, axis=0)
