@@ -3,10 +3,14 @@ from sklearn import linear_model
 import zipfile
 import numpy as np
 import urllib
+import os
 
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
+from EnergyIntensityIndicators import EIIDIR
+from EnergyIntensityIndicators.utilities import loggers
 
+logger = loggers.init_logger(__name__)
 
 class TransportationIndicators(CalculateLMDI):
     """
@@ -85,7 +89,7 @@ class TransportationIndicators(CalculateLMDI):
                                 usecols=usecols, index_col=index_col)
             return xls
         except urllib.error.HTTPError as e:
-            print('error with table', table_number, e)
+            logger.error(f'error with table {table_number} {e}')
             raise e
 
     # def adjust_truck_freight(self, parameter_list):
@@ -98,11 +102,11 @@ class TransportationIndicators(CalculateLMDI):
     #     DOES THIS WORK ? dataframes
     #     """
     #     gross_output = pd.read_excel('./EnergyIntensityIndicators/Industry/Data/BLS_BEA_Data.xlsx', sheet_name='BLS_Data_011920', index_col=0)
-    #     gross_output = gross_output.transpose()  # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model, 
+    #     gross_output = gross_output.transpose()  # Note:  Gross output in million 2005 dollars from BLS database for their employment projections input-output model,
     #                                             # PNNL spreadsheet: BLS_output_data.xlsx in folder BLS_Industry_Data)
-    #     vehicle_miles_fhwa_tvm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4, index_col=0) 
+    #     vehicle_miles_fhwa_tvm1 = pd.read_excel('https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx', header=4, index_col=0)
     #     old_methodology_2007_extrapolated = gross_output.iloc[2007] / gross_output.iloc[2006] * vehicle_miles_fhwa_tvm1.iloc[2006, :]
-    #     old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated  
+    #     old_series_scaled_to_new = vehicle_miles_fhwa_tvm1 * vehicle_miles_fhwa_tvm1.iloc[2007, :] / old_methodology_2007_extrapolated
     #     return old_series_scaled_to_new
 
     def passenger_based_activity(self):
@@ -110,7 +114,7 @@ class TransportationIndicators(CalculateLMDI):
         Time series for the activity measures for passenger transportation
            1970-76: Oak Ridge National Laboratory. 1993. Transportation Energy Data Book, Edition 13. ORNL-6743. Oak Ridge, Tennessee, Table 3.30, p. 3-46.
            1977-2017 American Public Transportation Association. 2019 Public Transportation Fact Book. Appendix A, Table 3, Pt. A
-           Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years. 
+           Note:  Transit bus does not include trolley bus because APTA did not not report electricity consumption for trolley buses separately for all years.
            https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
 
             Note: Series not continuous for transit bus between 2006 and 2007; estimation procedures changed for bus systems outside urban areas
@@ -118,13 +122,12 @@ class TransportationIndicators(CalculateLMDI):
         """
 
         # Historical data from PNNL
-        passenger_based_activity = \
-            pd.read_csv(
-                './EnergyIntensityIndicators/Transportation/passenger_based_activity.csv'
+        passenger_based_activity = pd.read_csv(os.path.join(EIIDIR,
+            'Transportation/passenger_based_activity.csv')
                 ).set_index('Year').rename(
-                    columns={'Motor-cycles': 'Motorcycles', 
+                    columns={'Motor-cycles': 'Motorcycles',
                              'Light Truck': 'Light Trucks',
-                             'Transit Bus': 'Urban Bus', 
+                             'Transit Bus': 'Urban Bus',
                              'Para-Transit': 'Paratransit',
                              'All Carriers (pass miles), millions': 'Commercial Carriers'}
                      )
@@ -132,13 +135,13 @@ class TransportationIndicators(CalculateLMDI):
         # fha_table_vm1 = pd.read_excel(
         #     'https://www.fhwa.dot.gov/policyinformation/statistics/2018/xls/vm1.xlsx',
         #     header=4, index_col=0
-        #     ) 
+        #     )
         # # Bus / Transit
         # apta_table3 = pd.read_excel(
         #     'https://www.apta.com/wp-content/uploads/2020-APTA-Fact-Book-Appendix-A.xlsx',
         #     sheet_name='3', skiprows=7, skipfooter=42, index_col=0
         #     ) # 1997-2017 apta_table3
-         
+
         # # Bus / Intercity: see revised_intercity_bus_estimates
 
         # # Bus / School: see revised_intercity_bus_estimates
@@ -175,15 +178,15 @@ class TransportationIndicators(CalculateLMDI):
         # intercity_rail_2017 = intercity_rail_2017.transpose()
 
         # intercity_rail_2017 = intercity_rail_2017[['Intercity/Amtraki']] # not sure how the i superscript shows up
-        #  'Bureau of Transportation Statistics, National Transportation Statistics, Table 1-40: U.S. Passenger-Miles 
+        #  'Bureau of Transportation Statistics, National Transportation Statistics, Table 1-40: U.S. Passenger-Miles
 
         return passenger_based_activity
 
     def passenger_based_energy_use(self):
         """Calculate the fuel consumption in Btu for passenger transportation
-        """        
-        passenger_based_energy_use = pd.read_csv(
-            './EnergyIntensityIndicators/Transportation/passenger_based_energy_use.csv'
+        """
+        passenger_based_energy_use = pd.read_csv(os.path.join(EIIDIR,
+            'Transportation/passenger_based_energy_use.csv')
             ).set_index('Year').rename(
                 columns={
                     'Light Truck': 'Light Trucks',
@@ -198,7 +201,7 @@ class TransportationIndicators(CalculateLMDI):
         return passenger_based_energy_use
 
     def fuel_heat_content(self, gross=True):
-        """Assumed Btu content of the various types of petroleum products. 
+        """Assumed Btu content of the various types of petroleum products.
         This dataframe is not time variant (no need to update it with subsquent indicator updates)
 
         Parameters
@@ -207,10 +210,10 @@ class TransportationIndicators(CalculateLMDI):
             if True use gross fuel heat content, if False use net
         """
 
-        fuel_heat_content = pd.read_csv(
-            './EnergyIntensityIndicators/Transportation/Data/fuel_heat_content.csv'
+        fuel_heat_content = pd.read_csv(os.path.join(EIIDIR,
+            'Transportation/Data/fuel_heat_content.csv')
             )
-    
+
         if gross:
             fuel_heat_content_df = fuel_heat_content[['Fuel', 'Gross Content Fmt']]
 
@@ -222,7 +225,7 @@ class TransportationIndicators(CalculateLMDI):
     # def fuel_consump(self, parameter_list):
     #     """
     #     Time series of fuel consumption for the major transportation
-    #     subsectors. Data are generally in 
+    #     subsectors. Data are generally in
     #     millions gallons or barrels of petroleum.
 
     #     Parameters
@@ -250,25 +253,25 @@ class TransportationIndicators(CalculateLMDI):
     #     # motorcycles_all_fuel_1970_2017 = self.import_tedb_data(table_number='A_02')  # Alternative: 2017 data from Highway Statistics, Table VM-1.
     #     # lwb_vehicles_all_fuel = fha_table_vm1 # 2007-2017 FHA Highway Statistics Table VM-1
 
-    #     # bus_urban_diesel = apta_table59 #[] #Table 59 in Appendix A, Bus Fuel Consumption (downloaded Excel file)							
-    #     # from: https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/							
-	# 	# 					#Excel file:  2019-APTA-Fact-Book-Appendix-A.xlsx							
+    #     # bus_urban_diesel = apta_table59 #[] #Table 59 in Appendix A, Bus Fuel Consumption (downloaded Excel file)
+    #     # from: https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
+	# 	# 					#Excel file:  2019-APTA-Fact-Book-Appendix-A.xlsx
 
     #     # bus_urban_cng = apta_table59 #[] #same as bus_urban_diesel
     #     # bus_urban_lng = apta_table59 #[] #same as bus_urban_diesel
     #     # bus_urban_other = apta_table59 #[] #same as bus_urban_diesel
     #     # bus_urban_lpg = apta_table59 #[] #same as bus_urban_diesel
-    #     # paratransit_diesel = apta_table60 #[]						# http://www.apta.com/resources/statistics/Pages/transitstats.aspx								
-    #     # #                     https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/										
-    #     # Table 60 in Appendix A, Demand Response Fuel Consumption					
+    #     # paratransit_diesel = apta_table60 #[]						# http://www.apta.com/resources/statistics/Pages/transitstats.aspx
+    #     # #                     https://www.apta.com/research-technical-resources/transit-statistics/public-transportation-fact-book/
+    #     # Table 60 in Appendix A, Demand Response Fuel Consumption
 
     #     # general_aviation = self.import_tedb_data(table_number='A_08')
     #     # commercial_air_carrier = self.import_tedb_data(table_number='A_09')
 
 
-    #     # rail_commuter = self.import_tedb_data(table_number='A_13') 
-    #     # rail_urban = self.import_tedb_data(table_number='A_15') 
-    #     # class_I_freight_distillate_fuel_oil = self.import_tedb_data(table_number='A_13') 
+    #     # rail_commuter = self.import_tedb_data(table_number='A_13')
+    #     # rail_urban = self.import_tedb_data(table_number='A_15')
+    #     # class_I_freight_distillate_fuel_oil = self.import_tedb_data(table_number='A_13')
 
     #     # pipeline_natural_gas_million_cu_ft = self.import_tedb_data(table_number='A_12')
 
@@ -280,11 +283,10 @@ class TransportationIndicators(CalculateLMDI):
         """Calculate the fuel consumption in Btu for freight transportation
 
         Need FuelConsump, Fuel Heat Content
-        """        
+        """
         # Historical data from PNNL
-        freight_based_energy_use = pd.read_csv(
-            './EnergyIntensityIndicators/Transportation/' +
-            'freight_based_energy_use.csv'
+        freight_based_energy_use = pd.read_csv(os.path.join(EIIDIR,
+            'Transportation/freight_based_energy_use.csv')
             ).set_index('Year')
 
         # This was used by PNNL to negate oil pipeline data (no reliable data source)
@@ -311,11 +313,10 @@ class TransportationIndicators(CalculateLMDI):
 
     def freight_based_activity(self):
         """Time series for the activity measures for passenger transportation
-        """ 
+        """
         # Historical data, from PNNL
-        freight_based_activity = \
-            pd.read_csv('./EnergyIntensityIndicators/Transportation/' + 
-                        'freight_based_activity.csv').set_index('Year')
+        freight_based_activity = pd.read_csv(os.path.join(EIIDIR,
+            'Transportation/freight_based_activity.csv')).set_index('Year')
         freight_based_activity['Single-Unit Truck'] = \
             freight_based_activity['Single-Unit Truck'].multiply(3)  # Assumes 3-ton avg. load
         freight_based_activity['Oil Pipeline'] = \
@@ -361,9 +362,9 @@ class TransportationIndicators(CalculateLMDI):
     #     """
     #     Adjusted miles - use number of buses times
     #     interpolated values for annual miles per bus.
-    #     For years ending 0 and 5, use published data.				
+    #     For years ending 0 and 5, use published data.
     #     Thus, adjusted values match in years ending 0 and 5 with Column 4,
-    #     and for 1994. After 1994, values taken directly from					
+    #     and for 1994. After 1994, values taken directly from
     #     School Bus Fleet Magazine estimates, adjusted for missing values
 
     #     Args:
@@ -419,7 +420,7 @@ class TransportationIndicators(CalculateLMDI):
                                      'LWB Vehicles':
                                         {'energy': {'deliv': passenger_based_energy_use[['LWB Vehicles']]},
                                          'activity': passenger_based_activity[['LWB Vehicles']]}},
-                                'Motorcycles': 
+                                'Motorcycles':
                                     {'energy': {'deliv': passenger_based_energy_use[['Motorcycles']]},
                                      'activity': passenger_based_activity[['Motorcycles']]}
                             },
@@ -447,11 +448,11 @@ class TransportationIndicators(CalculateLMDI):
                         'Commuter Rail': {
                             'energy': {'deliv': passenger_based_energy_use[['Commuter Rail']]},
                             'activity': passenger_based_activity[['Commuter Rail']]
-                            }, 
+                            },
                         'Heavy Rail': {
                             'energy': {'deliv': passenger_based_energy_use[['Heavy Rail']]},
                             'activity': passenger_based_activity[['Heavy Rail']]
-                            }, 
+                            },
                         'Light Rail': {
                             'energy': {'deliv': passenger_based_energy_use[['Light Rail']]},
                             'activity': passenger_based_activity[['Light Rail']]
@@ -466,13 +467,13 @@ class TransportationIndicators(CalculateLMDI):
                     'Commercial Carriers': {
                         'energy': {'deliv': passenger_based_energy_use[['Carrier']]},
                         'activity': passenger_based_activity[['Commercial Carriers']]
-                        }, 
+                        },
                     'General Aviation':{
                         'energy': {'deliv': passenger_based_energy_use[['General Aviation']]},
                         'activity': passenger_based_activity[['General Aviation']]
                         }
                     }
-                }, 
+                },
             'All_Freight': {
                 'Highway': {
                     'Single-Unit Truck': {
@@ -487,11 +488,11 @@ class TransportationIndicators(CalculateLMDI):
                 'Rail': {
                     'energy': {'deliv': freight_based_energy_use[['Rail']]},
                     'activity': freight_based_activity[['Rail']]
-                    }, 
+                    },
                 'Air': {
                     'energy': {'deliv': freight_based_energy_use[['Air']]},
                     'activity': freight_based_activity[['Air']]
-                    }, 
+                    },
                 'Waterborne': {
                     'energy': {'deliv': freight_based_energy_use[['Waterborne']]},
                     'activity': freight_based_activity[['Waterborne']]
@@ -512,8 +513,8 @@ class TransportationIndicators(CalculateLMDI):
         data_dict = {'All_Transportation': data_dict}
 
         return data_dict
-       
-    def main(self, breakout, calculate_lmdi): # base_year=None, 
+
+    def main(self, breakout, calculate_lmdi): # base_year=None,
         """Decompose Energy use for the Transportation sector
         """
 
@@ -522,11 +523,11 @@ class TransportationIndicators(CalculateLMDI):
         if self.level_of_aggregation == 'personal_vehicles_aggregate':
             categories = {'Passenger Car': None, 'Light Truck': None, 'Motorcycles': None}
             results = None
-        else: 
-            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                         breakout=breakout, calculate_lmdi=calculate_lmdi, 
+        else:
+            results_dict, results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation,
+                                                         breakout=breakout, calculate_lmdi=calculate_lmdi,
                                                          raw_data=data_dict, lmdi_type='LMDI-I')
-        
+
         return results_dict
 
     # def compare_aggregates(self):
@@ -534,7 +535,7 @@ class TransportationIndicators(CalculateLMDI):
 
     #     Returns
     #     -------
-            
+
     #     pct_difference : [type]
     #         [description]
     #     """
@@ -547,11 +548,11 @@ class TransportationIndicators(CalculateLMDI):
 
     #     return pct_difference
 
-if __name__ == '__main__': 
-    indicators = TransportationIndicators(directory='./EnergyIntensityIndicators/Data', 
-                                          output_directory='./Results', 
+if __name__ == '__main__':
+    indicators = TransportationIndicators(directory='./EnergyIntensityIndicators/Data',
+                                          output_directory='./Results',
                                           level_of_aggregation='All_Transportation', lmdi_model=['multiplicative', 'additive'],
-                                          base_year=1985, end_year=2017) #  
+                                          base_year=1985, end_year=2017) #
     indicators.main(breakout=False, calculate_lmdi=True)
 
 

@@ -112,3 +112,8 @@ ENV/
 # vim
 *.swp
 tags
+
+# logs
+./logs
+
+keys.json

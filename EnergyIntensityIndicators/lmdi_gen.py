@@ -5,10 +5,14 @@ import pandas as pd
 import yaml
 import itertools
 import matplotlib.pyplot as plt
+import os
 
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
-from EnergyIntensityIndicators.utilities import lmdi_utilities
+from EnergyIntensityIndicators.utilities import (lmdi_utilities,
+                                                 loggers)
+
+logger = loggers.init_logger(__name__)
 
 
 class GeneralLMDI:
@@ -83,7 +87,7 @@ class GeneralLMDI:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
             input_dict = yaml.load(file, Loader=yaml.FullLoader)
-            print('input_dict:\n', input_dict)
+            logger.info(f'input_dict:\n {input_dict}')
             for k, v in input_dict.items():
                 setattr(self, k, v)
 
@@ -102,7 +106,7 @@ class GeneralLMDI:
         """
 
         if lhs == str(sp.simplify(expression)):
-            print('Decomposition expression simplifies properly')
+            logger.info('Decomposition expression simplifies properly')
         else:
             raise ValueError(('Decomposition expression does not simplify '
                               'to LHS variable: '
@@ -528,9 +532,9 @@ class GeneralLMDI:
                     path_list_short = p_list[:-1]
                     p_short_data = [p]
                     other_p = paths[:i] + paths[(i+1):]
-                    print('other_p:\n', other_p)
+                    logger.info(f'other_p:\n {other_p}')
                     for k, j in enumerate(other_p):
-                        print('j:', j)
+                        logger.info(f'j: {j}')
                         other_p_short = j.split('.')[:-1]
                         if other_p_short == path_list_short:
                             p_short_data.append(j)
@@ -606,7 +610,7 @@ class GeneralLMDI:
                 level_path = self.total_label
 
             for path in grouped_lists:
-                print('This is a path:', path)
+                logger.info(f'This is a path: {path}')
                 key = path.split('.')[-1]
                 data = data_dict[path]
                 if data.empty:
@@ -619,8 +623,8 @@ class GeneralLMDI:
                             lhs_df = lhs_data[path]
                             weights = \
                                 self.calculate_weights(lhs_df, key)
-                            print('lhs_df:\n', lhs_df)
-                            print('type lhs_df:\n', type(lhs_df))
+                            logger.info(f'lhs_df:\n {lhs_df}')
+                            logger.info(f'type lhs_df:\n {type(lhs_df)}')
                         except Exception:
                             weights = None
 
@@ -656,13 +660,13 @@ class GeneralLMDI:
                         lower_level_data = \
                             lower_level_data.to_frame(name=key)
 
-                print('lower_level_data:\n', lower_level_data)
+                logger.info(f'lower_level_data:\n {lower_level_data}')
                 all_level.append(lower_level_data)
             try:
                 level_data = \
                     df_utils().merge_df_list(all_level, keep_cols)
             except Exception as e:
-                print('all_level:\n', all_level)
+                logger.error(f'all_level:\n {all_level}')
                 raise e
 
             n_dict[level_path] = level_data
@@ -673,13 +677,13 @@ class GeneralLMDI:
 
         Args:
             input_data (dict): dictionary of dataframes
-                               for selected variable. 
+                               for selected variable.
                                keys are 'paths',
                                values are dataframes
             subscript_data (dict): dictionary with suscripts
                                    as keys, lists of names as
                                    values
-            term_piece (str):  e.g. A_i_k 
+            term_piece (str):  e.g. A_i_k
 
         Returns:
             term_df (pd.DataFrame): df of e.g. A_i_k data with
@@ -691,13 +695,13 @@ class GeneralLMDI:
         variable_data = input_data[base_var]
         new_paths = {k: f'total.{k}' for k in
                      variable_data.keys() if not k.startswith('total')}
-        print('new_paths:\n', new_paths)
+        logger.info(f'new_paths:\n {new_paths}')
         for old, new in new_paths.items():
             variable_data[new] = variable_data.pop(old)
-        print('variable data keys:\n', variable_data.keys())
+        logger.info(f'variable data keys:\n {variable_data.keys()}')
 
-        print('base_var:', base_var)
-        print('subs:', subs)
+        logger.info(f'base_var: {base_var}')
+        logger.info(f'subs: {subs}')
         subscripts = subscript_data[base_var]  # dictionary
         base_path = 'total'
         term_piece_dfs = []
@@ -707,7 +711,7 @@ class GeneralLMDI:
             if 'total' in variable_data.keys():
                 path = base_path
                 path_df = variable_data[path]
-                print('path_df subs 0:\n', path_df)
+                logger.info(f'path_df subs 0:\n {path_df}')
                 term_piece_dfs.append(path_df)
             elif len(variable_data) == 1:
                 path = list(variable_data.keys())[0]
@@ -725,7 +729,7 @@ class GeneralLMDI:
         if len(subs) == 1:
             path = base_path
             path_df = variable_data[path]
-            print('path_df subs 1:\n', path_df)
+            logger.info(f'path_df subs 1:\n {path_df}')
             combo_list = base_path.split('.')
             cols = list(path_df.columns)
             levels = [[c]*len(cols) for c in combo_list] + [cols]
@@ -735,20 +739,20 @@ class GeneralLMDI:
 
         elif len(subs) > 1:  # len(subs_short)
             p_names = [subscripts[p] for p in subs_short]  # list of lists of names
-            print('p_names:', p_names)
+            logger.info(f'p_names: {p_names}')
             combinations = list(itertools.product(*p_names))
-            print('combinations:', combinations)
+            logger.info(f'combinations: {combinations}')
 
             for combo in combinations:
                 combo_list = base_path.split('.') + list(combo)
-                print('combo_list:', combo_list)
+                logger.info(f'combo_list: {combo_list}')
                 path_n_1 = '.'.join(combo_list[:-1])
                 path = '.'.join(combo_list)
-                print('path:', path)
+                logger.info(f'path: {path}')
                 if path in variable_data:  # path_n_1
-                    print('path in variable data')
+                    logger.info('path in variable data')
                     path_df = variable_data[path]  # path_n_1
-                    print('path_df subs > 1:\n', path_df)
+                    logger.info(f'path_df subs > 1:\n {path_df}')
                 elif path_n_1 in variable_data:
                     path_df = variable_data[path_n_1]
 
@@ -757,17 +761,17 @@ class GeneralLMDI:
                 else:
                     cols = list(path_df.columns)
                     levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
-                    print('levels', levels)
+                    logger.info(f'levels: {levels}')
                     midx = pd.MultiIndex.from_arrays(levels)
                     path_df.columns = midx
 
-                print('path_df subs > 1 multi:\n', path_df)
-                print('path_df.columns:', path_df.columns)
+                logger.info(f'path_df subs > 1 multi:\n {path_df}')
+                logger.info(f'path_df.columns: {path_df.columns}')
                 term_piece_dfs.append(path_df)
 
         # term_df = pd.concat(term_piece_dfs, axis=0)
         term_df = df_utils().merge_df_list(term_piece_dfs)
-        print('term_df:\n', term_df)
+        logger.info(f'term_df:\n {term_df}')
 
         return term_df
 
@@ -812,7 +816,7 @@ class GeneralLMDI:
             try:
                 base_data, weights = \
                     df_utils().ensure_same_indices(base_data, weights)
- 
+
                 total_col = base_data.multiply(weights.values,
                                                axis=1).sum(axis=1)
             except ValueError:
@@ -841,11 +845,11 @@ class GeneralLMDI:
         else:
             lhs_total = df_utils().create_total_column(lhs,
                                                        total_label=name)
-            print('lhs_total:\n', lhs_total)
+            logger.info(f'lhs_total:\n {lhs_total}')
             lhs_share = df_utils().calculate_shares(lhs_total,
                                                     total_label=name)
 
-        print('lhs_share:\n', lhs_share)
+        logger.info(f'lhs_share:\n {lhs_share}')
 
         if self.model == 'additive':
             weights = self.additive_weights(lhs, lhs_share)
@@ -868,13 +872,13 @@ class GeneralLMDI:
         Returns:
             [type]: [description]
         """
-        print('numerator:\n', numerator)
+        logger.info(f'numerator:\n {numerator}')
         numerator_levels = numerator.columns.nlevels
 
-        print('denominator:\n', denominator)
+        logger.info(f'denominator:\n {denominator}')
 
         highest_shared = sorted(shared_levels, reverse=True)[0]
-        print('highest_shared:', highest_shared)
+        logger.info(f'highest_shared: {highest_shared}')
         if highest_shared == 0:
             column_tuples = [numerator.columns.get_level_values(0)[0]]
         else:
@@ -882,7 +886,7 @@ class GeneralLMDI:
                              for i in range(highest_shared + 1)]
             column_tuples = list(set(list(zip(*column_tuples))))
 
-        print('column_tuples:', column_tuples)
+        logger.info(f'column_tuples: {column_tuples}')
         grouped_n = numerator.groupby(level=shared_levels,
                                       axis=1)
         grouped_d = denominator.groupby(level=shared_levels,
@@ -890,34 +894,34 @@ class GeneralLMDI:
 
         results = []
         for u in column_tuples:
-            print('u', u)
+            logger.info(f'u: {u}')
 
             n = grouped_n.get_group(u)
-            print('n:\n', n)
+            logger.info(f'n:\n {n}')
             if highest_shared > 0:
                 to_drop = list(range(highest_shared + 1, numerator_levels))
-                print('to_drop:', to_drop)
+                logger.info(f'to_drop: {to_drop}')
                 n.columns = n.columns.droplevel(to_drop)
             if not isinstance(n.columns, pd.MultiIndex):
                 midx = [list(n.columns)]
                 n.columns = pd.MultiIndex.from_arrays(midx)
 
-            print('n post group:\n', n)
-            print('isinstance(n.columns, pd.MultiIndex):', isinstance(n.columns, pd.MultiIndex))
+            logger.info(f'n post group:\n {n}')
+            logger.info(f'isinstance(n.columns, pd.MultiIndex): {isinstance(n.columns, pd.MultiIndex)}')
 
             level_name = \
                 pd.unique(n.columns.get_level_values(
                     highest_shared-1))[0]
 
             d = grouped_d.get_group(u)
-            print('d:\n', d)
-            print('isinstance(d.columns, pd.MultiIndex):', isinstance(d.columns, pd.MultiIndex))
+            logger.info(f'n post group:\n {d}')
+            logger.info(f'isinstance(n.columns, pd.MultiIndex): {isinstance(d.columns, pd.MultiIndex)}')
             try:
                 ratio = n.divide(d, axis=1)
             except ValueError:
                 ratio = n.divide(d.values, axis=1)
 
-            print('ratio:\n', ratio)
+            logger.info(f'ratio:\n {ratio}')
 
             if isinstance(u, str):
                 path = u
@@ -929,10 +933,10 @@ class GeneralLMDI:
             elif isinstance(u, tuple):
                 path = '.'.join(list(u))
             lhs = lhs_data[path]
-            print('lhs:\n', lhs)
+            logger.info(f'lhs:\n {lhs}')
 
             w = self.calculate_weights(lhs, level_name)
-            print('w:\n', w)
+            logger.info(f'w:\n {w}')
             if w.shape[1] == ratio.shape[1]:
                 result = ratio.multiply(w, axis=1).sum(axis=1)
                 result = self.decomposition_results(result)
@@ -995,17 +999,17 @@ class GeneralLMDI:
             first_part = parts[0]
             first_df = part_data_dict[first_part]
             numerator = first_df.copy()
-            print('numerator:\n', numerator)
+            logger.info(f'numerator:\n {numerator}')
 
             for i in range(1, len(parts)):
                 denominator_part = parts[i]
                 denominator = part_data_dict[denominator_part]
-                print('denominator:\n', denominator)
+                logger.info(f'denominator:\n {denominator}')
 
                 numerator, denominator = \
                     df_utils().ensure_same_indices(numerator, denominator)
                 numerator_levels = numerator.columns.nlevels
-                print('numerator_levels', numerator_levels)
+                logger.info(f'numerator_levels: {numerator_levels}')
                 try:
                     denominator_levels = denominator.columns.nlevels
                 except ValueError:
@@ -1021,7 +1025,7 @@ class GeneralLMDI:
                         midx = pd.MultiIndex.from_arrays(levels)
                         numerator.columns = midx
 
-                print('denominator_levels', denominator_levels)
+                logger.info(f'denominator_levels: {denominator_levels}')
 
                 if numerator_levels > denominator_levels:
                     level_count = denominator_levels
@@ -1040,22 +1044,21 @@ class GeneralLMDI:
                 numerator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/numerator.csv')
                 denominator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/denominator.csv')
                 if group_:
-                    print("grouped numerator:\n", numerator.groupby(level=shared_levels,
-                           axis=1).sum())
+                    logger.info(f'grouped numerator:\n {numerator.groupby(level=shared_levels,axis=1).sum()}')
                     numerator = self.divide_multilevel(numerator, denominator,
                                                        shared_levels, lhs_data)
                 else:
                     numerator = numerator.divide(denominator.values, axis=1)
 
-                print('numerator:\n', numerator)
+                logger.info(f'numerator:\n {numerator}')
                 if t == 'E_i_j/E_i':
                     exit()
             f = numerator.copy()
             # else:
                 # f = input_data[t]
-            print('f:\n', f)
+            logger.info(f'f:\n {f}')
             f_levels = f.columns.nlevels
-            print('f_levels', f_levels)
+            logger.info(f'f_levels: {f_levels}')
 
             if f.shape[1] > 1:
                 if f.shape[1] == weights.shape[1]:
@@ -1087,7 +1090,7 @@ class GeneralLMDI:
             if isinstance(component, pd.Series):
                 component = component.to_frame(name=t)
 
-            print('component:\n', component)
+            logger.info(f'component:\n {component}')
             if component.shape[1] == 2 and name in component.columns:
                 component = component.drop(name, axis=1, errors='ignore')
             component = component.rename(
@@ -1167,7 +1170,7 @@ class GeneralLMDI:
             results (dataframe): LMDI decomposition results
         """
 
-        print('gen expr attributes:', dir(self))
+        logger.info(f'gen expr attributes: {dir(self)}')
         self.check_eval_str(self.decomposition)
 
         for t in self.terms:
@@ -1201,8 +1204,8 @@ class GeneralLMDI:
         input_data.update({lhs_base_var: lhs_data})
         all_subscripts.update({lhs_base_var: lhs_sub_names})
 
-        print('lhs_data.keys():', lhs_data.keys())
-        print('name:', name)
+        logger.info(f'lhs_data.keys(): {lhs_data.keys()}')
+        logger.info(f'name: {name}')
         lhs = lhs_data[name]
 
         weights = self.calculate_weights(lhs=lhs,
@@ -1239,7 +1242,7 @@ class GeneralLMDI:
                                      all_subscripts,
                                      weights, name,
                                      lhs_data)
-        print('results:\n', results)
+        logger.info(f'results:\n {results}')
         # exit()
 
         expression = self.decomposition_results(results)
@@ -1342,13 +1345,13 @@ class GeneralLMDI:
         """
 
         results = self.general_expr(input_data, sub_categories)
-        print('results:\n', results)
+        logger.info(f'results:\n {results}')
         # exit()
         if self.model == 'multiplicative':
             self.spaghetti_plot(data=results)
 
         formatted_results = self.prepare_for_viz(results)
-        print('formatted_results:\n', formatted_results)
+        logger.info(f'formatted_results:\n {formatted_results}')
 
         return formatted_results
 
@@ -1364,7 +1367,7 @@ class GeneralLMDI:
             pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
         emissions = \
             pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
-        print('energy cols:', energy.columns)
+        logger.info(f'energy cols: {energy.columns}')
 
         data = {'E_i_j': energy,
                 'A_i': activity,
@@ -1377,7 +1380,7 @@ class GeneralLMDI:
 if __name__ == '__main__':
     # Will need to update to a new directory in remote repo once code is finished.
     # C:\Users\cmcmilla\OneDrive - NREL\Documents - Energy Intensity Indicators\General\EnergyIntensityIndicators
-    directory = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/'  
+    directory = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/'
     gen_ = GeneralLMDI(directory)
     """fname (str): Name of YAML file containing
                          LMDI input parameters
