@@ -90,8 +90,7 @@ class GeneralLMDI:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
             input_dict = yaml.load(file, Loader=yaml.FullLoader)
-            logger.info('YAML input_dict:\n{}'.format(input_dict))
-
+            logger.info(f'input_dict:\n {input_dict}')
             for k, v in input_dict.items():
                 setattr(self, k, v)
 
@@ -550,10 +549,9 @@ class GeneralLMDI:
                     path_list_short = p_list[:-1]
                     p_short_data = [p]
                     other_p = paths[:i] + paths[(i+1):]
-                    logger.info(f'Line 547 other_p:\n{other_p}')
-                    # print()
+                    logger.info(f'other_p:\n {other_p}')
                     for k, j in enumerate(other_p):
-                        logger.info(f'j:{j}')
+                        logger.info(f'j: {j}')
                         other_p_short = j.split('.')[:-1]
                         if other_p_short == path_list_short:
                             p_short_data.append(j)
@@ -642,7 +640,8 @@ class GeneralLMDI:
                             lhs_df = lhs_data[path]
                             weights = \
                                 self.calculate_weights(lhs_df, key)
-                            logger.info('Line 640\nlhs_df of type {}:\n{}'.format(type(lhs_df), lhs_df))
+                            logger.info(f'lhs_df:\n {lhs_df}')
+                            logger.info(f'type lhs_df:\n {type(lhs_df)}')
                         except Exception:
                             weights = None
 
@@ -681,7 +680,7 @@ class GeneralLMDI:
                         lower_level_data = \
                             lower_level_data.to_frame(name=key)
 
-                logger.info('lower_level_data:\n{}'.format(lower_level_data))
+                logger.info(f'lower_level_data:\n {lower_level_data}')
                 all_level.append(lower_level_data)
             try:
                 level_data = \
