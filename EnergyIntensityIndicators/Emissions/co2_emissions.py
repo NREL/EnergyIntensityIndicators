@@ -26,7 +26,7 @@ from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.utilities import loggers
 
 
-logger = loggers.init_logger(__name__)
+logger = loggers.get_logger()
 
 class CO2EmissionsDecomposition(CalculateLMDI):
     """Class to decompose CO2 emissions by
@@ -402,8 +402,6 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             'Electricity': 'US Average',  # ef is kg/MWh
             'Intercity': 'Diesel Fuel'  # ef is in gallon
             }
-
-        logger.info(f'tedb_data: {tedb_data.info()}')
 
         tedb_data_ = tedb_data.rename(columns=mapping)
         tedb_data_ = tedb_data_.drop('School (million bbl)',

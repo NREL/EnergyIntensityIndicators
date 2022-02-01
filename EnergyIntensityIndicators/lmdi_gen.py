@@ -14,9 +14,8 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 from EnergyIntensityIndicators.utilities import (lmdi_utilities,
                                                  loggers)
 
-logger = loggers.init_logger(__name__)
+logger = loggers.get_logger()
 
-logger = logging.getLogger(__name__)
 
 class GeneralLMDI:
     """Class to decompose changes in a variable using model

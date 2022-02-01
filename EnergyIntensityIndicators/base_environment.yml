@@ -1,4 +1,4 @@
-name: base
+name: eii
 channels:
   - anaconda
   - https://repo.anaconda.com/pkgs/free
@@ -239,6 +239,6 @@ dependencies:
   - pip==18.1
   - pypdf2==1.26.0
   - pip:
-    - eiapy=0.1.5
+    - eiapy==0.1.5
 
-prefix: C:\Users\irabidea\Anaconda3\envs\EnergyIntensityIndicators
+prefix: C:\Users\bbenton\Miniconda3\envs\EnergyIntensityIndicators

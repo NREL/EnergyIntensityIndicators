@@ -117,3 +117,7 @@ tags
 ./logs
 
 keys.json
+
+*.pyc
+
+*/__pycache__/*

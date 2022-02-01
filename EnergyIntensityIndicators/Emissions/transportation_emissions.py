@@ -1,7 +1,6 @@
 
 import pandas as pd
 import numpy as np
-import logging
 import os
 import sys
 
@@ -20,9 +19,10 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 from EnergyIntensityIndicators.utilities import loggers
 
 
-logger = loggers.init_logger(__name__)
+logger = loggers.get_logger()
 
 data_dir = 'C:\\Users\\bbenton\\source\\eii_data'
+
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
@@ -360,9 +360,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 (energy_data['Category'] == category)]
 
         energy = \
-            energy_data.pivot(index='Year',
-                              columns='Fuel Type',
-                              values='value')
+                energy_data.pivot(index='Year',
+                                  columns='Fuel Type',
+                                  values='value')
+        #logger.error(f'pivot failed: {energy_data}')
 
         energy = \
             energy.apply(
@@ -406,7 +407,7 @@ if __name__ == '__main__':
     directory = DATADIR
     output_directory = RESULTSDIR
 
-    module_ = TransportationEmissions
+    module_ = TransportationEmssions
     level = 'All_Transportation'
 
     s = module_(directory, output_directory,

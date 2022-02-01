@@ -7,7 +7,7 @@ from functools import reduce
 
 from EnergyIntensityIndicators.utilities import loggers
 
-logger = loggers.init_logger(__name__)
+logger = loggers.get_logger()
 
 class GetEIAData:
     def __init__(self, sector):

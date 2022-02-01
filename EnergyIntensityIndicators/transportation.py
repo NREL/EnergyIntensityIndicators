@@ -10,7 +10,7 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators import EIIDIR
 from EnergyIntensityIndicators.utilities import loggers
 
-logger = loggers.init_logger(__name__)
+logger = loggers.get_logger()
 
 class TransportationIndicators(CalculateLMDI):
     """
