@@ -445,6 +445,7 @@ class GeneralLMDI:
                             p_str = '.'.join(p)
                             paths_dict[p_str] = base_data
 
+                    logger.info(f'sub_dict: {sub_dict}')
                     paths_dict.update(sub_dict)
                 else:
                     p_str = '.'.join(p)
