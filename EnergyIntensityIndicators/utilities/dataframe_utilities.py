@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from functools import reduce
-
 from pandas.core.algorithms import isin
 
 
@@ -109,7 +108,7 @@ class DFUtilities:
         if len(cols) > 1:
             df2[total_label] = df2.drop(
                 total_label, axis=1, errors='ignore').sum(axis=1,
-                                                            numeric_only=True)
+                                                          numeric_only=True)
         else:
             col = cols[0]
             print('col:', col)

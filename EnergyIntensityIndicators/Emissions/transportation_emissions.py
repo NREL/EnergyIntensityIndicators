@@ -1,8 +1,10 @@
 
 import pandas as pd
 import numpy as np
+import logging
 import os
 
+# from EnergyIntensityIndicators.utilities.loggers import init_logger
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
@@ -15,8 +17,10 @@ from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
 
+logger = logging.getLogger(__name__)
 
-class TransportationEmssions(CO2EmissionsDecomposition):
+
+class TransportationEmissions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         fname = 'transportation_emissions'
         config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
@@ -120,7 +124,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         # Note that this file contains manaul calculations
         historical_fuel_consump = pd.read_excel(
             './EnergyIntensityIndicators/Transportation/Data/FuelConsump.xlsx',
-            skipfooter=196, skiprows=2, usecols='A:BQ'
+            skipfooter=196, skiprows=2, usecols='A:BO'
             )
         historical_fuel_consump = historical_fuel_consump.fillna(np.nan)
         historical_fuel_consump.loc[0:2, :] = \
@@ -344,7 +348,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
         """
 
         wrapped_data = dict()
-        wrapped_data['A_i_k'] = activity_data
+        wrapped_data['A_i_j'] = activity_data
 
         energy_data = \
             energy_data[
@@ -398,14 +402,16 @@ if __name__ == '__main__':
     directory = './EnergyIntensityIndicators/Data'
     output_directory = './Results'
 
-    module_ = TransportationEmssions
+    module_ = TransportationEmissions
     level = 'All_Transportation'
 
     s = module_(directory, output_directory,
                 level_of_aggregation=level)
     s_data = s.main()
+    logger.info(f'transportation s_data:\n{s_data}')
+
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,
                           data_dict=s_data)
-    print('s_data:\n', s_data)
-    print('results:\n', results)
+
+    logger.info(f'transportation results:\n{results}')

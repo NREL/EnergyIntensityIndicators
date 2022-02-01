@@ -210,7 +210,7 @@ class TransportationIndicators(CalculateLMDI):
         fuel_heat_content = pd.read_csv(
             './EnergyIntensityIndicators/Transportation/Data/fuel_heat_content.csv'
             )
-    
+
         if gross:
             fuel_heat_content_df = fuel_heat_content[['Fuel', 'Gross Content Fmt']]
 

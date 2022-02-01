@@ -23,7 +23,7 @@ class CommercialEmissions(SEDSEmissionsData):
     """
     def __init__(self, directory, output_directory,
                  level_of_aggregation='Commercial_Total'):
-        fname = 'C:/Users/irabidea/Desktop/yamls/commercial_total.yaml'
+        fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/commercial_total.yaml'
         self.level_of_aggregation = level_of_aggregation
 
         self.sub_categories_list = {'Commercial_Total': None}
@@ -91,6 +91,6 @@ if __name__ == '__main__':
                 level_of_aggregation=level)
 
     s_data = s.main()
-    results = s.calc_lmdi(breakout=True,
-                          calculate_lmdi=True,
-                          data_dict=s_data)
+    # results = s.calc_lmdi(breakout=True,
+    #                       calculate_lmdi=True,
+    #                       data_dict=s_data)

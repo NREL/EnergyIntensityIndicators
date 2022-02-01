@@ -27,7 +27,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         self.output_directory = output_directory
         self.level_of_aggregation = level_of_aggregation
         fname = 'electric_power_sector_emissions'
-        config_path = f'C:/Users/irabidea/Desktop/yamls/{fname}.yaml'
+        config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
         fossil_fuels = {'Coal': None,
                         'Petroleum': None,
                         'Natural Gas': None,

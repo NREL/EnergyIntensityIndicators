@@ -13,7 +13,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 class NonCombustion:
     """Class to handle and explore
     zipped Emissions data from the EPA
-    
+
     TODO automate to use latest data available. Is file naming consistent?
 
     """
@@ -384,19 +384,20 @@ class NonCombustion:
                 {total_name: new_name}
             table = pd.read_csv(f'{f_path}{table_name}.csv',
                                 encoding='latin1', header=2,
-                                index_col=1, skipfooter=4).dropna(
+                                index_col=1, skipfooter=4,
+                                engine='python').dropna(
                                     axis=1, how='all')
             table = table[[total_name]].rename(columns=rename_)
             table[new_name] = \
                 table[new_name].apply(lambda s:
                     str(s).replace(' b', '').replace(',', ''))
             table[new_name] = table[new_name].astype(float)
-            print('table:\n', table)
-            print('table cols:\n', table.columns)
+            # print('table:\n', table)
+            # print('table cols:\n', table.columns)
         elif table_name == 'Table A-236':
             table = pd.read_csv(f'{f_path}{table_name}.csv',
                                 encoding='latin1', skiprows=1,
-                                skipfooter=4)
+                                skipfooter=4, engine='python')
             table = table.set_index('Unnamed: 0')
             table = table.transpose()
             table.index.name = 'Year'
@@ -412,7 +413,7 @@ class NonCombustion:
 
             if table[table.columns[0]].str.contains('Year').any():
                 year_row = 0
-                print('year_row:', year_row)
+                # print('year_row:', year_row)
                 new_header = table.iloc[year_row]
                 table = table[year_row + 1:]
                 table.columns = new_header
@@ -946,7 +947,7 @@ class NonCombustion:
         for zf in [self.annex, self.chapter_0, self.archive]:
             self.unpack_noncombustion_data(zf)
 
-        self.noncombustion_emissions()
+        self.noncombustion_emissions(dir=self.base_dir)
 
         self.walk_folders()
 

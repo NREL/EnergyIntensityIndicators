@@ -27,7 +27,7 @@ class ResidentialEmissions(SEDSEmissionsData):
             fname = 'residential_all_emissions'
         else:
             fname = 'residential_regional'
-        config_path = f'C:/Users/irabidea/Desktop/yamls/{fname}.yaml'
+        config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
 
         housing_types = \
             {'Single-Family': None,

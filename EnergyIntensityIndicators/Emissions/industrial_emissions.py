@@ -28,11 +28,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
     """
     def __init__(self, directory, output_directory, level_of_aggregation):
         if level_of_aggregation == 'Manufacturing':
-            fname = 'C:/Users/irabidea/Desktop/yamls/combustion_noncombustion_test.yaml'
+            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/combustion_noncombustion_test.yaml'
         elif level_of_aggregation == 'NonManufacturing':
-            fname = 'C:/Users/irabidea/Desktop/yamls/combustion_noncombustion_test.yaml'
+            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/combustion_noncombustion_test.yaml'
         elif level_of_aggregation == 'Industry':
-            fname = 'C:/Users/irabidea/Desktop/yamls/total_industrial_emissions.yaml'
+            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/total_industrial_emissions.yaml'
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
@@ -309,14 +309,14 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
     def collect_manufacturing_data(self, energy_data, noncombustion_data,
                                    manufacturing):
-        """CCollect noncombustion data and
+        """Collect noncombustion data and
         data from energy decomposition,
         calculate emissions and return ammended
         dictionary for the Manufacturing Sector
 
         Args:
-            energy_data (pd.DataFrame): Energy data for the manufacturing sector
-                                        by fuel type and NAICS
+            energy_data (pd.DataFrame): Energy data for the manufacturing 
+                                        sector by fuel type and NAICS
             noncombustion_data (dict): Nested dictionary containing noncombustion
                                        activity and emissions data
             manufacturing (dict): Manufacturing data from energy decomposition
@@ -602,7 +602,9 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         Returns:
             data (dict): data for emissions decomposition
         """
-        noncombustion_data = NonCombustion().main()
+        noncombustion_data = NonCombustion(
+            base_dir='c:/users/cmcmilla/Desktop/emissions_data/'
+            ).main()
 
         combustion = \
             IndustrialIndicators(directory='./EnergyIntensityIndicators/Data',
