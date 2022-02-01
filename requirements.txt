@@ -1,0 +1,12 @@
+pandas
+numpy
+pytest>=5.2
+requests
+matplotlib
+bs4
+scikit-learn
+seaborn
+plotly
+sympy
+pyyaml
+statsmodels
