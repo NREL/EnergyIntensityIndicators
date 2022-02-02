@@ -20,12 +20,13 @@ from EnergyIntensityIndicators.additive_lmdi import AdditiveLMDI
 from EnergyIntensityIndicators.utilities.testing_utilties \
     import TestingUtilities
 from EnergyIntensityIndicators.utilities import lmdi_utilities
+from EnergyIntensityIndicators import REPODIR
 
 
 class TestLMDI:
     sector_modules = {'residential': ResidentialIndicators,
                       'commercial': CommercialIndicators,
-                      'transportation': TransportationIndicators, 
+                      'transportation': TransportationIndicators,
                       'industrial': IndustrialIndicators,
                       'electricity': ElectricityIndicators}
 
@@ -59,7 +60,7 @@ class TestLMDI:
         data_melt['Year'] = data_melt['Year'].astype('int')
 
         return data_melt
-        
+
     def get_pnnl_input(self, sector, dtype):
         """Method to read in all PNNL csvs for dtype
 
@@ -69,13 +70,13 @@ class TestLMDI:
 
         Returns:
             df : all PNNL data for dtype
-        """        
-        files = os.listdir(f'./tests/pnnl_csvs/{sector}/{dtype}/')
+        """
+        files = os.listdir(os.path.join(REPODIR, f'tests/pnnl_csvs/{sector}/{dtype}/'))
         files = [f for f in files if f.endswith('.csv')]
         dfs = []
         for f in files:
             try:
-                df = pd.read_csv(f'./tests/pnnl_csvs/{sector}/{dtype}/{f}')
+                df = pd.read_csv(os.path.join(REPODIR, f'tests/pnnl_csvs/{sector}/{dtype}/{f}'))
                 df = self.pnnl_melt(df)
                 df = df.dropna(axis=1, how='all')
                 dfs.append(df)
@@ -148,13 +149,13 @@ class TestLMDI:
         # eii = pd.concat(new_data, axis=0, ignore_index=True)
 
         pnnl_data_raw = self.get_pnnl_data(sector)['input_data']
-        
+
         level_of_aggregation = level_of_aggregation_.split(".")
         level1_name = level_of_aggregation[-1]
         print('level1_name', level1_name)
         print("pnnl_data_raw['Nest level']:", pnnl_data_raw['Nest level'].unique())
-        pnnl_data_raw = pnnl_data_raw.replace({'Pipelines': 'Pipeline', 
-                                               'Freight Total': 'All_Freight', 
+        pnnl_data_raw = pnnl_data_raw.replace({'Pipelines': 'Pipeline',
+                                               'Freight Total': 'All_Freight',
                                                'Deliv': 'deliv'})
         pnnl_data_ = dict()
         for energy_type in pnnl_data_raw['Energy Type'].unique():
@@ -187,9 +188,9 @@ class TestLMDI:
                 continue
 
             pnnl_data_[energy_type.lower()] = energy_type_dict
-        
+
         return eii, pnnl_data_
-    
+
     @pytest.mark.parametrize('sector', ['transportation']) # , 'residential', 'commercial', 'industrial', 'electricity'
     def test_build_nest(self, sector):
         """testing the results of LMDI.build_nest against a csv
@@ -229,7 +230,7 @@ class TestLMDI:
             log_ratios = {'activity': log_ratio_activity,
                           'structure': log_ratio_structure,
                           'intensity': log_ratio_intensity}
-        """        
+        """
         eii = self.eii_output_factory(sector)
         pnnl_output = self.get_pnnl_input(sector, 'intermediate')
 
@@ -251,7 +252,7 @@ class TestLMDI:
                 print(f'Error: activity data of type {type(activity_data)} \
                         with columns: {activity_data.columns}')
                 continue
-            
+
             activity_dict = dict()
             if isinstance(activity_data, pd.DataFrame):
                 activity_dict[total_label] = activity_data
@@ -322,7 +323,7 @@ class TestLMDI:
                                            index=[1970, 1971, 1972, 1973, 1974],
                                            columns=['All_Passenger',
                                                     'All_Freight'])
-        
+
         weights = [[0.3911, 0.6089],
                    [0.7602, 0.2398],
                    [0.7610, 0.2390],
@@ -403,7 +404,7 @@ class TestLMDI:
                    [0.9682, 0.9980, 0.9859],
                    [0.9975, 1.0034, 0.9972],
                    [0.9759, 0.9972, 1.0117],
-                   [0.9705, 1.0386, 1.0037], 
+                   [0.9705, 1.0386, 1.0037],
                    [0.9957, 1.0329, 1.0054],
                    [0.9982, 1.0145, 1.0052],
                    [1.0076, 1.0165, 1.0066],
@@ -526,7 +527,7 @@ class TestLMDI:
 
         test_asi = pd.DataFrame(test_asi,
                                 index=[1983, 1984, 1985,
-                                       1986, 1987], 
+                                       1986, 1987],
                                 columns=['Intensity Index',
                                          'Activity Index',
                                          'Structure Index (lower level)'])
@@ -546,7 +547,7 @@ class TestLMDI:
                              [1.0000],
                              [1.0310],
                              [1.0553]]
-    
+
         comparison_output = pd.DataFrame(comparison_output,
                                          index=[1983, 1984, 1985,
                                                 1986, 1987],
@@ -556,12 +557,12 @@ class TestLMDI:
     #                                acceptable_pct_diff=0.05):
     #     eii = self.eii_output_factory(sector)
     #     final_fmt_results =
-    #     categories = 
+    #     categories =
     #     lower_level_results = eii.calc_lower_level(categories,
     #                                                final_fmt_results,
     #                                                e_type='deliv')
 
-    #     comparison_df = 
+    #     comparison_df =
     #     acceptable_bool = self.utils.pct_diff(comparison_df,
     #                                           lower_level_results)
 
@@ -635,11 +636,11 @@ class TestLMDI:
                                               log_mean_weights_normalized)
         assert acceptable_bool
 
-    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity',
     def test_multiplicative_lmdi_log_mean_divisia_weights(self, sector):
         """Multiplicative test should use original PNNL data (compiled for #13)
         Test should be parametrized to loop through all sectors.
-        """                
+        """
 
         pnnl_data = self.get_pnnl_input(sector, 'intermediate')
         eii_, pnnl_data_ = self.input_data(sector, level_of_aggregation_='All_Freight.Pipeline')
@@ -680,14 +681,14 @@ class TestLMDI:
                 print('pnnl_weights_:\n', pnnl_weights_)
 
                 acceptable_bool = self.utils.pct_diff(pnnl_weights_, eii_output)
-   
+
                 bools_list.append(acceptable_bool)
-                print('bools_list:', bools_list)    
+                print('bools_list:', bools_list)
 
         assert all(bools_list)  # assert all(all(bools_list))
 
 
-    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity', 
+    # @pytest.mark.parametrize('sector', ['transportation']) # 'residential', 'commercial', 'industrial', 'electricity',
     # def test_additive_lmdi_log_mean_divisia_weights(self, sector):
     #     """Additive test should use "fake" data whose results are know
     #     Test should be parametrized to loop through all sectors.
@@ -710,21 +711,21 @@ class TestLMDI:
     #             energy_shares = energy_shares.pivot(index='Year', columns='Category', values='Value')
     #             energy_shares = energy_shares.dropna(axis=1, how='all').head(5)
     #             total_label = level_
-    #             lmdi_type = 'LMDI-I'      
+    #             lmdi_type = 'LMDI-I'
     #             model_ = AdditiveLMDI(energy_data, energy_shares, 1985, 2017, total_label, lmdi_type)
     #             eii_output = model_.log_mean_divisia_weights()
 
 
 
     #             eii = self.eii_output_factory(sector)
-    #             pnnl_data = [[1980.1, 528.1], 
+    #             pnnl_data = [[1980.1, 528.1],
     #                          [2072.5, 530.2],
     #                          [2290.9, 554.4]]
-    #             energy_data = pd.DataFrame(pnnl_data, index=[1970, 1971, 1972], columns=['Highway', 'Rail']) 
+    #             energy_data = pd.DataFrame(pnnl_data, index=[1970, 1971, 1972], columns=['Highway', 'Rail'])
 
     #             log_mean_weights = pd.DataFrame(index=energy_data.index)
     #             print("log_mean_divisia_weights energy shares:", energy_data)
-    #             for col in energy_data.columns: 
+    #             for col in energy_data.columns:
     #                 print(f'log_mean_divisia_weights col: {col}')
     #                 energy_data[f"{col}_shift"] = energy_data[col].shift(periods=1, axis='index', fill_value=0)
     #                 print('energy shares with shift:\n', energy_data)
@@ -759,7 +760,7 @@ class TestLMDI:
 
         - Test both additive and multiplicative forms
         - Test all sectors
-        """   
+        """
 
         eii = self.eii_output_factory(sector)
 
@@ -806,15 +807,15 @@ class TestLMDI:
                                                                                                               #.dropna(
                                                                                                                 #  axis=1, how='all')
                 log_ratio_intensity = \
-                    pnnl_data[pnnl_data['Data Type'] == 'Log Changes Intensity'][['Year', 
+                    pnnl_data[pnnl_data['Data Type'] == 'Log Changes Intensity'][['Year',
                                                                                   'Category',
                                                                                   'Value']].pivot(index='Year',
                                                                                                   columns='Category',
                                                                                                   values='Value').dropna(
                                                                                                       axis=1, how='all')
 
-                log_ratios = {'activity': log_ratio_activity, 
-                              'structure': log_ratio_structure, 
+                log_ratios = {'activity': log_ratio_activity,
+                              'structure': log_ratio_structure,
                               'intensity': log_ratio_intensity}
 
                 print('log ratios:\n', log_ratios)
@@ -824,7 +825,7 @@ class TestLMDI:
 
                 print("log_mean_divisia_weights_normalized type: \n", type(log_mean_divisia_weights_normalized))
 
-                eii_output = eii.calc_ASI(model, log_mean_divisia_weights_normalized, 
+                eii_output = eii.calc_ASI(model, log_mean_divisia_weights_normalized,
                                           log_ratios, total_label=None)
 
                 print('eii_output calc asi:\n', eii_output)
@@ -836,7 +837,7 @@ class TestLMDI:
                 print('pnnl_output calc asi:\n', pnnl_output_)
                 acceptable_bool = self.utils.pct_diff(pnnl_output_, eii_output)
                 bools_list.append(acceptable_bool)
-        
+
         assert all(bools_list)  #         assert all(all(bools_list))
 
 
@@ -845,7 +846,7 @@ class TestLMDI:
 
         - Test both additive and multiplicative forms
         - Test all sectors
-        """   
+        """
 
         pnnl_eii_match = {'Passenger Highway': 'Highway',
                           'Freight Total': 'All_Freight',
@@ -865,7 +866,7 @@ class TestLMDI:
         for p, e in pnnl_eii_match.items():
             pnnl_output = pnnl_output.replace(p, e)
 
-        output_directory = './tests/Results/'
+        output_directory = os.path.join(REPODIR, 'tests/Results/')
         print('os.getcwd:', os.getcwd())
         eii_results_data = \
             pd.read_csv(
@@ -949,7 +950,7 @@ class TestLMDI:
                 acceptable_bool_structure = self.utils.pct_diff(eii_structure, eii_structure)
                 print(f"{level_} structure is {acceptable_bool_structure}")
                 bools_list.append(acceptable_bool_structure)
-        
+
         assert all(bools_list)
 
 

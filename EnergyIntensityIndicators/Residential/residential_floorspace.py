@@ -37,7 +37,7 @@ class ResidentialFloorspace:
 
 
         print('hh_path:', self._hh_path)
-        print("os.path.abspath:", os.path.abspath('../../Indicators_Spreadsheets_2020/household.csv'))
+        print("os.path.abspath:", os.path.abspath(os.path.join(REPODIR, 'Indicators_Spreadsheets_2020/household.csv')))
         if os.path.exists(os.path.join(self._hh_path, 'Indicators_Spreadsheets_2020/household.csv')):
             print('AHS data already ready')
             pass

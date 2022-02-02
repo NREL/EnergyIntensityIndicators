@@ -1,5 +1,7 @@
 
 
+from sqlite3 import DataError
+from click import FileError
 import yaml
 import itertools
 import logging
@@ -44,15 +46,16 @@ class GeneralLMDI:
     the log mean divisia weights in the final decomposition)
     """
 
-    def __init__(self, config_path):
+    def __init__(self, config_path=None):
         """
         Args:
-            directory (str): Path to folder containing YAML
-                             files with LMDI input parameters
+            config_path : (str)
+            Path to file with LMDI input parameters
         """
 
-        self.config_path = config_path
-        self.read_yaml()
+        if config_path is not None:
+            self.config_path = config_path
+            self.read_yaml()
 
     def create_yaml(self):
         """Create YAML containing input data
@@ -85,6 +88,11 @@ class GeneralLMDI:
         Parameters:
             fname (str): YAML file containing input data
         """
+
+        _, file_ext = os.path.splitext(self.config_path)
+        if file_ext != '.yaml':
+            logger.error(f'Expecting yaml file, found: {self.config_path}')
+            raise FileNotFoundError(self.config_path)
 
         logger.info(f'Opening file: {self.config_path}')
         with open(self.config_path, 'r') as file:
@@ -197,6 +205,7 @@ class GeneralLMDI:
             index (pd.DataFrame): Component data indexed to base_year_
         """
 
+        logger.info(f'Computing index: component={component}, base_year_={base_year_}')
         component.index = component.index.astype(int)
         if isinstance(component, pd.DataFrame):
             component_col = component.columns[0]

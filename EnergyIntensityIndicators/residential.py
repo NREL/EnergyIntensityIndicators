@@ -18,6 +18,7 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.Residential.residential_floorspace import ResidentialFloorspace
 from EnergyIntensityIndicators.weather_factors import WeatherFactors
+from EnergyIntensityIndicators import DATADIR, REPODIR
 
 
 class ResidentialIndicators(CalculateLMDI):
@@ -73,7 +74,7 @@ class ResidentialIndicators(CalculateLMDI):
         # self.AER11_table2_1b_update = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250'
         # self.AnnualData_MER_22_Dec2019 = GetEIAData.eia_api(id_='711250') # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711250' ?
         # self.RECS_intensity_data =   # '711250' for Residential Sector Energy Consumption
-    
+
     def get_seds(self):
         """Collect SEDS data
 
@@ -156,12 +157,12 @@ class ResidentialIndicators(CalculateLMDI):
                         columns={'occupied_units_mf': 'Multi-Family',
                                  'occupied_units_mh': 'Manufactured-Homes',
                                  'occupied_units_sf': 'Single-Family'})
-                
+
                 region_activity[variable] = df
             all_activity[region] = region_activity
 
         return all_activity
-    
+
     def collect_weather(self, energy_dict, nominal_energy_intensity):
         """Collect weather data for the Residential Sector
 
@@ -216,7 +217,7 @@ class ResidentialIndicators(CalculateLMDI):
                         energy_input_data=e_df,
                         activity_data_=total_floorspace)
                 nominal_energy_intensity_by_e[e] = \
-                    nominal_energy_intensity 
+                    nominal_energy_intensity
 
             region_data = {'energy': energy_data, 'activity': region_activity}
 
@@ -269,8 +270,8 @@ class ResidentialIndicators(CalculateLMDI):
 
 if __name__ == '__main__':
     indicators = ResidentialIndicators(
-        directory='./EnergyIntensityIndicators/Data',
-        output_directory='../Results',
+        directory=DATADIR,
+        output_directory=os.path.join(REPODIR, 'Results'),
         level_of_aggregation='National',
         lmdi_model=['multiplicative', 'additive'],
         end_year=2017)

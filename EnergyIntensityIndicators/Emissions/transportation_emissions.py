@@ -24,8 +24,7 @@ logger = loggers.get_logger()
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
-        fname = 'transportation_emissions'
-        config_path = os.path.join(DATADIR, f'yamls/{fname}.yaml')
+        config_path = os.path.join(DATADIR, 'yamls/transportation_emissions.yaml')
 
         self.sub_categories_list = \
             {'All_Transportation':

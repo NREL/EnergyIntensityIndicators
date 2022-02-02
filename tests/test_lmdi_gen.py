@@ -11,8 +11,7 @@ from EnergyIntensityIndicators import DATADIR
 
 
 class TestLMDIGen:
-    directory = os.path.join(DATADIR, 'yamls/')
-    gen = GeneralLMDI(directory)
+    gen = GeneralLMDI()
     utils = TestingUtilities()
 
     @staticmethod
@@ -64,7 +63,8 @@ class TestLMDIGen:
         if model == 'multiplicative':
             weights = \
                 pd.read_csv(
-                    f'{self.directory}/residential_source_weights_test.csv')
+                    os.path.join(DATADIR,
+                                 'yamls/residential_source_weights_test.csv'))
             weights = weights.set_index('Year')
 
         # elif model == 'additive':
@@ -97,7 +97,8 @@ class TestLMDIGen:
 
     def test_compute_index1(self):
         """Data is from Total_Transportation 1983-1987"""
-        eii = GeneralLMDI(directory=os.path.join(DATADIR, 'yamls/'))
+        eii = GeneralLMDI(
+            os.path.join(DATADIR, 'yamls/transportation_emissions.yaml'))
 
         results = [[0.9705, 1.0386, 1.0037],
                    [0.9957, 1.0329, 1.0054],
@@ -133,7 +134,8 @@ class TestLMDIGen:
 
     def test_compute_index2(self):
         """Data is from Total_Transportation 1970-1975"""
-        eii = GeneralLMDI(directory=os.path.join(DATADIR, 'yamls/'))
+        eii = GeneralLMDI(
+            os.path.join(DATADIR, 'yamls/transportation_emissions.yaml'))
 
         results = [[np.nan, 1.1301, np.nan],
                    [0.9904, 1.0460, 1.0107],
