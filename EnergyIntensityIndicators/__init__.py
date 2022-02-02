@@ -20,12 +20,15 @@ os.environ['BEA_API_Key'] = keys['BEA_API_Key']
 if not os.path.exists(LOGDIR):
     os.makedirs(LOGDIR)
 
-__author__  = 'Isabelle Rabideau'
+__author__ = 'Isabelle Rabideau'
 __email__ = 'isabelle.rabideau@nrel.gov'
 
 from EnergyIntensityIndicators.Residential import residential_floorspace
 from EnergyIntensityIndicators.Industry import (manufacturing,
-                                                nonmanufacuturing, asm_price_fit)
-from EnergyIntensityIndicators import (industry, residential, commercial, transportation,
-                                       electricity, additive_lmdi, multiplicative_lmdi,
+                                                nonmanufacuturing,
+                                                asm_price_fit)
+from EnergyIntensityIndicators import (industry, residential,
+                                       commercial, transportation,
+                                       electricity, additive_lmdi,
+                                       multiplicative_lmdi,
                                        LMDI)

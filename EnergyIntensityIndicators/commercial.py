@@ -40,10 +40,12 @@ Methodology: Perpetual inventory model, where estimates of new additions
 class CommercialIndicators(CalculateLMDI):
     """
     Data Sources:
-    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available
-    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020
-    SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
-    2014 to 2018".
+    - New construction is based on data from Dodge Data and Analytics.
+    Dodge data on new floor space additions is available from the published
+    versions of the Statistical Abstract of the United States (SAUS).
+    The Most recent data is from the 2020 SAUS, Table 995 "Construction
+    Contracts Started- Value of the Construction and Floor Space of
+    Buildings by Class of Construction: 2014 to 2018".
     """
 
     def __init__(self, directory, output_directory, level_of_aggregation,
@@ -121,7 +123,9 @@ class CommercialIndicators(CalculateLMDI):
                          'published_consumption_trillion_btu'})
         # 1970-2018
         national_calibration = self.collect_input_data('national_calibration')
-        published_consumption_trillion_btu.loc['1970':, ['published_consumption_trillion_btu']] = national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_elec']].values  # Column G (electricity final est) # for years 1970-2018
+        published_consumption_trillion_btu.loc['1970':,
+                                               ['published_consumption_trillion_btu']] = \
+            national_calibration.loc['1970':, ['Final Est. (Trillion Btu)_elec']].values  # Column G (electricity final est) # for years 1970-2018
         # 1977-1989
 
         years = list(range(1977, max(published_consumption_trillion_btu.index.astype(int)) + 1))
