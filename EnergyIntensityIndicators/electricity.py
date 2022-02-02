@@ -5,6 +5,7 @@ from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
+from EnergyIntensityIndicators import EIIDIR
 
 
 class ElectricityIndicators(CalculateLMDI):
@@ -102,7 +103,7 @@ class ElectricityIndicators(CalculateLMDI):
                             {'Wood': None,
                                 'Waste': None},
                             'Other': None}}}}
-    
+
         self.elec_power_eia = GetEIAData(sector='electricity')
         self.energy_types = ['primary']
         # Consumption of combustible fuels for electricity generation:
@@ -162,7 +163,7 @@ class ElectricityIndicators(CalculateLMDI):
         """The indicators for electricity are derived entirely from data
         collected by EIA. Since 2012, the indicators
         are based entirely upon te EIA-923 survey
-        
+
         https://www.eia.gov/electricity/data/eia923/archive/xls/f906nonutil1989.zip
 
         """
@@ -366,7 +367,7 @@ class ElectricityIndicators(CalculateLMDI):
         fuels_list = [consumption_combustible_fuels_electricity_generation_distillate_fuel_oil, consumption_combustible_fuels_electricity_generation_residual_fuel_oil,
                     consumption_combustible_fuels_electricity_generation_other_liquids, consumption_combustible_fuels_electricity_generation_petroleum_coke]
         elec_only_plants_petroleum = df_utils().merge_df_list(fuels_list)
-        
+
         consumption_combustible_fuels_useful_thermal_output_distillate_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.DKEIPUS.A', id_type='series')# Table86b11 column D, F, G, I
         consumption_combustible_fuels_useful_thermal_output_residual_fuel_oil = self.elec_power_eia.eia_api(id_='TOTAL.RFEIPUS.A', id_type='series')
         consumption_combustible_fuels_useful_thermal_output_other_liquids = self.elec_power_eia.eia_api(id_='TOTAL.OLEIPUS.A', id_type='series')
@@ -375,7 +376,7 @@ class ElectricityIndicators(CalculateLMDI):
         chp_elec = consumption_combustible_fuels_electricity_generation_total_petroleum
         # eia-923 pivot table
         assumed_conversion_factors = [5.825, 6.287, 5.67, 30120]
-        chp_plants_petroleum, elec_only_petroleum = self.reconcile(total=energy_consumption_petroleum, elec_gen=consumption_for_electricity_generation_petroleum, 
+        chp_plants_petroleum, elec_only_petroleum = self.reconcile(total=energy_consumption_petroleum, elec_gen=consumption_for_electricity_generation_petroleum,
                                                             elec_only_plants=elec_only_plants_petroleum, chp_elec=chp_elec, assumed_conv_factor=assumed_conversion_factors,
                                                             chp_heat=consumption_combustible_fuels_useful_thermal_output_total_petroleum)
         return chp_plants_petroleum, elec_only_petroleum
@@ -394,7 +395,7 @@ class ElectricityIndicators(CalculateLMDI):
         #                 consumption_for_electricity_generation_coal
 
         elec_gen = consumption_for_electricity_generation_oth_gas
-        elec_only_plants = consumption_combustible_fuels_electricity_generation_oth_gas 
+        elec_only_plants = consumption_combustible_fuels_electricity_generation_oth_gas
         chp_elec = consumption_combustible_fuels_electricity_generation_oth_gas # ** different part of the series?'
         chp_heat = consumption_combustible_fuels_useful_thermal_output_othgas
         total_other_gas = elec_only_plants.add(chp_elec).add(chp_heat)
@@ -463,10 +464,10 @@ class ElectricityIndicators(CalculateLMDI):
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column F
         othgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.OJI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column H
-        
-        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity}, 
-                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity}, 
-                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity}, 
+
+        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity},
+                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity},
+                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity},
                      'Other Gasses': {'energy': {'primary': othgas_energy}, 'activity': othgas_activity}}
         return data_dict
 
@@ -478,17 +479,17 @@ class ElectricityIndicators(CalculateLMDI):
         other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
         new_index = other_energy.index
 
-        hydroelectric_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,N,AG', 
+        hydroelectric_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,N,AG',
                                              skipfooter=16, skiprows=9, header=None, names=['Year', 'hydroelectric', 'sector'])
-        hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001) # Table 8.4C11 column N               
+        hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001) # Table 8.4C11 column N
         hydroelectric_energy.index = hydroelectric_energy.index.astype(int)
         hydroelectric_energy = hydroelectric_energy.reindex(new_index)
         hydroelectric_energy = hydroelectric_energy.interpolate(method='linear', axis=0)
 
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVI5PUS.A', id_type='series').multiply(0.001) # Table 8.2d11 Column P
-        other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,N,AH', skipfooter=16, 
+        other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,N,AH', skipfooter=16,
                                        skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.2d11 Column AD
-        other_activity = other_activity[other_activity['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001)                          
+        other_activity = other_activity[other_activity['sector'] == 'industrial'].drop('sector', axis=1).multiply(0.001)
         other_activity.index = other_activity.index.astype(int)
         other_activity = other_activity.reindex(new_index)
         other_activity = other_activity.interpolate(method='linear', axis=0)
@@ -499,34 +500,34 @@ class ElectricityIndicators(CalculateLMDI):
 
     def comm_sector_chp_renew(self):
         """Collect Comm_Sector_CHP>Renewable data
-        As is, these are the same sources as ind sector, but should be different part of columns? 
-        """  
+        As is, these are the same sources as ind sector, but should be different part of columns?
+        """
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column T
         new_index = waste_activity.index
-    
-        wood_energy =  pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,P,AG', 
+
+        wood_energy =  pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,P,AG',
                                       skipfooter=16, skiprows=9, header=None, names=['Year', 'Wood', 'sector']) # Table 8.4C column P # TBtu
-        wood_energy = wood_energy[wood_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        wood_energy = wood_energy[wood_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)
         wood_energy.index = wood_energy.index.astype(int)
         wood_energy = wood_energy.reindex(new_index)
         wood_energy = wood_energy.interpolate(method='linear', axis=0)
 
-        waste_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,R,AG', 
+        waste_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,R,AG',
                                       skipfooter=16, skiprows=9, header=None, names=['Year', 'Waste', 'sector']) # Table 8.4C column R # TBtu
-        waste_energy = waste_energy[waste_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        waste_energy = waste_energy[waste_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)
         waste_energy.index = waste_energy.index.astype(int)
         waste_energy = waste_energy.reindex(new_index)
         waste_energy = waste_energy.interpolate(method='linear', axis=0)
-    
-        wood_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,R,AH', skipfooter=16, 
+
+        wood_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,R,AH', skipfooter=16,
                                        skiprows=9, header=None, names=['Year', 'Wood', 'sector'])
         print('wood_activity:\n', wood_activity)
-        wood_activity = wood_activity[wood_activity['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        wood_activity = wood_activity[wood_activity['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)
         wood_activity.index = wood_activity.index.astype(int)
         wood_activity = wood_activity.reindex(new_index)
         wood_activity = wood_activity.interpolate(method='linear', axis=0)
-    
-        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
+
+        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity},
                      'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity}}
         return data_dict
 
@@ -545,25 +546,25 @@ class ElectricityIndicators(CalculateLMDI):
         natgas_energy = self.format_eii_table(natgas_energy, factor=0.001, name='Natural Gas')
 
         othgas_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,H,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other Gas', 'sector'])# Table 8.4c column H # TBtu
-        othgas_energy = othgas_energy[othgas_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001) 
+        othgas_energy = othgas_energy[othgas_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         othgas_energy.index = othgas_energy.index.astype(int)
         othgas_energy = othgas_energy.reindex(new_index)
         othgas_energy = othgas_energy.interpolate(method='linear', axis=0)
-    
+
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGC5PUS.A', id_type='series').multiply(0.001) # Table 8.2d column F
-        
+
         othgas_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,H,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other Gas', 'sector']) # Table 8.2d column H
-        othgas_activity = othgas_activity[othgas_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)             
+        othgas_activity = othgas_activity[othgas_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         othgas_activity.index = othgas_activity.index.astype(int)
         othgas_activity = othgas_activity.reindex(new_index)
         othgas_activity = othgas_activity.interpolate(method='linear', axis=0)
 
         # Industrial and Commercial have same spreadsheet sources but different parts of the columns
-        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity}, 
-                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity}, 
-                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity}, 
+        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity},
+                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity},
+                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity},
                      'Other Gasses': {'energy': {'primary': othgas_energy}, 'activity': othgas_activity}}
         return data_dict
 
@@ -571,32 +572,32 @@ class ElectricityIndicators(CalculateLMDI):
         """Collect Comm_Sector>Total data
         Note: Other includes batteries, chemicals, hydrogen, pitch, purchased steam, sulfur, and miscellaneous technologies
 
-        """    
+        """
         hydroelectric_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,N,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Hydroelectric', 'sector']) # Table 8.4C11 column N
-        hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)                          
+        hydroelectric_energy = hydroelectric_energy[hydroelectric_energy['sector'] == 'commercial'].drop('sector', axis=1).multiply(0.001)
         hydroelectric_energy.index = hydroelectric_energy.index.astype(int)
         hydroelectric_energy = hydroelectric_energy.reindex(new_index)
         hydroelectric_energy = hydroelectric_energy.interpolate(method='linear', axis=0)
 
         other_energy = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.4c11.xlsx', index_col=0, usecols='A,AB,AG', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.4C11 column AB
-        other_energy = other_energy[other_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
+        other_energy = other_energy[other_energy['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         other_energy.index = other_energy.index.astype(int)
         other_energy = other_energy.reindex(new_index)
         other_energy = other_energy.interpolate(method='linear', axis=0)
 
         hydroelectric_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,P,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Hydroelectric', 'sector']) # Table 8.2d11 Column P
-        hydroelectric_activity = hydroelectric_activity[hydroelectric_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
+        hydroelectric_activity = hydroelectric_activity[hydroelectric_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         hydroelectric_activity.index = hydroelectric_activity.index.astype(int)
         hydroelectric_activity = hydroelectric_activity.reindex(new_index)
         hydroelectric_activity = hydroelectric_activity.interpolate(method='linear', axis=0)
-    
+
         other_activity = pd.read_excel('./EnergyIntensityIndicators/Electricity/Data/8.2d11.xlsx', index_col=0, usecols='A,AD,AH', skipfooter=16, skiprows=9, header=None, names=['Year', 'Other', 'sector']) # Table 8.2d11 Column AD
-        other_activity = other_activity[other_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
+        other_activity = other_activity[other_activity['sector'] == 'commercial'].drop('sector', axis=1).replace(' ', np.nan).replace('\x96', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         other_activity.index = other_activity.index.astype(int)
         other_activity = other_activity.reindex(new_index)
         other_activity = other_activity.interpolate(method='linear', axis=0)
 
-        data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
+        data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity},
                      'Other': {'energy': {'primary': other_energy}, 'activity': other_activity}}
         return data_dict
 
@@ -613,7 +614,7 @@ class ElectricityIndicators(CalculateLMDI):
         wood_activity = self.elec_power_eia.eia_api(id_='TOTAL.WDEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column R
         waste_activity = self.elec_power_eia.eia_api(id_='TOTAL.WSEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column T
 
-        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
+        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity},
                      'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity}}
         return data_dict
 
@@ -621,19 +622,19 @@ class ElectricityIndicators(CalculateLMDI):
         """Collect Elec_Power_Sector_CHP>Fossil data
         """
 
-        coal_energy, elec_only_fuel = self.coal_reconcile() 
+        coal_energy, elec_only_fuel = self.coal_reconcile()
         petroleum_energy, elec_only_petroleum = self.petroleum_reconcile()
-        natgas_energy, elec_only_fuel_nat_gas = self.natgas_reconcile() 
+        natgas_energy, elec_only_fuel_nat_gas = self.natgas_reconcile()
         othgas_energy = self.othgas_reconcile()
-        
+
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column F
         othgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.OJEGPUS.A', id_type='series').multiply(0.001) # Table 8.2c column H
 
-        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity}, 
-                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity}, 
-                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity}, 
+        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity},
+                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity},
+                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity},
                      'Other Gasses': {'energy': {'primary': othgas_energy}, 'activity': othgas_activity}}
         return data_dict
 
@@ -643,9 +644,9 @@ class ElectricityIndicators(CalculateLMDI):
 
         other_energy = self.Table85c[self.Table85c['Description'] == 'Other Consumption for Electricity Generation, Electric Power Sector'] # Table 8.5c column V
         other_energy = self.format_eii_table(other_energy, factor=0.001, name='Other')
-         
-        other_activity = pd.read_csv('./EnergyIntensityIndicators/Electricity/Data/other_activity82c.csv') # Table 8.2c columnAD
-        other_activity = other_activity[other_activity['sector'] == 'chp'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)                          
+
+        other_activity = pd.read_csv(os.path.join(EIIDIR, 'Electricity/Data/other_activity82c.csv')) # Table 8.2c columnAD
+        other_activity = other_activity[other_activity['sector'] == 'chp'].drop('sector', axis=1).replace(' ', np.nan).fillna(np.nan).astype(float).multiply(0.001)
         other_activity.index = other_activity.index.astype(int)
 
         data_dict = {'Other': {'energy': {'primary': other_energy}, 'activity': other_activity}}
@@ -667,10 +668,10 @@ class ElectricityIndicators(CalculateLMDI):
         solar_energy = self.elec_power_eia.eia_api(id_='TOTAL.SOEGPUS.A', id_type='series').multiply(0.001) # Table 8.2b X, 8.2c X
         wind_energy = self.elec_power_eia.eia_api(id_='TOTAL.WYEGPUS.A', id_type='series').multiply(0.001)  # Table 8.2b Z, 8.2c Z
 
-        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity}, 
-                     'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity}, 
-                     'Geothermal': {'energy': {'primary': geothermal_energy}, 'activity': geothermal_activity}, 
-                     'Solar': {'energy': {'primary': solar_energy}, 'activity': solar_activity}, 
+        data_dict = {'Wood': {'energy': {'primary': wood_energy}, 'activity': wood_activity},
+                     'Waste': {'energy': {'primary': waste_energy}, 'activity': waste_activity},
+                     'Geothermal': {'energy': {'primary': geothermal_energy}, 'activity': geothermal_activity},
+                     'Solar': {'energy': {'primary': solar_energy}, 'activity': solar_activity},
                      'Wind': {'energy': {'primary': wind_energy}, 'activity': wind_activity}}
         return data_dict
 
@@ -678,19 +679,19 @@ class ElectricityIndicators(CalculateLMDI):
         """Collect Eletricity-Only>Fossil data
         """
 
-        chp_plants_fuel, coal_energy = self.coal_reconcile() 
+        chp_plants_fuel, coal_energy = self.coal_reconcile()
         chp_plants_petroleum, petroleum_energy = self.petroleum_reconcile()
         natgas_energy, elec_only_fuel_nat_gas = self.natgas_reconcile()
         othgas_energy = self.othgas_reconcile()
-        
+
         coal_activity = self.elec_power_eia.eia_api(id_='TOTAL.CLEGPUS.A', id_type='series').multiply(0.001)  # 8.2b B, 8.2c B
         petroleum_activity = self.elec_power_eia.eia_api(id_='TOTAL.PAEGPUS.A', id_type='series').multiply(0.001)  # 8.2b D, 8.2c D
         natgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.NGEGPUS.A', id_type='series').multiply(0.001)  # 8.2b B, 8.2c F
         othgas_activity = self.elec_power_eia.eia_api(id_='TOTAL.OJEGPUS.A', id_type='series').multiply(0.001) # 8.2c H
 
-        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity}, 
-                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity}, 
-                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity}, 
+        data_dict = {'Coal': {'energy': {'primary': coal_energy}, 'activity': coal_activity},
+                     'Petroleum': {'energy': {'primary': petroleum_energy}, 'activity': petroleum_activity},
+                     'Natural Gas': {'energy': {'primary': natgas_energy}, 'activity': natgas_activity},
                      'Other Gasses': {'energy': {'primary': othgas_energy}, 'activity': othgas_activity}}
         return data_dict
 
@@ -704,11 +705,11 @@ class ElectricityIndicators(CalculateLMDI):
         nuclear_activity = self.elec_power_eia.eia_api(id_='TOTAL.NUEGPUS.A', id_type='series').multiply(0.001) # 8.2b L
         hydroelectric_activity = self.elec_power_eia.eia_api(id_='TOTAL.HVEGPUS.A', id_type='series').multiply(0.001)  # 8.2b O
 
-        data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity}, 
+        data_dict = {'Hydroelectric': {'energy': {'primary': hydroelectric_energy}, 'activity': hydroelectric_activity},
                      'Nuclear': {'energy': {'primary': nuclear_energy}, 'activity': nuclear_activity}}
         return data_dict
 
-    def collect_data(self): 
+    def collect_data(self):
         """Collect all data for use in the decomposition of energy use in the
         Electric Power sector
         """
@@ -738,30 +739,30 @@ class ElectricityIndicators(CalculateLMDI):
         electricity_only_total['Fossil Fuels'] = electricity_only_fossil # Coal, Petroleum, Natural Gas, Other Gasses
         electricity_only_total['Renewable'] = electricity_only_renew # Wood, Waste, Geothermal, Solar, Wind
 
-        data_dict = {'Elec Generation Total': 
-                        {'Elec Power Sector': 
+        data_dict = {'Elec Generation Total':
+                        {'Elec Power Sector':
                             {'Electricity Only': electricity_only_total, # Fossil Fuels, Nuclear, Hydro, Renewable
                              'Combined Heat & Power': elec_power_sector_chp_total},  # Fossil Fuels, Renewable
                         'Commercial Sector':
                             {'Combined Heat & Power':
-                                comm_sector_total}, 
+                                comm_sector_total},
                         'Industrial Sector':
                             {'Combined Heat & Power':
                                 industrial_sector_total}}}
-        return data_dict   
+        return data_dict
 
-    def main(self, breakout, calculate_lmdi): 
+    def main(self, breakout, calculate_lmdi):
         """Calculate decomposition for the Electric Power sector
         """
         data_dict = self.collect_data()
-        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
-                                                               breakout=breakout, calculate_lmdi=calculate_lmdi, 
+        results_dict, formatted_results = self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation,
+                                                               breakout=breakout, calculate_lmdi=calculate_lmdi,
                                                                raw_data=data_dict, lmdi_type='LMDI-I')
         return results_dict, formatted_results
 
 if __name__ == '__main__':
-    indicators = ElectricityIndicators(directory='./EnergyIntensityIndicators/Data', 
-                                       output_directory='./Results', 
+    indicators = ElectricityIndicators(directory='./EnergyIntensityIndicators/Data',
+                                       output_directory='./Results',
                                        level_of_aggregation='Elec Generation Total', end_year=2018,
                                        lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=True, calculate_lmdi=True)

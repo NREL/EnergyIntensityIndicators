@@ -21,23 +21,21 @@ from EnergyIntensityIndicators.utilities import loggers
 
 logger = loggers.get_logger()
 
-data_dir = 'C:\\Users\\bbenton\\source\\eii_data'
-
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         fname = 'transportation_emissions'
-        config_path = os.path.join(data_dir, f'{fname}.yaml')
+        config_path = os.path.join(DATADIR, f'yamls/{fname}.yaml')
 
         self.sub_categories_list = \
             {'All_Transportation':
                 {'All_Passenger':
                     {'Highway':
                         {'Passenger Cars and Trucks':
-                            {'Passenger Car – SWB Vehicles':
+                            {'Passenger Car - SWB Vehicles':
                                 {'Passenger Car': None,
                                  'SWB Vehicles': None},
-                             'Light Trucks – LWB Vehicles':
+                             'Light Trucks - LWB Vehicles':
                                 {'Light Trucks': None,
                                  'LWB Vehicles': None},
                              'Motorcycles': None},

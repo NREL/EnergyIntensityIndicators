@@ -12,9 +12,10 @@ from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.weather_factors import WeatherFactors
 from EnergyIntensityIndicators.residential import ResidentialIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
+from EnergyIntensityIndicators import DATADIR
 
 
-"""Overview and Assumptions: 
+"""Overview and Assumptions:
 A. A national time series of floorspace for the commercial buildings in the US
 B. Weather adjustment for the four census regions
 C. Adjustment for the major reclassifications of customers by individual
@@ -38,9 +39,9 @@ Methodology: Perpetual inventory model, where estimates of new additions
 
 class CommercialIndicators(CalculateLMDI):
     """
-    Data Sources: 
-    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available 
-    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020 
+    Data Sources:
+    - New construction is based on data from Dodge Data and Analytics. Dodge data on new floor space additions is available
+    from the published versions of the Statistical Abstract of the United States (SAUS). The Most recent data is from the 2020
     SAUS, Table 995 "Construction Contracts Started- Value of the Construction and Floor Space of Buildings by Class of Construction:
     2014 to 2018".
     """
@@ -54,14 +55,14 @@ class CommercialIndicators(CalculateLMDI):
                              'source', 'source_adj']
         super().__init__(sector='commercial',
                          level_of_aggregation=level_of_aggregation,
-                         lmdi_models=lmdi_model, 
+                         lmdi_models=lmdi_model,
                          directory=directory,
                          output_directory=output_directory,
                          categories_dict=self.sub_categories_list,
                          energy_types=self.energy_types,
                          base_year=base_year,
                          end_year=end_year)
-        # self.cbecs = 
+        # self.cbecs =
         # self.residential_housing_units = [0] # Use regional estimates of residential housing units as interpolator, extrapolator via regression model
 
         # self.mer_data23_May_2016 = GetEIAData.eia_api(id_='711251')  # 'http://api.eia.gov/category/?api_key=YOUR_API_KEY_HERE&category_id=711251'
@@ -165,16 +166,16 @@ class CommercialIndicators(CalculateLMDI):
         print('os.getcwd():', os.getcwd())
         try:
             saus_2002 = \
-                pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+                pd.read_csv(os.path.join(DATADIR, 'SAUS2002_table995.csv')).set_index('Year')
         except FileNotFoundError:
             os.chdir('..')
             saus_2002 = \
-                pd.read_csv('./EnergyIntensityIndicators/Data/SAUS2002_table995.csv').set_index('Year')
+                pd.read_csv(os.path.join(DATADIR, 'SAUS2002_table995.csv')).set_index('Year')
 
-        saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933, 
+        saus_1994 = {1980: 738, 1981: 787, 1982: 631, 1983: 716, 1984: 901, 1985: 1039, 1986: 960, 1987: 933,
                     1988: 883, 1989: 867, 1990: 694, 1991: 477, 1992: 462, 1993: 479}
-        saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None, 
-                    1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700, 
+        saus_2001 = {1980: 738, 1981: None, 1982: None, 1983: None, 1984: None, 1985: 1039, 1986: None, 1987: None,
+                    1988: None, 1989: 867, 1990: 694, 1991: 476, 1992: 462, 1993: 481, 1994: 600, 1995: 700,
                     1996: 723, 1997: 855, 1998: 1106, 1999: 1117, 2000: 1176}
         saus_merged = dict()
         for (year, value) in saus_2001.items():
@@ -196,13 +197,13 @@ class CommercialIndicators(CalculateLMDI):
         "These series are of unknown origin--need to check Jackson and Johnson 197 (sic)?
         """
 
-        dod_old = pd.read_csv('./EnergyIntensityIndicators/Data/DODCompareOld.csv').set_index('Year')
+        dod_old = pd.read_csv(os.path.join(DATADIR, 'DODCompareOld.csv')).set_index('Year')
 
         cols_list = ['Retail', 'Auto R', 'Office', 'Warehouse']
         dod_old['Commercial'] = dod_old[cols_list].sum(axis=1)
         dod_old_subset = dod_old.loc[list(range(1960, 1982)), cols_list]
         dod_old_hotel = dod_old.loc[list(range(1980, 1990)), ['Commercial']]
-        return dod_old, dod_old_subset, dod_old_hotel 
+        return dod_old, dod_old_subset, dod_old_hotel
 
     def dodge_adjustment_ratios(self, dodge_dataframe, start_year, stop_year, adjust_years, late):
         """(1985, 1990) or (1960, 1970)
@@ -213,9 +214,9 @@ class CommercialIndicators(CalculateLMDI):
         categories = ['Retail', 'Auto R', 'Office', 'Warehouse', 'Hotel']
         if late:
             col = 'Commercial'
-        else: 
+        else:
             col = 'Commercial, Excl Hotel'
-        for category in categories: 
+        for category in categories:
 
             revision_factor_cat = dodge_dataframe.loc[year_indices, [category]].sum(axis=0).values / revision_factor_commercial
             dodge_dataframe.loc[adjust_years, [category]] = dodge_dataframe.loc[adjust_years, [col]].values * revision_factor_cat[0]
@@ -232,18 +233,18 @@ class CommercialIndicators(CalculateLMDI):
 
         # hist_stat = self.hist_stat()['Commercial  (million SF)'] # hist_stat column E
         # # west inflation column Q
-        ornl_78 = {1925: 1.127, 1930: 1.144, 1935: 1.12, 1940: 1.182, 1945: 1.393, 1950: 1.216, 1951: 1.237, 
+        ornl_78 = {1925: 1.127, 1930: 1.144, 1935: 1.12, 1940: 1.182, 1945: 1.393, 1950: 1.216, 1951: 1.237,
                    1952: 1.224, 1953: 1.209, 1954: 1.213, 1955: 1.229}
         all_years = list(range(min(ornl_78.keys()), max(ornl_78.keys()) + 1))
         increment_years = list(ornl_78.keys())
-        
+
         final_factors = {year: 1.12 for year in list(range(1919, 1925))}
         for index, y_ in enumerate(increment_years):
             if index > 0:
                 year_before = increment_years[index - 1]
                 num_years = y_ - year_before
-                infl_factor_year_before = ornl_78[year_before] 
-                infl_factor_y_ = ornl_78[y_]  
+                infl_factor_year_before = ornl_78[year_before]
+                infl_factor_y_ = ornl_78[y_]
                 increment = 1 / num_years
                 for delta in range(num_years):
                     value = infl_factor_year_before * (1 - increment * delta) + \
@@ -260,14 +261,14 @@ class CommercialIndicators(CalculateLMDI):
 
         list_ = list(range(start_year, end_year + 1))
         return [str(l) for l in list_]
-    
+
     def hist_stat(self):
         """Historical Dodge Data through 1970
 
         Data Source: Series N 90-100 Historical Statistics of the U.S., Colonial Times to 1970
         """
 
-        historical_dodge = pd.read_csv('./EnergyIntensityIndicators/Data/historical_dodge_data.csv').set_index('Year')        
+        historical_dodge = pd.read_csv(os.path.join(DATADIR, 'historical_dodge_data.csv')).set_index('Year')
         pub_inst_values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].values
         total_1925_6 = pd.DataFrame.sum(historical_dodge.loc[list(range(1925, 1927)),], axis=0).drop(index='Commercial  (million SF)')
         inst_pub_total_1925 = pd.DataFrame.sum(historical_dodge.loc[1925,].drop('Commercial  (million SF)'), axis=0)
@@ -275,7 +276,7 @@ class CommercialIndicators(CalculateLMDI):
         inst_pub_total_1925_6 = inst_pub_total_1925 + inst_pub_total_1926
 
         shares = total_1925_6.divide(inst_pub_total_1925_6)
-        for col in list(total_1925_6.index): 
+        for col in list(total_1925_6.index):
             values = historical_dodge.loc[list(range(1919, 1925)), ['Pub&Institutional']].multiply(shares[col]).values
             historical_dodge.at[list(range(1919, 1925)), col] = values
 
@@ -302,8 +303,8 @@ class CommercialIndicators(CalculateLMDI):
         saus_2002, saus_merged = self.get_saus()
         dod_old, dod_old_subset, dod_old_hotel = self.dod_compare_old()
         west_inflation = self.hist_stat_adj()
-        
-        dodge_revised = pd.read_csv('./EnergyIntensityIndicators/Data/Dodge_Data.csv').set_index('Year')
+
+        dodge_revised = pd.read_csv(os.path.join(DATADIR, 'Dodge_Data.csv')).set_index('Year')
         dodge_revised.index = dodge_revised.index.astype(str)
 
         dodge_revised = dodge_revised.reindex(dodge_revised.columns.tolist() + ['Commercial, Excl Hotel', 'Hotel'], axis=1).fillna(np.nan)
@@ -311,8 +312,8 @@ class CommercialIndicators(CalculateLMDI):
         years_1919_1989 = self.years_to_str(1919, 1990)
         years_1990_1997 = self.years_to_str(1990, 1997)
 
-        dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset.values 
-        
+        dodge_revised.loc[self.years_to_str(1960, 1981), ['Retail', 'Auto R', 'Office', 'Warehouse']] = dod_old_subset.values
+
         dodge_revised.loc[self.years_to_str(1919, 1959), ['Commercial, Excl Hotel']] =  west_inflation['Commercial  (million SF)'].values.reshape(41, 1) # hist_stat_adj column Q
         hist_adj_cols = ['Education', 'Hospital', 'Public', 'Religious', 'Soc/Amuse', 'Misc']
         dodge_revised.loc[self.years_to_str(1919, 1959), hist_adj_cols] = west_inflation.drop('Commercial  (million SF)', axis=1).values
@@ -325,7 +326,7 @@ class CommercialIndicators(CalculateLMDI):
         dodge_revised.loc[self.years_to_str(1960, 1989), ['Commercial, Excl Hotel']] =  dodge_revised.loc[self.years_to_str(1960, 1989), ['Retail', 'Auto R', 'Office', 'Warehouse']].sum(axis=1)
 
 
-        hotel_80_89 = saus_merged.loc[list(range(1980, 1989 + 1)), ['Value']].subtract(dod_old_hotel.values) 
+        hotel_80_89 = saus_merged.loc[list(range(1980, 1989 + 1)), ['Value']].subtract(dod_old_hotel.values)
 
         dodge_revised.loc[self.years_to_str(1980, 1989), ['Hotel']] = hotel_80_89
 
@@ -336,26 +337,26 @@ class CommercialIndicators(CalculateLMDI):
 
         dodge_revised.loc[years_1990_1997, ['Commercial, Incl Hotel']] =  saus_2002.loc[years_1990_1997, ['Commercial']].values
 
-  
+
         dodge_revised.loc[self.years_to_str(1985, 1989), ['Commercial']] = saus_merged.loc[list(range(1985, 1989 + 1)), ['Value']].values
         dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial']] = dodge_revised.loc[self.years_to_str(1990, 2018), ['Commercial, Incl Hotel']].values
 
         dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1960, 1969, adjust_years=self.years_to_str(1919, 1959), late=False)
         dodge_revised = self.dodge_adjustment_ratios(dodge_revised, 1985, 1989, adjust_years=self.years_to_str(1990, 2018), late=True)
-        
+
 
         dodge_revised.loc[years_1919_1989, ['Commercial, Incl Hotel']] = dodge_revised.loc[years_1919_1989, ['Commercial, Excl Hotel']].add(dodge_revised.loc[years_1919_1989, ['Hotel']].values)
         dodge_revised['Total'] = dodge_revised.drop(['Commercial, Incl Hotel', 'Commercial, Excl Hotel'], axis=1).sum(axis=1).values
         return dodge_revised
 
     def dodge_to_cbecs(self):
-        """Redefine the Dodge building categories more along the lines of CBECS categories. Constant fractions of floor space are moved among categories. 
+        """Redefine the Dodge building categories more along the lines of CBECS categories. Constant fractions of floor space are moved among categories.
 
         Returns:
             dodge_to_cbecs (dataframe): redefined data
         """
 
-        # Key Assumptions: 
+        # Key Assumptions:
         education_floor_space_office = .10
         auto_repair_retail = .80
         retail_merc_service = .80  # remainder to food service and sales
@@ -367,7 +368,7 @@ class CommercialIndicators(CalculateLMDI):
         misc_public_assembly = .10 # (passenger terminals)
 
         dodge_revised = self.dodge_revised() # dataframe
-        
+
         dodge_to_cbecs = pd.DataFrame(dodge_revised[['Total', 'Religious', 'Warehouse']]).rename(columns={'Total': 'Dodge_Totals'})
         dodge_to_cbecs['Office'] = dodge_revised['Office'] + education_floor_space_office * dodge_revised['Education']
         dodge_to_cbecs['Merc/Serv'] = retail_merc_service * (dodge_revised['Retail'] + auto_repair_retail * dodge_revised['Auto R'])
@@ -384,8 +385,8 @@ class CommercialIndicators(CalculateLMDI):
 
     def nems_logistic(self, dataframe, params):
         """
-        
-        PNNL errors found: 
+
+        PNNL errors found:
             - Column S in spreadsheet has CO-StatePop2.xls are incorrectly aligned with years
             - Column AL does not actually scale by 1.28 as suggested in the column header
 
@@ -401,8 +402,8 @@ class CommercialIndicators(CalculateLMDI):
 
         dataframe = dataframe.merge(state_pop, how='outer', left_index=True, right_index=True)
         dataframe = dataframe[dataframe.index.notnull()]
-        dataframe = dataframe.reindex(columns=dataframe.columns.tolist() + ['adjusted_state_pop', 'adjusted_state_pop_scaled_b', 'adjusted_state_pop_scaled_c', 
-                                                                            'scaled_additions_estimate_a', 'scaled_additions_estimate_b', 'scaled_additions_estimate_c', 
+        dataframe = dataframe.reindex(columns=dataframe.columns.tolist() + ['adjusted_state_pop', 'adjusted_state_pop_scaled_b', 'adjusted_state_pop_scaled_c',
+                                                                            'scaled_additions_estimate_a', 'scaled_additions_estimate_b', 'scaled_additions_estimate_c',
                                                                             'removal', 'adjusted_removals', 'old_stk_retain', 'floorspace_bsf'])
         dataframe['Year_Int'] = dataframe.index.astype(int)
         dataframe['age'] = dataframe['Year_Int'].subtract(current_year).multiply(-1)
@@ -422,16 +423,16 @@ class CommercialIndicators(CalculateLMDI):
 
         for year in self.years_to_str(1838, current_year):
             adjusted_state_pop_value = dataframe.loc[year, ['adjusted_state_pop']].values
-            if year == '1838': 
+            if year == '1838':
                 vpip_estimate = adjusted_state_pop_value
-            elif year == '1920': 
+            elif year == '1920':
                 vpip_estimate = adjusted_state_pop_value
             else:
                 adjusted_state_pop_year_before = dataframe.loc[str(int(year) - 1), ['adjusted_state_pop']].values
                 vpip_estimate = (timing_wgts_current_yr * adjusted_state_pop_value + timing_wgts_lag_yr * adjusted_state_pop_year_before) * benchmark_factor
             dataframe.loc[year, 'VPIP-Estimate'] = vpip_estimate
         _variable = 1.2569  # This should be solved for
-        x_column_value = _variable 
+        x_column_value = _variable
         db_estimates = 1.2
         db_estimates2 = [1.25 - 0.01*d for d in list(range(1990, 2021))]
 
@@ -444,14 +445,14 @@ class CommercialIndicators(CalculateLMDI):
         dataframe.loc[self.years_to_str(1990, current_year), ['scaled_additions_estimate_a']] = dataframe.loc[self.years_to_str(1990, current_year), ['VPIP-Estimate']].values * post_1989_scaling_factor
         dataframe.loc[:str(1989), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(1790, 1989), ['scaled_additions_estimate_a']].values
         dataframe.loc[self.years_to_str(1990, 2001), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(1990, 2001), ['scaled_additions_estimate_a']].values * 1.15
-        dataframe.loc[self.years_to_str(2002, current_year), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(2002, current_year), ['scaled_additions_estimate_a']].values 
-        
+        dataframe.loc[self.years_to_str(2002, current_year), ['adjusted_state_pop_scaled_b']] = dataframe.loc[self.years_to_str(2002, current_year), ['scaled_additions_estimate_a']].values
+
         dataframe.loc[str(1790), ['adjusted_state_pop_scaled_c']] = 1
         dataframe.loc[self.years_to_str(1791, 1989), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(1791, 1989), ['scaled_additions_estimate_a']].values
         dataframe.loc[self.years_to_str(1990, 2001), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(1990, 2001), ['scaled_additions_estimate_a']].values * 1.28
         dataframe.loc[self.years_to_str(2002, current_year), ['adjusted_state_pop_scaled_c']] = dataframe.loc[self.years_to_str(2002, current_year), ['scaled_additions_estimate_a']].values
-        
-        for y in self.years_to_str(1839, current_year):  
+
+        for y in self.years_to_str(1839, current_year):
             years_diff = current_year - 1870
             start_year = int(y) - years_diff
             # first_index_year = int(dataframe.index[0])
@@ -464,39 +465,39 @@ class CommercialIndicators(CalculateLMDI):
 
             b_value = np.dot(adjusted_state_pop_scaled_b, remaining)
             c_value = np.dot(adjusted_state_pop_scaled_c, remaining)
- 
+
             dataframe.loc[y, ['scaled_additions_estimate_b']] = b_value
             dataframe.loc[y, ['scaled_additions_estimate_c']] = c_value
 
         removal_chg = 1 # Not sure what this is about
         fractions = [0.3, 0.4, 0.4, 0.35, 0.35, 0.35, 0.35, 0.3, 0.3, 0.3]
         fraction_retained = [f * removal_chg for f in fractions]
-        
+
         for i in dataframe.index:
-            if i >= '1870': 
+            if i >= '1870':
                 removal = dataframe.loc[i, ['scaled_additions_estimate_c']].values - dataframe.loc[str(int(i) - 1), ['scaled_additions_estimate_c']].values - dataframe.loc[i, ['scaled_additions_estimate_a']].values
                 dataframe.loc[i, ['removal']] = removal
 
         dataframe.loc[self.years_to_str(2009, 2009 + len(fractions) - 1), ['adjusted_removals']] = dataframe.loc[self.years_to_str(2009, 2009 + len(fractions) -1 ), ['removal']].values.flatten() * fraction_retained
 
         for y_ in list(range(2009, 2009 + len(fractions))):
-            if y_ == 2009: 
+            if y_ == 2009:
                 dataframe.loc[str(y_), ['old_stk_retain']] = dataframe.loc[str(y_), ['adjusted_removals']]
-            else: 
+            else:
                 dataframe.loc[str(y_), ['old_stk_retain']] = dataframe.loc[str(y_ - 1), ['old_stk_retain']].values + dataframe.loc[str(y_), ['adjusted_removals']].values
 
         dataframe['adjusted_removals'] = dataframe['adjusted_removals'].fillna(0)
         dataframe.loc[self.years_to_str(1960, current_year), ['floorspace_bsf']] = dataframe.loc[self.years_to_str(1960, current_year), ['scaled_additions_estimate_c']].values - dataframe.loc[self.years_to_str(1960, current_year), ['adjusted_removals']].values
 
         return dataframe[['floorspace_bsf']].dropna()
-        
+
     def solve_logistic(self, dataframe):
         """Solve NES logistic parameters
         """
 
         pnnl_coefficients = [3.92276415015621, 73.2238120168849]  # [gamma, lifetime]
         # popt, pcov = curve_fit(self.nems_logistic, xdata=dataframe[], ydata=dataframe[] , p0=pnnl_coefficients)
-        # return popt 
+        # return popt
         return pnnl_coefficients
 
     def activity(self):
@@ -505,7 +506,7 @@ class CommercialIndicators(CalculateLMDI):
         Returns:
             historical_floorspace_billion_sq_feet (pd.DataFrame): historical floorspace
                                                                   in the Commercial Sector.
-                                                                  Years: 
+                                                                  Years:
                                                                   Units: Billion Square Feet
                                                                   Data Source:
         """
@@ -514,12 +515,12 @@ class CommercialIndicators(CalculateLMDI):
         coeffs = self.solve_logistic(dodge_to_cbecs)
         historical_floorspace_late = self.nems_logistic(dodge_to_cbecs, coeffs)  # properly formatted?
 
-        historical_floorspace_early = {1949: 27235.1487296062, 1950: 27788.6370796569, 1951: 28246.642791733, 1952: 28701.4989706012, 
+        historical_floorspace_early = {1949: 27235.1487296062, 1950: 27788.6370796569, 1951: 28246.642791733, 1952: 28701.4989706012,
                                        1953: 29253.2282427217, 1954: 29913.8330998026, 1955: 30679.7157232176, 1956: 31512.6191323126,
                                        1957: 32345.382764321, 1958: 33206.8483392728, 1959: 34088.6640247816}
         historical_floorspace_early = pd.DataFrame.from_dict(historical_floorspace_early, columns=['floorspace_bsf'], orient='index')
         historical_floorspace_early.index = historical_floorspace_early.index.astype(str)
-    
+
         historical_floorspace = pd.concat([historical_floorspace_early, historical_floorspace_late])
         historical_floorspace_billion_sq_feet = historical_floorspace.multiply(0.001)
         return historical_floorspace_billion_sq_feet
@@ -550,7 +551,7 @@ class CommercialIndicators(CalculateLMDI):
         fuels_dataframe.loc['1970':, ['total_primary']] = replacement_data.values
         fuels_dataframe = fuels_dataframe.rename(columns={'total_primary': 'adjusted_consumption_trillion_btu'})
         fuels_dataframe['adjusted_consumption_trillion_btu'] = fuels_dataframe['adjusted_consumption_trillion_btu'].astype(float)
-        elec_dataframe =  self.adjusted_supplier_data() 
+        elec_dataframe =  self.adjusted_supplier_data()
 
         energy_data = {'elec': elec_dataframe, 'fuels': fuels_dataframe}
         return energy_data
@@ -590,7 +591,7 @@ class CommercialIndicators(CalculateLMDI):
                                 #  residential_floorspace=residential_floorspace)
         weather_factors = weather.get_weather(seds_data=seds)
         # weather_factors = weather.adjust_for_weather() # What should this return?? (e.g. weather factors or weather adjusted data, both?)
-        
+
         weather_data = dict()
         for key, value in weather_factors.items():
             value = value.drop('electricity_weather_factor', axis=1, errors='ignore')
@@ -614,7 +615,7 @@ class CommercialIndicators(CalculateLMDI):
         print('Energy data collected without issue')
 
         weather_factors = \
-            self.collect_weather(comm_activity=activity_data) 
+            self.collect_weather(comm_activity=activity_data)
 
         data_dict = {'Commercial_Total':
                         {'energy': energy_data,
@@ -635,7 +636,7 @@ class CommercialIndicators(CalculateLMDI):
 
         data_dict = self.collect_data()
         results_dict, formatted_results = \
-            self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation, 
+            self.get_nested_lmdi(level_of_aggregation=self.level_of_aggregation,
                                  breakout=breakout,
                                  calculate_lmdi=calculate_lmdi,
                                  raw_data=data_dict,
@@ -645,7 +646,7 @@ class CommercialIndicators(CalculateLMDI):
 
 if __name__ == '__main__':
     indicators = CommercialIndicators(directory='./EnergyIntensityIndicators/Data',
-                                      output_directory='./Results', 
-                                      level_of_aggregation='Commercial_Total', 
+                                      output_directory='./Results',
+                                      level_of_aggregation='Commercial_Total',
                                       lmdi_model=['multiplicative', 'additive'])
     indicators.main(breakout=False, calculate_lmdi=True)

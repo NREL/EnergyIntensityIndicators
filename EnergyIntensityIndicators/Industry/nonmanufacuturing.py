@@ -2,12 +2,13 @@ import pandas as pd
 from functools import reduce
 from datetime import datetime
 import numpy as np
+import os
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.get_census_data import Econ_census
 from EnergyIntensityIndicators.utilities.standard_interpolation \
     import standard_interpolation
-
+from EnergyIntensityIndicators import EIIDIR
 
 class NonManufacturing:
     """ Prior to 2012, total nonmanufacturing
@@ -117,7 +118,7 @@ class NonManufacturing:
         Returns:
             construction_elec [type]: [description]
             construction_fuels [type]: [description]
-        
+
         TODO: automatically update data
         """
         stb0303 = \
@@ -139,7 +140,7 @@ class NonManufacturing:
 
         construction_elec_fuels = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/construction_elec_fuels.csv').set_index('Year')
+                os.path.join(EIIDIR, 'Industry/Data/construction_elec_fuels.csv')).set_index('Year')
         construction_elec_fuels = \
             construction_elec_fuels.rename(
                 columns={'  Electricity':
@@ -876,7 +877,7 @@ class NonManufacturing:
             data (dict): [description]
         """
         mining_1987_2017 = \
-            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/mining_sector_estimates_historical.csv') # from economic census
+            pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/mining_sector_estimates_historical.csv')) # from economic census
         # mining_1987_2017 = mining_1987_2017.apply(lambda column: self.price_ratios(column))
 
         sector_estimates_elec = \
@@ -916,9 +917,9 @@ class NonManufacturing:
         """
         # Mining energy_031020.xlsx/Compute_intensities (FF-FN, FQ-FS)
         ALLFOS_historical = \
-            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ALLFOS_historical.csv')
+            pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/ALLFOS_historical.csv'))
         ELECNEA_historical = \
-            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/ELECNEA_historical.csv')
+            pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/ELECNEA_historical.csv'))
 
         NEA_data_elec = \
             self.aggregate_mining_data(ELECNEA_historical)
@@ -932,7 +933,7 @@ class NonManufacturing:
 
         BLS_data = \
             pd.read_excel(
-                './EnergyIntensityIndicators/Industry/Data/BLS_BEA_Data.xlsx',
+                os.path.join(EIIDIR, 'Industry/Data/BLS_BEA_Data.xlsx'),
                 sheet_name='BLS_Data_011920', index_col=0)
         BLS_data.index.name = 'Industry'
 
@@ -944,7 +945,7 @@ class NonManufacturing:
         BEA_mining_data = \
             BEA_mining_data.rename(
                 columns={'Support activities for mining':
-                            'BEA- Support Activities', 
+                            'BEA- Support Activities',
                          'Mining, except oil and gas':
                             'Other Mining',
                          'Oil and gas extraction':

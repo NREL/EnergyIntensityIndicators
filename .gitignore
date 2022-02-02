@@ -121,3 +121,6 @@ keys.json
 *.pyc
 
 */__pycache__/*
+
+EnergyIntensityIndicators/Data/yamls
+EnergyIntensityIndicators/Data/emissions_data

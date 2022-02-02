@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import requests
 from scipy.optimize import leastsq
 from bs4 import BeautifulSoup
@@ -9,6 +10,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities.standard_interpolation \
      import standard_interpolation
+from EnergyIntensityIndicators import EIIDIR
 
 
 class Mfg_prices:
@@ -16,14 +18,14 @@ class Mfg_prices:
         """
         Class for importing and interpolating historical energy prices for
         the manufacturing sector.
-    
+
         Historical Manufacturing Energy Consumption Survey (MECS) data are
         based on prior work from the Pacific Northwest National Laboratory
         (PNNL).
         """
         # Historical MECS data with missing observations estimated
         # ad-hoc by PNNL.
-        self.mecs_historical_prices = './EnergyIntensityIndicators/Industry/Data/mecs_prices.csv'  # fuel types: ['Gas' 'LPG' 'Distillate' 'Residual' 'Coal' 'Coke' 'Other ']
+        self.mecs_historical_prices = os.path.join(EIIDIR, 'Industry/Data/mecs_prices.csv')  # fuel types: ['Gas' 'LPG' 'Distillate' 'Residual' 'Coal' 'Coke' 'Other ']
 
     def import_mecs_historical(self, fuel_type, naics):
         """
@@ -119,7 +121,7 @@ class Mfg_prices:
         """"
         Prices in $/MMBtu
         """
-        asm_data = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/asm_data_mer_table_97.csv').set_index('Year')
+        asm_data = pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/asm_data_mer_table_97.csv')).set_index('Year')
         col = asm_map[fuel_type]
         asm_data = asm_data[[col]]
         asm_data = asm_data.rename(columns={col: 'asm_price'})
@@ -131,22 +133,22 @@ class Mfg_prices:
         """
         Get fuel prices from Census Bureau's Annual Survey of
         Manufacturers and Economic Census (years ending in 2 and 7)
-    
+
         Parameters
         ----------
         latest_year : int
             Most recent year of historical LMDI analysis.
-    
+
         start_year : int, default 1983
             Beginning year of price data.
-    
+
         Returns
         -------
         asm_prices : pandas.Series
             Pandas series of ASM price data from YYYY - latest_year
         """
         year_range = range(start_year, latest_year + 1)
-        
+
         asm_prices = dict()
         for year in year_range:
             asm = Asm().get_data(year)
@@ -271,7 +273,7 @@ class Mfg_prices:
 
     def interpolate_residuals(self, price_df, coeff):
         """Interpolate residuals"""
-    
+
         price_df_updated = price_df.copy(deep=True)
         price_df_updated['residual'] = price_df_updated['MECS_price'].subtract(
             price_df_updated['predicted']
@@ -281,16 +283,16 @@ class Mfg_prices:
                                                     name_to_interp='residual',
                                                     axis=1)
         interpolated_resid['interp_resid'] = interpolated_resid['residual'].ffill().bfill()
-                                            
+
         return interpolated_resid
-    
+
     def main(self, latest_year, fuel_type, naics, asm_col_map):
         n_dfs = []
 
-        for n in naics:              
+        for n in naics:
             mecs_data = self.import_mecs_historical(fuel_type, n)
 
-            self.check_recent_mecs(latest_year=latest_year, 
+            self.check_recent_mecs(latest_year=latest_year,
                                    last_historical_year=max(mecs_data.index))
 
             asm_data = self.import_asm_historical(fuel_type, n, asm_col_map)
@@ -303,7 +305,7 @@ class Mfg_prices:
                                                     price_df[['MECS_price']],
                                                     start_params)
 
-            predicted = self.calc_predicted_prices(fit_coeffs, 
+            predicted = self.calc_predicted_prices(fit_coeffs,
                                                    price_df[['MECS_price']],
                                                    price_df[['asm_price']])
 

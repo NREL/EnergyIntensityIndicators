@@ -4,6 +4,8 @@ import requests
 import os
 import numpy as np
 
+from EnergyIntensityIndicators import EIIDIR
+
 
 class BEA_api:
     """class for calling gross output and quantity index values"""
@@ -32,7 +34,7 @@ class BEA_api:
         params : dict
             Dictionary of DataSetName and tableID.
 
-        Returns                                                                                                                                     
+        Returns
         -------
         data : dataframe
             Dataframe of results. Will print API error, if applicable.
@@ -40,7 +42,7 @@ class BEA_api:
 
         api_params = self.base_params.copy()
         api_params['Year'] = "All" #\
-            #[str(y) for y in range(self.years[0], self.years[1]+1)] # 
+            #[str(y) for y in range(self.years[0], self.years[1]+1)] #
 
         for k, v in params.items():
             api_params[k] = v
@@ -119,25 +121,25 @@ class BEA_api:
         3. Consists of computer and electronic product manufacturing (excluding navigational, measuring, electromedical, and control instruments manufacturing); software publishers; broadcasting and telecommunications; data processing, hosting and related services; internet publishing and broadcasting and web search portals; and computer systems design and related services.
         """
         historical_va_quant_index = pd.read_csv(
-            './EnergyIntensityIndicators/Industry/Data/Chain_Type_Qty_Indexes_Value_Added_by_Industry.csv'
-            ).set_index('Industry') # 2012 = 100 
+            os.path.join(EIIDIR, 'Industry/Data/Chain_Type_Qty_Indexes_Value_Added_by_Industry.csv')
+            ).set_index('Industry') # 2012 = 100
         historical_va = pd.read_csv(
-            './EnergyIntensityIndicators/Industry/Data/Historical_VA.csv'
-            ).set_index('Industry') 
+            os.path.join(EIIDIR, 'Industry/Data/Historical_VA.csv')
+            ).set_index('Industry')
 
         historical_go = pd.read_csv(
-            './EnergyIntensityIndicators/Industry/Data/Historical_GO.csv'
-            ).set_index('Industry')  
+            os.path.join(EIIDIR, 'Industry/Data/Historical_GO.csv')
+            ).set_index('Industry')
         historical_go_quant_index = pd.read_csv(
-            './EnergyIntensityIndicators/Industry/Data/historical_go_qty_index.csv'
-            ).set_index('Industry')  # 2012 = 100 
+            os.path.join(EIIDIR, 'Industry/Data/historical_go_qty_index.csv')
+            ).set_index('Industry')  # 2012 = 100
 
         historical_data = {
             'historical_va': historical_va,
             'historical_va_quant_index': historical_va_quant_index,
             'historical_go': historical_go,
             'historical_go_quant_index': historical_go_quant_index
-            }    
+            }
         return historical_data
 
     @staticmethod
@@ -172,12 +174,12 @@ class BEA_api:
         for i in chained_laspeyres.index():
             if i == min(chained_laspeyres.index()):
                 raw_index = 1
-            else: 
+            else:
                 raw_index = chained_laspeyres.loc[i, ['Chained_Laspeyres']].multiply(chained_laspeyres.loc[i - 1, 'Raw_Index'])
             chained_laspeyres.loc[i, 'Raw_Index'] = raw_index
-        
+
         chained_laspeyres['Index_2012=100'] = chained_laspeyres[['Raw_Index']].divide(chained_laspeyres.loc[2012, 'Raw_Index']).multiply(100)
-        
+
         gross_output_T.loc[:, 'Total'] = gross_output_T.sum(axis=1)
 
         transportation_line = chained_laspeyres[['Raw_Index']].multiply(gross_output_T.loc[2012, 'Total'].values * 0.01)
@@ -189,9 +191,9 @@ class BEA_api:
         """Merge all historical data into one dataframe"""
         if len(api_data) == 1:
             api_data = api_data[0]
-        else: 
+        else:
             raise TypeError(f'list of go_nominal of len {len(api_data)}')
-        
+
 
         api_data = api_data.set_index(['IndustrYDescription']).drop('Industry', axis=1)
 
@@ -203,8 +205,8 @@ class BEA_api:
         data.index =data.index.astype(int)
         # data = data.merge(label_to_naics, left_index=True, right_index=True, how='inner')
         return data
-    
-    def transform_data(self, nominal_historical, nominal_from_api, 
+
+    def transform_data(self, nominal_historical, nominal_from_api,
                        qty_index_historical, qty_index_from_api):
         """Format data"""
 
@@ -226,12 +228,12 @@ class BEA_api:
     def collect_va(self, historical_data):
         """Method to collect value added data"""
         va_nominal = self.get_data(table_name='va_nominal')
-        historical_va = historical_data['historical_va'] 
+        historical_va = historical_data['historical_va']
 
         va_quant_index = self.get_data(table_name='va_quant_index')
-        historical_va_qty_index = historical_data['historical_va_quant_index'] 
-        
-        transformed_va_quant_index = self.transform_data(historical_va, va_nominal, 
+        historical_va_qty_index = historical_data['historical_va_quant_index']
+
+        transformed_va_quant_index = self.transform_data(historical_va, va_nominal,
                                                          historical_va_qty_index, va_quant_index)
 
         return transformed_va_quant_index
@@ -239,7 +241,7 @@ class BEA_api:
     def collect_go(self, historical_data):
         """Method to collect gross output data"""
         go_nominal = self.get_data(table_name='go_nominal')
-        historical_go = historical_data['historical_go'] 
+        historical_go = historical_data['historical_go']
 
         go_quant_index = self.get_data(table_name='go_quant_index')
         historical_go_qty_index = historical_data['historical_go_quant_index']
@@ -249,7 +251,7 @@ class BEA_api:
                                                          historical_go_qty_index,
                                                          go_quant_index)
         return transformed_go_quant_index
-    
+
 
     def chain_qty_indexes(self):
         """Merge historical and api data, manipulate as in ChainQtyIndexes

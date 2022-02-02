@@ -1,15 +1,17 @@
 import pandas as pd
 import numpy as np
+import os
 
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities.testing_utilties \
     import TestingUtilities
+from EnergyIntensityIndicators import DATADIR
 
 
 class TestLMDIGen:
-    directory = 'C:/Users/irabidea/Desktop/yamls/'
+    directory = os.path.join(DATADIR, 'yamls/')
     gen = GeneralLMDI(directory)
     utils = TestingUtilities()
 
@@ -20,13 +22,13 @@ class TestLMDIGen:
         """
         activity = \
             pd.read_csv(
-                'C:/Users/irabidea/Desktop/yamls/residential_activity.csv',
+                os.path.join(DATADIR, 'yamls/residential_activity.csv'),
                 index_col=0)
         activity.index.name = 'Year'
         print('activity:\n', activity)
         energy = \
             pd.read_csv(
-                'C:/Users/irabidea/Desktop/yamls/residential_energy.csv',
+                os.path.join(DATADIR, 'yamls/residential_energy.csv'),
                 index_col=0)
         energy.index.name = 'Year'
         print('energy:\n', energy)
@@ -95,7 +97,7 @@ class TestLMDIGen:
 
     def test_compute_index1(self):
         """Data is from Total_Transportation 1983-1987"""
-        eii = GeneralLMDI(directory='C:/Users/irabidea/Desktop/yamls/')
+        eii = GeneralLMDI(directory=os.path.join(DATADIR, 'yamls/'))
 
         results = [[0.9705, 1.0386, 1.0037],
                    [0.9957, 1.0329, 1.0054],
@@ -131,7 +133,7 @@ class TestLMDIGen:
 
     def test_compute_index2(self):
         """Data is from Total_Transportation 1970-1975"""
-        eii = GeneralLMDI(directory='C:/Users/irabidea/Desktop/yamls/')
+        eii = GeneralLMDI(directory=os.path.join(DATADIR, 'yamls/'))
 
         results = [[np.nan, 1.1301, np.nan],
                    [0.9904, 1.0460, 1.0107],

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from functools import reduce
+import os
 
 from EnergyIntensityIndicators.pull_bea_api import BEA_api
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
@@ -10,6 +11,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
 from EnergyIntensityIndicators.Industry.asm_price_fit import Mfg_prices
 from EnergyIntensityIndicators.utilities.standard_interpolation \
      import standard_interpolation
+from EnergyIntensityIndicators import EIIDIR
 
 
 class Manufacturing:
@@ -25,7 +27,7 @@ class Manufacturing:
         Returns:
             mecs [type]: [description]
             industrial_btu [type]: [description]
-        """        
+        """
         # Energy Consumption as a Fuel
         # Table 3.1 : By Mfg. Industry & Region (physical units)
         # Table 3.2 : By Mfg. Industry & Region (trillion Btu)
@@ -182,14 +184,14 @@ class Manufacturing:
         sic_4_2 = []
 
         for year, table_dict in mecs_data.items():
-            if year < 1998: 
+            if year < 1998:
                 sic = True
             else:
                 sic = False
 
             for t, t_dict in table_dict.items():
                 if t_dict:
-                    endpoint = t_dict['endpoint'] 
+                    endpoint = t_dict['endpoint']
                     general_url = f'https://www.eia.gov/consumption/manufacturing/data/{year}/xls/{endpoint}'
                     general_df = pd.read_excel(general_url, index_col=0)
                     col_labels = general_df.loc[:'Code(a)'].tail(4)
@@ -203,7 +205,7 @@ class Manufacturing:
                         col_labels.to_frame(name=index_label).transpose()
 
                     df = pd.read_excel(general_url, skiprows=t_dict['skiprows'],
-                                       skipfooter=t_dict['skip_footer'], 
+                                       skipfooter=t_dict['skip_footer'],
                                        index_col=0)
                     df = df.iloc[df.index.get_loc('Code(a)')+1:]
 
@@ -307,7 +309,7 @@ class Manufacturing:
             sic_naics_3_5.rename(
                 columns={'Pulping Liquor':
                             'Pulping Liquor or Black Liquor',
-                         'Waste Oils/Tars And Waste Materials': 
+                         'Waste Oils/Tars And Waste Materials':
                             'Waste Oils/Tars and Waste Materials'})
         table_3_5 = pd.concat([sic_naics_3_5, all_3_5], axis=0)
 
@@ -586,7 +588,7 @@ class Manufacturing:
                                       fuel_type=f, naics=naics,
                                       asm_col_map=asm_cols)
                 predicted_fuel_price['fuel_type'] = f
-                predicted_fuel_price = predicted_fuel_price.reset_index()              
+                predicted_fuel_price = predicted_fuel_price.reset_index()
             except Exception as e:
                 print(f'fuel type {f} failed with error {e}')
                 continue
@@ -609,8 +611,8 @@ class Manufacturing:
         For a given MECS year, take NAICS by fuel (TBtu),
         calculate sum, then calcuate quantity shares
 
-        Returns: 
-            quantity_shares [DataFrame]: 
+        Returns:
+            quantity_shares [DataFrame]:
         """
 
         mecs_data, __ = self.mecs_data_by_year()
@@ -618,7 +620,7 @@ class Manufacturing:
         print('mecs42_df:\n', mecs42_df)
         print('mecs42_df cols', mecs42_df.columns)
         print("mecs42_df['region].unique()", mecs42_df['region'].unique())
-        mecs42_df = mecs42_df[(mecs42_df['region'] == region) 
+        mecs42_df = mecs42_df[(mecs42_df['region'] == region)
                               & ~(mecs42_df['NAICS'] == 'RSE Column Factors:')]
         mecs42_df = mecs42_df.drop('region', axis=1)
         mecs42_df = mecs42_df.set_index(['NAICS', 'Year'])
@@ -627,7 +629,7 @@ class Manufacturing:
         quantity_shares = df_utils().calculate_shares(mecs42_df,
                                                       total_label='Total')
         quantity_shares = quantity_shares.reset_index()
-         
+
         rename_dict = {'Electricity(b)': 'Electricity',
                        'Residual Fuel Oil': 'Residual',
                        'Distillate Fuel Oil(c)': 'Distillate',
@@ -685,7 +687,7 @@ class Manufacturing:
 
         mecs_data_qty_shares = self.calc_quantity_shares()
         fuel_types = ['Gas', 'Coal', 'Distillate', 'Residual',
-                      'LPG', 'Coke', 'Other', 'HGL', 'Electricity']               
+                      'LPG', 'Coke', 'Other', 'HGL', 'Electricity']
 
         fuel_quanity_shares = []
         # interpolate mecs_data_qty_shares data (has 3 dimensions: fuel type, year, naics)
@@ -703,10 +705,10 @@ class Manufacturing:
                             fuel_type,
                             reindex=mecs_years_prices_and_interpolations['Year'].unique())
                     fuel_type_data.append(fuel_naics)
-                
+
             df = pd.concat(fuel_type_data, axis=0)
             fuel_quanity_shares.append(df)
-        fuel_quanity_shares = reduce(lambda df1,df2: df1.merge(df2, how='outer', 
+        fuel_quanity_shares = reduce(lambda df1,df2: df1.merge(df2, how='outer',
                                      on=['Year', 'NAICS']), fuel_quanity_shares)
         fuel_quanity_shares = fuel_quanity_shares.set_index(['Year', 'NAICS'])
 
@@ -717,7 +719,7 @@ class Manufacturing:
             prices_df = prices_df.pivot(index='NAICS',
                                         columns='fuel_type',
                                         values='Price')
-            prices_df['Year'] = year                            
+            prices_df['Year'] = year
             mecs_prices.append(prices_df)
 
         mecs_prices_df = pd.concat(mecs_prices, axis=0)
@@ -733,7 +735,7 @@ class Manufacturing:
 
 
         return composite_price_calc.reset_index()
-    
+
     def expenditure_ratios_revised(self, asm_data):
         """[summary]
 
@@ -746,7 +748,7 @@ class Manufacturing:
         # E from MECS_prices_122419.xlsx[MECS_data]/AN and NAICS3D/J (also called EXPFUEL)
         mecs = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/mecs_calc_purchased_fuels_historical.csv')
+                os.path.join(EIIDIR, 'Industry/Data/mecs_calc_purchased_fuels_historical.csv'))
 
         mecs['Year'] = mecs['Year'].astype(int)
 
@@ -764,7 +766,7 @@ class Manufacturing:
                     columns={'mecs_asm_ratio': 'mecs_asm_ratio_interp'})
         interpolated_ratios_filler = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/mecs_asm_interpolated_ratio.csv')
+                os.path.join(EIIDIR, 'Industry/Data/mecs_asm_interpolated_ratio.csv'))
         dataset_ = \
             dataset_.merge(interpolated_ratios_filler,
                            how='outer',
@@ -776,7 +778,7 @@ class Manufacturing:
 
         dataset = dataset_.merge(dataset,
                                   how='outer',
-                                  on=['Year', 'NAICS']).set_index('Year')       
+                                  on=['Year', 'NAICS']).set_index('Year')
 
         dataset['mecs_based_expenditure'] = dataset['Calc. Cost of Fuels'].multiply(1000) # I depends on MECS year/not
         dataset['fill_values'] = dataset['EXPFUEL'].multiply(dataset['mecs_asm_ratio_interp'], axis='index')
@@ -785,7 +787,7 @@ class Manufacturing:
         mecs_based_expenditure = dataset.reset_index()[['Year', 'NAICS', 'mecs_based_expenditure']]
         return mecs_based_expenditure
 
-    def quantities_1998_forward(self, NAICS3D): 
+    def quantities_1998_forward(self, NAICS3D):
         """[summary]
 
         Args:
@@ -803,14 +805,14 @@ class Manufacturing:
 
         mecs_based_expenditure = self.expenditure_ratios_revised(asm_data)
         mecs_based_expenditure['Year'] = mecs_based_expenditure['Year'].astype(int)
-        dataset = mecs_based_expenditure.merge(quantity_shares_1998_forward, 
+        dataset = mecs_based_expenditure.merge(quantity_shares_1998_forward,
                                                how='outer', on=['NAICS', 'Year'])
         dataset = dataset.merge(ratio_fuel_to_offsite, how='outer', on=['NAICS', 'Year'])
 
         dataset = dataset[dataset['Year'] >= 1998]
         dataset = dataset.rename(columns={'Composite Price': 'composite_price'})
         return dataset
-    
+
     @staticmethod
     def quantity_shares_1985_1998():
         """Take the sum of the product of quantity shares and the interpolated
@@ -822,8 +824,8 @@ class Manufacturing:
         """
         composite_price = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/' +
-                'historical_composite_prices.csv').rename(
+                os.path.join(EIIDIR, 'Industry/Data/' +
+                'historical_composite_prices.csv')).rename(
                     columns={'Composite Price ': 'composite_price'})
 
         return composite_price
@@ -836,9 +838,9 @@ class Manufacturing:
         """
         mecs_based_expenditure_hist = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/Expend_ratios_revised_1985-97.csv')  
+                os.path.join(EIIDIR, 'Industry/Data/Expend_ratios_revised_1985-97.csv'))
         return mecs_based_expenditure_hist
-    
+
     @staticmethod
     def mecs_data_sic():
         """[summary]
@@ -849,7 +851,7 @@ class Manufacturing:
         # from [MECS_prices_101116b.xlsx]MECS_data_SIC BA
         mecs_data_sic = \
             pd.read_csv(
-                './EnergyIntensityIndicators/Industry/Data/MECS_data_SIC.csv')
+                os.path.join(EIIDIR, 'Industry/Data/MECS_data_SIC.csv'))
         mecs_data_sic = mecs_data_sic[mecs_data_sic['Year'].notnull()]
         mecs_data_sic['Year'] = mecs_data_sic['Year'].astype(int)
         mecs_data_sic['NAICS'] = mecs_data_sic['NAICS'].astype(int)
@@ -861,7 +863,7 @@ class Manufacturing:
 
         Returns:
            dataset [DataFrame]: [description]
-        """        
+        """
         # from quantity_shares_revised CW --> '[MECS_prices_122419.xlsx]Quantity Shares_1985-1998'!
         dollar_per_mmbtu = self.quantity_shares_1985_1998()
         dollar_per_mmbtu['Year'] = dollar_per_mmbtu['Year'].astype(int)
@@ -877,7 +879,7 @@ class Manufacturing:
         mecs_data_sic = mecs_data_sic.replace({'NAICS': {331: 328, 332: 329}})
 
         dataset = dollar_per_mmbtu.merge(mecs_based_expenditure, how='outer', on=['NAICS', 'Year'])
-        
+
         mecs_sic_merge = dataset.merge(mecs_data_sic, how='outer', on=['NAICS', 'Year'])
 
         mecs_sic_merge = self.interpolate_mecs(mecs_sic_merge, col_name='ratio_fuel_to_offsite')
@@ -888,7 +890,7 @@ class Manufacturing:
         dataset = dataset.rename(columns={' Expenditure': 'mecs_based_expenditure'})
 
         return dataset
-    
+
     @staticmethod
     def aggregate_naics(df, values):
         """[summary]
@@ -899,7 +901,7 @@ class Manufacturing:
 
         Returns:
             df (pd.DataFrame): [description]
-        """        
+        """
         df = df.pivot(index='NAICS', columns='Year', values=values)
         df.index = df.index.astype(int)
 
@@ -924,7 +926,7 @@ class Manufacturing:
         Returns:
             final_quantities_asm_85_agg (pd.DataFrame): [description]
         """
-        NAICS3D = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/3DNAICS.csv').set_index('Year')
+        NAICS3D = pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/3DNAICS.csv')).set_index('Year')
 
         pre_1998_quantities = self.pre_1998_quantities()
         pre_1998_quantities['NAICS'] = pre_1998_quantities['NAICS'].astype(int)
@@ -944,7 +946,7 @@ class Manufacturing:
         quantities['jan_2020_estimate'] = \
             quantities['mecs_based_expenditure'].divide(
                 quantities['composite_price'], axis='index').multiply(0.001)
-        
+
         # ASMdata_010330.xlsx , Final_quant_elec_w_ASM_87'
         quantities['final_quantities_asm_85'] = \
             quantities['jan_2020_estimate'].multiply(
@@ -958,7 +960,7 @@ class Manufacturing:
         final_quantities_asm_85_agg = \
             self.aggregate_naics(final_quantities_asm_85, values='final_quantities_asm_85')
         return final_quantities_asm_85_agg
-    
+
     @staticmethod
     def import_mecs_electricity(asm):
         """ ### NOT SURE IF ASM or MECS ELECTRICITY DATA ARE USED ###
@@ -973,22 +975,22 @@ class Manufacturing:
             electricity_consumption (pd.DataFrame): [description]
         """
         # import a CSV file of historical MECS electricity use from Table 3.2
-        
+
         # elechap3b, all historical
         mecs_elec = pd.read_csv(
-                    './EnergyIntensityIndicators/Industry/Data/elechap3b.csv')
+                    os.path.join(EIIDIR, 'Industry/Data/elechap3b.csv'))
         mecs_elec = mecs_elec.replace({'NAICS': {'331': '328', '332': '329'}})
         mecs_elec = mecs_elec.set_index('NAICS')
         mecs_elec = mecs_elec.rename(columns={col: int(col) for col
                                      in mecs_elec.columns})
 
-        link_ratio_df = asm[[1987]].merge(mecs_elec[[1987]], how='outer', 
+        link_ratio_df = asm[[1987]].merge(mecs_elec[[1987]], how='outer',
                                           left_index=True, right_index=True)
         # Ind_hap3_122219.xlsx[ASM_Annual_Elec_1970on]
-        link_ratio = link_ratio_df['1987_x'].divide(link_ratio_df['1987_y'], 
+        link_ratio = link_ratio_df['1987_x'].divide(link_ratio_df['1987_y'],
                                                     axis='index').fillna(1)
         link_ratio = pd.DataFrame(pd.np.tile(link_ratio.values.reshape(
-                                  len(link_ratio), 1), 
+                                  len(link_ratio), 1),
                                   (1, mecs_elec.shape[1])),
                                   index=link_ratio_df.index,
                                   columns=mecs_elec.columns)
@@ -1006,7 +1008,7 @@ class Manufacturing:
         electricity_consumption.index = \
             electricity_consumption.index.astype(int)
         return electricity_consumption
-    
+
     # Corresponds to data in MECS_Fuel tab in Indhap3 spreadsheet, which
     # is connected to the MECS_Annual_Fuel1 and MECS_Annual_Fuel2
     # tabs in the same spreadsheet.
@@ -1018,10 +1020,10 @@ class Manufacturing:
         Returns:
             fallhap3b (pd.DataFrame): MECS data on fuel use by 3-digit NAICS code
         """
-        fallhap3b = pd.read_csv('./EnergyIntensityIndicators/Industry/Data/fallhap3b.csv')
+        fallhap3b = pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/fallhap3b.csv'))
         fallhap3b = fallhap3b.set_index('NAICS')
         return fallhap3b
-    
+
     def get_historical_mecs(self):
         """Read in historical MECS csv, format (as in e.g. Coal (MECS) Prices)
 
@@ -1030,7 +1032,7 @@ class Manufacturing:
         """
         # NAICS ARE ALREADY AGGREGATED
         historical_mecs = \
-            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/MECS_Fuel_Historical.csv')
+            pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/MECS_Fuel_Historical.csv'))
         return historical_mecs
 
     def mecs_fuel(self, asm_elec_data, historical_mecs):
@@ -1042,9 +1044,9 @@ class Manufacturing:
 
         Returns:
             mecs_fuel (pd.DataFrame): [description]
-        """        
+        """
         historical_mecs_31_32 = \
-            pd.read_csv('./EnergyIntensityIndicators/Industry/Data/historical_mecs_31_32.csv')
+            pd.read_csv(os.path.join(EIIDIR, 'Industry/Data/historical_mecs_31_32.csv'))
         mecs_fuel = historical_mecs.set_index('NAICS')
         mecs_fuel = mecs_fuel.rename(columns={c: int(c) for c in mecs_fuel.columns})
         mecs_fuel = mecs_fuel.reset_index()
@@ -1064,7 +1066,7 @@ class Manufacturing:
 
         Returns:
             fuels_consumption (pd.DataFrame): [description]
-        """        
+        """
         # Ind_hap3_122219.xlsx[ASM_Annual_Fuel3_1970on]
         electricity_data = electricity_data.transpose()
 
@@ -1073,7 +1075,7 @@ class Manufacturing:
                                               fuels_nea.columns})
 
         mecs_fuel = self.get_historical_mecs()
-        
+
         mecs_interpolated_data = self.mecs_fuel(electricity_data,
                                                 historical_mecs=mecs_fuel)
 
@@ -1095,8 +1097,8 @@ class Manufacturing:
         mecs_drop = [c for c in mecs_interpolated_data.columns if c < 1985]
         mecs_interpolated_data = mecs_interpolated_data.drop(mecs_drop, axis=1)
 
-        fuels_consumption = nea_adjusted.merge(mecs_interpolated_data, 
-                                               how='outer', left_index=True, 
+        fuels_consumption = nea_adjusted.merge(mecs_interpolated_data,
+                                               how='outer', left_index=True,
                                                right_index=True)
 
         fuels_consumption = fuels_consumption.transpose()
@@ -1104,10 +1106,10 @@ class Manufacturing:
         fuels_consumption.index = fuels_consumption.index.astype(int)
 
         return fuels_consumption
-    
+
     def manufacturing_energy(self):
         """Collect electricity and fuels for the manufacturing sector
-        """        
+        """
         asm = self.final_quantities_asm_85()
 
         electricity_consumption = self.import_mecs_electricity(asm)
@@ -1145,28 +1147,28 @@ class Manufacturing:
 
         electricity_consumption, fuels_consumption = self.manufacturing_energy()
 
-        rename_dict = {'311-312': 'Food and beverage and tobacco products', 
-                       '313-314': 'Textile mills and textile product mills', 
-                       '315-316': 'Apparel and leather and allied products', 
-                       '321': 'Wood products', 
-                       '322': 'Paper products', 
-                       '323': 'Printing and related support activities', 
-                       '324': 'Petroleum and coal products', 
-                       '325': 'Chemical products', 
-                       '326': 'Plastics and rubber products', 
-                       '327': 'Nonmetallic mineral products', 
-                       '331': 'Primary metals', 
+        rename_dict = {'311-312': 'Food and beverage and tobacco products',
+                       '313-314': 'Textile mills and textile product mills',
+                       '315-316': 'Apparel and leather and allied products',
+                       '321': 'Wood products',
+                       '322': 'Paper products',
+                       '323': 'Printing and related support activities',
+                       '324': 'Petroleum and coal products',
+                       '325': 'Chemical products',
+                       '326': 'Plastics and rubber products',
+                       '327': 'Nonmetallic mineral products',
+                       '331': 'Primary metals',
                        '332': 'Fabricated metal products',
-                       '333': 'Machinery', 
-                       '334': 'Computer and electronic products', 
-                       '335': 'Electrical equipment, appliances, and components', 
-                       '336': 'Motor vehicles, bodies and trailers, and parts', 
-                       '337': 'Furniture and related products', 
+                       '333': 'Machinery',
+                       '334': 'Computer and electronic products',
+                       '335': 'Electrical equipment, appliances, and components',
+                       '336': 'Motor vehicles, bodies and trailers, and parts',
+                       '337': 'Furniture and related products',
                        '339': 'Miscellaneous manufacturing'}
 
         electricity_consumption = electricity_consumption.rename(columns=rename_dict)
         fuels_consumption = fuels_consumption.rename(columns=rename_dict)
-        
+
         data_dict = dict()
         for value in rename_dict.values():
             elec = electricity_consumption[[value]]
@@ -1174,13 +1176,13 @@ class Manufacturing:
             go = go_quant_index[[value]]
             va = va_quant_index[[value]]
 
-            sub_data_dict = {'energy': {'elec': elec, 
-                                        'fuels': fuels}, 
+            sub_data_dict = {'energy': {'elec': elec,
+                                        'fuels': fuels},
                             'activity': {'gross_output': go,
                                         'value_added': va}}
             data_dict[value] = sub_data_dict
-            
-        return data_dict   
+
+        return data_dict
 
 if __name__ == '__main__':
     asm = Manufacturing().manufacturing()

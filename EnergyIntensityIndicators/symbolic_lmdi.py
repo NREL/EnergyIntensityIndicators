@@ -2,12 +2,15 @@ import sympy as sp
 import numpy as np
 import pandas as pd
 import yaml
+import os
+
+from EnergyIntensityIndicators import DATADIR
 
 
 class SymbolicLMDI:
     """Class to decompose changes in a variable using symbolic matrices
 
-    Example input (standard LMDI approach, Residential): 
+    Example input (standard LMDI approach, Residential):
 
     {'variables': ['E_i', 'A_i'],
      'LHS_var': 'E_i',
@@ -46,7 +49,7 @@ class SymbolicLMDI:
                   'base_year': 1990,
                   'end_year': 2018}
 
-        with open (f'{self.directory}/{fname}.yaml', 'w') as file:
+        with open(f'{self.directory}/{fname}.yaml', 'w') as file:
             yaml.dump(input_, file)
 
     def read_yaml(self, fname):
@@ -77,8 +80,8 @@ class SymbolicLMDI:
 
     @staticmethod
     def create_symbolic_var(variable, num_years, num_columns):
-        """Create m X n symbolic matrix (populated by 
-        variable name) where m is the number of years and n is the 
+        """Create m X n symbolic matrix (populated by
+        variable name) where m is the number of years and n is the
         number of columns (subsectors)
 
         Args:
@@ -96,7 +99,7 @@ class SymbolicLMDI:
     def hadamard_division(self, numerator, denominator):
         """Perform element-wise division of two
         symbolic matrices
-        
+
         Note: I haven't found this functionality in
         the sympy library though it may exist or not exist for a
         good reason? (e.g. mathematical properties)
@@ -116,7 +119,7 @@ class SymbolicLMDI:
         print('denominator shape:\n', denominator.shape)
 
         if numerator.shape == denominator.shape:
-            result = sp.HadamardPower(denominator, 
+            result = sp.HadamardPower(denominator,
                                       numerator).doit().as_explicit()
         elif numerator.shape[0] == denominator.shape[1]:
             result = denominator * numerator
@@ -128,12 +131,12 @@ class SymbolicLMDI:
             result = denominator * numerator
 
         return result
-    
+
     @staticmethod
     def shift_matrices(matrix):
-        """Create two matrices from input matrix 
-        (append row of ones to the beginning of one and 
-        the end of the other) in order to find the 
+        """Create two matrices from input matrix
+        (append row of ones to the beginning of one and
+        the end of the other) in order to find the
         change between rows (years)
 
         Args:
@@ -245,7 +248,7 @@ class SymbolicLMDI:
             numerator = sp.matrix_multiply_elementwise(log_mean_share, log_mean_matrix)
             log_mean_total = self.transform_col_vector(log_mean_total)
             weights = self.hadamard_division(numerator, log_mean_total)
-        
+
         return weights
 
     def additive_weights(self, log_mean_matrix,
@@ -264,7 +267,7 @@ class SymbolicLMDI:
         elif self.lmdi_type == 'II':
             numerator = sp.matrix_multiply_elementwise(log_mean_share, log_mean_matrix)
             weights = self.hadamard_division(numerator, log_mean_matrix_total)
-        
+
         return weights
 
     @staticmethod
@@ -276,7 +279,7 @@ class SymbolicLMDI:
         V = V * ones_vector
         V = V.T
         return V
-            
+
     def calc_weights(self, lhs_matrix, num_columns):
         """Calculate log-mean divisia weights
 
@@ -331,10 +334,10 @@ class SymbolicLMDI:
         Returns:
             expressions (Symbolic Matrix): Matrix where each element contains
                                            a symbolic expression representing
-                                           the appropriate calculation of the 
+                                           the appropriate calculation of the
                                            value
 
-        TODO: 
+        TODO:
             - describe the expression more accurately
         """
         print('self.variables:', self.variables)
@@ -346,14 +349,14 @@ class SymbolicLMDI:
         #                                           num_years,
         #                                           num_columns)
         #                  for var in self.variables}
-        
-        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_activity.csv', index_col=0)
+
+        activity = pd.read_csv(os.path.join(DATADIR, 'yamls/residential_activity.csv'), index_col=0)
         activity = activity.loc[self.base_year:self.end_year, :]
         activity = sp.Matrix(activity.values)
         # sp.pprint(activity)
         # print(type(activity))
         # exit()
-        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_energy.csv', index_col=0)
+        energy = pd.read_csv(os.path.join(DATADIR, 'yamls/residential_energy.csv'), index_col=0)
         energy = energy.loc[self.base_year:self.end_year, :]
         energy = sp.Matrix(energy.values)
 
@@ -389,14 +392,14 @@ class SymbolicLMDI:
 
             else:
                 matrix_term = variable_dict[term]
-            
+
             # matrix_term = self.eval_expression(matrix_term)
             print('matrix_term done')
             # matrix_term = matrix_term.as_explicit()
             print('matrix term literal')
             weighted_term = self.weighted_term(weights, matrix_term)
             symbolic_terms.append(weighted_term)
-        
+
         decomposition_pieces = self.decomposition.split('*')
         not_weighted = [t for t in decomposition_pieces
                         if t not in self.terms]
@@ -419,27 +422,27 @@ class SymbolicLMDI:
         print('expression literal')
         sp.pprint(expression)
         return expression
-    
+
     def eval_expression(self, expression):
         """Substitute actual data into the symbolic
         LMDI expression to calculate results
 
         Returns:
             final_result (Matrix): LMDI results ?
-        
-        TODO: 
+
+        TODO:
             Should return pandas dataframe containing
             the relative contributions of each term to the
             change in the LHS variable, with appropriate column
             labels and years as the index
-        """        
-        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_activity.csv', index_col=0)
+        """
+        activity = pd.read_csv(os.path.join(DATADIR, 'yamls/residential_activity.csv'), index_col=0)
         activity = activity.loc[self.base_year:self.end_year, :]
         activity = sp.Matrix(activity.values)
         # sp.pprint(activity)
         # print(type(activity))
         # exit()
-        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/residential_energy.csv', index_col=0)
+        energy = pd.read_csv(os.path.join(DATADIR, 'yamls/residential_energy.csv'), index_col=0)
         energy = energy.loc[self.base_year:self.end_year, :]
         energy = sp.Matrix(energy.values)
 
@@ -471,7 +474,7 @@ class IndexedVersion:
 
     def __init__(self, directory):
         self.directory = directory
-    
+
     @staticmethod
     def logarithmic_average(x, y):
         if x == y:
@@ -498,7 +501,7 @@ class IndexedVersion:
 
         lhs_share = sp.exp(lhs[t, i] / lhs_total)
         lhs_share_shift = sp.exp(lhs[sp.exp(t-1), i] / lhs_total_shift)
-        
+
         log_average_total = self.logarithmic_average(lhs_total,
                                                      lhs_total_shift)
         sp.pprint(log_average_total)
@@ -529,7 +532,7 @@ class IndexedVersion:
     @staticmethod
     def check_eval_str(s):
         """From NREL rev.rev.utilities.utilities (properly import/cite?)
-        
+
         Check an eval() string for questionable code.
         Parameters
         ----------
@@ -651,7 +654,7 @@ class IndexedVersion:
         return results
 
     def expr(self):
-        
+
         E = sp.IndexedBase('E')
         A = sp.IndexedBase('A')
         i, t = sp.symbols('i t', cls=sp.Idx)
@@ -672,7 +675,7 @@ class IndexedVersion:
 
         if self.model == 'multiplicative':
             effect = activity * structure * intensity
-        
+
         elif self.model == 'additive':
             effect = activity + structure + intensity
 
@@ -683,22 +686,22 @@ class IndexedVersion:
             print('k:', k)
             sp.pprint(results[k])
         return results
-    
+
     def eval_expression(self):
         """Substitute actual data into the symbolic
         LMDI expression to calculate results
 
         Returns:
             final_result (?): LMDI results ?
-        
-        TODO: 
+
+        TODO:
             Should return pandas dataframe containing
             the relative contributions of each term to the
             change in the LHS variable, with appropriate column
             labels and years as the index
-        """        
-        activity = pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_activity.csv')
-        energy = pd.read_csv('C:/Users/irabidea/Desktop/yamls/industrial_energy.csv')
+        """
+        activity = pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_activity.csv'))
+        energy = pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_energy.csv'))
         data = {'A': activity, 'E': energy}
 
         expression_dict = self.general_expr()
@@ -716,7 +719,7 @@ class IndexedVersion:
             f = sp.lambdify(tuple(list(symbs_2) + list(symbs_3)), expr, "numpy")
             print('tuple(symbs_2, symbs_3):\n',
                   tuple(list(symbs_2) + list(symbs_3)))
-            
+
             # df[name] = f(energy, activity, t=1995)
 
             # print('answer:\n', answer)

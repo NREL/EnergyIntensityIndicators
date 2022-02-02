@@ -13,6 +13,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities import (lmdi_utilities,
                                                  loggers)
+from EnergyIntensityIndicators import DATADIR
 
 logger = loggers.get_logger()
 
@@ -1070,8 +1071,8 @@ class GeneralLMDI:
 
                 shared_levels = list(range(level_count))
 
-                numerator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/numerator.csv')
-                denominator.to_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/denominator.csv')
+                numerator.to_csv(os.path.join(DATADIR, 'yamls/numerator.csv'))
+                denominator.to_csv(os.path.join(DATADIR, 'yamls/denominator.csv'))
                 if group_:
                     logger.info(f'grouped numerator:\n {numerator.groupby(level=shared_levels,axis=1).sum()}')
                     numerator = self.divide_multilevel(numerator, denominator,
@@ -1406,11 +1407,11 @@ class GeneralLMDI:
         """
 
         activity = \
-            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_activity.csv').set_index('Year')
+            pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_activity.csv')).set_index('Year')
         energy = \
-            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
+            pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_energy.csv')).set_index('Year')
         emissions = \
-            pd.read_csv('C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/industrial_energy.csv').set_index('Year')
+            pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_energy.csv')).set_index('Year')
         logger.info(f'energy cols: {energy.columns}')
 
         data = {'E_i_j': energy,

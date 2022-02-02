@@ -16,6 +16,7 @@ from EnergyIntensityIndicators.utilities.standard_interpolation \
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
+from EnergyIntensityIndicators import DATADIR
 
 
 class ElectricPowerEmissions(CO2EmissionsDecomposition):
@@ -27,7 +28,7 @@ class ElectricPowerEmissions(CO2EmissionsDecomposition):
         self.output_directory = output_directory
         self.level_of_aggregation = level_of_aggregation
         fname = 'electric_power_sector_emissions'
-        config_path = f'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/{fname}.yaml'
+        config_path = os.path.join(DATADIR, f'yamls/{fname}.yaml')
         fossil_fuels = {'Coal': None,
                         'Petroleum': None,
                         'Natural Gas': None,

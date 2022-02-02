@@ -15,6 +15,8 @@ from EnergyIntensityIndicators.commercial \
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
+from EnergyIntensityIndicators import DATADIR
+
 
 
 class CommercialEmissions(SEDSEmissionsData):
@@ -23,7 +25,7 @@ class CommercialEmissions(SEDSEmissionsData):
     """
     def __init__(self, directory, output_directory,
                  level_of_aggregation='Commercial_Total'):
-        fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/commercial_total.yaml'
+        fname = os.path.join(DATADIR, 'yamls/commercial_total.yaml')
         self.level_of_aggregation = level_of_aggregation
 
         self.sub_categories_list = {'Commercial_Total': None}

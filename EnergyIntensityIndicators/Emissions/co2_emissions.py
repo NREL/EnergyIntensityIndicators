@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 
-from EnergyIntensityIndicators import EIIDIR
+from EnergyIntensityIndicators import EIIDIR, DATADIR
 from EnergyIntensityIndicators.electricity import ElectricityIndicators
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
@@ -172,13 +172,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             emissions_factors (DataFrame): EPA emissions factors data
         """
         try:
-            ef = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/EPA_emissions_factors.csv'))
+            ef = pd.read_csv(os.path.join(DATADIR,
+                    'EPA_emissions_factors.csv'))
         except FileNotFoundError:
             os.chdir('..')
             logger.info(f'changed dir: {os.getcwd()}')
-            ef = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/EPA_emissions_factors.csv'))
+            ef = pd.read_csv(os.path.join(DATADIR,
+                    'EPA_emissions_factors.csv'))
         df_cols = ef.columns
         dfs = []
         grouped = ef.groupby(ef['Unit Type'])
@@ -611,15 +611,15 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         """
         logger.info(f'os.getcwd(): {os.getcwd()}')
         try:
-            cw = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/state_to_census_region.csv'))
-            state_abbrevs = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/name-abbr.csv'))
+            cw = pd.read_csv(os.path.join(DATADIR,
+                    'state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(os.path.join(DATADIR,
+                    'name-abbr.csv'))
         except FileNotFoundError:
-            cw = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/state_to_census_region.csv'))
-            state_abbrevs = pd.read_csv(os.path.join(EIIDIR,
-                    'Data/name-abbr.csv'))
+            cw = pd.read_csv(os.path.join(DATADIR,
+                    'state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(os.path.join(DATADIR,
+                    'name-abbr.csv'))
         cw = cw.merge(state_abbrevs, left_on='USPC',
                       right_on='Abbrev', how='left')
         return cw

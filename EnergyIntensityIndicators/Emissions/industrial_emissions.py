@@ -19,6 +19,7 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
     import SEDSEmissionsData, CO2EmissionsDecomposition
 from EnergyIntensityIndicators.Industry.manufacturing \
     import Manufacturing
+from EnergyIntensityIndicators import DATADIR, EIIDIR
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
@@ -28,11 +29,11 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
     """
     def __init__(self, directory, output_directory, level_of_aggregation):
         if level_of_aggregation == 'Manufacturing':
-            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/combustion_noncombustion_test.yaml'
+            fname = os.path.join(DATADIR, 'yamls/combustion_noncombustion_test.yaml')
         elif level_of_aggregation == 'NonManufacturing':
-            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/combustion_noncombustion_test.yaml'
+            fname = os.path.join(DATADIR, 'yamls/combustion_noncombustion_test.yaml')
         elif level_of_aggregation == 'Industry':
-            fname = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls/total_industrial_emissions.yaml'
+            fname = os.path.join(DATADIR, 'yamls/total_industrial_emissions.yaml')
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
@@ -150,7 +151,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         """
         all_manufacturing = self.manufacturing_energy_data()
 
-        data_dir = './EnergyIntensityIndicators/Industry/Data/'
+        data_dir = os.path.join(EIIDIR, 'Industry/Data/')
         construction_elec_fuels = \
             pd.read_csv(
                 f'{data_dir}construction_elec_fuels.csv').set_index('Year')
@@ -315,7 +316,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         dictionary for the Manufacturing Sector
 
         Args:
-            energy_data (pd.DataFrame): Energy data for the manufacturing 
+            energy_data (pd.DataFrame): Energy data for the manufacturing
                                         sector by fuel type and NAICS
             noncombustion_data (dict): Nested dictionary containing noncombustion
                                        activity and emissions data
