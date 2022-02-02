@@ -13,7 +13,7 @@ from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities import (lmdi_utilities,
                                                  loggers)
-from EnergyIntensityIndicators import DATADIR
+from EnergyIntensityIndicators import DATADIR, EIIDIR
 
 logger = loggers.get_logger()
 
@@ -86,6 +86,7 @@ class GeneralLMDI:
             fname (str): YAML file containing input data
         """
 
+        logger.info(f'Opening file: {self.config_path}')
         with open(self.config_path, 'r') as file:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
@@ -1425,7 +1426,7 @@ class GeneralLMDI:
 if __name__ == '__main__':
     # Will need to update to a new directory in remote repo once code is finished.
     # C:\Users\cmcmilla\OneDrive - NREL\Documents - Energy Intensity Indicators\General\EnergyIntensityIndicators
-    directory = 'C:/Users/cmcmilla/OneDrive - NREL/Documents - Energy Intensity Indicators/General/EnergyIntensityIndicators/yamls'
+    directory = os.path.join(DATADIR, 'yamls')
     gen_ = GeneralLMDI(directory)
     """fname (str): Name of YAML file containing
                          LMDI input parameters

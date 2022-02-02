@@ -32,10 +32,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 {'All_Passenger':
                     {'Highway':
                         {'Passenger Cars and Trucks':
-                            {'Passenger Car - SWB Vehicles':
+                            {'Passenger Car – SWB Vehicles':
                                 {'Passenger Car': None,
                                  'SWB Vehicles': None},
-                             'Light Trucks - LWB Vehicles':
+                             'Light Trucks – LWB Vehicles':
                                 {'Light Trucks': None,
                                  'LWB Vehicles': None},
                              'Motorcycles': None},

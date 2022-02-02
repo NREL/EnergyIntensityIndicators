@@ -6,9 +6,10 @@ import os
 import json
 
 EIIDIR = os.path.dirname(os.path.realpath(__file__))
+ROOTDIR = os.path.dirname(EIIDIR)
 TESTDATADIR = os.path.join(os.path.dirname(EIIDIR), 'tests', 'data')
 LOGDIR = os.path.join(os.path.dirname(EIIDIR), 'logs')
-DATADIR = os.path.join(os.path.dirname(EIIDIR), 'Data')
+DATADIR = os.path.join(EIIDIR, 'Data')
 RESULTSDIR = os.path.join(os.path.dirname(EIIDIR), 'RESULTS')
 
 with open(os.path.join(EIIDIR, 'keys.json')) as f:

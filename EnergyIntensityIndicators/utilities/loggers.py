@@ -16,18 +16,12 @@ LOG_LEVEL = {'INFO': logging.INFO,
              'ERROR': logging.ERROR,
              'CRITICAL': logging.CRITICAL}
 
-logging.basicConfig(format=FORMAT, level=logging.INFO)
-
-
 log_file = os.path.join(LOGDIR, 'eii_main.log')
-file_log = logging.FileHandler(log_file)
-file_log.setFormatter(logging.Formatter(FORMAT))
-file_log.setLevel(logging.DEBUG)
+logging.basicConfig(format=FORMAT, level=logging.INFO, filename=log_file)
 console = logging.StreamHandler()
 console.setFormatter(logging.Formatter(FORMAT))
 console.setLevel(logging.INFO)
 logging.getLogger('').addHandler(console)
-logging.getLogger('').addHandler(file_log)
 
 
 def get_logger():
