@@ -17,10 +17,10 @@ LOG_LEVEL = {'INFO': logging.INFO,
              'CRITICAL': logging.CRITICAL}
 
 log_file = os.path.join(LOGDIR, 'eii_main.log')
-logging.basicConfig(format=FORMAT, level=logging.INFO, filename=log_file)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG, filename=log_file)
 console = logging.StreamHandler()
 console.setFormatter(logging.Formatter(FORMAT))
-console.setLevel(logging.INFO)
+console.setLevel(logging.DEBUG)
 logging.getLogger('').addHandler(console)
 
 

@@ -356,11 +356,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 (energy_data['Mode'] == mode) &
                 (energy_data['Category'] == category)]
 
+        #logger.debug(f'energy_data: {energy_data}')
+
+        # bnb changed pivot->pivot_table, added aggfunc argument?
         energy = \
-                energy_data.pivot(index='Year',
-                                  columns='Fuel Type',
-                                  values='value')
-        #logger.error(f'pivot failed: {energy_data}')
+                energy_data.pivot_table(index='Year',
+                                        columns='Fuel Type',
+                                        values='value',
+                                        aggfunc='first')
 
         energy = \
             energy.apply(
@@ -410,7 +413,7 @@ if __name__ == '__main__':
     s = module_(directory, output_directory,
                 level_of_aggregation=level)
     s_data = s.main()
-    logger.info(f'transportation s_data:\n{s_data}')
+    #logger.debug(f'transportation s_data:\n{s_data}')
 
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,

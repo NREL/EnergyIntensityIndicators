@@ -21,6 +21,10 @@ from EnergyIntensityIndicators.utilities.testing_utilties \
     import TestingUtilities
 from EnergyIntensityIndicators.utilities import lmdi_utilities
 from EnergyIntensityIndicators import REPODIR
+from EnergyIntensityIndicators.utilities import loggers
+
+
+logger = loggers.get_logger()
 
 
 class TestLMDI:
@@ -30,8 +34,8 @@ class TestLMDI:
                       'industrial': IndustrialIndicators,
                       'electricity': ElectricityIndicators}
 
-    pnnl_directory = './tests/Indicators_Spreadsheets_2020'
-    output_directory = './Results'
+    pnnl_directory = os.path.join(REPODIR, 'tests/Indicators_Spreadsheets_2020')
+    output_directory = os.path.join(REPODIR, 'tests/Results')
     utils = TestingUtilities()
 
     def eii_output_factory(self, sector):
@@ -138,7 +142,7 @@ class TestLMDI:
                 'energy': energy_data,
                 'weather': weather}
 
-    def input_data(self, sector, level_of_aggregation_='All_Freight.Pipeline'):
+    def input_data(self, sector, level_of_aggregation_='All_Transportation.All_Freight.Pipeline'):
         eii = self.eii_output_factory(sector)
         raw_eii_data = eii.collect_data()
         eii, final_results = eii.get_nested_lmdi(level_of_aggregation_,
@@ -147,9 +151,7 @@ class TestLMDI:
                                                  breakout=False,
                                                  lmdi_type='II')
         # eii = pd.concat(new_data, axis=0, ignore_index=True)
-
         pnnl_data_raw = self.get_pnnl_data(sector)['input_data']
-
         level_of_aggregation = level_of_aggregation_.split(".")
         level1_name = level_of_aggregation[-1]
         print('level1_name', level1_name)
@@ -191,7 +193,10 @@ class TestLMDI:
 
         return eii, pnnl_data_
 
-    @pytest.mark.parametrize('sector', ['transportation']) # , 'residential', 'commercial', 'industrial', 'electricity'
+    @pytest.mark.parametrize(
+        ('sector'),
+        ((['transportation']))
+    ) # , 'residential', 'commercial', 'industrial', 'electricity'
     def test_build_nest(self, sector):
         """testing the results of LMDI.build_nest against a csv
            (to be compiled) of PNNL data.
@@ -956,6 +961,6 @@ class TestLMDI:
 
 if __name__ == '__main__':
     test = TestLMDI()
-    data = test.get_pnnl_data('transportation')
-    print(data)
+    data = test.test_build_nest('transportation')
+    #print(data)
 

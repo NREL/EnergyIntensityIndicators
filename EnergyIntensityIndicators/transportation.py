@@ -67,6 +67,8 @@ class TransportationIndicators(CalculateLMDI):
                         {'Oil Pipeline': None,
                          'Natural Gas Pipeline': None}}}}
 
+        logger.debug(f"sub_categories_list: {self.sub_categories_list}")
+
         super().__init__(sector='transportation',
                          level_of_aggregation=level_of_aggregation,
                          lmdi_models=lmdi_model,

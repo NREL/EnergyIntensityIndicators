@@ -9,7 +9,9 @@ from EnergyIntensityIndicators.additive_lmdi import AdditiveLMDI
 from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
+from EnergyIntensityIndicators.utilities import loggers
 
+logger = loggers.get_logger()
 
 class LMDI():
     """Base class for LMDI
@@ -491,6 +493,8 @@ class CalculateLMDI(LMDI):
         """Get lower level portion of nested dictionary from path
         """
 
+        logger.debug(f'deep_get: dictionary={dictionary}, keys={keys}')
+        logger.debug(f'available keys: {dictionary.keys()}')
         return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
                       keys.split("."), dictionary)
 
@@ -800,7 +804,7 @@ class CalculateLMDI(LMDI):
                 if isinstance(value, dict):
                     base_col_a = 'activity_type'
                     if len(lower_level_a.columns.difference([base_col_a]).tolist()) > 1:
-                        lower_level_a = df_utils().create_total_column(lower_level_a, 
+                        lower_level_a = df_utils().create_total_column(lower_level_a,
                                                                      key)[[base_col_a, key]]
 
                     base_col_e = 'Energy_Type'
@@ -845,9 +849,14 @@ class CalculateLMDI(LMDI):
         """Process and organize raw data
         """
 
-        print('level_name:', level_name)
+        logger.debug('in build_nest')
+        logger.debug(f'data.keys(): {data.keys()}')
+        logger.debug(f'level_name: {level_name}')
+        logger.debug(f'select_categories: {select_categories}')
         # print('data:\n', data)
-        print('data keys:\n', data.keys())
+
+        for k in data.keys():
+            logger.debug(f'data[{k}]: {data[k].keys()}')
         try:
             print('data[level_name]:', data[level_name].keys())
         except Exception:
@@ -916,7 +925,7 @@ class CalculateLMDI(LMDI):
                     reduce(lambda df1, df2:
                         df1.merge(df2[list(df2.columns.difference(df1.columns)) +
                                     ['Year', second_index]], how='outer',
-                                    on=['Year', second_index]), 
+                                    on=['Year', second_index]),
                         list_dfs).set_index('Year')
             else:
                 df = \
@@ -968,8 +977,12 @@ class CalculateLMDI(LMDI):
         intensity divided by total structure) need to be passed to higher level
         """
 
+        logger.debug(f"level_of_aggregation={level_of_aggregation}")
         categories_list = self.order_categories(level_of_aggregation,
                                                 raw_results)
+
+        logger.debug(f"raw_results.keys()={raw_results.keys()}")
+
         final_results_list = []
 
         for key in categories_list:
@@ -989,7 +1002,7 @@ class CalculateLMDI(LMDI):
                 loa = \
                     [self.sector.capitalize()] + level_of_aggregation + [level_total]
                 # loa = \
-                #     [s_sector.capitalize()+'.'+level_of_aggregation+level_total]                
+                #     [s_sector.capitalize()+'.'+level_of_aggregation+level_total]
                 categories = \
                     self.deep_get(self.categories_dict, '.'.join(level_of_aggregation) + f'.{key}')
 
@@ -1160,8 +1173,8 @@ class CalculateLMDI(LMDI):
             # print('categories_dict:\n', self.categories_dict)
             # print('len categories_dict:\n', len(self.categories_dict))
 
-            print('level_of_aggregation:', level_of_aggregation)
-
+            logger.debug(f'level_of_aggregation: {level_of_aggregation}')
+            logger.debug(f'categories_dict: {self.categories_dict}')
             if len(self.categories_dict) == 1 and \
                     list(self.categories_dict.values())[0] is None:
                 categories = self.categories_dict
@@ -1169,6 +1182,7 @@ class CalculateLMDI(LMDI):
                 categories = self.deep_get(self.categories_dict,
                                            level_of_aggregation)
 
+            logger.debug(f'categories: {categories}')
             data = reduce(lambda d, key: d.get(key, d) if isinstance(d, dict)
                           else d, level_of_aggregation_, raw_data)
 
@@ -1177,12 +1191,14 @@ class CalculateLMDI(LMDI):
             print('get_nested_categories:\n', categories)
             results_dict = dict()
 
+            logger.debug('calling build_nest')
             for results_dict in self.build_nest(data=data,
                                                 select_categories=categories,
                                                 results_dict=results_dict,
                                                 level1_name=level1_name):
                 continue
 
+            logger.debug('calling calculate_breakout_lmdi')
             final_results = \
                 self.calculate_breakout_lmdi(results_dict,
                                              level_of_aggregation_,

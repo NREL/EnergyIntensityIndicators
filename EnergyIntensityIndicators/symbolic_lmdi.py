@@ -5,7 +5,9 @@ import yaml
 import os
 
 from EnergyIntensityIndicators import DATADIR
+from EnergyIntensityIndicators.utilities import loggers
 
+logger = loggers.get_logger()
 
 class SymbolicLMDI:
     """Class to decompose changes in a variable using symbolic matrices
@@ -291,9 +293,9 @@ class SymbolicLMDI:
             weights (Symbolic Matrix): The log-mean divisia weights
         """
         lhs_total = lhs_matrix * sp.ones(lhs_matrix.shape[1], 1)
-        print('lhs_total:', lhs_total)
+        logger.debug(f'lhs_total: {lhs_total}')
         lhs_total = self.transform_col_vector(lhs_total)
-        print('lhs_total tiled:', lhs_total)
+        logger.debug(f'lhs_total tiled: {lhs_total}')
 
         sp.pprint(lhs_total)
         print(lhs_total.shape)

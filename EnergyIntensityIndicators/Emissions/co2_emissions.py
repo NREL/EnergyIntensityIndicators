@@ -431,7 +431,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             factors_df[factors_df['Variable'].isin(
                 ['Heat Content (HHV)', emissions_type])]
 
-        factors_df['value'] = factors_df['value'].fillna(1)
+        factors_df.loc[:, 'value'] = factors_df['value'].fillna(1)
 
         factors_df = \
             factors_df.groupby(['Category', 'Fuel Type']).prod()

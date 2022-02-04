@@ -20,6 +20,10 @@ from EnergyIntensityIndicators.Emissions.co2_emissions \
 from EnergyIntensityIndicators.Industry.manufacturing \
     import Manufacturing
 from EnergyIntensityIndicators import DATADIR, EIIDIR
+from EnergyIntensityIndicators.utilities import loggers
+
+
+logger = loggers.get_logger()
 
 
 class IndustrialEmissions(CO2EmissionsDecomposition):
@@ -350,7 +354,7 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     energy_data[energy_data['NAICS'] == int(naics)]
 
                 if combustion_energy_data.empty:
-                    print('energy_data:\n', energy_data)
+                    #logger.debug(f'energy_data: {energy_data}')
                     raise ValueError(f'energy_data missing naics code {naics}')
 
             combustion_energy_data = \
