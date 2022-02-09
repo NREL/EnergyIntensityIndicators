@@ -3,6 +3,10 @@ import numpy as np
 from functools import reduce
 from pandas.core.algorithms import isin
 
+from EnergyIntensityIndicators.utilities import loggers
+
+logger = loggers.get_logger()
+
 
 class DFUtilities:
     """Typically shouldn't be a class, Pytest seems to require
@@ -104,14 +108,14 @@ class DFUtilities:
         if isinstance(df2, pd.Series):
             df2 = df2.to_frame()
         cols = df2.columns.tolist()
-        print('cols:', cols)
+        #print('cols:', cols)
         if len(cols) > 1:
             df2[total_label] = df2.drop(
                 total_label, axis=1, errors='ignore').sum(axis=1,
                                                           numeric_only=True)
         else:
             col = cols[0]
-            print('col:', col)
+            #print('col:', col)
             df2 = df2.rename(
                 columns={col: total_label})
 
@@ -165,7 +169,7 @@ class DFUtilities:
                 df = df.reset_index()
                 edit_df_list.append(df)
             merged_data = \
-                pd.concat(edit_df_list, axis=0).groupby('Year').sum(min_count=1)
+                pd.concat(edit_df_list, axis=0, sort=False).groupby('Year').sum(min_count=1)
         else:
             merged_data = reduce(lambda df1, df2: df1.merge(df2, how='outer',
                                                             left_index=True,

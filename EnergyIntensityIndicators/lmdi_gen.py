@@ -101,7 +101,7 @@ class GeneralLMDI:
             # The FullLoader parameter handles the conversion from YAML
             # scalar values to Python the dictionary format
             input_dict = yaml.load(file, Loader=yaml.FullLoader)
-            logger.info(f'input_dict:\n {input_dict}')
+            #logger.info(f'input_dict:\n {input_dict}')
             for k, v in input_dict.items():
                 setattr(self, k, v)
 
@@ -150,6 +150,63 @@ class GeneralLMDI:
                 logger.error(msg)
                 raise ValueError(msg)
 
+    def compute_index(self, component, base_year_):
+        """Compute index of components (indexing to chosen base_year_),
+        replicating methodology in PNNL spreadsheets for the multiplicative
+        model
+
+        Args:
+            component (pd.Series or pd.DataFrame): If Dataframe, needs to be n x 1
+            base_year_ (int): [description]
+
+        Returns:
+            index (pd.DataFrame): Component data indexed to base_year_
+        """
+
+        #logger.info(f'Computing index: component={component}, base_year_={base_year_}')
+        component.index = component.index.astype(int)
+        if isinstance(component, pd.DataFrame):
+            component_col = component.columns[0]
+            component = component[component_col]
+        index = pd.DataFrame(index=component.index, columns=['index'])
+        component = component.replace([np.inf, -np.inf], np.nan)
+        component = component.fillna(1)
+
+        for y in component.index:
+            if y == min(component.index):
+                index.loc[y, 'index'] = 1
+            else:
+                if component.loc[y] == np.nan:
+                    index.loc[y, 'index'] = index.loc[y - 1, 'index']
+
+                else:
+                    index.loc[y, 'index'] = \
+                        index.loc[y - 1, 'index'] * component.loc[y]
+
+        index_normalized = index.divide(index.loc[base_year_])  # 1985=1
+        return index_normalized
+
+    def decomposition_multiplicative(self, terms_df):
+        """Format component data, collect overall effect, return indexed
+        dataframe of the results for the multiplicative LMDI model.
+
+        Args:
+            terms_df (pd.DataFrame): DataFrame with decomposed changes in
+                                     LHS var
+
+        Returns:
+            results (pd.DataFrame): terms_df (exponential) with Effect column
+        """
+
+        results = terms_df.apply(lambda col: np.exp(col), axis=1)
+
+        for col in results.columns:
+            results[col] = self.compute_index(results[col], self.base_year)
+
+        results['Effect'] = results.product(axis=1)
+
+        return results
+
     def multiplicative_weights(self, LHS, LHS_share):
         """Calculate log mean weights where T = t, 0 = t-1
 
@@ -194,62 +251,6 @@ class GeneralLMDI:
 
             return log_mean_weights_normalized
 
-    def compute_index(self, component, base_year_):
-        """Compute index of components (indexing to chosen base_year_),
-        replicating methodology in PNNL spreadsheets for the multiplicative
-        model
-
-        Args:
-            component (pd.Series or pd.DataFrame): If Dataframe, needs to be n x 1
-            base_year_ (int): [description]
-
-        Returns:
-            index (pd.DataFrame): Component data indexed to base_year_
-        """
-
-        logger.info(f'Computing index: component={component}, base_year_={base_year_}')
-        component.index = component.index.astype(int)
-        if isinstance(component, pd.DataFrame):
-            component_col = component.columns[0]
-            component = component[component_col]
-        index = pd.DataFrame(index=component.index, columns=['index'])
-        component = component.replace([np.inf, -np.inf], np.nan)
-        component = component.fillna(1)
-
-        for y in component.index:
-            if y == min(component.index):
-                index.loc[y, 'index'] = 1
-            else:
-                if component.loc[y] == np.nan:
-                    index.loc[y, 'index'] = index.loc[y - 1, 'index']
-
-                else:
-                    index.loc[y, 'index'] = \
-                        index.loc[y - 1, 'index'] * component.loc[y]
-
-        index_normalized = index.divide(index.loc[base_year_])  # 1985=1
-        return index_normalized
-
-    def decomposition_multiplicative(self, terms_df):
-        """Format component data, collect overall effect, return indexed
-        dataframe of the results for the multiplicative LMDI model.
-
-        Args:
-            terms_df (pd.DataFrame): DataFrame with decomposed changes in
-                                     LHS var
-
-        Returns:
-            results (pd.DataFrame): terms_df (exponential) with Effect column
-        """
-
-        results = terms_df.apply(lambda col: np.exp(col), axis=1)
-
-        for col in results.columns:
-            results[col] = self.compute_index(results[col], self.base_year)
-
-        results['Effect'] = results.product(axis=1)
-
-        return results
 
     def additive_weights(self, LHS, LHS_share):
         """Calculate log mean weights for the additive
@@ -283,33 +284,28 @@ class GeneralLMDI:
         log_mean_values_df = pd.DataFrame(index=LHS.index)
         LHS_data = LHS.copy()
 
-        column_list = []
-        logger.debug('Renaming LHS columns')
-        logger.debug(f'LHS.columns: {LHS.columns}')
         for col in LHS.columns:
-            logger.debug(f'LHS col: {col}')
+            LHS_data[f"{col}_shift"] = LHS_data[col].shift(
+                periods=1, axis='index', fill_value=0)
+
+        print(f'LHS_cols: {LHS_data.columns}')
+        column_list = []
+        for col in LHS_data.columns:
+            #logger.debug(f'LHS col: {col}')
             if isinstance(col, str):
-                logger.debug('Found string instead of tuple')
-                #dont know whats happening here
+
                 tmp = re.findall('(\(.*?\)).', col)[0]
-                logger.debug(f're.findall: {tmp}')
+            #logger.debug(f're.findall: {tmp}')
                 new_col_name = ast.literal_eval(tmp)
-                logger.debug(f'new_col_name: {new_col_name}')
                 column_list.append(new_col_name)
             else:
-                logger.debug('Found tuple')
                 column_list.append(col)
-
-        LHS.columns = pd.MultiIndex.from_tuples(column_list)
-        logger.debug('Renamed LHS columns')
+        LHS_data.columns = pd.MultiIndex.from_tuples(column_list)
+            #logger.debug(f'new LHS col: {new_col_name}')
 
         for col in LHS.columns:
-            logger.debug(f'LHS col: {col}')
-            LHS_data[f"{col}_shift"] = LHS_data[col].shift(
-                                        periods=1, axis='index', fill_value=0)
-
             # apply generally not preferred for row-wise operations but?
-            logger.debug(f"LHS_data.keys(): {LHS_data.keys()}")
+            #logger.debug(f"LHS_data.keys(): {LHS_data.keys()}")
             #logger.debug(f'LHS_data[[{col}, {col}_shift]]: ' + LHS_data[[col, f'{col}_shift']])
             log_mean_values = \
                 LHS_data[[col, f"{col}_shift"]].apply(
@@ -493,7 +489,7 @@ class GeneralLMDI:
                             p_str = '.'.join(p)
                             paths_dict[p_str] = base_data
 
-                    logger.info(f'sub_dict: {sub_dict}')
+                    #logger.info(f'sub_dict: {sub_dict}')
                     paths_dict.update(sub_dict)
                 else:
                     p_str = '.'.join(p)
@@ -571,7 +567,7 @@ class GeneralLMDI:
             paths_dict (dict): Dictionary of variable data with paths as keys
                                and variable+path DataFrame as values
         """
-        logger.info('Aggregating data with aggregate_data')
+        #logger.info('Aggregating data with aggregate_data')
         paths_dict = self.collect_base_data(sub_categories, raw_data, variable)
         len_dict, key_range = self.create_len_dict(paths_dict)
 
@@ -587,7 +583,7 @@ class GeneralLMDI:
                     other_p = paths[:i] + paths[(i+1):]
                     #logger.debug(f'other_p:\n {other_p}')
                     for k, j in enumerate(other_p):
-                        logger.info(f'j: {j}')
+                        #logger.info(f'j: {j}')
                         other_p_short = j.split('.')[:-1]
                         if other_p_short == path_list_short:
                             p_short_data.append(j)
@@ -618,6 +614,7 @@ class GeneralLMDI:
 
     def group_data(self, path_list, data_dict, variable,
                    lhs_data, lhs_sub_names):
+
         """[summary]
 
         Args:
@@ -674,8 +671,8 @@ class GeneralLMDI:
                             lhs_df = lhs_data[path]
                             weights = \
                                 self.calculate_weights(lhs_df, key)
-                            logger.debug(f'lhs_df:\n {lhs_df}')
-                            logger.debug(f'type lhs_df:\n {type(lhs_df)}')
+                            #logger.debug(f'lhs_df:\n {lhs_df}')
+                            #logger.debug(f'type lhs_df:\n {type(lhs_df)}')
                         except Exception:
                             weights = None
 
@@ -717,6 +714,7 @@ class GeneralLMDI:
                 #logger.debug(f'lower_level_data:\n {lower_level_data}')
                 all_level.append(lower_level_data)
             try:
+                #logger.debug(f"all_level: {all_level}")
                 level_data = \
                     df_utils().merge_df_list(all_level, keep_cols)
             except Exception as e:
@@ -751,12 +749,12 @@ class GeneralLMDI:
         new_paths = {k: f'total.{k}' for k in
                      variable_data.keys() if not k.startswith('total')}
 
-        logger.info('new_paths:\n{}'.format(new_paths))
+        #logger.info('new_paths:\n{}'.format(new_paths))
         for old, new in new_paths.items():
             variable_data[new] = variable_data.pop(old)
-        logger.info('variable data keys:\n{}\n base_var:{}\n subs:{}'.format(
-            variable_data.keys(), base_var, subs
-            ))
+        #logger.info('variable data keys:\n{}\n base_var:{}\n subs:{}'.format(
+        #    variable_data.keys(), base_var, subs
+        #    ))
         subscripts = subscript_data[base_var]  # dictionary
         base_path = 'total'
         term_piece_dfs = []
@@ -766,7 +764,7 @@ class GeneralLMDI:
             if 'total' in variable_data.keys():
                 path = base_path
                 path_df = variable_data[path]
-                logger.debug('path_df of subs 0:\n{}'.format(path_df))
+                #logger.debug('path_df of subs 0:\n{}'.format(path_df))
                 term_piece_dfs.append(path_df)
             elif len(variable_data) == 1:
                 path = list(variable_data.keys())[0]
@@ -784,7 +782,7 @@ class GeneralLMDI:
         if len(subs) == 1:
             path = base_path
             path_df = variable_data[path]
-            logger.info('path_df of subs 1:\n{}'.format(path_df))
+            #logger.info('path_df of subs 1:\n{}'.format(path_df))
             combo_list = base_path.split('.')
             cols = list(path_df.columns)
             levels = [[c]*len(cols) for c in combo_list] + [cols]
@@ -794,20 +792,20 @@ class GeneralLMDI:
 
         elif len(subs) > 1:  # len(subs_short)
             p_names = [subscripts[p] for p in subs_short]  # list of lists of names
-            logger.info('p_names: {}'.format(p_names))
+            #logger.info('p_names: {}'.format(p_names))
             combinations = list(itertools.product(*p_names))
-            logger.info('combinations:{}'.format(combinations))
+            #logger.info('combinations:{}'.format(combinations))
 
             for combo in combinations:
                 combo_list = base_path.split('.') + list(combo)
-                logger.info(f'combo_list: {combo_list}')
+                #logger.info(f'combo_list: {combo_list}')
                 path_n_1 = '.'.join(combo_list[:-1])
                 path = '.'.join(combo_list)
-                logger.info(f'path: {path}')
+                #logger.info(f'path: {path}')
                 if path in variable_data:  # path_n_1
-                    logger.info('path in variable data')
+                    #logger.info('path in variable data')
                     path_df = variable_data[path]  # path_n_1
-                    logger.info(f'path_df subs > 1:\n {path_df}')
+                    #logger.info(f'path_df subs > 1:\n {path_df}')
                 elif path_n_1 in variable_data:
                     path_df = variable_data[path_n_1]
 
@@ -816,17 +814,17 @@ class GeneralLMDI:
                 else:
                     cols = list(path_df.columns)
                     levels = [[c]*len(cols) for c in combo_list] + [cols]   # combo should be combo_list
-                    logger.info(f'levels: {levels}')
+                    #logger.info(f'levels: {levels}')
                     midx = pd.MultiIndex.from_arrays(levels)
                     path_df.columns = midx
 
-                logger.info(f'path_df subs > 1 multi:\n {path_df}')
-                logger.info(f'path_df.columns: {path_df.columns}')
+                #logger.info(f'path_df subs > 1 multi:\n {path_df}')
+                #logger.info(f'path_df.columns: {path_df.columns}')
                 term_piece_dfs.append(path_df)
 
         # term_df = pd.concat(term_piece_dfs, axis=0)
         term_df = df_utils().merge_df_list(term_piece_dfs)
-        logger.info(f'term_df:\n {term_df}')
+        #logger.info(f'term_df:\n {term_df}')
 
         return term_df
 
@@ -856,9 +854,9 @@ class GeneralLMDI:
         # units = self.subscripts[subscript]['names'].values()
 
         if total_name == 'Pipeline':
-            logger.info("THIS IS PIPELINE DATA\n Are there weights? {}\n{}".format(
-                weight_data, weights)
-                )
+            #logger.info("THIS IS PIPELINE DATA\n Are there weights? {}\n{}".format(
+            #    weight_data, weights)
+            #    )
             base_data.to_csv('pipeline_data.csv')
         if weight_data:
             total_df = \
@@ -913,6 +911,7 @@ class GeneralLMDI:
 
         if self.model == 'additive':
             weights = self.additive_weights(lhs, lhs_share)
+            #weights = self.multiplicative_weights(lhs, lhs_share)
         elif self.model == 'multiplicative':
             weights = self.multiplicative_weights(lhs, lhs_share)
 
@@ -932,13 +931,13 @@ class GeneralLMDI:
         Returns:
             [type]: [description]
         """
-        logger.info(f'numerator:\n{numerator}')
+        #logger.debug(f'numerator:\n{numerator}')
         numerator_levels = numerator.columns.nlevels
 
-        logger.info(f'denominator:\n{denominator}')
+        #logger.debug(f'denominator:\n{denominator}')
 
         highest_shared = sorted(shared_levels, reverse=True)[0]
-        logger.info(f'highest_shared: {highest_shared}')
+        #logger.debug(f'highest_shared: {highest_shared}')
         if highest_shared == 0:
             column_tuples = [numerator.columns.get_level_values(0)[0]]
         else:
@@ -946,7 +945,7 @@ class GeneralLMDI:
                              for i in range(highest_shared + 1)]
             column_tuples = list(set(list(zip(*column_tuples))))
 
-        logger.info(f'column_tuples: {column_tuples}')
+        #logger.debug(f'column_tuples: {column_tuples}')
         grouped_n = numerator.groupby(level=shared_levels,
                                       axis=1)
         grouped_d = denominator.groupby(level=shared_levels,
@@ -954,34 +953,34 @@ class GeneralLMDI:
 
         results = []
         for u in column_tuples:
-            logger.info(f'u: {u}')
+            #logger.debug(f'u: {u}')
 
             n = grouped_n.get_group(u)
-            logger.info(f'n:\n{n}')
+            #logger.debug(f'n:\n{n}')
             if highest_shared > 0:
                 to_drop = list(range(highest_shared + 1, numerator_levels))
-                logger.info(f'to_drop: {to_drop}')
+                #logger.info(f'to_drop: {to_drop}')
                 n.columns = n.columns.droplevel(to_drop)
             if not isinstance(n.columns, pd.MultiIndex):
                 midx = [list(n.columns)]
                 n.columns = pd.MultiIndex.from_arrays(midx)
 
-            logger.info(f'n post group:\n {n}')
-            logger.info(f'isinstance(n.columns, pd.MultiIndex): {isinstance(n.columns, pd.MultiIndex)}')
+            #logger.debug(f'n post group:\n {n}')
+            #logger.debug(f'isinstance(n.columns, pd.MultiIndex): {isinstance(n.columns, pd.MultiIndex)}')
 
             level_name = \
                 pd.unique(n.columns.get_level_values(
                     highest_shared-1))[0]
 
             d = grouped_d.get_group(u)
-            logger.info(f'n post group:\n {d}')
-            logger.info(f'isinstance(n.columns, pd.MultiIndex): {isinstance(d.columns, pd.MultiIndex)}')
+            #logger.debug(f'n post group:\n {d}')
+            #logger.debug(f'isinstance(n.columns, pd.MultiIndex): {isinstance(d.columns, pd.MultiIndex)}')
             try:
                 ratio = n.divide(d, axis=1)
             except ValueError:
                 ratio = n.divide(d.values, axis=1)
 
-            logger.info(f'ratio:\n {ratio}')
+            #logger.info(f'ratio:\n {ratio}')
 
             if isinstance(u, str):
                 path = u
@@ -993,10 +992,10 @@ class GeneralLMDI:
             elif isinstance(u, tuple):
                 path = '.'.join(list(u))
             lhs = lhs_data[path]
-            logger.debug(f'lhs:\n{lhs}')
-            logger.debug('level_name == {}'.format(level_name))
+            #logger.debug(f'lhs:\n{lhs}')
+            #logger.debug('level_name == {}'.format(level_name))
             w = self.calculate_weights(lhs, level_name)
-            logger.debug(f'w:\n{w.sum(axis=1)}')  # Weights sum should = 1
+            #logger.debug(f'w:\n{w.sum(axis=1)}')  # Weights sum should = 1
             if w.shape[1] == ratio.shape[1]:
                 result = ratio.multiply(w, axis=1).sum(axis=1)
                 result = self.decomposition_results(result)
@@ -1057,17 +1056,17 @@ class GeneralLMDI:
             first_part = parts[0]
             first_df = part_data_dict[first_part]
             numerator = first_df.copy()
-            logger.info(f'numerator:\n {numerator}')
+            #logger.info(f'numerator:\n {numerator}')
 
             for i in range(1, len(parts)):
                 denominator_part = parts[i]
                 denominator = part_data_dict[denominator_part]
-                logger.info(f'denominator:\n {denominator}')
+                #logger.info(f'denominator:\n {denominator}')
 
                 numerator, denominator = \
                     df_utils().ensure_same_indices(numerator, denominator)
                 numerator_levels = numerator.columns.nlevels
-                logger.info(f'numerator_levels: {numerator_levels}')
+                #logger.info(f'numerator_levels: {numerator_levels}')
                 try:
                     denominator_levels = denominator.columns.nlevels
                 except ValueError:
@@ -1083,9 +1082,9 @@ class GeneralLMDI:
                         midx = pd.MultiIndex.from_arrays(levels)
                         numerator.columns = midx
 
-                logger.debug('denominator_levels for {}:\n {}'.format(
-                    t, denominator_levels
-                    ))
+                #logger.debug('denominator_levels for {}:\n {}'.format(
+                #    t, denominator_levels
+                #    ))
 
                 if numerator_levels > denominator_levels:
                     level_count = denominator_levels
@@ -1102,7 +1101,7 @@ class GeneralLMDI:
                 numerator.to_csv(os.path.join(DATADIR, 'yamls/numerator.csv'))
                 denominator.to_csv(os.path.join(DATADIR, 'yamls/denominator.csv'))
                 if group_:
-                    logger.info(f'grouped numerator:\n {numerator.groupby(level=shared_levels,axis=1).sum()}')
+                    #logger.info(f'grouped numerator:\n {numerator.groupby(level=shared_levels,axis=1).sum()}')
                     numerator = self.divide_multilevel(numerator, denominator,
                                                        shared_levels, lhs_data)
                 else:
@@ -1116,17 +1115,19 @@ class GeneralLMDI:
                     #     numerator = pd.concat(
                     #         [num_denom.loc[:, (for l in numerator.columns.levels[numerator_levels-2]:
 
+                    logger.debug(f"denominator.info(): {denominator.info()}")
+
                     numerator = numerator.divide(denominator.values, axis=1)
 
-                logger.info(f'numerator:\n {numerator}')
+                #logger.info(f'numerator:\n {numerator}')
                 if t == 'E_i_j/E_i':
                     exit()
             f = numerator.copy()
             # else:
                 # f = input_data[t]
-            logger.info(f'f:\n {f}')
+            #logger.info(f'f:\n {f}')
             f_levels = f.columns.nlevels
-            logger.info(f'f_levels: {f_levels}')
+            #logger.info(f'f_levels: {f_levels}')
 
             if f.shape[1] > 1:
                 if f.shape[1] == weights.shape[1]:
@@ -1158,7 +1159,7 @@ class GeneralLMDI:
             if isinstance(component, pd.Series):
                 component = component.to_frame(name=t)
 
-            logger.info(f'component:\n {component}')
+            #logger.info(f'component:\n {component}')
             if component.shape[1] == 2 and name in component.columns:
                 component = component.drop(name, axis=1, errors='ignore')
             component = component.rename(
@@ -1238,7 +1239,7 @@ class GeneralLMDI:
             results (dataframe): LMDI decomposition results
         """
 
-        logger.debug(f'gen expr attributes: {dir(self)}')
+        #logger.debug(f'gen expr attributes: {dir(self)}')
         self.check_eval_str(self.decomposition)
 
         for t in self.terms:
@@ -1250,17 +1251,18 @@ class GeneralLMDI:
         all_subscripts = dict()
 
         vars_ = self.variables
+
         lhs_idx = vars_.index(self.LHS_var)
         lhs_ = vars_.pop(lhs_idx)
         # logger.info(f'Line 1219\nlhs_: {lhs_}')
-        logger.info('Nesting data...')
+        #logger.info('Nesting data...')
         lhs_data, lhs_sub_names = \
             self.nest_var_data(raw_data,
                                lhs_, sub_categories)
 
         for v in vars_:
             var_name = v.split('_')[0]
-            logger.info(f'Line 1226\nv: {v}')
+            #logger.info(f'v: {v}')
             v_data, sub_names = \
                 self.nest_var_data(raw_data,
                                    v, sub_categories,
@@ -1274,8 +1276,8 @@ class GeneralLMDI:
         input_data.update({lhs_base_var: lhs_data})
         all_subscripts.update({lhs_base_var: lhs_sub_names})
 
-        logger.info(f'lhs_data.keys(): {lhs_data.keys()}')
-        logger.info(f'name: {name}')
+        #logger.info(f'lhs_data.keys(): {lhs_data.keys()}')
+        #logger.info(f'name: {name}')
         lhs = lhs_data[name]
 
         weights = self.calculate_weights(lhs=lhs,
@@ -1312,7 +1314,7 @@ class GeneralLMDI:
                                      all_subscripts,
                                      weights, name,
                                      lhs_data)
-        logger.info(f'results:\n {results}')
+        #logger.info(f'results:\n {results}')
         # exit()
 
         expression = self.decomposition_results(results)
@@ -1415,13 +1417,13 @@ class GeneralLMDI:
         """
 
         results = self.general_expr(input_data, sub_categories)
-        logger.info(f'results:\n {results}')
+        #logger.info(f'results:\n {results}')
         # exit()
         if self.model == 'multiplicative':
             self.spaghetti_plot(data=results)
 
         formatted_results = self.prepare_for_viz(results)
-        logger.info(f'formatted_results:\n {formatted_results}')
+        #logger.info(f'formatted_results:\n {formatted_results}')
 
         return formatted_results
 
@@ -1437,7 +1439,7 @@ class GeneralLMDI:
             pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_energy.csv')).set_index('Year')
         emissions = \
             pd.read_csv(os.path.join(DATADIR, 'yamls/industrial_energy.csv')).set_index('Year')
-        logger.info(f'energy cols: {energy.columns}')
+        #logger.info(f'energy cols: {energy.columns}')
 
         data = {'E_i_j': energy,
                 'A_i': activity,

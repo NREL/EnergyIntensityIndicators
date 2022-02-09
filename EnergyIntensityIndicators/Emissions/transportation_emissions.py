@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import pickle
 
 from EnergyIntensityIndicators import DATADIR, EIIDIR, RESULTSDIR
 from EnergyIntensityIndicators.transportation import TransportationIndicators
@@ -360,10 +361,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         # bnb changed pivot->pivot_table, added aggfunc argument?
         energy = \
-                energy_data.pivot_table(index='Year',
-                                        columns='Fuel Type',
-                                        values='value',
-                                        aggfunc='first')
+            energy_data.pivot_table(index='Year',
+                                    columns='Fuel Type',
+                                    values='value',
+                                    aggfunc='first')
 
         energy = \
             energy.apply(
@@ -410,13 +411,32 @@ if __name__ == '__main__':
     module_ = TransportationEmssions
     level = 'All_Transportation'
 
-    s = module_(directory, output_directory,
-                level_of_aggregation=level)
-    s_data = s.main()
+    data_file = os.path.join(DATADIR, 's.pickle')
+    if os.path.exists(data_file):
+        with open(data_file, 'rb') as handle:
+            s = pickle.load(handle)
+    else:
+
+        s = module_(directory, output_directory,
+                    level_of_aggregation=level)
+
+        with open(data_file, 'wb') as handle:
+            pickle.dump(s, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    data_file = os.path.join(DATADIR, 's_data.pickle')
+    if os.path.exists(data_file):
+        with open(data_file, 'rb') as handle:
+            s_data = pickle.load(handle)
+    else:
+
+        s_data = s.main()
+
+        with open(data_file, 'wb') as handle:
+            pickle.dump(s_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
     #logger.debug(f'transportation s_data:\n{s_data}')
 
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,
                           data_dict=s_data)
 
-    logger.info(f'transportation results:\n{results}')
+    #logger.info(f'transportation results:\n{results}')

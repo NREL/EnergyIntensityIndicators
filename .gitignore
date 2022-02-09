@@ -120,3 +120,7 @@ keys.json
 
 EnergyIntensityIndicators/Data/yamls
 EnergyIntensityIndicators/Data/emissions_data
+
+*.pickle
+
+testing.ipynb
