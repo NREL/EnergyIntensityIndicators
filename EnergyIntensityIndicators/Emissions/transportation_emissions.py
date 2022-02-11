@@ -5,8 +5,10 @@ import os
 import sys
 import pickle
 
-from EnergyIntensityIndicators import DATADIR, EIIDIR, RESULTSDIR
+from EnergyIntensityIndicators import (DATADIR, EIIDIR,
+                                       RESULTSDIR)
 from EnergyIntensityIndicators.transportation import TransportationIndicators
+from EnergyIntensityIndicators.transportation import SUB_CATEGORIES
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 # from EnergyIntensityIndicators.economy_wide import EconomyWide
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
@@ -27,43 +29,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
         config_path = os.path.join(DATADIR, 'yamls/transportation_emissions.yaml')
 
-        self.sub_categories_list = \
-            {'All_Transportation':
-                {'All_Passenger':
-                    {'Highway':
-                        {'Passenger Cars and Trucks':
-                            {'Passenger Car – SWB Vehicles':
-                                {'Passenger Car': None,
-                                 'SWB Vehicles': None},
-                             'Light Trucks – LWB Vehicles':
-                                {'Light Trucks': None,
-                                 'LWB Vehicles': None},
-                             'Motorcycles': None},
-                         'Buses':
-                            {'Urban Bus': None,
-                             'Intercity Bus': None,
-                             'School Bus': None},
-                         'Paratransit':
-                            None},
-                     'Rail':
-                        {'Urban Rail':
-                            {'Commuter Rail': None,
-                             'Heavy Rail': None,
-                             'Light Rail': None},
-                         'Intercity Rail': None},
-                     'Air':
-                        {'Commercial Carriers': None,
-                         'General Aviation': None}},
-                 'All_Freight':
-                    {'Highway':
-                        {'Single-Unit Truck': None,
-                         'Combination Truck': None},
-                     'Rail': None,
-                     'Air': None,
-                     'Waterborne': None,
-                     'Pipeline':
-                        {'Oil Pipeline': None,
-                         'Natural Gas Pipeline': None}}}}
+        self.sub_categories_list = SUB_CATEGORIES
 
         super().__init__(directory, output_directory,
                          sector='Transportation',

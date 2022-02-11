@@ -492,7 +492,6 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             'US Average': 10339,  # ef is kg/MWh; Btu/kWh
             'Natural Gas': 1031,  # ef is per scf
             'Diesel Fuel': 138700,  # ef is per gallon
-            #'School':120900 #bnb added this
             }
 
         energy_data = energy_data.drop('region', axis=1, errors='ignore')

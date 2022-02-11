@@ -284,63 +284,55 @@ class GeneralLMDI:
         log_mean_values_df = pd.DataFrame(index=LHS.index)
         LHS_data = LHS.copy()
 
+        share_cols_to_drop = []
+        data_cols_to_drop = []
+
         for col in LHS.columns:
-            LHS_data[f"{col}_shift"] = LHS_data[col].shift(
+
+            shift_col_name = f"{col}_shift"
+            if isinstance(LHS_data.columns, pd.MultiIndex):
+                shift_col_name = shift_col_name[
+                    shift_col_name.find('(')+1:shift_col_name.rfind(')_shift')]
+
+                #logger.debug(f're.findall: {tmp}')
+                shift_col_name = ast.literal_eval(shift_col_name)
+
+            LHS_data[shift_col_name] = LHS_data[col].shift(
                 periods=1, axis='index', fill_value=0)
 
-        print(f'LHS_cols: {LHS_data.columns}')
-        column_list = []
-        for col in LHS_data.columns:
-            #logger.debug(f'LHS col: {col}')
-            if isinstance(col, str):
+            data_cols_to_drop.append(shift_col_name)
 
-                tmp = re.findall('(\(.*?\)).', col)[0]
-            #logger.debug(f're.findall: {tmp}')
-                new_col_name = ast.literal_eval(tmp)
-                column_list.append(new_col_name)
-            else:
-                column_list.append(col)
-        LHS_data.columns = pd.MultiIndex.from_tuples(column_list)
-            #logger.debug(f'new LHS col: {new_col_name}')
-
-        for col in LHS.columns:
-            # apply generally not preferred for row-wise operations but?
-            #logger.debug(f"LHS_data.keys(): {LHS_data.keys()}")
-            #logger.debug(f'LHS_data[[{col}, {col}_shift]]: ' + LHS_data[[col, f'{col}_shift']])
             log_mean_values = \
-                LHS_data[[col, f"{col}_shift"]].apply(
+                LHS_data[[col, shift_col_name]].apply(
                     lambda row: lmdi_utilities.logarithmic_average(
-                        row[col], row[f"{col}_shift"]), axis=1)
+                        row[col], row[shift_col_name]), axis=1)
 
             log_mean_values_df[col] = log_mean_values.values
 
-            LHS_share[f"{col}_shift"] = LHS_share[col].shift(periods=1,
+            LHS_share[shift_col_name] = LHS_share[col].shift(periods=1,
                                                              axis='index',
                                                              fill_value=0)
+
+            share_cols_to_drop.append(shift_col_name)
             # apply generally not preferred for row-wise operations but?
             log_mean_shares = \
-                LHS_share[[col, f"{col}_shift"]].apply(
+                LHS_share[[col, shift_col_name]].apply(
                     lambda row: lmdi_utilities.logarithmic_average(
-                        row[col], row[f"{col}_shift"]), axis=1)
+                        row[col], row[shift_col_name]), axis=1)
 
-            LHS_share[f"log_mean_shares_{col}"] = log_mean_shares
+            log_mean_shares_col_name = f'log_mean_shares_{col}'
+            if isinstance(LHS_share.columns, pd.MultiIndex):
+                log_mean_shares_col_name = log_mean_shares_col_name[
+                    log_mean_shares_col_name.find('(')+1:log_mean_shares_col_name.rfind(')_shift')]
+                log_mean_shares_col_name = ast.literal_eval(log_mean_shares_col_name)
 
-            log_mean_weights[f'log_mean_weights_{col}'] = \
+            LHS_share[log_mean_shares_col_name] = log_mean_shares
+            share_cols_to_drop.append(log_mean_shares_col_name)
+
+            log_mean_weights[log_mean_shares_col_name] = \
                 log_mean_shares * log_mean_values
 
-        cols_to_drop1 = \
-            [col for col in LHS_share.columns if
-             col.startswith('log_mean_shares_')]
-
-        LHS_share = LHS_share.drop(cols_to_drop1, axis=1)
-
-        cols_to_drop = \
-            [col for col in LHS_share.columns if col.endswith('_shift')]
-        LHS_share = LHS_share.drop(cols_to_drop, axis=1)
-
-        cols_to_drop_ = [col for col in LHS.columns if col.endswith('_shift')]
-
-        LHS_data = LHS_data.drop(cols_to_drop_, axis=1)
+        LHS_data = LHS_data.drop(data_cols_to_drop, axis=1)
 
         if self.lmdi_type == 'LMDI-I':
             return log_mean_values_df
@@ -1254,19 +1246,14 @@ class GeneralLMDI:
 
         lhs_idx = vars_.index(self.LHS_var)
         lhs_ = vars_.pop(lhs_idx)
-        # logger.info(f'Line 1219\nlhs_: {lhs_}')
-        #logger.info('Nesting data...')
-        lhs_data, lhs_sub_names = \
-            self.nest_var_data(raw_data,
-                               lhs_, sub_categories)
+        lhs_data, lhs_sub_names = self.nest_var_data(
+            raw_data, lhs_, sub_categories)
 
         for v in vars_:
             var_name = v.split('_')[0]
-            #logger.info(f'v: {v}')
-            v_data, sub_names = \
-                self.nest_var_data(raw_data,
-                                   v, sub_categories,
-                                   lhs_data, lhs_sub_names)
+            v_data, sub_names = self.nest_var_data(
+                raw_data, v, sub_categories,
+                lhs_data, lhs_sub_names)
 
             input_data[var_name] = v_data
             all_subscripts[var_name] = sub_names
