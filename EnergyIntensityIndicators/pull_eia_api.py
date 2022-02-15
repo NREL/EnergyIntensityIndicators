@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 import pandas as pd
 import numpy as np
@@ -41,7 +40,7 @@ class GetEIAData:
     def get_category(self, api_key, id_):
         """Collect categorical data from EIA API by merging data for all child series
         """
-        api_call = f'http://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
+        api_call = f'https://api.eia.gov/category/?api_key={api_key}&category_id={id_}'
         r = requests.get(api_call)
         data = r.json()
 
@@ -55,7 +54,7 @@ class GetEIAData:
     def get_series(api_key, id_, units_col=False):
         """Collect series data from EIA API, format in dataframe with year as index
         """
-        api_call = f'http://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
+        api_call = f'https://api.eia.gov/series/?api_key={api_key}&series_id={id_}'
         r = requests.get(api_call)
         eia_data = r.json()
         date_column_name = str(eia_data['series'][0]['f'])

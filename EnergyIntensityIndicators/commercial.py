@@ -51,7 +51,7 @@ class CommercialIndicators(CalculateLMDI):
     def __init__(self, directory, output_directory, level_of_aggregation,
                  lmdi_model=['multiplicative'], end_year=2018, base_year=1985):
         self.end_year = end_year
-        self.sub_categories_list = {'Commercial_Total': None}  #, 'Total_Commercial_LMDI_UtilAdj': None}
+        self.sub_categories_list = {'Commercial_Total': None}
         self.eia_comm = GetEIAData('commercial')
         self.energy_types = ['elec', 'fuels', 'deliv',
                              'source', 'source_adj']

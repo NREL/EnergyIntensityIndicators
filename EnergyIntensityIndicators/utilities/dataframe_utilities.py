@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from functools import reduce
-from pandas.core.algorithms import isin
 
 from EnergyIntensityIndicators.utilities import loggers
 
@@ -154,7 +153,8 @@ class DFUtilities:
             dataset[total_label] = dataset[total_label].replace(0, np.nan)
             # print('dataset:\n', dataset)
             shares = dataset.drop(total_label, axis=1).divide(
-                dataset[total_label].values.reshape(len(dataset[total_label]), 1))
+                dataset[total_label].values.reshape(
+                    len(dataset[total_label]), 1))
         return shares
 
     @staticmethod
@@ -162,6 +162,8 @@ class DFUtilities:
         """Complete outer merge on a list of dataframes, merging on left and
         right index of each
         """
+        # logger.debug(f'df_list: {df_list}')
+        # logger.debug(f'keep_cols: {keep_cols}')
         if keep_cols:
             edit_df_list = []
             for df in df_list:

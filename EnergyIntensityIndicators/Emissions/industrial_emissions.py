@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import os
 
-from EnergyIntensityIndicators.LMDI import CalculateLMDI
-# from EnergyIntensityIndicators.economy_wide import EconomyWide
-from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities.standard_interpolation \
@@ -14,12 +11,11 @@ from EnergyIntensityIndicators.Emissions.noncombustion \
     import NonCombustion
 from EnergyIntensityIndicators.industry \
     import IndustrialIndicators
-from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
-    import SEDSEmissionsData, CO2EmissionsDecomposition
+    import CO2EmissionsDecomposition
 from EnergyIntensityIndicators.Industry.manufacturing \
     import Manufacturing
-from EnergyIntensityIndicators import DATADIR, EIIDIR
+from EnergyIntensityIndicators import DATADIR, EIIDIR, RESULTSDIR
 from EnergyIntensityIndicators.utilities import loggers
 
 
@@ -33,20 +29,27 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
     """
     def __init__(self, directory, output_directory, level_of_aggregation):
         if level_of_aggregation == 'Manufacturing':
-            fname = os.path.join(DATADIR, 'yamls/combustion_noncombustion_test.yaml')
+            fname = os.path.join(
+                DATADIR, 'yamls/combustion_noncombustion_test.yaml')
         elif level_of_aggregation == 'NonManufacturing':
-            fname = os.path.join(DATADIR, 'yamls/combustion_noncombustion_test.yaml')
+            fname = os.path.join(
+                DATADIR, 'yamls/combustion_noncombustion_test.yaml')
         elif level_of_aggregation == 'Industry':
-            fname = os.path.join(DATADIR, 'yamls/total_industrial_emissions.yaml')
+            fname = os.path.join(
+                DATADIR, 'yamls/total_industrial_emissions.yaml')
         self.sub_categories_list = \
             {'Industry':
                 {'Manufacturing':
-                    {'Food and beverage and tobacco products': {'combustion': None},
-                     'Textile mills and textile product mills': {'combustion': None},
-                     'Apparel and leather and allied products': {'combustion': None},
+                    {'Food and beverage and tobacco products':
+                        {'combustion': None},
+                     'Textile mills and textile product mills':
+                        {'combustion': None},
+                     'Apparel and leather and allied products':
+                        {'combustion': None},
                      'Wood products': {'combustion': None},
                      'Paper products': {'combustion': None},
-                     'Printing and related support activities': {'combustion': None},
+                     'Printing and related support activities':
+                        {'combustion': None},
                      'Petroleum and coal products': {'combustion': None},
                      'Chemical products':
                         {'noncombustion':
@@ -61,7 +64,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                              'N2O from Product Uses': None,
                              'Urea Consumption for NonAgricultural Purposes':
                                 None,
-                             'Caprolactam, Glyoxal, and Glyoxylic Acid Production':
+                             'Caprolactam, Glyoxal, \
+                                 and Glyoxylic Acid Production':
                                 None},
                          'combustion': None},
                      'Plastics and rubber products': {'combustion': None},
@@ -87,8 +91,10 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                          'combustion': None},
                      'Machinery': {'combustion': None},
                      'Computer and electronic products': {'combustion': None},
-                     'Electrical equipment, appliances, and components': {'combustion': None},
-                     'Motor vehicles, bodies and trailers, and parts': {'combustion': None},
+                     'Electrical equipment, appliances, and components':
+                         {'combustion': None},
+                     'Motor vehicles, bodies and trailers, and parts':
+                         {'combustion': None},
                      'Furniture and related products': {'combustion': None},
                      'Miscellaneous manufacturing': {'combustion': None}},
                  'Nonmanufacturing':
@@ -286,8 +292,9 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         manufacturing = manufacturing.dropna(how='all', axis=1)
         manufacturing = manufacturing.fillna(np.nan)
         manufacturing = manufacturing[
-            (manufacturing['NAICS'].notnull()) & (manufacturing['NAICS'] != 'Total')
-            & (manufacturing['NAICS'] != 'RSE Column Factors:')]
+            (manufacturing['NAICS'].notnull()) &
+            (manufacturing['NAICS'] != 'Total') &
+            (manufacturing['NAICS'] != 'RSE Column Factors:')]
 
         all_manufacturing = []
         for n in manufacturing['NAICS'].unique():
@@ -322,16 +329,18 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
         Args:
             energy_data (pd.DataFrame): Energy data for the manufacturing
                                         sector by fuel type and NAICS
-            noncombustion_data (dict): Nested dictionary containing noncombustion
-                                       activity and emissions data
+            noncombustion_data (dict): Nested dictionary containing
+                                       noncombustion activity and
+                                       emissions data
             manufacturing (dict): Manufacturing data from energy decomposition
 
         Raises:
             ValueError: NAICS code missing from energy_data
 
         Returns:
-            manufacturing_dict (dict): Nested dictionary containing all manufacturing
-                                       combustion (with energy by fuel type) and
+            manufacturing_dict (dict): Nested dictionary containing all
+                                       manufacturing combustion
+                                       (with energy by fuel type) and
                                        noncombustion data
         """
         man = self.sub_categories_list['Industry']['Manufacturing']
@@ -354,7 +363,6 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                     energy_data[energy_data['NAICS'] == int(naics)]
 
                 if combustion_energy_data.empty:
-                    #logger.debug(f'energy_data: {energy_data}')
                     raise ValueError(f'energy_data missing naics code {naics}')
 
             combustion_energy_data = \
@@ -504,10 +512,10 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
                             energy_data[subcategory][lower]
                         mining_combustion_emissions, \
                             mining_combustion_energy = \
-                                self.calculate_emissions(
-                                                    mining_combustion_energy,
-                                                    emissions_type='CO2 Factor',
-                                                    datasource='MECS')
+                            self.calculate_emissions(
+                                mining_combustion_energy,
+                                emissions_type='CO2 Factor',
+                                datasource='MECS')
                         mining_dict[lower] = \
                             {'combustion':
                                 {'A_i_k': mining_gross_output,
@@ -612,8 +620,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
             ).main()
 
         combustion = \
-            IndustrialIndicators(directory='./EnergyIntensityIndicators/Data',
-                                 output_directory='./Results',
+            IndustrialIndicators(directory=DATADIR,
+                                 output_directory=RESULTSDIR,
                                  level_of_aggregation='Industry',
                                  lmdi_model=self.lmdi_models,
                                  end_year=self.end_year,
@@ -648,8 +656,8 @@ class IndustrialEmissions(CO2EmissionsDecomposition):
 
 
 if __name__ == '__main__':
-    directory = './EnergyIntensityIndicators/Data'
-    output_directory = './Results'
+    directory = DATADIR
+    output_directory = RESULTSDIR
 
     module_ = IndustrialEmissions
     level = 'Industry'

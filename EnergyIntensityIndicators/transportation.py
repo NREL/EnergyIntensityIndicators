@@ -1,13 +1,10 @@
 import pandas as pd
-from sklearn import linear_model
-import zipfile
-import numpy as np
 import urllib
 import os
 
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-from EnergyIntensityIndicators import EIIDIR
+from EnergyIntensityIndicators import EIIDIR, DATADIR, RESULTSDIR
 from EnergyIntensityIndicators.utilities import loggers
 
 logger = loggers.get_logger()
@@ -86,7 +83,8 @@ class TransportationIndicators(CalculateLMDI):
 
         try:
 
-            file_url = f'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table{table_number}_{self.tedb_date}.xlsx'
+            file_url = 'https://tedb.ornl.gov/wp-content/uploads/2020/04/Table'
+            file_url += f'{table_number}_{self.tedb_date}.xlsx'
             xls = pd.read_excel(file_url, skipfooter=skip_footer,
                                 skiprows=skiprows, sheet_name=sheet_name,
                                 usecols=usecols, index_col=index_col)
@@ -552,10 +550,11 @@ class TransportationIndicators(CalculateLMDI):
     #     return pct_difference
 
 if __name__ == '__main__':
-    indicators = TransportationIndicators(directory='./EnergyIntensityIndicators/Data',
-                                          output_directory='./Results',
-                                          level_of_aggregation='All_Transportation', lmdi_model=['multiplicative', 'additive'],
-                                          base_year=1985, end_year=2017) #
+    indicators = TransportationIndicators(
+        directory=DATADIR, output_directory=RESULTSDIR,
+        level_of_aggregation='All_Transportation',
+        lmdi_model=['multiplicative', 'additive'],
+        base_year=1985, end_year=2017) #
     indicators.main(breakout=False, calculate_lmdi=True)
 
 

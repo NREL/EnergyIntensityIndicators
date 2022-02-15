@@ -1,32 +1,17 @@
-
-from numpy.core.fromnumeric import mean
 import pandas as pd
 import numpy as np
 import os
 
-from EnergyIntensityIndicators import EIIDIR, DATADIR
-from EnergyIntensityIndicators.electricity import ElectricityIndicators
-from EnergyIntensityIndicators.transportation import TransportationIndicators
+from EnergyIntensityIndicators import DATADIR
 from EnergyIntensityIndicators.LMDI import CalculateLMDI
-# from EnergyIntensityIndicators.economy_wide import EconomyWide
 from EnergyIntensityIndicators.pull_eia_api import GetEIAData
 from EnergyIntensityIndicators.utilities.dataframe_utilities \
     import DFUtilities as df_utils
-from EnergyIntensityIndicators.utilities.standard_interpolation \
-    import standard_interpolation
-from EnergyIntensityIndicators.commercial \
-    import CommercialIndicators
-from EnergyIntensityIndicators.residential \
-    import ResidentialIndicators
-from EnergyIntensityIndicators.Emissions.noncombustion \
-    import NonCombustion
-from EnergyIntensityIndicators.industry \
-    import IndustrialIndicators
-from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.utilities import loggers
 
 
 logger = loggers.get_logger()
+
 
 class CO2EmissionsDecomposition(CalculateLMDI):
     """Class to decompose CO2 emissions by
@@ -172,13 +157,13 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             emissions_factors (DataFrame): EPA emissions factors data
         """
         try:
-            ef = pd.read_csv(os.path.join(DATADIR,
-                    'EPA_emissions_factors.csv'))
+            ef = pd.read_csv(
+                os.path.join(DATADIR, 'EPA_emissions_factors.csv'))
         except FileNotFoundError:
             os.chdir('..')
             logger.info(f'changed dir: {os.getcwd()}')
-            ef = pd.read_csv(os.path.join(DATADIR,
-                    'EPA_emissions_factors.csv'))
+            ef = pd.read_csv(
+                os.path.join(DATADIR, 'EPA_emissions_factors.csv'))
         df_cols = ef.columns
         dfs = []
         grouped = ef.groupby(ef['Unit Type'])
@@ -272,8 +257,10 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Petroleum Coke': 'Petroleum Coke',
                     'Wood Chips, Bark': 'Wood and Wood Residuals',
                     'Waste Oils/Tars and Waste Materials': 'Used Oil',
-                    'steam': 'Steam and Heat',  # From Table 7
-                    'Net Electricity': 'Us Average',  # From Table 6,  Total Output Emissions Factors CO2 Factor
+                    # From Table 7
+                    'steam': 'Steam and Heat',
+                    # From Table 6,  Total Output Emissions Factors CO2 Factor
+                    'Net Electricity': 'Us Average',
                     'Electricity': 'US Average',
                     'Net Electricity(b)': 'US Average',
                     'Residual': 'Residual Fuel Oil',
@@ -294,7 +281,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'LPG': 'Liquefied Petroleum Gases (LPG)',
                     'Diesel': 'Diesel Fuel',
                     'LP Gas': 'Liquefied Petroleum Gases (LPG)',
-                    'HGL (excluding natural gasoline)(e)': 'Liquefied Petroleum Gases (LPG)',
+                    'HGL (excluding natural gasoline)(e)':
+                    'Liquefied Petroleum Gases (LPG)',
                     'Gasoline': 'Motor Gasoline',
                     'Gas': 'Natural Gas'}
 
@@ -329,8 +317,11 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
         elec_data = elec_data.drop(intersect, axis=1)
         rename_dict.update(rename_dict2)
-        others = {'Electricity Net Generation From Wood, Electric Power Sector, Annual, Million Kilowatthours': 'Wood',
-                  'Electricity Net Generation From Waste, Electric Power Sector, Annual, Million Kilowatthours': 'Waste'}
+        others = {
+            'Electricity Net Generation From Wood, Electric Power Sector, \
+            Annual, Million Kilowatthours': 'Wood',
+            'Electricity Net Generation From Waste, Electric Power Sector, \
+                Annual, Million Kilowatthours': 'Waste'}
         rename_dict.update(others)
         elec_data = elec_data.rename(columns=rename_dict)
         mapping_ = {'Coal': 'Mixed (Electric Power Sector)',
@@ -341,7 +332,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
                     'Wood': 'Wood and Wood Residuals',
                     'hydroelectric': 'Hydroelectric',
                     'Other': 'US Average',
-                    'Other Petroleum Liquids': 'Liquefied Petroleum Gases (LPG)'}  # might be wrong
+                    'Other Petroleum Liquids':
+                    'Liquefied Petroleum Gases (LPG)'}  # might be wrong
         elec_data = elec_data.rename(columns=mapping_)
         elec_data = elec_data.drop('Total Petroleum', axis=1, errors='ignore')
         return elec_data
@@ -368,39 +360,41 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         if len(unit_coversion) > 0:
             tedb_data = tedb_data.assign(**unit_coversion).mul(tedb_data)
 
-        if 'Domestic Operations ' and 'International Operations ' in tedb_data.columns:
+        if 'Domestic Operations ' and 'International Operations ' \
+                in tedb_data.columns:
             tedb_data['Air'] = \
                 tedb_data[['Domestic Operations ',
                            'International Operations ']].sum(axis=1)
             tedb_data = tedb_data[['Air']]
 
+        #  ef is in gallons
         mapping = {
-            'Gasoline': 'Motor Gasoline',  # ef is in gallon
-            'Gasoline (million gallons)': 'Motor Gasoline',  # ef is in gallon
-            'Gasohol': 'Gasohol',  # ef is in gallon
-            'Diesel (million gallons)': 'Diesel Fuel', # ef is in gallon
-            'Diesel': 'Diesel Fuel', # ef is in gallon
-            'CNG': 'Compressed Natural Gas (CNG)', # ef is in scf
-            'LNG': 'Liquefied Natural Gas (LNG)', # ef is in gallons
-            'Bio Diesel ': 'Biodiesel (100%)', # ef is in gallons
-            'Diesel Fuel & Distillate (1,000 bbl)': # ef is in gallon (42 gallons in a barrel)
+            'Gasoline': 'Motor Gasoline',
+            'Gasoline (million gallons)': 'Motor Gasoline',
+            'Gasohol': 'Gasohol',
+            'Diesel (million gallons)': 'Diesel Fuel',
+            'Diesel': 'Diesel Fuel',
+            'CNG': 'Compressed Natural Gas (CNG)',
+            'LNG': 'Liquefied Natural Gas (LNG)',
+            'Bio Diesel ': 'Biodiesel (100%)',
+            'Diesel Fuel & Distillate (1,000 bbl)':
                 'Diesel Fuel',
-            'Residual Fuel Oil (1,000 bbl)': 'Residual Fuel Oil',  # ef is in gallon (42 gallons in a barrel)
-            'Jet fuel (million gallons)': 'Aviation Gasoline',  # ef is per gallon
-            'Electricity (GWhrs)': 'US Average', # ef is kg/MWh
-            'Distillate Fuel Oil': 'Diesel Fuel',  # ef is per gallon
-            'Natural Gas (million cu. ft.)': 'Natural Gas',  # ef is per scf
-            'Electricity (million kWh)': 'US Average', # ef is kg/MWh
-            'Diesel fuel': 'Diesel Fuel',  # ef is per gallon
+            'Residual Fuel Oil (1,000 bbl)': 'Residual Fuel Oil',
+            'Jet fuel (million gallons)': 'Aviation Gasoline',
+            'Electricity (GWhrs)': 'US Average',
+            'Distillate Fuel Oil': 'Diesel Fuel',
+            'Natural Gas (million cu. ft.)': 'Natural Gas',
+            'Electricity (million kWh)': 'US Average',
+            'Diesel fuel': 'Diesel Fuel',
             'Liquefied petroleum gas':
-                'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
-            'LPG': 'Liquefied Petroleum Gases (LPG)',  # ef is per gallon
-            'Air': 'Aviation Gasoline',  # ef is per gallon
-            'Jet fuel': 'Aviation Gasoline',  # ef is per gallon
-            'Residual fuel oil': 'Residual Fuel Oil',  # ef is per gallon
-            'Natural gas': 'Natural Gas',  # ef is per scf
-            'Electricity': 'US Average',  # ef is kg/MWh
-            'Intercity': 'Diesel Fuel'  # ef is in gallon
+                'Liquefied Petroleum Gases (LPG)',
+            'LPG': 'Liquefied Petroleum Gases (LPG)',
+            'Air': 'Aviation Gasoline',
+            'Jet fuel': 'Aviation Gasoline',
+            'Residual fuel oil': 'Residual Fuel Oil',
+            'Natural gas': 'Natural Gas',
+            'Electricity': 'US Average',
+            'Intercity': 'Diesel Fuel'
             }
 
         tedb_data_ = tedb_data.rename(columns=mapping)
@@ -480,18 +474,18 @@ class CO2EmissionsDecomposition(CalculateLMDI):
 
         # Also need to convert TEDB fuel (in gal or ft3) to MMBtu
         mapping_heat = {
-            'Motor Gasoline': 125000,  # ef is in gallon
-            'Gasohol': 120900,  # ef is in gallon
-            'Diesel Fuel': 138700,  # ef is in gallon
-            'Compressed Natural Gas (CNG)': 129400,  # ef is in scf
-            'Liquefied Natural Gas (LNG)': 84800,  # ef is in gallons
+            'Motor Gasoline': 125000,
+            'Gasohol': 120900,
+            'Diesel Fuel': 138700,
+            'Compressed Natural Gas (CNG)': 129400,
+            'Liquefied Natural Gas (LNG)': 84800,
             'Liquefied Petroleum Gases (LPG)': 91300,
-            'Biodiesel (100%)': 128520,  # ef is in gallons
-            'Residual Fuel Oil': 149700,  # ef is in gallon (42 gallons in a barrel)
-            'Aviation Gasoline': 120900,  # ef is per gallon
-            'US Average': 10339,  # ef is kg/MWh; Btu/kWh
-            'Natural Gas': 1031,  # ef is per scf
-            'Diesel Fuel': 138700,  # ef is per gallon
+            'Biodiesel (100%)': 128520,
+            'Residual Fuel Oil': 149700,
+            'Aviation Gasoline': 120900,
+            'US Average': 10339,
+            'Natural Gas': 1031,
+            'Diesel Fuel': 138700,
             }
 
         energy_data = energy_data.drop('region', axis=1, errors='ignore')
@@ -509,7 +503,7 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         energy_data = energy_data.drop('Total', axis=1,
                                        errors='ignore')
 
-        ## TEMPORARY!! (need to add these factors to csv)
+        #  TEMPORARY!! (need to add these factors to csv)
         energy_data = energy_data.drop(['Other'], axis=1,
                                        errors='ignore')
 
@@ -525,7 +519,8 @@ class CO2EmissionsDecomposition(CalculateLMDI):
             for t in energy_data.columns.tolist():
                 if t not in emissions_factors.columns.tolist():
                     logger.error(f'{t} not in list')
-            logger.error(f'emissions_factors columns: {emissions_factors.index}')
+            logger.error(
+                f'emissions_factors columns: {emissions_factors.index}')
             raise KeyError('Emissions data does not contain ' +
                            'all energy sources')
 
@@ -571,9 +566,21 @@ class CO2EmissionsDecomposition(CalculateLMDI):
         return emissions_data, energy_data
 
     def calc_lmdi(self, breakout, calculate_lmdi, data_dict):
-        """Calculate decomposition of CO2 emissions for the U.S. economy
+        """Calculate LMDI from data in data_dict
 
-        TODO: Could simply call lmdi_gen main with a few slight adjustments
+        Parameters
+        ----------
+        breakout : bool
+            Whether to breakout or not (don't know what this means - bnb)
+        calculate_lmdi : bool
+            Whether to calculate lmdi
+        data_dict : dict
+            Nested dictionary of data from which to calculate LMDI
+
+        Returns
+        -------
+        results_dict : dict
+            Dictionary of LMDI calculation results
         """
         results_dict, formatted_results = \
             self.get_nested_lmdi(
@@ -610,15 +617,15 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
         """
         logger.info(f'os.getcwd(): {os.getcwd()}')
         try:
-            cw = pd.read_csv(os.path.join(DATADIR,
-                    'state_to_census_region.csv'))
-            state_abbrevs = pd.read_csv(os.path.join(DATADIR,
-                    'name-abbr.csv'))
+            cw = pd.read_csv(
+                os.path.join(DATADIR, 'state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(
+                os.path.join(DATADIR, 'name-abbr.csv'))
         except FileNotFoundError:
-            cw = pd.read_csv(os.path.join(DATADIR,
-                    'state_to_census_region.csv'))
-            state_abbrevs = pd.read_csv(os.path.join(DATADIR,
-                    'name-abbr.csv'))
+            cw = pd.read_csv(
+                os.path.join(DATADIR, 'state_to_census_region.csv'))
+            state_abbrevs = pd.read_csv(
+                os.path.join(DATADIR, 'name-abbr.csv'))
         cw = cw.merge(state_abbrevs, left_on='USPC',
                       right_on='Abbrev', how='left')
         return cw
@@ -647,12 +654,6 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
 
         mapping_ = {'Coal': 'Mixed (Commercial Sector)',
                     'Distillate Fuel Oil': 'Distillate Fuel Oil',
-                    # 'Distillate Fuel Oil': ['Distillate Fuel Oil No. 1',
-                    #                         'Distillate Fuel Oil No. 2',
-                    #                         'Distillate Fuel Oil No. 4'],  # take average
-                    # 'Fuel Ethanol including Denaturant':
-                    #     'Ethanol (100%)',
-                    # 'Fuel Ethanol excluding Denaturant': 'Ethanol (100%)',
                     'Ethanol (100%)': 'Ethanol (100%)',
                     'Hydrocarbon gas liquids':
                         'Liquefied Petroleum Gases (LPG)',
@@ -665,8 +666,6 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                     'Petroleum Coke':
                         'Petroleum Coke',
                     'Propane': 'Propane',
-                    # 'Residual Fuel Oil': ['Residual Fuel Oil No. 5',
-                    #                       'Residual Fuel Oil No. 6'],  # take average
                     'Residual Fuel Oil': 'Residual Fuel Oil',
                     'Waste': 'Municipal Solid Waste',
                     'Wood': 'Wood and Wood Residuals'}
@@ -756,7 +755,8 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                         'Residual Fuel Oil',
                         'Solar Energy',
                         'Total (per Capita)',
-                        'Total Energy excluding Electrical System Energy Losses',
+                        'Total Energy excluding Electrical \
+                            System Energy Losses',
                         'Waste',
                         'Wind Energy',
                         'Wood',
@@ -773,7 +773,8 @@ class SEDSEmissionsData(CO2EmissionsDecomposition):
                         'Propane',
                         'Solar Energy',
                         'Total (per Capita)',
-                        'Total Energy excluding Electrical System Energy Losses',
+                        'Total Energy excluding Electrical \
+                            System Energy Losses',
                         'Wood']}
         fuels_data = []
         for f in fuels[sector]:

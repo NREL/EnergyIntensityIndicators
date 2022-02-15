@@ -1,24 +1,17 @@
 
+import argparse
+from nbformat import convert
 import pandas as pd
 import numpy as np
 import os
-import sys
 import pickle
 
 from EnergyIntensityIndicators import (DATADIR, EIIDIR,
                                        RESULTSDIR)
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.transportation import SUB_CATEGORIES
-from EnergyIntensityIndicators.LMDI import CalculateLMDI
-# from EnergyIntensityIndicators.economy_wide import EconomyWide
-from EnergyIntensityIndicators.pull_eia_api import GetEIAData
-from EnergyIntensityIndicators.utilities.dataframe_utilities \
-    import DFUtilities as df_utils
-from EnergyIntensityIndicators.utilities.standard_interpolation \
-    import standard_interpolation
-from EnergyIntensityIndicators.lmdi_gen import GeneralLMDI
 from EnergyIntensityIndicators.Emissions.co2_emissions \
-    import SEDSEmissionsData, CO2EmissionsDecomposition
+    import CO2EmissionsDecomposition
 from EnergyIntensityIndicators.utilities import loggers
 
 
@@ -27,7 +20,8 @@ logger = loggers.get_logger()
 
 class TransportationEmssions(CO2EmissionsDecomposition):
     def __init__(self, directory, output_directory, level_of_aggregation):
-        config_path = os.path.join(DATADIR, 'yamls/transportation_emissions.yaml')
+        config_path = os.path.join(
+            DATADIR, 'yamls/transportation_emissions.yaml')
 
         self.sub_categories_list = SUB_CATEGORIES
 
@@ -122,8 +116,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                     (fuel['Mode'] != 'Not Used')]
         fuel = self.rename_modes(fuel, tedb=False)
 
-        transport_fuel = fuel.copy()  # pd.concat([fuel, tedb_fuel], axis=0)
-        # transport_fuel = transport_fuel.replace('Passenger Car ', 'Passenger Car')
+        transport_fuel = fuel.copy()
         transport_fuel['Mode'] = transport_fuel['Mode'].str.strip()
 
         return transport_fuel
@@ -166,7 +159,7 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             #     'Freight (Class I)': 'Rail',
             #     'Passenger': ,
             #     'Commuter': 'Commuter Rail',
-                # 'Intercityf': 'Intercity Rail'}
+            #     'Intercityf': 'Intercity Rail'}
             raise ValueError('Missing TEDB mapping')
         else:
             rename_dict = {
@@ -175,8 +168,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                 'Motorcycles': 'Motorcycles',
                 'Light Trucks': 'Light Trucks',
                 'Long Wheelbase Vehicles': 'LWB Vehicles',
-                'Other Single-Unit Truck, Adjusted (see columns BR-BU)': 'Single-Unit Truck',
-                'Combination Truck, Adjusted (See column BV-BY)': 'Combination Truck',
+                'Other Single-Unit Truck, \
+                    Adjusted (see columns BR-BU)': 'Single-Unit Truck',
+                'Combination Truck, \
+                    Adjusted (See column BV-BY)': 'Combination Truck',
                 'Bus - Urban': 'Urban Bus',
                 'Paratransit (demand response, "dial-a-ride")': 'Paratransit',
                 'Bus - School': 'School Bus',
@@ -218,10 +213,10 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
         all_data_dict = dict()
 
-        for cargo, cargo_data in self.sub_categories_list[sector_].items():  # Passenger/Freight
+        for cargo, cargo_data in self.sub_categories_list[sector_].items():
             cargo_dict = dict()
 
-            for category, category_data in cargo_data.items():  # Highway/Rail/etc.
+            for category, category_data in cargo_data.items():
                 category_dict = dict()
                 if category_data is None:
 
@@ -246,14 +241,15 @@ class TransportationEmssions(CO2EmissionsDecomposition):
 
                 elif isinstance(category_data, dict):
 
-                    for mode_group, mode_group_data in category_data.items(): # 'Passenger Cars and Trucks'/Urban Rail etc
+                    for mode_group, mode_group_data in category_data.items():
 
                         mode_group_all_dict = dict()
 
                         if mode_group_data is None:
 
                             mode_group_data_ = \
-                                all_data[cargo][category][mode_group]['activity']
+                                all_data[cargo][
+                                    category][mode_group]['activity']
 
                             data = \
                                 self.wrap_data(
@@ -263,12 +259,13 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                             category_dict[mode_group] = data
 
                         elif isinstance(mode_group_data, dict):
-                            for mode, mode_data in mode_group_data.items(): #'Passenger Car – SWB Vehicles', 'Motorcycles'
+                            for mode, mode_data in mode_group_data.items():
                                 mode_dict = dict()
                                 if mode_data is None:
 
                                     mode_data_ = \
-                                        all_data[cargo][category][mode_group][mode]['activity']
+                                        all_data[cargo][category][
+                                            mode_group][mode]['activity']
 
                                     data = \
                                         self.wrap_data(
@@ -278,11 +275,14 @@ class TransportationEmssions(CO2EmissionsDecomposition):
                                     mode_group_all_dict[mode] = data
 
                                 elif isinstance(mode_data, dict):
-                                    for sub_mode, sub_mode_d in mode_data.items():  # Passenger Car, SWB Vehicle, etc.
+                                    for sub_mode, sub_mode_d in \
+                                            mode_data.items():
                                         if sub_mode_d is None:
 
                                             sub_mode_data = \
-                                                all_data[cargo][category][mode_group][mode][sub_mode]['activity']
+                                                all_data[cargo][category][
+                                                    mode_group][mode][
+                                                        sub_mode]['activity']
                                             data = \
                                                 self.wrap_data(
                                                     energy_data, sub_mode_data,
@@ -322,8 +322,6 @@ class TransportationEmssions(CO2EmissionsDecomposition):
             energy_data[
                 (energy_data['Mode'] == mode) &
                 (energy_data['Category'] == category)]
-
-        #logger.debug(f'energy_data: {energy_data}')
 
         # bnb changed pivot->pivot_table, added aggfunc argument?
         energy = \
@@ -377,32 +375,41 @@ if __name__ == '__main__':
     module_ = TransportationEmssions
     level = 'All_Transportation'
 
-    data_file = os.path.join(DATADIR, 's.pickle')
-    if os.path.exists(data_file):
-        with open(data_file, 'rb') as handle:
-            s = pickle.load(handle)
-    else:
+    parser = argparse.ArgumentParser(
+        description='Calculate transportation emissions')
+    parser.add_argument('--load_data', action='store_true', default=False,
+                        help='Load data from file instead of downloading')
+    args = parser.parse_args()
 
+    s_file = os.path.join(DATADIR, 's.pickle')
+    s_data_file = os.path.join(DATADIR, 's_data.pickle')
+
+    if args.load_data:
+        if os.path.exists(s_file):
+            with open(s_file, 'rb') as handle:
+                s = pickle.load(handle)
+        else:
+            s = module_(directory, output_directory,
+                        level_of_aggregation=level)
+
+        if os.path.exists(s_data_file):
+            with open(s_data_file, 'rb') as handle:
+                s_data = pickle.load(handle)
+        else:
+            s_data = s.main()
+
+    else:
         s = module_(directory, output_directory,
                     level_of_aggregation=level)
-
-        with open(data_file, 'wb') as handle:
-            pickle.dump(s, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    data_file = os.path.join(DATADIR, 's_data.pickle')
-    if os.path.exists(data_file):
-        with open(data_file, 'rb') as handle:
-            s_data = pickle.load(handle)
-    else:
-
         s_data = s.main()
 
-        with open(data_file, 'wb') as handle:
-            pickle.dump(s_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    #logger.debug(f'transportation s_data:\n{s_data}')
+    with open(s_file, 'wb') as handle:
+        logger.info(f'Saving {s_file}')
+        pickle.dump(s, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(s_data_file, 'wb') as handle:
+        logger.info(f'Saving {s_data_file}')
+        pickle.dump(s_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     results = s.calc_lmdi(breakout=True,
                           calculate_lmdi=True,
                           data_dict=s_data)
-
-    #logger.info(f'transportation results:\n{results}')
