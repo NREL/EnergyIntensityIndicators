@@ -1,22 +1,16 @@
 """Overview, summary of work from pnnl, highlight results with multiplicative and additive figures, """
 
 import pytest
-import unittest
 import pandas as pd
 import os
-import glob
 import numpy as np
 
-from EnergyIntensityIndicators.LMDI import CalculateLMDI
 from EnergyIntensityIndicators.commercial import CommercialIndicators
 from EnergyIntensityIndicators.residential import ResidentialIndicators
 from EnergyIntensityIndicators.transportation import TransportationIndicators
 from EnergyIntensityIndicators.industry import IndustrialIndicators
 from EnergyIntensityIndicators.electricity import ElectricityIndicators
 from EnergyIntensityIndicators.multiplicative_lmdi import MultiplicativeLMDI
-from EnergyIntensityIndicators.additive_lmdi import AdditiveLMDI
-# from EnergyIntensityIndicators.utilities.dataframe_utilities \
-#     import DFUtilities as df_utils
 from EnergyIntensityIndicators.utilities.testing_utilties \
     import TestingUtilities
 from EnergyIntensityIndicators.utilities import lmdi_utilities
